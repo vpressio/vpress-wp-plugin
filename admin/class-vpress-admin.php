@@ -125,8 +125,8 @@ class Vpress_Admin {
 		if ( $this->is_develop_serve() ) {
 				wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
 		} else {
-				wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'dist/js/chunk-vendors.js', [], $this->version, false );
-				wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'dist/js/app.js', [], $this->version, false );
+				wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'dis	t/js/chunk-vendors.js', [], $this->version, false );
+				wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'dist/js/app.js', array( 'wp-api' ), $this->version, false );
 		}
 	}
 
