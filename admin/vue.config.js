@@ -21,9 +21,9 @@ module.exports = {
     },
   },
   css: {
-    extract: {
+    extract: process.env.NODE_ENV === 'production' ? {
       filename: 'css/[name].css',
       chunkFilename: 'css/[name].css',
-    },
+    } : false,
   },
 };
