@@ -88,8 +88,8 @@ class Vpress_Admin {
 	 */
 	public function admin_menu_vpress() {
 		add_menu_page(
-				'Kellogg',
-				'Kellogg',
+				'Vpress',
+				'Vpress',
 				'manage_options',
 				'vpress',
 				array( $this, 'vpress_html' ),
