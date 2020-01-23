@@ -19,6 +19,9 @@ module.exports = {
       filename: 'js/[name].js',
       chunkFilename: 'js/[name].js',
     },
+    resolve: {
+      symlinks: false,
+    },
   },
   css: {
     extract: process.env.NODE_ENV === 'production' ? {

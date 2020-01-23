@@ -1,15 +1,15 @@
 <template>
-  <HelloWorld />
+  <VpressConfig/>
 </template>
 
 <script>
-import HelloWorld from '../components/HelloWorld';
+import VpressConfig from '../components/vpress-config.vue';
 
 export default {
   name: 'Home',
 
   components: {
-    HelloWorld,
+    VpressConfig,
   },
 };
 </script>
