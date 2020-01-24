@@ -7,12 +7,14 @@
       versión demo
     </h1>
     <v-container class="config" fluid>
-      <v-card class="graph-tools" flat color="#222A32" dark>
-        _____
+      <v-card class="graph-tools" flat color="#222A32" width="50"  dark>
+        <v-card class="pa-2" height="48" color="#181D25" flat>
+          <v-img src="../assets/images/logo.svg"></v-img>
+        </v-card>
       </v-card>
-      <v-card class="graph-sidebar">
-        <v-card class="padding-none graph-options graph-options-header">
-          <v-tabs v-model="tab" background-color="#382E82" color="white" dark>
+      <v-card class="graph-sidebar" flat color="transparent">
+        <v-card class="padding-none graph-options border-radius-none">
+          <v-tabs class="config-tabs" v-model="tab" background-color="#382E82" color="white" dark>
             <v-tab>
               DATOS
             </v-tab>
@@ -25,27 +27,31 @@
           </v-tabs>
           <v-tabs-items v-model="tab">
             <v-tab-item>
-              <v-card class="graph-options-header" outlined>
+              <v-card class="border-radius-none" outlined>
                 <v-card-title>
                   Módulo de carga
                 </v-card-title>
               </v-card>
             </v-tab-item>
             <v-tab-item>
-              <v-card class="graph-options-header" flat>
-                <v-card class="graph-options-header" flat dark color="#7972AC">
-                  <v-card-title>
-                    Arrastra la selección
-                  </v-card-title>
-                </v-card>
-                <v-card-text>
-                  Arratra la selección
-                </v-card-text>
+              <v-card class="border-radius-none" flat>
+                <v-expansion-panels  multiple flat tile hover dark>
+                  <v-expansion-panel>
+                    <v-expansion-panel-header class="config-control-header" style="background-color:#7972AC">
+                      ARRASTRA LA SELECCIÓN
+                    </v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                      <v-card light>
+                        Perros
+                      </v-card>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                </v-expansion-panels>
               </v-card>
             </v-tab-item>
             <v-tab-item>
               <v-card flat>
-                <v-card class="graph-options-header" flat dark color="#7972AC">
+                <v-card class="border-radius-none" flat dark color="#7972AC">
                   <v-card-title>
                     Título
                   </v-card-title>
@@ -81,13 +87,18 @@
             </v-tab-item>
           </v-tabs-items>
         </v-card>
-        <v-card class="padding-y-none flex-end graph-display" flat color="transparent">
-          <v-btn class="save-button" outlined>
-            Guardar
-          </v-btn>
-          <v-btn class="download-button" outlined>
-            Descargar
-          </v-btn>
+        <v-card class="padding-y-none graph-display" flat color="transparent">
+          <v-card class="flex-end" flat color="transparent">
+            <v-btn class="save-button" outlined>
+              Guardar
+            </v-btn>
+            <v-btn class="download-button" outlined>
+              Descargar
+            </v-btn>
+          </v-card>
+          <v-card class="graph"> 
+            Gráficas
+          </v-card>
         </v-card>
       </v-card>
     </v-container>
@@ -133,16 +144,13 @@ export default {
 }
 
 .graph-tools{
-  padding: 0 5px;
-  background-color: #242C35;
-  display:flex;
   border-radius:0px !important;
 }
 .config{
   display: flex;
 }
 
-.graph-options-header{
+.border-radius-none{
   border-radius: 0px !important;
 }
 
@@ -158,4 +166,18 @@ export default {
   width: inherit
 }
 
+.graph {
+  margin: 12px 0 0 12px;
+  min-height: 350px
+}
+
+.config-tabs{
+  /* min-height: 50px */
+}
+
+.config-control-header{
+  color:#FFFF !important;
+  font-weight: 500;
+  font-size:  1.1rem !important;
+}
 </style>
