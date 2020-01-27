@@ -36,13 +36,13 @@
             <v-tab-item>
               <v-card class="border-radius-none" flat>
                 <v-expansion-panels  multiple flat tile hover dark>
-                  <v-expansion-panel>
-                    <v-expansion-panel-header class="config-control-header" style="background-color:#7972AC">
+                  <v-expansion-panel class="config-panels">
+                    <v-expansion-panel-header style="background-color:#7972AC">
                       ARRASTRA LA SELECCIÓN
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
-                      <v-card light>
-                        Perros
+                      <v-card class="border-radius-none" flat light>
+                        config-panelss
                       </v-card>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
@@ -50,39 +50,45 @@
               </v-card>
             </v-tab-item>
             <v-tab-item>
-              <v-card flat>
-                <v-card class="border-radius-none" flat dark color="#7972AC">
-                  <v-card-title>
-                    Título
-                  </v-card-title>
-                </v-card>
-                <v-row>
-                  <v-col>
-                    Título
-                  </v-col>
-                  <v-col>
-                    <v-switch >
-                    </v-switch>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col>
-                    Título
-                  </v-col>
-                  <v-col>
-                    <v-switch >
-                    </v-switch>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col>
-                    Título
-                  </v-col>
-                  <v-col>
-                    <v-switch >
-                    </v-switch>
-                  </v-col>
-                </v-row>
+              <v-card class="border-radius-none" flat dark color="#7972AC">
+                <v-expansion-panels  multiple flat tile hover dark>
+                  <v-expansion-panel class="config-panels">
+                    <v-expansion-panel-header style="background-color:#7972AC">
+                      TÍTULO
+                    </v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                      <v-card class="border-radius-none" flat light>
+                        <v-row>
+                          <v-col>
+                            Título
+                          </v-col>
+                          <v-col>
+                            <v-switch >
+                            </v-switch>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col>
+                            Título
+                          </v-col>
+                          <v-col>
+                            <v-switch >
+                            </v-switch>
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col>
+                            Título
+                          </v-col>
+                          <v-col>
+                            <v-switch >
+                            </v-switch>
+                          </v-col>
+                        </v-row>
+                      </v-card>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                </v-expansion-panels>
               </v-card>
             </v-tab-item>
           </v-tabs-items>
@@ -171,13 +177,17 @@ export default {
   min-height: 350px
 }
 
-.config-tabs{
-  /* min-height: 50px */
-}
-
-.config-control-header{
+.config-panels > .v-expansion-panel-header {
+  min-height: 0% !important;
+  padding: 14px 24px;
   color:#FFFF !important;
   font-weight: 500;
   font-size:  1.1rem !important;
+  border-top-left-radius: 0%; 
+  border-top-right-radius: 0%;
+}
+
+.config-panels > .v-expansion-panel-content > .v-expansion-panel-content__wrap {
+  padding: 0;
 }
 </style>
