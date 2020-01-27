@@ -190,4 +190,8 @@ export default {
 .config-panels > .v-expansion-panel-content > .v-expansion-panel-content__wrap {
   padding: 0;
 }
+
+.config-panels {
+  margin: 0% !important;
+}
 </style>
