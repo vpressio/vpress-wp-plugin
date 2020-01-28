@@ -42,7 +42,26 @@
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                       <v-card class="border-radius-none" flat light>
-                        config-panelss
+                        <v-card-text>
+                          ARRASTRA LA SELECCIÓN
+                        </v-card-text>
+                        <vpressVariableCard>
+                          Propósito del viaje
+                        </vpressVariableCard>
+                        <v-divider/>
+                        <v-row>
+                          <v-col>
+                            <VpressDimensionCard id="dimension_1">
+                              <vpressVariableCard id="card-1" draggable="true">
+                                Propósito del viaje
+                              </vpressVariableCard>
+                            </VpressDimensionCard>
+                          </v-col>
+                          <v-col>
+                            <VpressDimensionCard id="dimension_2">
+                            </VpressDimensionCard>
+                          </v-col>
+                        </v-row>
                       </v-card>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
@@ -111,8 +130,15 @@
   </v-responsive>
 </template>
 <script>
+import vpressVariableCard from './vpress-config-variable-card.vue';
+import VpressDimensionCard from './vpress-config-dimension-card';
+
 export default {
   name: 'VpressConfig',
+  components:{
+    vpressVariableCard,
+    VpressDimensionCard
+  },
   data() {
     return {
       tab: null,
