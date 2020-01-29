@@ -17,25 +17,25 @@
 </template>
 <script>
 export default {
-  name:'VpressDimensionCard',
-  props:['id'],
-  data(){
+  name: 'VpressDimensionCard',
+  props: ['id'],
+  data() {
     return {
 
-    }
+    };
   },
-  methods:{
-    drop: e => {
-      const card_id = e.dataTransfer.getData('card_id');
-      
-      const card = document.getElementById(card_id);
+  methods: {
+    drop: (e) => {
+      const cardId = e.dataTransfer.getData('cardId');
 
-      card.style.display ="block";
+      const card = document.getElementById(cardId);
+
+      card.style.display = 'block';
 
       e.target.appendChild(card);
-    }
-  }
-}
+    },
+  },
+};
 </script>
 <style>
 

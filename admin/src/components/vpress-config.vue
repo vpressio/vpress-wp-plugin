@@ -35,79 +35,57 @@
             </v-tab-item>
             <v-tab-item>
               <v-card class="border-radius-none" flat>
-                <v-expansion-panels  multiple flat tile hover dark>
-                  <v-expansion-panel class="config-panels">
-                    <v-expansion-panel-header style="background-color:#7972AC">
-                      ARRASTRA LA SELECCIÓN
-                    </v-expansion-panel-header>
-                    <v-expansion-panel-content>
-                      <v-card class="border-radius-none" flat light>
-                        <v-card-text>
-                          ARRASTRA LA SELECCIÓN
-                        </v-card-text>
-                        <vpressVariableCard>
+                <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                  <v-card-text>
+                    ARRASTRA LA SELECCIÓN
+                  </v-card-text>
+                  <VpressVariableCard>
+                    Propósito del viaje
+                  </VpressVariableCard>
+                  <v-divider/>
+                  <v-row>
+                    <v-col>
+                      <VpressDimensionCard id="dimension_1">
+                        <VpressVariableCard id="card-1" draggable="true">
                           Propósito del viaje
-                        </vpressVariableCard>
-                        <v-divider/>
-                        <v-row>
-                          <v-col>
-                            <VpressDimensionCard id="dimension_1">
-                              <vpressVariableCard id="card-1" draggable="true">
-                                Propósito del viaje
-                              </vpressVariableCard>
-                            </VpressDimensionCard>
-                          </v-col>
-                          <v-col>
-                            <VpressDimensionCard id="dimension_2">
-                            </VpressDimensionCard>
-                          </v-col>
-                        </v-row>
-                      </v-card>
-                    </v-expansion-panel-content>
-                  </v-expansion-panel>
-                </v-expansion-panels>
+                        </VpressVariableCard>
+                      </VpressDimensionCard>
+                    </v-col>
+                  </v-row>
+                </VpressExpansionPanel>
               </v-card>
             </v-tab-item>
             <v-tab-item>
               <v-card class="border-radius-none" flat dark color="#7972AC">
-                <v-expansion-panels  multiple flat tile hover dark>
-                  <v-expansion-panel class="config-panels">
-                    <v-expansion-panel-header style="background-color:#7972AC">
-                      TÍTULO
-                    </v-expansion-panel-header>
-                    <v-expansion-panel-content>
-                      <v-card class="border-radius-none" flat light>
-                        <v-row>
-                          <v-col>
-                            Título
-                          </v-col>
-                          <v-col>
-                            <v-switch >
-                            </v-switch>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col>
-                            Título
-                          </v-col>
-                          <v-col>
-                            <v-switch >
-                            </v-switch>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col>
-                            Título
-                          </v-col>
-                          <v-col>
-                            <v-switch >
-                            </v-switch>
-                          </v-col>
-                        </v-row>
-                      </v-card>
-                    </v-expansion-panel-content>
-                  </v-expansion-panel>
-                </v-expansion-panels>
+                <VpressExpansionPanel panelTitle="Tìtulo">
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                </VpressExpansionPanel>
               </v-card>
             </v-tab-item>
           </v-tabs-items>
@@ -121,7 +99,7 @@
               Descargar
             </v-btn>
           </v-card>
-          <v-card class="graph"> 
+          <v-card class="graph">
             Gráficas
           </v-card>
         </v-card>
@@ -130,14 +108,16 @@
   </v-responsive>
 </template>
 <script>
-import vpressVariableCard from './vpress-config-variable-card.vue';
-import VpressDimensionCard from './vpress-config-dimension-card';
+import VpressVariableCard from './vpress-variable-card.vue';
+import VpressDimensionCard from './vpress-dimension-card.vue';
+import VpressExpansionPanel from './vpress-expansionPanel.vue';
 
 export default {
   name: 'VpressConfig',
-  components:{
-    vpressVariableCard,
-    VpressDimensionCard
+  components: {
+    VpressVariableCard,
+    VpressDimensionCard,
+    VpressExpansionPanel,
   },
   data() {
     return {
@@ -200,24 +180,30 @@ export default {
 
 .graph {
   margin: 12px 0 0 12px;
-  min-height: 350px
 }
 
-.config-panels > .v-expansion-panel-header {
-  min-height: 0% !important;
-  padding: 14px 24px;
-  color:#FFFF !important;
-  font-weight: 500;
-  font-size:  1.1rem !important;
-  border-top-left-radius: 0%; 
-  border-top-right-radius: 0%;
+.config-tabs
+  > .v-slide-group
+    > .v-slide-group__wrapper
+      > .v-slide-group__content {
+  /* border: red solid 0.5px !important; */
+  margin-top: 5px;
 }
 
-.config-panels > .v-expansion-panel-content > .v-expansion-panel-content__wrap {
-  padding: 0;
+.config-tabs
+  > .v-slide-group
+    > .v-slide-group__wrapper
+      > .v-slide-group__content
+        > .v-tab--active {
+  background-color: #7972AC
 }
 
-.config-panels {
-  margin: 0% !important;
+.config-tabs
+  > .v-slide-group
+    > .v-slide-group__wrapper
+      > .v-slide-group__content
+        > .v-tabs-slider-wrapper
+          > .v-tabs-slider {
+  display: none
 }
 </style>
