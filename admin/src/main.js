@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import Vuex from 'vuex';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Vpress from 'vpress-vue';
 import App from './App.vue';
@@ -9,6 +10,7 @@ import vuetify from './plugins/vuetify';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'vpress-vue/dist/css/main.css';
 
+Vue.use(Vuex);
 Vue.use(Vpress);
 
 Vue.config.productionTip = false;
