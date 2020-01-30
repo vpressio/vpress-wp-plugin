@@ -56,17 +56,30 @@
                   <v-card-text>
                     ARRASTRA LA SELECCIÓN
                   </v-card-text>
-                  <VpressVariableCard>
-                    Propósito del viaje
-                  </VpressVariableCard>
+                  <v-card id="card_slot_start">
+                    <VpressVariableCard id="card-1" draggable="true">
+                            Propósito del viaje
+                    </VpressVariableCard>
+                    <VpressVariableCard id="card-2" draggable="true">
+                            Carros
+                    </VpressVariableCard>
+                    <VpressVariableCard id="card-3" draggable="true">
+                            Cilindros
+                    </VpressVariableCard>
+                  </v-card>
                   <v-divider/>
                   <v-row>
-                    <v-col>
-                      <VpressDimensionCard id="dimension_1">
-                        <VpressVariableCard id="card-1" draggable="true">
-                          Propósito del viaje
-                        </VpressVariableCard>
-                      </VpressDimensionCard>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_1"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
                     </v-col>
                   </v-row>
                 </VpressExpansionPanel>
@@ -132,7 +145,7 @@
 <script>
 import LoadData from './LoadData.vue';
 import VpressVariableCard from './vpress-variable-card.vue';
-import VpressDimensionCard from './vpress-dimension-card.vue';
+import VpressVariableCardSlot from './vpress-variable-card-slot';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 
 export default {
@@ -140,7 +153,7 @@ export default {
   components: {
     LoadData,
     VpressVariableCard,
-    VpressDimensionCard,
+    VpressVariableCardSlot,
     VpressExpansionPanel,
   },
   data() {

@@ -3,12 +3,15 @@
     :id="id"
     :draggable="draggable"
     @dragstart="dragStart"
+    @dragend="dragEnd"
     @dragover.stop
-    class="border-radius-none my-2 mx-4"
-    color="#7972AC"
-    min-height="50"
+    class="border-radius-none my-2 mx-4 card-flex"
+    color="#9292A9"
+    max-height="50"
     dark
     shaped
+    hover
+    style="text-overflow: ellipsis;overflow: hidden; "
   >
     <v-card-text>
       <slot/>
@@ -26,14 +29,22 @@ export default {
   },
   methods: {
     dragStart: (e) => {
-      const { target } = e;
+      const { target, dataTransfer } = e;
+      dataTransfer.setData('cardId', target.id);
 
-      e.dataTransfer.setData('cardId', target.id);
-
-      setTimeout(() => {
-        target.style.display = 'none';
-      }, 0);
+      // setTimeout(() => {
+      //   targetClone.style.display = 'none';
+      // }, 0);
     },
+    dragEnd: (e) => {
+      const { target } = e;
+      target.style.display = 'block';
+    }
   },
 };
 </script>
+<style>
+.card-flex {
+  display: flex;
+}
+</style>
