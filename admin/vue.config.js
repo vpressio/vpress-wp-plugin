@@ -29,7 +29,7 @@ module.exports = {
       chunkFilename: 'css/[name].css',
     } : false,
   },
-  "transpileDependencies": [
-    "vuetify"
-  ]
-}
+  transpileDependencies: [
+    'vuetify',
+  ],
+};
