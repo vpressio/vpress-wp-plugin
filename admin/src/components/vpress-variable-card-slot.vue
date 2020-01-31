@@ -24,27 +24,30 @@ export default {
   props: ['id'],
   data() {
     return {
-      cardId:null
+      cardId: null,
     };
   },
   methods: {
-    drop(e){
-      const { 
+    drop(e) {
+      const {
         dataTransfer,
-        target
-      } = e
+        target,
+      } = e;
       this.cardId = dataTransfer.getData('cardId');
       const card = document.getElementById(this.cardId);
-      if(target.children.length < 1)
-      target.appendChild(card);
+      if (target.children.length < 1) 
+      target.appendChild(card)
+      this.$store.commit('SET_X_AXIS',"perro")
+      console.log(this.$store.state)
+      
+      ;
     },
-    remove(e){
-      const container = document.getElementById(this.id);
+    remove(e) {
+      const container = document.getElementById('card_slot_start');
       const card = document.getElementById(this.cardId);
-      if(card)
-      card.parentNode.removeChild(card);
-    }
-  }
+      if (card) container.appendChild(card);
+    },
+  },
 };
 </script>
 <style>

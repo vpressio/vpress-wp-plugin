@@ -57,14 +57,16 @@
                     ARRASTRA LA SELECCIÓN
                   </v-card-text>
                   <v-card id="card_slot_start">
-                    <VpressVariableCard id="card-1" draggable="true">
-                            Propósito del viaje
+                    <VpressVariableCard id="prueba" draggable="true">
+                      QUIBUO
                     </VpressVariableCard>
-                    <VpressVariableCard id="card-2" draggable="true">
-                            Carros
-                    </VpressVariableCard>
-                    <VpressVariableCard id="card-3" draggable="true">
-                            Cilindros
+                    <VpressVariableCard 
+                      v-for="card, cardIndex in dataTypes"
+                      :key="`cardId_${cardIndex}`"
+                      :id="`cardId_${cardIndex}`"
+                      draggable="true"
+                    >
+                      {{ card.variableName }}
                     </VpressVariableCard>
                   </v-card>
                   <v-divider/>
@@ -160,12 +162,15 @@ export default {
     return {
       tab: null,
       activeTab: 0,
+      dataTypes:[],
     };
   },
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
-      console.log(this.$store.state);
+      console.log(this.dataTypes)
+      if(this.dataTypes.length === 0)
+      this.dataTypes = this.$store.getters["data/dataType"];
     },
   },
 };

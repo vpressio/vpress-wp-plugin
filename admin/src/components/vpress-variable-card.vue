@@ -31,10 +31,6 @@ export default {
     dragStart: (e) => {
       const { target, dataTransfer } = e;
       dataTransfer.setData('cardId', target.id);
-
-      // setTimeout(() => {
-      //   targetClone.style.display = 'none';
-      // }, 0);
     },
     dragEnd: (e) => {
       const { target } = e;

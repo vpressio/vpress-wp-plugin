@@ -21,6 +21,7 @@ export default {
         for (const [key, value] of Object.entries(state.data[0])) {
           result.push({
             [key]: typeof value,
+            variableName: key
           });
         }
       }
