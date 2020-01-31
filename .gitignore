@@ -1,5 +1,6 @@
 .DS_Store
 /admin/node_modules
+/_old_admin/node_modules
 /dist
 
 /admin/tests/e2e/videos/
