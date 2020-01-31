@@ -20,8 +20,15 @@
           name="excel_data"
           placeholder="Pega tus datos desde Excel"
           class="pl-4 pt-4"
-          @change="parsePastedData()"
         ></textarea>
+        <v-btn
+          :disabled="!pastedData"
+          color="primary"
+          class="float-right"
+          @click="parsePastedData()"
+        >
+          Procesar
+        </v-btn>
       </v-flex>
       <v-flex v-show="data.length === 0 && uploadType === 2" xs12 class="mt-3">
         <FilePond
@@ -32,8 +39,11 @@
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
           "
         />
-        <v-btn color="primary" class="float-right" @click="loadFile()">
-          Subir
+        <v-btn
+          color="primary"
+          class="float-right" @click="loadFile()"
+        >
+          Procesar
         </v-btn>
       </v-flex>
       <v-flex v-show="loading" xs12>
@@ -62,35 +72,42 @@
         ></textarea>
         <v-data-table
           v-show="data.length > 0 && headers.length > 0"
-          v-model="selected"
           :headers="headers"
           :items="data"
-          :items-per-page="5"
           :item-key="headers[0] ? headers[0].value : ''"
-          :single-select="false"
           :search="search"
-          show-select
           class="elevation-1"
         >
-          <template v-slot:item.name="props">
-            <v-edit-dialog
-              :return-value.sync="props.item.name"
-              @save="save"
-              @cancel="cancel"
-              @open="open"
-              @close="close"
-            >
-              {{ props.item.name }}
-              <template v-slot:input>
-                <v-text-field
-                  v-model="props.item.name"
-                  label="Edit"
-                  single-line
-                ></v-text-field>
-              </template>
-            </v-edit-dialog>
+          <template v-slot:item="props">
+            <tr>
+              <td v-for="header in props.headers" :key="header.value">
+                <v-edit-dialog
+                  :return-value.sync="props.item[header.value]"
+                  large
+                  persistent
+                  @save="save"
+                  @cancel="cancel"
+                  @open="open"
+                  @close="close"
+                >
+                  {{ props.item[header.value] }}
+                  <template v-slot:input>
+                    <v-text-field
+                      v-model="props.item[header.value]"
+                      label="Edit"
+                      single-line
+                      counter
+                    ></v-text-field>
+                  </template>
+                </v-edit-dialog>
+              </td>
+            </tr>
           </template>
         </v-data-table>
+        <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+          {{ snackText }}
+          <v-btn text @click="snack = false">Close</v-btn>
+        </v-snackbar>
         <v-spacer class="pd-2 ma-2"></v-spacer>
         <v-dialog v-model="dialogValidate" persistent max-width="400">
           <template v-slot:activator="{ on }">
@@ -100,20 +117,20 @@
               class="float-right"
               v-on="on"
             >
-              <v-icon>mdi-content-save</v-icon>Guardar seleccionados
+              <v-icon left>mdi-content-save</v-icon> Guardar
             </v-btn>
           </template>
           <v-card>
             <v-card-title class="headline">Validación</v-card-title>
             <v-card-text>
-              Ud valida que los datos son correctos y serán guardados.
+              Usted valida que los datos son correctos y serán guardados.
             </v-card-text>
             <v-card-actions>
               <div class="flex-grow-1"></div>
               <v-btn color="primary" text @click="dialogValidate = false">
                 Cancelar
               </v-btn>
-              <v-btn color="primary" text @click="dialogValidate = false">
+              <v-btn color="primary" text @click="dialogValidate = false; saveData()">
                 Aceptar
               </v-btn>
             </v-card-actions>
@@ -125,9 +142,9 @@
 </template>
 <script>
 /* eslint-disable guard-for-in */
+/* eslint-disable no-loop-func */
+/* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-loop-func */
-/* eslint-disable no-loop-func */
 
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
@@ -152,6 +169,9 @@ export default {
       headers: [],
       data: [],
       pastedData: '',
+      snack: false,
+      snackColor: '',
+      snackText: '',
     };
   },
   computed: {
@@ -200,7 +220,6 @@ export default {
      * Set headers and data for data-tables
      */
     parsePastedData() {
-      console.log('parsePastedData');
       const self = this;
       self.loading = true;
       self.data = [];
@@ -243,12 +262,32 @@ export default {
           ) {
             self.data.push(cellObj);
           }
-          self.$store.dispatch('data/set', self.data);
         }
       }
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
+    },
+    saveData() {
+      this.$store.dispatch('data/set', this.data);
+    },
+    save() {
+      this.snack = true;
+      this.snackColor = 'success';
+      this.snackText = 'Data saved';
+    },
+    cancel() {
+      this.snack = true;
+      this.snackColor = 'error';
+      this.snackText = 'Canceled';
+    },
+    open() {
+      this.snack = true;
+      this.snackColor = 'info';
+      this.snackText = 'Dialog opened';
+    },
+    close() {
+      console.log('Dialog closed');
     },
   },
 };
