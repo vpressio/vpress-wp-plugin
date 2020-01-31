@@ -1,8 +1,7 @@
 module.exports = {
   productionSourceMap: false,
-  publicPath: process.env.NODE_ENV === 'production'
-    ? 'kellogg-mexico-wp/wp-content/plugins/vpress/dist/'
-    : 'http://localhost:8080/',
+  publicPath: process.env.NODE_ENV === 'production' ?
+    'kellogg-mexico-wp/wp-content/plugins/vpress/dist/' : 'http://localhost:8080/',
   outputDir: '../dist',
   configureWebpack: {
     devServer: {

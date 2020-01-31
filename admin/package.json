@@ -9,9 +9,15 @@
     "test:e2e": "vue-cli-service test:e2e",
     "test:unit": "vue-cli-service test:unit"
   },
+  "prettier": {
+    "singleQuote": true
+  },
   "dependencies": {
+    "@dboxjs/core": "^0.0.8",
     "axios": "^0.18.0",
     "core-js": "^2.6.5",
+    "d3": "^5.15.0",
+    "lodash": "^4.17.15",
     "pug": "^2.0.3",
     "pug-plain-loader": "^1.0.0",
     "register-service-worker": "^1.6.2",
