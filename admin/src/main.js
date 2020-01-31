@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 import Vpress from 'vpress-vue';
 import App from './App.vue';
 import router from './router';
-import store from './store';
+import store from './store/store';
 import './registerServiceWorker';
 import vuetify from './plugins/vuetify';
 // eslint-disable-next-line import/no-extraneous-dependencies
