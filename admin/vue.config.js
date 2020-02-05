@@ -19,11 +19,17 @@ module.exports = {
       filename: 'js/[name].js',
       chunkFilename: 'js/[name].js',
     },
-  },
-  css: {
-    extract: {
-      filename: 'css/[name].css',
-      chunkFilename: 'css/[name].css',
+    resolve: {
+      symlinks: false,
     },
   },
+  css: {
+    extract: process.env.NODE_ENV === 'production' ? {
+      filename: 'css/[name].css',
+      chunkFilename: 'css/[name].css',
+    } : false,
+  },
+  transpileDependencies: [
+    'vuetify',
+  ],
 };
