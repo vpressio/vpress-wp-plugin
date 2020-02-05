@@ -35,22 +35,29 @@ export default {
         dataTransfer,
         target,
       } = e;
-      this.cardId = dataTransfer.getData('cardId');
-      this.slotId = target.id
+
+      this.slotId = target.id;
+
+      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+
+      this.cardId = columnDataToTransferInObject.id
+
       const card = document.getElementById(this.cardId);
-      if (target.children.length < 1) 
+
+      if (target.children.length < 1)
+
       target.appendChild(card)
-      this.$store.dispatch(`chartConfig/${this.slotId}`,"prueba")
-      
-      ;
+
+      this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
     },
     dragOver(e) {
       if(this.$store.state.chartConfig);
     },
     remove(e) {
-      const container = document.getElementById('card_slot_start');
+      const slot = document.getElementById('card_slot_start');
       const card = document.getElementById(this.cardId);
-      if (card) container.appendChild(card)
+      if (card) slot.appendChild(card)
       this.$store.dispatch(`chartConfig/${this.slotId}`,null)
     },
   },

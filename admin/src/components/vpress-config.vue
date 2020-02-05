@@ -71,16 +71,11 @@
                       </v-card-text>
                       <v-card id="card_slot_start">
                         <VpressVariableCard 
-                          id="`cardId`"
-                          draggable="true"
-                        >
-                          {{ 'Hola'}}
-                        </VpressVariableCard>
-                        <VpressVariableCard 
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
                           :id="`cardId_${cardIndex}`"
                           draggable="true"
+                          :columnData="card"
                         >
                           {{ card.variableName }}
                         </VpressVariableCard>
@@ -185,11 +180,10 @@ export default {
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
+        if(this.dataTypes.length === 0)
         this.dataTypes = this.$store.getters[
-          'data/dataType"'
+          'data/dataType'
         ];
-      console.log(this.$store.getters)
-      
     },
   },
 };

@@ -20,7 +20,7 @@ export default {
         // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of Object.entries(state.data[0])) {
           result.push({
-            [key]: typeof value,
+            variableNameDataType: typeof value,
             variableName: key
           });
         }

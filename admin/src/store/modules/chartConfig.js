@@ -2,10 +2,10 @@ export default {
   namespaced: true,
   state: {
     chart:"bars",
-    xAxis: null,
-    yAxis: null,
+    xAxis: { title: '', type: 'ordinal', slug: 'x' },
+    yAxis: { title: '', type: 'ordinal', slug: 'y' },
     groupBy: { title: '', type: '', slug: '' },
-    collapseBy: { title: 'Total de personas', type: 'linear', slug: 'y' },
+    collapseBy: { title: '', type: 'linear', slug: 'y' },
     decimals: 1,
     preffix: '',
     suffix: '',
@@ -16,11 +16,15 @@ export default {
     labels: false
   },
   mutations: {
-    SET_X_AXIS(state, payload) {
-      state.xAxis = payload;
+    SET_X_AXIS(state, {variableNameDataType, variableName}) {
+      state.xAxis.title = variableName;
+      state.xAxis.slug = variableName;
+      state.xAxis.type = variableNameDataType;
     },
-    SET_Y_AXIS(state, payload) {
-      state.yAxis = payload;
+    SET_Y_AXIS(state, {variableNameDataType, variableName}) {
+      state.xAxis.title = variableName;
+      state.xAxis.slug = variableName;
+      state.xAxis.type = variableNameDataType;
     },
   },
   actions: {

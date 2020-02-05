@@ -21,19 +21,19 @@
 <script>
 export default {
   name: 'VpressVariableCard',
-  props: ['id', 'draggable'],
-  data() {
-    return {
-
-    };
-  },
+  props: ['id','draggable','columnData'],
   methods: {
-    dragStart: (e) => {
+    dragStart(e){
       const { target, dataTransfer } = e;
-      dataTransfer.setData('cardId', target.id);
+
+      const columnDataToTransfer = {...this.columnData, id:target.id};
+      const columnDataToTransferInString = JSON.stringify(columnDataToTransfer);
+
+      dataTransfer.setData('columnDataToTransferInString',columnDataToTransferInString);
     },
     dragEnd: (e) => {
       const { target } = e;
+      
       target.style.display = 'block';
     }
   },

@@ -8,7 +8,7 @@ export default {
   name:'vpress-state-subscriber',
   data(){
     return {
-      chartConfig:this.$store.state.chartConfig
+      chartConfig: this.$store.state.chartConfig
     }
   },
   created(){
