@@ -35,12 +35,9 @@ export default {
       } = e;
       this.cardId = dataTransfer.getData('cardId');
       const card = document.getElementById(this.cardId);
-      if (target.children.length < 1) 
-      target.appendChild(card)
-      this.$store.commit('SET_X_AXIS',"perro")
-      console.log(this.$store.state)
-      
-      ;
+      if (target.children.length < 1) target.appendChild(card);
+      this.$store.commit('SET_X_AXIS', 'perro');
+      console.log(this.$store.state);
     },
     remove(e) {
       const container = document.getElementById('card_slot_start');
