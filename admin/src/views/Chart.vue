@@ -26,14 +26,20 @@ export default {
         { x: 'No', y: 2, z: 'Taller' },
         { x: 'No sabe', y: 2, z: 'Casa' },
         { x: 'No sabe', y: 1, z: 'Taller' }
-      ],
-      chartConfig: {
-        chart: 'bars',
+      ]
+    };
+  },
+  computed: {
+    chartConfig() {
+      const config = {
         xAxis: { title: 'Respuesta', type: 'ordinal', slug: 'x' },
+        // xAxis: { title: 'Lugar', type: 'ordinal', slug: 'z' },
+        // yAxis: { title: 'Lugar', type: 'ordinal', slug: 'z' },
         yAxis: { title: 'Total de personas', type: 'linear', slug: 'y' },
+        // groupBy: {},
         groupBy: { title: 'Lugar', type: 'ordinal', slug: 'z' },
+        // groupBy: { title: 'Respuesta', type: 'ordinal', slug: 'x' },
         collapseBy: { title: 'Total de personas', type: 'linear', slug: 'y' },
-        unitsName: 'personas',
         decimals: 1,
         preffix: '',
         suffix: '',
@@ -42,8 +48,18 @@ export default {
         title: '¿Está usted de acuerdo?',
         colors: ['red', 'green', 'blue'],
         labels: false
+      };
+      if (config.xAxis.type === 'ordinal' && config.yAxis.type === 'ordinal') {
+        config.chart = 'heatmap';
+      } else if (config.xAxis.type === 'linear' && config.yAxis.type === 'linear') {
+        config.chart = 'scatter';
+      } else if (config.xAxis.type === 'date') {
+        config.chart = 'timeline';
+      } else if (config.xAxis.type !== config.yAxis.type) {
+        config.chart = 'bars';
       }
-    };
+      return config;
+    }
   },
   mounted() {}
 };

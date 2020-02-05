@@ -1,6 +1,5 @@
 <template lang="pug">
   .chart-container
-    div {{ data }}
     div.layout-row.left-align.label-font.bold.layout-align-start-end
       h2.generated-title {{ generatedTitle }}
 
@@ -77,21 +76,53 @@ export default {
     generatedTitle() {
       return this.chartConfig.title;
     },
-    legendVar() {
+    legendDisplay() {
+      const vm = this;
       if (
-        this.chartConfig.groupBy &&
-        this.chartConfig.groupBy.slug &&
-        this.chartConfig.groupBy.slug !== this.xAxis.slug
+        vm.chartConfig.groupBy &&
+        vm.chartConfig.groupBy.slug &&
+        vm.chartConfig.groupBy.slug !== vm.chartConfig.xAxis.slug
       ) {
-        return this.chartConfig.groupBy;
+        return vm.chartConfig.groupBy;
       } else if (
-        this.chartConfig.yAxis &&
-        this.chartConfig.yAxis.slug &&
-        this.chartConfig.yAxis.type === 'ordinal'
+        vm.chartConfig.yAxis &&
+        vm.chartConfig.yAxis.slug &&
+        vm.chartConfig.yAxis.type === 'ordinal'
       ) {
-        return this.chartConfig.yAxis;
+        return vm.chartConfig.yAxis;
       } else {
-        return this.chartConfig.xAxis;
+        return vm.chartConfig.xAxis;
+      }
+    },
+    ordinalAxis() {
+      const vm = this;
+      if (
+        vm.chartConfig.yAxis &&
+        vm.chartConfig.yAxis.slug &&
+        vm.chartConfig.yAxis.type === 'ordinal' &&
+        vm.chartConfig.yAxis.slug !== vm.chartConfig.groupBy.slug
+      ) {
+        return vm.chartConfig.yAxis;
+      } else {
+        return vm.chartConfig.xAxis;
+      }
+    },
+    linearAxis() {
+      const vm = this;
+      if (
+        vm.chartConfig.xAxis &&
+        vm.chartConfig.xAxis.slug &&
+        vm.chartConfig.xAxis.type === 'linear'
+      ) {
+        return vm.chartConfig.xAxis;
+      } else if (
+        vm.chartConfig.yAxis &&
+        vm.chartConfig.yAxis.slug &&
+        vm.chartConfig.yAxis.type === 'linear'
+      ) {
+        return vm.chartConfig.yAxis;
+      } else {
+        return vm.chartConfig.collapseBy;
       }
     }
   },
@@ -100,6 +131,13 @@ export default {
       this.configChart();
     },
     chartConfig() {
+      if (
+        !_.includes(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'], this.chartConfig.chart)
+      ) {
+        throw new Error(
+          'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`'
+        );
+      }
       this.configChart();
     }
   },
@@ -154,8 +192,25 @@ export default {
       d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
       d3.selectAll('.title-tip').remove();
 
+      this.sortedData = this.data.sort((a, b) => {
+        if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
+          if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+            return -1;
+          } else {
+            return 1;
+          }
+        } else {
+          //desc
+          if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+            return 1;
+          } else {
+            return -1;
+          }
+        }
+      });
+
       this.xAxisValues = _.uniq(
-        this.data.map(
+        this.sortedData.map(
           function(d) {
             return d[this.chartConfig.xAxis.slug];
           }.bind(this)
@@ -163,7 +218,7 @@ export default {
       ).sort();
 
       this.yAxisValues = _.uniq(
-        this.data.map(
+        this.sortedData.map(
           function(d) {
             return d[this.chartConfig.yAxis.slug];
           }.bind(this)
@@ -172,12 +227,12 @@ export default {
 
       this.groupByOptions = this.chartConfig.groupBy.slug
         ? _.uniq(
-            this.data.map(
+            this.sortedData.map(
               function(d) {
                 return d[this.chartConfig.groupBy.slug];
               }.bind(this)
             )
-          ).sort()
+          )
         : [];
 
       this.legendOptions = (this.groupByOptions.length > 0
@@ -202,7 +257,7 @@ export default {
           +d3.min(
             this.data,
             function(d) {
-              return d[this.collapseBy.slug];
+              return d[this.chartConfig.collapseBy.slug];
             }.bind(this)
           ) < 10)
       ) {
@@ -231,7 +286,17 @@ export default {
     drawChart() {
       const vm = this;
       const tabletWidth = 800;
-      this.dataToDraw = this.filterData(this.data);
+      this.filteredData = this.filterData(this.sortedData);
+      this.dataToDraw = this.parseData(this.filteredData);
+      this.groupByOptions = this.chartConfig.groupBy.slug
+        ? _.uniq(
+            this.filteredData.map(
+              function(d) {
+                return d[this.chartConfig.groupBy.slug];
+              }.bind(this)
+            )
+          )
+        : [];
 
       const config = {
         regression:
@@ -249,7 +314,6 @@ export default {
           legendTranslate: this.innerWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
         },
         xAxis: {
-          // second indicator
           enabled:
             this.chartConfig.chart !== 'heatmap' && this.chartConfig.chart !== 'spineplot'
               ? true
@@ -373,8 +437,8 @@ export default {
       }
 
       if (this.chartConfig.chart !== 'heatmap') {
-        this.chart.legend(this.legendOptions);
-        this.chart.legendTitle(this.legendTitle);
+        this.chart.legend(vm.legendOptions);
+        this.chart.legendTitle(vm.legendDisplay.title);
         this.chart.legendType('checkbox');
       }
 
@@ -425,7 +489,7 @@ export default {
       const bars = this.chart.layer(dbox.bars);
 
       if (this.groupByOptions[0] && this.chartConfig.groupBy.slug) {
-        if (this.stackBy) {
+        if (this.chartConfig.stackedBars) {
           bars.stackBy(this.groupByOptions.filter(o => o !== 'Todos'));
         } else {
           bars.groupBy(this.groupByOptions.filter(o => o !== 'Todos'));
@@ -452,8 +516,8 @@ export default {
       heatmap
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
-        .fill(this.collapseBy.slug)
-        .colorLegend(this.selectedFilters['unidad'])
+        .fill(this.chartConfig.collapseBy.slug)
+        .colorLegend(this.legendDisplay.title)
         .borderRadius(10)
         .sortBy({ x: 'asc', y: 'desc' })
         .colors(['#F7EAAD', '#CEB696', '#A6817F', '#7D4D67', '#541850']);
@@ -465,9 +529,9 @@ export default {
         spineplot
           .stackBy(this.groupByOptions)
           .fill('key')
-          .value(this.collapseBy.slug);
+          .value(this.chartConfig.collapseBy.slug);
       } else {
-        spineplot.fill(this.chartConfig.xAxis.slug).value(this.collapseBy.slug);
+        spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.collapseBy.slug);
       }
 
       spineplot
@@ -475,11 +539,8 @@ export default {
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawScatter() {
-      const linearAxis = _.find([this.chartConfig.yAxis, this.chartConfig.xAxis], {
-        type: 'linear'
-      });
-      const collapseBy = this.collapseBy.slug;
-
+      const vm = this;
+      const collapseBy = this.chartConfig.collapseBy.slug;
       const scatter = this.chart.layer(dbox.scatter);
 
       scatter
@@ -489,7 +550,7 @@ export default {
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
 
       if (
-        !linearAxis &&
+        !vm.linearAxis &&
         ![this.chartConfig.yAxis, this.chartConfig.xAxis].map(o => o.slug).includes(collapseBy)
       ) {
         scatter.magnitude(collapseBy).magnitudeRange([10, 40]);
@@ -553,12 +614,40 @@ export default {
       this.drawChart();
     },
     filterData(data) {
+      const vm = this;
       return data.filter(d => {
-        return this.legendOptions
+        return vm.legendOptions
           .filter(o => o.active)
           .map(o => o.name)
-          .includes(d[this.legendVar.slug]);
+          .includes(d[vm.legendDisplay.slug]);
       });
+    },
+    parseData(data) {
+      const vm = this;
+      if (!_.includes(['heatmap', 'scatter'], vm.chartConfig.chart)) {
+        return d3
+          .nest()
+          .key(d => d[vm.ordinalAxis.slug])
+          .rollup(leaves => {
+            let obj = {};
+            obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
+            obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+              leaves,
+              d => d[vm.chartConfig.collapseBy.slug]
+            );
+            leaves.forEach(leaf => {
+              // Group by properties
+              const prop = leaf[vm.chartConfig.groupBy.slug];
+              const value = leaf[vm.chartConfig.collapseBy.slug];
+              obj[prop] = value;
+            });
+            return obj;
+          })
+          .entries(data)
+          .map(obj => obj.value);
+      } else {
+        return data;
+      }
     }
   },
   mounted() {
