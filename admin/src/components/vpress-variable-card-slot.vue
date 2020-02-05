@@ -7,11 +7,12 @@
       X
     </v-btn>
     <v-card
+      :ref="id"
       :id="id"
       min-height="68"
       outlined
-      @dragover.prevent
       @drop.prevent="drop"
+      @dragover.prevent="dragOver"
       light
     >
       <slot/>
@@ -25,6 +26,7 @@ export default {
   data() {
     return {
       cardId: null,
+      slotId:null
     };
   },
   methods: {
@@ -34,17 +36,22 @@ export default {
         target,
       } = e;
       this.cardId = dataTransfer.getData('cardId');
+      this.slotId = target.id
       const card = document.getElementById(this.cardId);
       if (target.children.length < 1) 
       target.appendChild(card)
-      this.$store.dispatch('config/SET_X_AXIS',"prueba")
+      this.$store.dispatch(`chartConfig/${this.slotId}`,"prueba")
       
       ;
+    },
+    dragOver(e) {
+      if(this.$store.state.chartConfig);
     },
     remove(e) {
       const container = document.getElementById('card_slot_start');
       const card = document.getElementById(this.cardId);
-      if (card) container.appendChild(card);
+      if (card) container.appendChild(card)
+      this.$store.dispatch(`chartConfig/${this.slotId}`,null)
     },
   },
 };
