@@ -26,7 +26,7 @@ export default {
 
 };
 </script>
-<style>
+<style scoped>
 .config-panels > .v-expansion-panel-header {
   min-height: 0% !important;
   padding: 14px 24px;
