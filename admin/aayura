@@ -1,0 +1,79 @@
+  <v-tabs-items v-model="activeTab">
+            <v-tab-item>
+              <v-card class="border-radius-none" outlined>
+                <v-card-title>
+                  <load-data/>
+                </v-card-title>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card class="border-radius-none" flat>
+                <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                  <v-card-text>
+                    ARRASTRA LA SELECCIÓN
+                  </v-card-text>
+                  <v-card id="card_slot_start">
+                    <VpressVariableCard id="prueba" draggable="true">
+                      QUIBUO
+                    </VpressVariableCard>
+                    <VpressVariableCard
+                      v-for="card, cardIndex in dataTypes"
+                      :key="`cardId_${cardIndex}`"
+                      :id="`cardId_${cardIndex}`"
+                      draggable="true"
+                    >
+                      {{ card.variableName }}
+                    </VpressVariableCard>
+                  </v-card>
+                  <v-divider/>
+                  <v-row>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_1"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
+                    </v-col>
+                    <v-col cols=6>
+                      <VpressVariableCardSlot id="dimension_2"/>
+                    </v-col>
+                  </v-row>
+                </VpressExpansionPanel>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card class="border-radius-none" flat dark color="#7972AC">
+                <VpressExpansionPanel panelTitle="Tìtulo">
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col>
+                      Título
+                    </v-col>
+                    <v-col>
+                      <v-switch >
+                      </v-switch>
+                    </v-col>
+                  </v-row>
+                </VpressExpansionPanel>
+              </v-card>
+            </v-tab-item>
+          </v-tabs-items>

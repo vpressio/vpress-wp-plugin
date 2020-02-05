@@ -1,4 +1,3 @@
 <?php // Silence is golden
-echo 'hello';
-include('src/public/index.html');
+include('./public/index.html');
 ?>
