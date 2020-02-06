@@ -1,108 +1,103 @@
-import XLSX from 'xlsx'
+import XLSX from 'xlsx';
+
 const FReader = {
   /**
    * Read a file in client's side as text
    */
   readFileAsText(file) {
-    return new Promise(function(resolve, reject) {
-      const reader = new FileReader()
+    return new Promise(((resolve, reject) => {
+      const reader = new FileReader();
 
       // Closure to capture the file information.
-      reader.onload = (function(theFile) {
-        return function(e) {
-          return resolve(e.target.result)
-        }
-      })(file)
+      reader.onload = (function (theFile) {
+        return function (e) {
+          return resolve(e.target.result);
+        };
+      }(file));
 
-      reader.onerror = function(error) {
-        return reject(error)
-      }
+      reader.onerror = function (error) {
+        return reject(error);
+      };
 
-      reader.readAsText(file)
-    })
+      reader.readAsText(file);
+    }));
   },
   /**
    * Read a file in client's side as binary string
    */
   readFileAsBinary(file) {
-    return new Promise(function(resolve, reject) {
-      const reader = new FileReader()
+    return new Promise(((resolve, reject) => {
+      const reader = new FileReader();
 
       // Closure to capture the file information.
-      reader.onload = (function(theFile) {
-        return function(e) {
-          return resolve(e.target.result)
-        }
-      })(file)
+      reader.onload = (function (theFile) {
+        return function (e) {
+          return resolve(e.target.result);
+        };
+      }(file));
 
-      reader.onerror = function(error) {
-        return reject(error)
-      }
+      reader.onerror = function (error) {
+        return reject(error);
+      };
 
-      reader.readAsBinaryString(file)
-    })
+      reader.readAsBinaryString(file);
+    }));
   },
   /**
    * Read CSV file as text, transform to JSON
    */
   readCSV(file) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(((resolve, reject) => {
       FReader.readFileAsText(file)
-        .then(function(csv) {
-          return resolve(FReader.CSVtoJSON(csv))
-        })
-        .catch(function(error) {
-          return reject(error)
-        })
-    })
+        .then(csv => resolve(FReader.CSVtoJSON(csv)))
+        .catch(error => reject(error));
+    }));
   },
   /**
    * Read Excel's compatible files, transform to JSON
    */
   readExcel(file, sheet = 0) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(((resolve, reject) => {
       FReader.readFileAsBinary(file)
-        .then(function(excel) {
-          const parsed = FReader.ExcelToJSON(excel, sheet)
-          return resolve(parsed)
+        .then((excel) => {
+          const parsed = FReader.ExcelToJSON(excel, sheet);
+          return resolve(parsed);
         })
-        .catch(function(error) {
-          return reject(error)
-        })
-    })
+        .catch(error => reject(error));
+    }));
   },
   /**
    * Transform CSV text to JSON object array
    */
   CSVtoJSON(csv) {
-    const lines = csv.split('\n')
-    const result = []
-    const headers = lines[0].split(',')
+    const lines = csv.split('\n');
+    const result = [];
+    const headers = lines[0].split(',');
     for (let i = 1; i < lines.length; i++) {
-      const obj = {}
-      const currentline = lines[i].split(',')
+      const obj = {};
+      const currentline = lines[i].split(',');
       for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = currentline[j]
+        obj[headers[j]] = currentline[j];
       }
-      result.push(obj)
+      result.push(obj);
     }
     // return result; //JavaScript object
-    return JSON.parse(JSON.stringify(result)) // JSON
+    return JSON.parse(JSON.stringify(result)); // JSON
   },
   /**
    * Transform Excel's compatible files to JSON object array
    */
   ExcelToJSON(excel, sheet = 0) {
     const workbook = XLSX.read(excel, {
-      type: 'binary'
-    })
+      type: 'binary',
+    });
     /** Return selected sheet */
-    const selectedSheetName = workbook.SheetNames[sheet]
+    const selectedSheetName = workbook.SheetNames[sheet];
     const XlRowObject = XLSX.utils.sheet_to_json(
-      workbook.Sheets[selectedSheetName]
-    )
-    const result = JSON.parse(JSON.stringify(XlRowObject))
-    return result
+      workbook.Sheets[selectedSheetName],
+    );
+    const result = JSON.parse(JSON.stringify(XlRowObject));
+    return result;
 
     /** Return whole book */
     // const wholeBook = []
@@ -120,19 +115,19 @@ const FReader = {
    * Transform JSON to CSV text
    */
   JSONtoCSV(objArray) {
-    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray
-    let str = ''
+    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+    let str = '';
     for (let i = 0; i < array.length; i++) {
-      let line = ''
+      let line = '';
       for (const index in array[i]) {
         if (line !== '') {
-          line += ','
+          line += ',';
         }
-        line += array[i][index]
+        line += array[i][index];
       }
-      str += `${line}\r\n`
+      str += `${line}\r\n`;
     }
-    return str
-  }
-}
-export { FReader }
+    return str;
+  },
+};
+export { FReader };
