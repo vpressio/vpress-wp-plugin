@@ -35,7 +35,8 @@
             color="transparent"
           >
             <v-card
-              class="padding-none graph-options border-radius-none"
+              class="padding-none border-radius-none"
+              :class="{ graphOptionsWidth }"
             >
               <v-tabs
                 class="config-tabs"
@@ -172,23 +173,41 @@ export default {
   },
   data() {
     return {
-      tab: null,
       activeTab: 0,
-      dataTypes: []
+      dataTypes: [],
+      width:"100%"
     };
+  },
+  computed:{
+    graphOptionsWidth(){
+      return this.activeTab !== 0 ? ' width-fit-content' : 'width-all'
+    }
   },
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
-        if(this.dataTypes.length === 0)
-        this.dataTypes = this.$store.getters[
-          'data/dataType'
-        ];
+      if(this.dataTypes.length === 0 && this.activeTab !== 0)
+      this.dataTypes = this.$store.getters[
+        'data/dataType'
+      ];
+      if(this.activeTab !== 0){
+        this.width = 'fit-content';
+      } else {
+        this.width = '100%';
+      }
     },
   },
 };
 </script>
 <style>
+.width-fit-content{
+  width: fit-content
+}
+
+.width-all {
+  width: 100%
+}
+
 .padding-y-none{
   padding-top: 0 !important;
   padding-bottom: 0 !important;
@@ -228,9 +247,9 @@ export default {
   border-radius: 0px !important;
 }
 
-.graph-options{
+/* .graph-options{
   width: 100%;
-}
+} */
 
 .graph-sidebar{
   display: flex !important;
