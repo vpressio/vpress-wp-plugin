@@ -36,7 +36,10 @@
           >
             <v-card
               class="padding-none border-radius-none"
-              :class="{ graphOptionsWidth }"
+              :class="{
+                widthFitContent:tabIsNotZero,
+                widthAll:!tabIsNotZero
+              }"
             >
               <v-tabs
                 class="config-tabs"
@@ -71,7 +74,7 @@
                         ARRASTRA LA SELECCIÓN
                       </v-card-text>
                       <v-card id="card_slot_start">
-                        <VpressVariableCard 
+                        <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
                           :id="`cardId_${cardIndex}`"
@@ -84,13 +87,13 @@
                       <v-divider/>
                       <v-row>
                         <v-col cols=6>
-                          <VpressVariableCardSlot id="UPDATE_X_AXIS" ref="UPDATE_X_AXIS"/>
+                          <VpressVariableCardSlot id="UPDATE_X_AXIS" ref="UPDATE_X_AXIS" slotLabel="Eje X"/>
                         </v-col>
                         <v-col cols=6>
-                          <VpressVariableCardSlot id="UPDATE_Y_AXIS" ref="UPDATE_Y_AXIS"/>
+                          <VpressVariableCardSlot id="UPDATE_Y_AXIS" ref="UPDATE_Y_AXIS" slotLabel="Eje Y"/>
                         </v-col>
                         <v-col cols=6>
-                          <VpressVariableCardSlot id="UPDATE_GROUP_BY" ref="UPDATE_GROUP_BY"/>
+                          <VpressVariableCardSlot id="UPDATE_GROUP_BY" ref="UPDATE_GROUP_BY" slotLabel="Agrupar"/>
                         </v-col>
                       </v-row>
                     </VpressExpansionPanel>
@@ -98,34 +101,19 @@
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat dark color="#7972AC">
-                    <VpressExpansionPanel panelTitle="Tìtulo">
-                      <v-row>
-                        <v-col>
-                          Título
-                        </v-col>
-                        <v-col>
-                          <v-switch >
-                          </v-switch>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col>
-                          Título
-                        </v-col>
-                        <v-col>
-                          <v-switch >
-                          </v-switch>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col>
-                          Título
-                        </v-col>
-                        <v-col>
-                          <v-switch >
-                          </v-switch>
-                        </v-col>
-                      </v-row>
+                    <VpressExpansionPanel panelTitle="Formato de gráfica">
+                      <VpressInputControl inputName="Tipo de gráfica">
+                        <v-select placeholder="Selecciona una gráfica"  :items="['barras', 'scatter', 'heatmap']" class="config-text-field" outlined/>
+                      </VpressInputControl>
+                      <VpressInputControl inputName="Título">
+                        <v-text-field placeholder="Título" class="config-text-field" outlined/>
+                      </VpressInputControl>
+                      <VpressInputControl inputName="Color">
+                        <v-text-field placeholder="Color" class="config-text-field" outlined/>
+                      </VpressInputControl>
+                      <VpressInputControl inputName="Prefijo">
+                        <v-text-field placeholder="Prefijo" class="config-text-field" outlined/>
+                      </VpressInputControl>
                     </VpressExpansionPanel>
                   </v-card>
                 </v-tab-item>
@@ -160,7 +148,8 @@ import LoadData from './LoadData.vue';
 import VpressVariableCard from './vpress-variable-card.vue';
 import VpressVariableCardSlot from './vpress-variable-card-slot.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
-import VpressStateSubscriber from './vpress-state-subscriber.vue'
+import VpressStateSubscriber from './vpress-state-subscriber.vue';
+import VpressInputControl from './vpress-config-input.vue';
 
 export default {
   name: 'VpressConfig',
@@ -169,42 +158,38 @@ export default {
     VpressVariableCard,
     VpressVariableCardSlot,
     VpressExpansionPanel,
-    VpressStateSubscriber
+    VpressStateSubscriber,
+    VpressInputControl,
   },
   data() {
     return {
       activeTab: 0,
       dataTypes: [],
-      width:"100%"
     };
   },
-  computed:{
-    graphOptionsWidth(){
-      return this.activeTab !== 0 ? ' width-fit-content' : 'width-all'
-    }
+  computed: {
+    tabIsNotZero() {
+      return this.activeTab !== 0;
+    },
   },
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
-      if(this.dataTypes.length === 0 && this.activeTab !== 0)
-      this.dataTypes = this.$store.getters[
-        'data/dataType'
-      ];
-      if(this.activeTab !== 0){
-        this.width = 'fit-content';
-      } else {
-        this.width = '100%';
+      if (this.dataTypes.length === 0 && this.activeTab !== 0) {
+        this.dataTypes = this.$store.getters[
+          'data/dataType'
+        ];
       }
     },
   },
 };
 </script>
 <style>
-.width-fit-content{
+.widthFitContent{
   width: fit-content
 }
 
-.width-all {
+.widthAll {
   width: 100%
 }
 
@@ -299,4 +284,17 @@ export default {
           font-size:0.8rem;
           min-width:87px;
         }
+
+.config-text-field
+  > .v-input__control
+    > .v-input__slot {
+      min-height: 30px;
+      margin:0;
+    }
+
+.config-text-field
+  > .v-input__control
+    > .v-text-field__details {
+      display: none;
+    }
 </style>
