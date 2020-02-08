@@ -13,7 +13,7 @@
     hover
     style="text-overflow: ellipsis;overflow: hidden; "
   >
-    <v-card-text>
+    <v-card-text class="card-text">
       <slot/>
     </v-card-text>
   </v-card>
@@ -25,7 +25,6 @@ export default {
   methods: {
     dragStart(e){
       const { target, dataTransfer } = e;
-
       const columnDataToTransfer = {...this.columnData, id:target.id};
       const columnDataToTransferInString = JSON.stringify(columnDataToTransfer);
 
@@ -39,8 +38,14 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 .card-flex {
   display: flex;
+}
+
+.card-text{
+  color: white !important;
+  font-weight:900;
+  font-size:1rem;
 }
 </style>

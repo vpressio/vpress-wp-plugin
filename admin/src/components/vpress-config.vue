@@ -73,7 +73,7 @@
                       <v-card-text>
                         ARRASTRA LA SELECCIÓN
                       </v-card-text>
-                      <v-card id="card_slot_start">
+                      <v-card id="card_slot_start" flat class="pb-3">
                         <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
@@ -82,9 +82,10 @@
                           :columnData="card"
                         >
                           {{ card.variableName }}
+                        <span class="variableCardDataType"> {{ card.variableNameDataType }} </span>
                         </VpressVariableCard>
+                        <v-divider/>
                       </v-card>
-                      <v-divider/>
                       <v-row>
                         <v-col cols=6>
                           <VpressVariableCardSlot id="UPDATE_X_AXIS" ref="UPDATE_X_AXIS" slotLabel="Eje X"/>
@@ -191,6 +192,12 @@ export default {
 
 .widthAll {
   width: 100%
+}
+
+.variableCardDataType{
+  font-size:12px;
+  font-weight: 500;
+  color:#CFCFCF;
 }
 
 .padding-y-none{
