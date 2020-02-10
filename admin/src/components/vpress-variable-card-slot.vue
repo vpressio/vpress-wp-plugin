@@ -48,7 +48,7 @@ export default {
       if (target.children.length < 1)
 
       this.slotId = target.id;
-
+      console.log(this.slotId)
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
       const card = document.getElementById(columnDataToTransferInObject.id);
@@ -67,6 +67,7 @@ export default {
       const card = document.getElementById(this.cardId);
       if (card) 
       slot.removeChild(card)
+      console.log(this.slotId)
       this.$store.dispatch(`chartConfig/${this.slotId}`,null)
     },
   },

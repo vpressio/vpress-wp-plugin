@@ -27,9 +27,9 @@ export default {
       state.xAxis.type = payload ? payload.variableNameDataType : '';
     },
     SET_Y_AXIS(state, payload) {
-      state.xAxis.title = payload ? payload.variableName : '';
-      state.xAxis.slug = payload ? payload.variableName : '';
-      state.xAxis.type = payload ? payload.variableNameDataType : '';
+      state.yAxis.title = payload ? payload.variableName : '';
+      state.yAxis.slug = payload ? payload.variableName : '';
+      state.yAxis.type = payload ? payload.variableNameDataType : '';
     },
   },
   actions: {
