@@ -16,15 +16,20 @@ export default {
     labels: false
   },
   mutations: {
-    SET_X_AXIS(state, {variableNameDataType, variableName}) {
-      state.xAxis.title = variableName;
-      state.xAxis.slug = variableName;
-      state.xAxis.type = variableNameDataType;
+    SET_X_AXIS(state, payload) {
+      // const {
+      //   variableNameDataType,
+      //   variableName
+      // } = payload;
+
+      state.xAxis.title = payload ? payload.variableName : '';
+      state.xAxis.slug = payload ? payload.variableName : '';
+      state.xAxis.type = payload ? payload.variableNameDataType : '';
     },
-    SET_Y_AXIS(state, {variableNameDataType, variableName}) {
-      state.xAxis.title = variableName;
-      state.xAxis.slug = variableName;
-      state.xAxis.type = variableNameDataType;
+    SET_Y_AXIS(state, payload) {
+      state.xAxis.title = payload ? payload.variableName : '';
+      state.xAxis.slug = payload ? payload.variableName : '';
+      state.xAxis.type = payload ? payload.variableNameDataType : '';
     },
   },
   actions: {

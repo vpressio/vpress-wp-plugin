@@ -12,7 +12,7 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col class="config">
+        <v-col :cols="tabIsNotZero" class="config">
           <v-card
             class="graph-tools"
             flat
@@ -35,18 +35,14 @@
             color="transparent"
           >
             <v-card
-              class="padding-none border-radius-none"
-              :class="{
-                widthFitContent:tabIsNotZero,
-                widthAll:!tabIsNotZero
-              }"
+              class="padding-none border-radius-none widthAll"
             >
               <v-tabs
+                dark
                 class="config-tabs"
                 v-model="activeTab"
-                background-color="#382E82"
+                background-color= "primary"
                 color="white"
-                dark
                 @change="tabChange"
               >
                 <v-tab>
@@ -73,7 +69,7 @@
                       <v-card-text>
                         ARRASTRA LA SELECCIÓN
                       </v-card-text>
-                      <v-card id="card_slot_start" flat class="pb-3">
+                      <v-card ref="card_slot_start" id="card_slot_start" flat class="pb-3">
                         <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
@@ -84,6 +80,9 @@
                           {{ card.variableName }}
                         <span class="variableCardDataType"> {{ card.variableNameDataType }} </span>
                         </VpressVariableCard>
+                        <!-- <VpressVariableCard id="cardId_100" draggable="true" :columnData="{variableNameDataType:'string',variableName: 'Hola' }">
+                          Hola
+                        </VpressVariableCard> -->
                         <v-divider/>
                       </v-card>
                       <v-row>
@@ -102,7 +101,7 @@
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat dark color="#7972AC">
-                    <VpressExpansionPanel panelTitle="Formato de gráfica">
+                    <VpressExpansionPanel panelTitle="FORMATO DE GRÁFICA">
                       <VpressInputControl inputName="Tipo de gráfica">
                         <v-select placeholder="Selecciona una gráfica"  :items="['barras', 'scatter', 'heatmap']" class="config-text-field" outlined/>
                       </VpressInputControl>
@@ -120,23 +119,25 @@
                 </v-tab-item>
               </v-tabs-items>
             </v-card>
-            <v-card
-              v-if="activeTab !== 0"
-              class="padding-y-none graph-display"
-              flat
-              color="transparent"
-            >
-              <v-card class="flex-end" flat color="transparent">
-                <v-btn class="save-button" outlined>
-                  Guardar
-                </v-btn>
-                <v-btn class="download-button" outlined>
-                  Descargar
-                </v-btn>
-              </v-card>
-              <v-card class="graph">
-                <VpressStateSubscriber/>
-              </v-card>
+          </v-card>
+        </v-col>
+        <v-col>
+          <v-card
+            v-if="activeTab !== 0"
+            class="padding-y-none graph-display"
+            flat
+            color="transparent"
+          >
+            <v-card class="flex-end" flat color="transparent">
+              <v-btn class="save-button" outlined>
+                Guardar
+              </v-btn>
+              <v-btn class="download-button" outlined>
+                Descargar
+              </v-btn>
+            </v-card>
+            <v-card class="graph">
+              <VpressStateSubscriber/>
             </v-card>
           </v-card>
         </v-col>
@@ -170,7 +171,10 @@ export default {
   },
   computed: {
     tabIsNotZero() {
-      return this.activeTab !== 0;
+      
+      return this.activeTab !== 0
+        ? '4'
+        : '12';
     },
   },
   methods: {
@@ -185,7 +189,7 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 .widthFitContent{
   width: fit-content
 }
@@ -255,18 +259,18 @@ export default {
   margin: 12px 0 0 12px;
 }
 
-.config-tabs
+*>>>.config-tabs
   > .v-tabs-bar {
     height:40px;
 }
-.config-tabs
+*>>>.config-tabs
   > .v-slide-group
     > .v-slide-group__wrapper
       > .v-slide-group__content {
           margin-top: 5px;
 }
 
-.config-tabs
+*>>>.config-tabs
   > .v-slide-group
     > .v-slide-group__wrapper
       > .v-slide-group__content
@@ -274,16 +278,16 @@ export default {
             background-color: #7972AC;
 }
 
-.config-tabs
+*>>>.config-tabs
   > .v-slide-group
     > .v-slide-group__wrapper
-      > .v-slide-group__content
+      > .v-slide-group__content 
         > .v-tabs-slider-wrapper
           > .v-tabs-slider {
-              display: none;
+            display: none;
 }
 
-.config-tabs
+*>>>.config-tabs
   > .v-slide-group
     > .v-slide-group__wrapper
       > .v-slide-group__content
@@ -292,14 +296,14 @@ export default {
           min-width:87px;
         }
 
-.config-text-field
+*>>>.config-text-field
   > .v-input__control
     > .v-input__slot {
       min-height: 30px;
       margin:0;
     }
 
-.config-text-field
+*>>>.config-text-field
   > .v-input__control
     > .v-text-field__details {
       display: none;

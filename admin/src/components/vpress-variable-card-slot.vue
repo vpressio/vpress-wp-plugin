@@ -45,29 +45,28 @@ export default {
         dataTransfer,
         target,
       } = e;
+      if (target.children.length < 1)
 
       this.slotId = target.id;
 
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-
-      this.cardId = columnDataToTransferInObject.id
-
-      const card = document.getElementById(this.cardId);
-
-      if (target.children.length < 1)
+      const card = document.getElementById(columnDataToTransferInObject.id);
+      card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`)
+      this.cardId = card.id;
 
       target.appendChild(card)
-
+      card.style.display = 'block'
       this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
     },
     dragOver(e) {
       if(this.$store.state.chartConfig);
     },
     remove(e) {
-      const slot = document.getElementById('card_slot_start');
+      const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
-      if (card) slot.appendChild(card)
+      if (card) 
+      slot.removeChild(card)
       this.$store.dispatch(`chartConfig/${this.slotId}`,null)
     },
   },

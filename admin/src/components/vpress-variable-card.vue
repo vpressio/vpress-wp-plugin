@@ -1,6 +1,7 @@
 <template>
   <v-card
     :id="id"
+    :ref="id"
     :draggable="draggable"
     @dragstart="dragStart"
     @dragend="dragEnd"
@@ -22,17 +23,29 @@
 export default {
   name: 'VpressVariableCard',
   props: ['id','draggable','columnData'],
+  data(){
+    return {
+      variableCardParent:'',
+    }
+  },
   methods: {
     dragStart(e){
       const { target, dataTransfer } = e;
-      const columnDataToTransfer = {...this.columnData, id:target.id};
-      const columnDataToTransferInString = JSON.stringify(columnDataToTransfer);
 
+      const variableCardParentId = e.target.parentElement.id;
+      this.variableCardParent = document.getElementById(variableCardParentId);
+      const variableCardClone = target.cloneNode(target.id);
+      variableCardClone.setAttribute('id',`${target.id}_clone`);
+      variableCardClone.setAttribute('draggable',false);
+      variableCardClone.style.display = 'none'
+      this.variableCardParent.appendChild(variableCardClone);
+      const columnDataToTransferInObject = {...this.columnData, id:variableCardClone.id};
+      const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString',columnDataToTransferInString);
-    },
-    dragEnd: (e) => {
-      const { target } = e;
       
+    },
+    dragEnd(e){
+      const { target } = e;
       target.style.display = 'block';
     }
   },
