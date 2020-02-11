@@ -696,6 +696,18 @@ export default {
   min-height: 400px;
 }
 
+.vertical-align {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: grid;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.center-align {
+  text-align: center;
+}
+
 .chart-container {
   width: 100%;
   height: 600px;

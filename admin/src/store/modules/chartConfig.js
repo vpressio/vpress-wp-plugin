@@ -5,7 +5,7 @@ export default {
     chart: 'bars',
     xAxis: { title: '', type: 'ordinal', slug: '' },
     yAxis: { title: '', type: 'ordinal', slug: '' },
-    groupBy: { title: '', type: '', slug: '' },
+    groupBy: { title: '', type: 'ordinal', slug: '' },
     collapseBy: { title: '', type: 'linear', slug: '' },
     decimals: 1,
     preffix: '',
