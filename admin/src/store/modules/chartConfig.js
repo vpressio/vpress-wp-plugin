@@ -1,18 +1,29 @@
+import * as _ from 'lodash';
 export default {
   namespaced: true,
   state: {
-    chart:"bars",
-    xAxis: { title: '', type: 'ordinal', slug: 'x' },
-    yAxis: { title: '', type: 'ordinal', slug: 'y' },
+    chart: 'bars',
+    xAxis: { title: '', type: 'ordinal', slug: '' },
+    yAxis: { title: '', type: 'ordinal', slug: '' },
     groupBy: { title: '', type: '', slug: '' },
-    collapseBy: { title: '', type: 'linear', slug: 'y' },
+    collapseBy: { title: '', type: 'linear', slug: '' },
     decimals: 1,
     preffix: '',
     suffix: '',
     stackedBars: false,
-    orderBy: { order: 'desc', slug: 'y' },
-    title: 'Título',
-    colors: ['red', 'green', 'blue'],
+    orderBy: { order: 'desc', slug: '' },
+    title: '',
+    colors: [
+      '#a6cee3',
+      '#1f78b4',
+      '#b2df8a',
+      '#33a02c',
+      '#fb9a99',
+      '#e31a1c',
+      '#fdbf6f',
+      '#ff7f00',
+      '#cab2d6'
+    ],
     labels: false
   },
   mutations: {
@@ -20,12 +31,50 @@ export default {
       state.xAxis.title = payload ? payload.variableName : '';
       state.xAxis.slug = payload ? payload.variableName : '';
       state.xAxis.type = payload ? payload.variableNameDataType : '';
+      if (!state.collapseBy || state.collapseBy.title === '') {
+        if (state.xAxis && state.xAxis.type === 'linear') {
+          state.collapseBy = state.xAxis;
+          state.orderBy.slug = state.collapseBy.slug;
+        }
+      }
+      if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
+        if (!_.includes(['heatmap', 'spineplot'])) {
+          console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
+        }
+        state.chart = 'heatmap';
+        // state.chart = 'spineplot';
+      } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
+        state.chart = 'scatter';
+      } else if (state.xAxis.type === 'date') {
+        state.chart = 'timeline';
+      } else if (state.xAxis.type !== state.yAxis.type) {
+        state.chart = 'bars';
+      }
     },
     SET_Y_AXIS(state, payload) {
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
-    },
+      if (!state.collapseBy || state.collapseBy.title === '') {
+        if (state.yAxis && state.yAxis.type === 'linear') {
+          state.collapseBy = state.yAxis;
+          state.orderBy.slug = state.collapseBy.slug;
+        }
+      }
+      if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
+        if (!_.includes(['heatmap', 'spineplot'])) {
+          console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
+        }
+        state.chart = 'heatmap';
+        // state.chart = 'spineplot';
+      } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
+        state.chart = 'scatter';
+      } else if (state.xAxis.type === 'date') {
+        state.chart = 'timeline';
+      } else if (state.xAxis.type !== state.yAxis.type) {
+        state.chart = 'bars';
+      }
+    }
   },
   actions: {
     UPDATE_X_AXIS({ commit }, payload) {
@@ -33,8 +82,8 @@ export default {
     },
     UPDATE_Y_AXIS({ commit }, payload) {
       commit('SET_Y_AXIS', payload);
-    },
+    }
   },
-  getters: {
-  },
+  getters: {},
+  setters: {}
 };

@@ -55,19 +55,6 @@ export default {
         colors: ['red', 'green', 'blue'],
         labels: false
       };
-      if (config.xAxis.type === 'ordinal' && config.yAxis.type === 'ordinal') {
-        if (!_.includes(['heatmap', 'spineplot'])) {
-          console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
-        }
-        config.chart = 'heatmap';
-        // config.chart = 'spineplot';
-      } else if (config.xAxis.type === 'linear' && config.yAxis.type === 'linear') {
-        config.chart = 'scatter';
-      } else if (config.xAxis.type === 'date') {
-        config.chart = 'timeline';
-      } else if (config.xAxis.type !== config.yAxis.type) {
-        config.chart = 'bars';
-      }
       return config;
     }
   },

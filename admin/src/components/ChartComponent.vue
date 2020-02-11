@@ -33,7 +33,7 @@ export default {
   },
   data() {
     return {
-      innerWidth: window.innerWidth,
+      windowWidth: window.innerWidth,
       locale: d3.timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
         date: '%d.%m.%Y',
@@ -128,7 +128,15 @@ export default {
   },
   watch: {
     data() {
-      this.configChart();
+      if (
+        this.data &&
+        this.data.length > 0 &&
+        this.chartConfig.xAxis.slug &&
+        this.chartConfig.yAxis.slug &&
+        this.chartConfig.collapseBy.slug
+      ) {
+        this.configChart();
+      }
     },
     chartConfig() {
       if (
@@ -138,7 +146,15 @@ export default {
           'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`'
         );
       }
-      this.configChart();
+      if (
+        this.data &&
+        this.data.length > 0 &&
+        this.chartConfig.xAxis.slug &&
+        this.chartConfig.yAxis.slug &&
+        this.chartConfig.collapseBy.slug
+      ) {
+        this.configChart();
+      }
     }
   },
   methods: {
@@ -156,32 +172,36 @@ export default {
        * Draw dbox charts according with selected options
        * (axes, groupby, collapseby, project) and selected chart
        */
+
       /** Configure chart size */
-      this.width = this.chartConfig.width || 1200;
-      // this.innerWidth > mobileWidth
-      //   ? window['$']('.empty-chart').width()
-      //   : window['$']('app-chart-container').width();
-      this.height = this.chartConfig.height || 500;
-      // window['$']('.empty-chart').height();
+      this.width =
+        // this.chartConfig.width ||
+        d3
+          .select(this.$el)
+          .select('.empty-chart')
+          .node().offsetWidth || 1200;
+      this.height =
+        // this.chartConfig.height ||
+        this.width * 0.6 || 500;
 
       /** Configure margins */
       this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
       if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
         this.margin.top = 30;
-        if (this.innerWidth <= tabletWidth) {
+        if (this.windowWidth <= tabletWidth) {
           this.margin.left = 40;
           this.margin.right = 15;
         }
       } else if (this.chartConfig.chart === 'scatter') {
         this.margin.top = 30;
-        if (this.innerWidth <= tabletWidth) {
+        if (this.windowWidth <= tabletWidth) {
           this.margin.left = 80;
           this.margin.right = 15;
         }
-      } else if (this.chartConfig.chart === 'heatmap' && this.innerWidth <= tabletWidth) {
+      } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
         this.margin.top = 20;
         this.margin.right = 100;
-      } else if (this.chartConfig.chart === 'spineplot' && this.innerWidth <= tabletWidth) {
+      } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
         this.margin.left = 15;
         this.margin.right = 15;
       }
@@ -192,7 +212,7 @@ export default {
       d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
       d3.selectAll('.title-tip').remove();
 
-      this.sortedData = this.data.sort((a, b) => {
+      this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
         if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
           if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
             return -1;
@@ -306,12 +326,12 @@ export default {
         formatPreffix: this.chartConfig.preffix || '',
         formatSuffix: this.chartConfig.suffix || '',
         decimals: this.chartConfig.decimals,
-        legendEnabled: this.innerWidth >= tabletWidth ? true : false,
+        legendEnabled: this.windowWidth >= tabletWidth ? true : false,
         size: {
           width: this.width,
           height: this.height,
           margin: this.margin,
-          legendTranslate: this.innerWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
+          legendTranslate: this.windowWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
         },
         xAxis: {
           enabled:
@@ -651,18 +671,36 @@ export default {
     }
   },
   mounted() {
-    this.configChart();
+    if (
+      this.data &&
+      this.data.length > 0 &&
+      this.chartConfig.xAxis.slug &&
+      this.chartConfig.yAxis.slug &&
+      this.chartConfig.collapseBy.slug
+    ) {
+      this.configChart();
+    }
   }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.generated-title {
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.empty-chart {
+  height: inherit;
+  min-height: 400px;
+}
+
 .chart-container {
   width: 100%;
   height: 600px;
   border-radius: 2em;
-  border: solid 1px #666;
+  /* border: solid 1px #666; */
 }
 </style>
 <style>
@@ -672,9 +710,11 @@ export default {
   margin: 0.2em;
   background-color: #57779c;
 }
+
 svg text {
   fill: #666;
 }
+
 .d3-tip {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   color: #666;
