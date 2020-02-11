@@ -56,7 +56,7 @@
                         ref="card_slot_start"
                         id="card_slot_start"
                         flat
-                        class="pb-3 limit-scroll"
+                        class="pb-3 variableCard-container"
                       >
                         <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
@@ -197,6 +197,11 @@ export default {
 
 .widthAll {
   width: 100%;
+}
+
+.variableCard-container {
+  height: 300px;
+  overflow-y: scroll;
 }
 
 .variableCardDataType {
