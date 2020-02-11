@@ -657,7 +657,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="stylus">
+<style scoped>
 .chart-container {
   width: 100%;
   height: 600px;
@@ -665,7 +665,7 @@ export default {
   border: solid 1px #666;
 }
 </style>
-<style lang="stylus">
+<style>
 .square {
   height: 50px;
   width: 50px;
