@@ -35,8 +35,8 @@ export default {
   props: ['id', 'slotLabel'],
   data() {
     return {
-      cardId: null,
-      slotId: null,
+      cardId: '',
+      slotId: '',
     };
   },
   methods: {
@@ -45,17 +45,39 @@ export default {
         dataTransfer,
         target,
       } = e;
-      if (target.children.length < 1)
 
-      this.slotId = target.id;
-      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      const card = document.getElementById(columnDataToTransferInObject.id);
-      card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
-      this.cardId = card.id;
-      target.appendChild(card)
-      card.style.display = 'block'
-      this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
+      this.slotId = this.slotId.length === 0
+        ? target.id
+        : this.slotId;
+
+      if (target.children.length < 1){
+        const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+        const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+        const card = document.getElementById(columnDataToTransferInObject.id);
+        card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
+        this.cardId = card.id;
+        target.appendChild(card);
+        card.style.display = 'block';
+        this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
+      } else {
+        console.log(this.cardId)
+        const newColumnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+        const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
+        const newCard = document.getElementById(newColumnDataToTransferInObject.id);
+
+
+        const slot = document.getElementById(this.slotId);
+        const oldCard = document.getElementById(this.cardId);
+
+        
+        if (oldCard) slot.removeChild(oldCard);
+        newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
+        this.cardId = newCard.id;
+        slot.appendChild(newCard);
+        console.log(slot)
+        newCard.style.display = 'block';
+        this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
+      }
     },
     dragOver(e) {
       if(this.$store.state.chartConfig);

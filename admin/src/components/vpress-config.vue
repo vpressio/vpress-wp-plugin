@@ -69,7 +69,12 @@
                       <v-card-text>
                         ARRASTRA LA SELECCIÓN
                       </v-card-text>
-                      <v-card ref="card_slot_start" id="card_slot_start" flat class="pb-3">
+                      <v-card 
+                        ref="card_slot_start"
+                        id="card_slot_start"
+                        flat
+                        class="pb-3 variableCard-container"
+                      >
                         <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
@@ -194,6 +199,11 @@ export default {
 
 .widthAll {
   width: 100%
+}
+
+.variableCard-container{
+  height:300px;
+  overflow-x: scroll;
 }
 
 .variableCardDataType{
