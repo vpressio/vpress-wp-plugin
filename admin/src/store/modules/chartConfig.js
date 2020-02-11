@@ -17,11 +17,6 @@ export default {
   },
   mutations: {
     SET_X_AXIS(state, payload) {
-      // const {
-      //   variableNameDataType,
-      //   variableName
-      // } = payload;
-
       state.xAxis.title = payload ? payload.variableName : '';
       state.xAxis.slug = payload ? payload.variableName : '';
       state.xAxis.type = payload ? payload.variableNameDataType : '';

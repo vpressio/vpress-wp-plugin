@@ -12,7 +12,7 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col :cols="tabIsNotZero" class="config">
+        <v-col :cols="numberOfColsIftabIsNotZero" class="config">
           <v-card
             class="graph-tools"
             flat
@@ -80,9 +80,6 @@
                           {{ card.variableName }}
                         <span class="variableCardDataType"> {{ card.variableNameDataType }} </span>
                         </VpressVariableCard>
-                        <!-- <VpressVariableCard id="cardId_100" draggable="true" :columnData="{variableNameDataType:'string',variableName: 'Hola' }">
-                          Hola
-                        </VpressVariableCard> -->
                         <v-divider/>
                       </v-card>
                       <v-row>
@@ -170,11 +167,12 @@ export default {
     };
   },
   computed: {
-    tabIsNotZero() {
-      
-      return this.activeTab !== 0
+    numberOfColsIftabIsNotZero() {
+      const numberOfCols = this.activeTab !== 0
         ? '4'
         : '12';
+
+      return numberOfCols
     },
   },
   methods: {
