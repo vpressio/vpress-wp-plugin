@@ -1,10 +1,14 @@
 <template lang="pug">
-  .chart-container
+  .chart-container.center-align(class="light-themed")
     div.layout-row.left-align.label-font.bold.layout-align-start-end
-      h2.generated-title {{ generatedTitle }}
+      h2.generated-title(v-show="!editableTitle", @dblclick="toggleEditTitle") {{ generatedTitle }}
+      input.center-align.edit-title(type="text", v-model="chartConfig.title", v-show="editableTitle", @blur="toggleEditTitle")
+      h3.generated-subtitle(v-show="!editableSubtitle", @dblclick="toggleEditSubtitle") {{ chartConfig.subtitle }}
+      input.center-align.edit-subtitle(v-show="editableSubtitle", type="text", v-model="chartConfig.subtitle", @blur="toggleEditSubtitle")
 
-    #empty-chart.center-align.vertical-align.empty-chart
-      p.tiny.label-font CARGANDO GRÁFICA...
+    #empty-chart.empty-chart
+      .vertical-align
+        p.tiny.label-font CARGANDO GRÁFICA...
 </template>
 
 <script>
@@ -27,12 +31,17 @@ export default {
       stackedBars: Boolean,
       orderBy: String,
       title: String,
+      subtitle: String,
       colors: Array,
+      opacity: Number,
+      theme: String,
       labels: Boolean
     }
   },
   data() {
     return {
+      editableTitle: false,
+      editableSubtitle: false,
       windowWidth: window.innerWidth,
       locale: d3.timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
@@ -132,8 +141,7 @@ export default {
         this.data &&
         this.data.length > 0 &&
         this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug &&
-        this.chartConfig.collapseBy.slug
+        this.chartConfig.yAxis.slug
       ) {
         this.configChart();
       }
@@ -150,14 +158,25 @@ export default {
         this.data &&
         this.data.length > 0 &&
         this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug &&
-        this.chartConfig.collapseBy.slug
+        this.chartConfig.yAxis.slug
       ) {
         this.configChart();
       }
     }
   },
   methods: {
+    toggleEditTitle() {
+      this.editableTitle = !this.editableTitle;
+      if (this.chartConfig.title === '') {
+        this.chartConfig.title = 'Título';
+      }
+    },
+    toggleEditSubtitle() {
+      if (this.chartConfig.subtitle === '') {
+        this.chartConfig.subtitle = 'Subtítulo';
+      }
+      this.editableSubtitle = !this.editableSubtitle;
+    },
     customGraphStyles() {
       return 'main-class';
     },
@@ -644,27 +663,54 @@ export default {
     },
     parseData(data) {
       const vm = this;
-      if (!_.includes(['heatmap', 'scatter'], vm.chartConfig.chart)) {
+      if (!_.includes(['scatter'], vm.chartConfig.chart)) {
         return d3
           .nest()
-          .key(d => d[vm.ordinalAxis.slug])
+          .key(
+            d =>
+              `${d[vm.ordinalAxis.slug]}_${
+                vm.chartConfig.chart === 'heatmap' ? d[vm.chartConfig.groupBy.slug] : ''
+              }`
+          )
           .rollup(leaves => {
             let obj = {};
+            /**
+             * parse data like:
+             * { x: 'yes', y: 'men', total: 3 }
+             * { x: 'yes', y: 'women', total: 7 }
+             */
             obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
-            obj[vm.chartConfig.collapseBy.slug] = d3.sum(
-              leaves,
-              d => d[vm.chartConfig.collapseBy.slug]
-            );
-            leaves.forEach(leaf => {
-              // Group by properties
-              const prop = leaf[vm.chartConfig.groupBy.slug];
-              const value = leaf[vm.chartConfig.collapseBy.slug];
-              obj[prop] = value;
-            });
+            obj[vm.chartConfig.groupBy.slug] = leaves[0][vm.chartConfig.groupBy.slug];
+            if (
+              !vm.chartConfig.collapseBy.slug ||
+              vm.chartConfig.collapseBy.slug === 'total_count'
+            ) {
+              obj['total_count'] = leaves.length;
+              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+            } else {
+              obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                leaves,
+                d => d[vm.chartConfig.collapseBy.slug]
+              );
+            }
+            if (vm.chartConfig.chart !== 'heatmap') {
+              /**
+               * parse data like:
+               * { x: 'yes', men: 3, women: 7 }
+               */
+              leaves.forEach(leaf => {
+                // Group by properties
+                const prop = leaf[vm.chartConfig.groupBy.slug];
+                const value = leaf[vm.chartConfig.collapseBy.slug];
+                obj[prop] = value;
+              });
+            }
             return obj;
           })
           .entries(data)
-          .map(obj => obj.value);
+          .map(obj => {
+            return obj.value;
+          });
       } else {
         return data;
       }
@@ -675,8 +721,7 @@ export default {
       this.data &&
       this.data.length > 0 &&
       this.chartConfig.xAxis.slug &&
-      this.chartConfig.yAxis.slug &&
-      this.chartConfig.collapseBy.slug
+      this.chartConfig.yAxis.slug
     ) {
       this.configChart();
     }
@@ -686,7 +731,30 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.generated-title {
+.chart-container.light-themed {
+  color: #666;
+}
+.chart-container.dark-themed {
+  color: #fff;
+  background: #222;
+}
+
+.edit-title,
+.edit-subtitle {
+  width: 100%;
+}
+
+.generated-title,
+.edit-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+.generated-subtitle,
+.edit-subtitle {
+  font-size: 1em;
+  font-weight: bold;
   text-transform: uppercase;
   text-align: center;
 }
@@ -711,11 +779,22 @@ export default {
 .chart-container {
   width: 100%;
   height: 600px;
-  border-radius: 2em;
-  /* border: solid 1px #666; */
 }
 </style>
 <style>
+.empty-chart > svg {
+  width: 100%;
+  height: auto;
+}
+
+.d3-tip {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.chart-container.dark-themed svg text {
+  fill: #eee;
+}
+
 .square {
   height: 50px;
   width: 50px;
