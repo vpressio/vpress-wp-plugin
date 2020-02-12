@@ -6,7 +6,7 @@
           {{ slotLabel }}
         </v-label>
       </v-col>
-      <v-col cols=1 class="slotHeaderColumn" v-if="cardId">
+      <v-col cols="1" class="slotHeaderColumn" v-if="cardId">
         <v-btn @click="remove" small icon>
           X
         </v-btn>
@@ -23,11 +23,11 @@
           @dragover.prevent="dragOver"
           light
         >
-          <slot/>
+          <slot />
         </v-card>
       </v-col>
     </v-row>
-</v-card>
+  </v-card>
 </template>
 <script>
 export default {
@@ -36,21 +36,16 @@ export default {
   data() {
     return {
       cardId: '',
-      slotId: '',
+      slotId: ''
     };
   },
   methods: {
     drop(e) {
-      const {
-        dataTransfer,
-        target,
-      } = e;
+      const { dataTransfer, target } = e;
 
-      this.slotId = this.slotId.length === 0
-        ? target.id
-        : this.slotId;
+      this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
 
-      if (target.children.length < 1){
+      if (target.children.length < 1) {
         const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
         const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
         const card = document.getElementById(columnDataToTransferInObject.id);
@@ -77,20 +72,19 @@ export default {
       }
     },
     dragOver(e) {
-      if(this.$store.state.chartConfig);
+      if (this.$store.state.chartConfig);
     },
     remove(e) {
       const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
-      if (card) 
-      slot.removeChild(card)
-      this.$store.dispatch(`chartConfig/${this.slotId}`,null);
-    },
-  },
+      if (card) slot.removeChild(card);
+      this.$store.dispatch(`chartConfig/${this.slotId}`, null);
+    }
+  }
 };
 </script>
 <style>
-  .slotHeaderColumn{
-    padding:5px;
-  }
+.slotHeaderColumn {
+  padding: 5px;
+}
 </style>
