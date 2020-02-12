@@ -15,40 +15,39 @@
     style="text-overflow: ellipsis;overflow: hidden; "
   >
     <v-card-text class="card-text">
-      <slot/>
+      <slot />
     </v-card-text>
   </v-card>
 </template>
 <script>
 export default {
   name: 'VpressVariableCard',
-  props: ['id','draggable','columnData'],
-  data(){
+  props: ['id', 'draggable', 'columnData'],
+  data() {
     return {
-      variableCardParent:'',
-    }
+      variableCardParent: ''
+    };
   },
   methods: {
-    dragStart(e){
+    dragStart(e) {
       const { target, dataTransfer } = e;
 
       const variableCardParentId = e.target.parentElement.id;
       this.variableCardParent = document.getElementById(variableCardParentId);
       const variableCardClone = target.cloneNode(target.id);
-      variableCardClone.setAttribute('id',`${target.id}_clone`);
-      variableCardClone.setAttribute('draggable',false);
-      variableCardClone.style.display = 'none'
+      variableCardClone.setAttribute('id', `${target.id}_clone`);
+      variableCardClone.setAttribute('draggable', false);
+      variableCardClone.style.display = 'none';
       this.variableCardParent.appendChild(variableCardClone);
-      const columnDataToTransferInObject = {...this.columnData, id:variableCardClone.id};
+      const columnDataToTransferInObject = { ...this.columnData, id: variableCardClone.id };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
-      dataTransfer.setData('columnDataToTransferInString',columnDataToTransferInString);
-      
+      dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
-    dragEnd(e){
+    dragEnd(e) {
       const { target } = e;
       target.style.display = 'block';
     }
-  },
+  }
 };
 </script>
 <style scoped>
@@ -56,9 +55,9 @@ export default {
   display: flex;
 }
 
-.card-text{
+.card-text {
   color: white !important;
-  font-weight:900;
-  font-size:1rem;
+  font-weight: 900;
+  font-size: 1rem;
 }
 </style>
