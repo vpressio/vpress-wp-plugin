@@ -26,6 +26,11 @@ export default {
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
     },
+    SET_GROUP_BY(state, payload) {
+      state.groupBy.title = payload ? payload.variableName : '';
+      state.groupBy.slug = payload ? payload.variableName : '';
+      state.groupBy.type = payload ? payload.variableNameDataType : '';
+    }
   },
   actions: {
     UPDATE_X_AXIS({ commit }, payload) {
@@ -33,6 +38,9 @@ export default {
     },
     UPDATE_Y_AXIS({ commit }, payload) {
       commit('SET_Y_AXIS', payload);
+    },
+    UPDATE_GROUP_BY({ commit }, payload) {
+      commit('SET_GROUP_BY', payload);
     },
   },
   getters: {
