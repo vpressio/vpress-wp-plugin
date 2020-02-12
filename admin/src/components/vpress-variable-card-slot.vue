@@ -1,68 +1,93 @@
 <template>
-  <v-card style="width: 80%;margin:2px auto">
-    <v-card-title>
-      x-axis
-    </v-card-title>
-    <v-btn @click="remove" small icon>
-      X
-    </v-btn>
-    <v-card
-      :ref="id"
-      :id="id"
-      min-height="68"
-      outlined
-      @drop.prevent="drop"
-      @dragover.prevent="dragOver"
-      light
-    >
-      <slot/>
-    </v-card>
-</v-card>
+  <v-card class="ma-1">
+    <v-row no-gutters>
+      <v-col class="slotHeaderColumn">
+        <v-label>
+          {{ slotLabel }}
+        </v-label>
+      </v-col>
+      <v-col cols="1" class="slotHeaderColumn" v-if="cardId">
+        <v-btn @click="remove" small icon>
+          X
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-card
+          :ref="id"
+          :id="id"
+          min-height="50"
+          outlined
+          @drop.prevent="drop"
+          @dragover.prevent="dragOver"
+          light
+        >
+          <slot />
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-card>
 </template>
 <script>
 export default {
   name: 'VpressVariableCardSlot',
-  props: ['id'],
+  props: ['id', 'slotLabel'],
   data() {
     return {
-      cardId: null,
-      slotId:null
+      cardId: '',
+      slotId: ''
     };
   },
   methods: {
     drop(e) {
-      const {
-        dataTransfer,
-        target,
-      } = e;
+      const { dataTransfer, target } = e;
 
-      this.slotId = target.id;
+      this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
 
-      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+      if (target.children.length < 1) {
+        const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+        const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+        const card = document.getElementById(columnDataToTransferInObject.id);
+        card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
+        this.cardId = card.id;
+        target.appendChild(card);
+        card.style.display = 'block';
+        this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
+      } else {
+        console.log(this.cardId);
+        const newColumnDataToTransferInString = dataTransfer.getData(
+          'columnDataToTransferInString'
+        );
+        const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
+        const newCard = document.getElementById(newColumnDataToTransferInObject.id);
 
-      this.cardId = columnDataToTransferInObject.id
+        const slot = document.getElementById(this.slotId);
+        const oldCard = document.getElementById(this.cardId);
 
-      const card = document.getElementById(this.cardId);
-
-      if (target.children.length < 1)
-
-      target.appendChild(card)
-
-      this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
+        if (oldCard) slot.removeChild(oldCard);
+        newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
+        this.cardId = newCard.id;
+        slot.appendChild(newCard);
+        console.log(slot);
+        newCard.style.display = 'block';
+        this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
+      }
     },
     dragOver(e) {
-      if(this.$store.state.chartConfig);
+      if (this.$store.state.chartConfig);
     },
     remove(e) {
-      const slot = document.getElementById('card_slot_start');
+      const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
-      if (card) slot.appendChild(card)
-      this.$store.dispatch(`chartConfig/${this.slotId}`,null)
-    },
-  },
+      if (card) slot.removeChild(card);
+      this.$store.dispatch(`chartConfig/${this.slotId}`, null);
+    }
+  }
 };
 </script>
 <style>
-
+.slotHeaderColumn {
+  padding: 5px;
+}
 </style>

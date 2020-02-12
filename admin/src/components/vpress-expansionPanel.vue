@@ -37,8 +37,8 @@ export default {
   border-top-right-radius: 0%;
 }
 
-.config-panels > .v-expansion-panel-content > .v-expansion-panel-content__wrap {
-  padding: 0;
+.config-panels > .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+  padding: 0 !important;
 }
 
 .config-panels {
