@@ -74,6 +74,11 @@ export default {
       } else if (state.xAxis.type !== state.yAxis.type) {
         state.chart = 'bars';
       }
+    },
+    SET_GROUP_BY(state, payload) {
+      state.groupBy.title = payload ? payload.variableName : '';
+      state.groupBy.slug = payload ? payload.variableName : '';
+      state.groupBy.type = payload ? payload.variableNameDataType : '';
     }
   },
   actions: {
@@ -82,6 +87,9 @@ export default {
     },
     UPDATE_Y_AXIS({ commit }, payload) {
       commit('SET_Y_AXIS', payload);
+    },
+    UPDATE_GROUP_BY({ commit }, payload) {
+      commit('SET_GROUP_BY', payload);
     }
   },
   getters: {},
