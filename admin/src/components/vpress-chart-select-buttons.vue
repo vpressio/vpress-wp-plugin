@@ -1,7 +1,7 @@
 <template>
   <v-card flat class="px-2 py-3">
     <v-row>
-      <v-col cols="2" style="border-right:solid 0.5px; padding-left:32px">
+      <v-col cols="2" class="buttons-header">
         TIPOS DE GRÁFICOS
       </v-col>
       <v-col>
@@ -11,12 +11,13 @@
           text
           @click="setChartType(graph.chartType)"
           :disabled="graph.disabled"
+          :class="graph.disabled ? 'grey darken-1' : ''"
+          class="mx-1"
         >
           <v-img
             :src="requireImg(graph.chartType)"
             :alt="graph.chartType"
             width="30"
-            :class="graph.disabled ? 'grey darken-1' : ''"
           ></v-img>
         </v-btn>
       </v-col>
@@ -42,3 +43,11 @@ export default {
   }
 }
 </script>
+<style scoped>
+  .buttons-header{
+    border-right:solid 0.5px;
+    padding-left:32px;
+    font-weight: 600;
+    line-height: initial;
+  }
+</style>
