@@ -1,9 +1,7 @@
 <template>
   <div>
-    <!-- <p>{{ dataChart }}</p>
-    <p>{{ displayChartConfig }}</p> -->
     <VpressChartSelectButtons :availableCharts="availableCharts"/>
-    <ChartComponent :data="dataChart" :chartConfig="chartConfig"></ChartComponent>
+    <ChartComponent :data="dataChart" :chartConfig="chartConfig"/>
   </div>
 </template>
 <script>
@@ -21,26 +19,20 @@ export default {
     return {
       dataChart: this.$store.state.data.data,
       chartConfig: this.$store.state.chartConfig,
-      availableCharts: this.$store.getters['chartConfig/getChartTypes']
+      availableCharts: this.$store.getters[
+        'chartConfig/getAvailableCharts'
+      ]
     };
   },
   created() {
     this.$store.subscribe((mutation, state) => {
-      console.log(mutation);
-      console.log(state.data);
-      console.log(state.chartConfig);
       const chartConfig = _.cloneDeep(state.chartConfig);
       this.chartConfig = chartConfig;
 
       this.availableCharts = this.$store.getters[
-      'chartConfig/getChartTypes'
+      'chartConfig/getAvailableCharts'
     ]
     });
-  },
-  computed: {
-    displayChartConfig() {
-      return this.chartConfig;
-    }
   }
 };
 </script>

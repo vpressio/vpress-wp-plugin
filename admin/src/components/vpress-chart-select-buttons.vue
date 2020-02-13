@@ -10,12 +10,13 @@
           :key="graphIndex"
           text
           @click="setChartType(graph.chartType)"
+          :disabled="graph.disabled"
         >
           <v-img
             :src="requireImg(graph.chartType)"
-            :alt="graphs.chartType"
+            :alt="graph.chartType"
             width="30"
-            :gradient="graph.disabled ? '90deg, rgba(210,223,220,0) 33%, rgba(170,169,186,0.45281862745098034) 50%' : ''"
+            :class="graph.disabled ? 'grey darken-1' : ''"
           ></v-img>
         </v-btn>
       </v-col>
