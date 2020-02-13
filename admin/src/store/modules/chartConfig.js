@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
+
 export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: 'ordinal', slug: '' },
+    xAxis: { title: '', type: 'linear', slug: '' },
     yAxis: { title: 'Total', type: 'linear', slug: 'total_count' },
     groupBy: { title: '', type: 'ordinal', slug: '' },
     collapseBy: { title: '', type: 'linear', slug: '' },
@@ -24,6 +25,29 @@ export default {
       '#fdbf6f',
       '#ff7f00',
       '#cab2d6'
+    ],
+    labels: false,
+    availableGraphs:[
+      {
+        chartType:'bars',
+        chartCompatibleDataTypes:['linear', 'ordinal']
+      },
+      {
+        chartType:'heatmap',
+        chartCompatibleDataTypes:['ordinal']
+      },
+      {
+        chartType:'spineplot',
+        chartCompatibleDataTypes:['ordinal']
+      },
+      {
+        chartType:'scatter',
+        chartCompatibleDataTypes:['linear']
+      },
+      {
+        chartType:'timeline',
+        chartCompatibleDataTypes:['date', 'linear']
+      },
     ],
     opacity: 0.8,
     theme: 'light',
@@ -97,6 +121,9 @@ export default {
       state.groupBy.title = payload ? payload.variableName : '';
       state.groupBy.slug = payload ? payload.variableName : '';
       state.groupBy.type = payload ? payload.variableNameDataType : '';
+    },
+    SET_CHART_TYPE(state, payload) {
+      state.chart = payload;
     }
   },
   actions: {
@@ -108,8 +135,23 @@ export default {
     },
     UPDATE_GROUP_BY({ commit }, payload) {
       commit('SET_GROUP_BY', payload);
+    },
+    UPDATE_CHART_TYPE({ commit }, payload) {
+      commit('SET_CHART_TYPE', payload)
     }
   },
-  getters: {},
+  getters: {
+    getAvailableCharts: state => {
+      return state.availableGraphs.map(chart => {
+        if(
+          chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
+          chart.chartCompatibleDataTypes.includes(state.yAxis.type)
+        ) {
+          return { ...chart, disabled: false }
+        };
+        return { ...chart, disabled: true };
+      });
+    }
+  },
   setters: {}
 };

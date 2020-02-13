@@ -1,32 +1,22 @@
 <template>
   <v-card class="ma-1">
-    <v-row no-gutters>
-      <v-col class="slotHeaderColumn">
-        <v-label>
-          {{ slotLabel }}
-        </v-label>
-      </v-col>
-      <v-col cols="1" class="slotHeaderColumn" v-if="cardId">
-        <v-btn @click="remove" small icon>
-          X
-        </v-btn>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <v-card
-          :ref="id"
-          :id="id"
-          min-height="50"
-          outlined
-          @drop.prevent="drop"
-          @dragover.prevent="dragOver"
-          light
-        >
-          <slot />
-        </v-card>
-      </v-col>
-    </v-row>
+    <v-label>
+      {{ slotLabel }}
+    </v-label>
+    <v-btn @click="remove" small icon>
+      X
+    </v-btn>
+    <v-card
+      :ref="id"
+      :id="id"
+      min-height="50"
+      outlined
+      @drop.prevent="drop"
+      @dragover.prevent="dragOver"
+      light
+    >
+      <slot />
+    </v-card>
   </v-card>
 </template>
 <script>
