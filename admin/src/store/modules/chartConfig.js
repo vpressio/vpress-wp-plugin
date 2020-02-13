@@ -20,7 +20,11 @@ export default {
     theme: 'light',
     labels: false,
     colors: [
-      '#7972AC'
+      '#f2f0f7',
+      '#cbc9e2',
+      '#9e9ac8',
+      '#756bb1',
+      '#54278f',
     ],
     availableGraphs:[
       {

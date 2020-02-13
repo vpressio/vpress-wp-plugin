@@ -10,7 +10,7 @@
           <v-card 
             v-for="(scheme, schemeIndex) in schemeType.schemes"
             :key="`scheme_${schemeIndex}`"
-            width="25"
+            :width="schemeCardSize"
             hover
             class="ma-2"
             @click="selectColorScheme(scheme)"
@@ -18,8 +18,7 @@
             <div
               v-for="(color, colorIndex) in scheme"
               :key="`color_${colorIndex}`"
-              :style="`background-color:${color}`"
-              style="width:25px;height:25px;"
+              :style="{backgroundColor:color,width:schemeCardSize,height:schemeCardSize}"
             >
             </div>
           </v-card>
@@ -33,7 +32,8 @@ export default {
   name:"VpressColorSelection",
   data(){
     return {
-      colorSchemes:[]
+      colorSchemes:[],
+      schemeCardSize:'20px'
     }
   },
   created(){
