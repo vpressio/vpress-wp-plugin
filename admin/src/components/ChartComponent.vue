@@ -672,10 +672,7 @@ export default {
              */
             obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
             obj[vm.chartConfig.groupBy.slug] = leaves[0][vm.chartConfig.groupBy.slug];
-            if (
-              !vm.chartConfig.collapseBy.slug ||
-              vm.chartConfig.collapseBy.slug === 'total_count'
-            ) {
+            if (vm.chartConfig.collapseBy.slug === 'total_count') {
               obj['total_count'] = leaves.length;
               vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
             } else {

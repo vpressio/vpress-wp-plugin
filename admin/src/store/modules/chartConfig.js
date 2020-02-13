@@ -5,7 +5,7 @@ export default {
   state: {
     chart: 'bars',
     xAxis: { title: '', type: 'linear', slug: '' },
-    yAxis: { title: 'Total', type: 'linear', slug: 'total_count' },
+    yAxis: { title: '', type: 'linear', slug: '' },
     groupBy: { title: '', type: 'ordinal', slug: '' },
     collapseBy: { title: '', type: 'linear', slug: '' },
     decimals: 1,
@@ -26,32 +26,31 @@ export default {
       '#ff7f00',
       '#cab2d6'
     ],
-    labels: false,
-    availableGraphs:[
-      {
-        chartType:'bars',
-        chartCompatibleDataTypes:['linear', 'ordinal']
-      },
-      {
-        chartType:'heatmap',
-        chartCompatibleDataTypes:['ordinal']
-      },
-      {
-        chartType:'spineplot',
-        chartCompatibleDataTypes:['ordinal']
-      },
-      {
-        chartType:'scatter',
-        chartCompatibleDataTypes:['linear']
-      },
-      {
-        chartType:'timeline',
-        chartCompatibleDataTypes:['date', 'linear']
-      },
-    ],
     opacity: 0.8,
     theme: 'light',
-    labels: false
+    labels: false,
+    availableGraphs: [
+      {
+        chartType: 'bars',
+        chartCompatibleDataTypes: ['linear', 'ordinal']
+      },
+      {
+        chartType: 'heatmap',
+        chartCompatibleDataTypes: ['ordinal']
+      },
+      {
+        chartType: 'spineplot',
+        chartCompatibleDataTypes: ['ordinal']
+      },
+      {
+        chartType: 'scatter',
+        chartCompatibleDataTypes: ['linear']
+      },
+      {
+        chartType: 'timeline',
+        chartCompatibleDataTypes: ['date', 'linear']
+      }
+    ]
   },
   mutations: {
     SET_X_AXIS(state, payload) {
@@ -83,12 +82,13 @@ export default {
       }
     },
     SET_Y_AXIS(state, payload) {
+      debugger;
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
       /** Reset yAxis */
       if (payload === null) {
-        state.yAxis = { title: 'Total', type: 'linear', slug: 'total_count' };
+        state.yAxis = { title: '', type: '', slug: '' };
       }
       state.collapseBy = { title: '', type: 'linear', slug: '' };
       if (!state.collapseBy || state.collapseBy.title === '') {
@@ -137,18 +137,18 @@ export default {
       commit('SET_GROUP_BY', payload);
     },
     UPDATE_CHART_TYPE({ commit }, payload) {
-      commit('SET_CHART_TYPE', payload)
+      commit('SET_CHART_TYPE', payload);
     }
   },
   getters: {
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
-        if(
+        if (
           chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
           chart.chartCompatibleDataTypes.includes(state.yAxis.type)
         ) {
-          return { ...chart, disabled: false }
-        };
+          return { ...chart, disabled: false };
+        }
         return { ...chart, disabled: true };
       });
     }

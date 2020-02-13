@@ -59,6 +59,19 @@
                         class="pb-3 variableCard-container"
                       >
                         <VpressVariableCard
+                          :id="`cardId_total`"
+                          draggable="true"
+                          :columnData="{
+                            variableName: 'total_count',
+                            variableNameDataType: 'linear'
+                          }"
+                        >
+                          Conteo de observaciones
+                          <span class="variableCardDataType">
+                            linear
+                          </span>
+                        </VpressVariableCard>
+                        <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
                           :id="`cardId_${cardIndex}`"
@@ -165,7 +178,7 @@ export default {
     VpressVariableCardSlot,
     VpressExpansionPanel,
     VpressStateSubscriber,
-    VpressInputControl,
+    VpressInputControl
   },
   data() {
     return {
