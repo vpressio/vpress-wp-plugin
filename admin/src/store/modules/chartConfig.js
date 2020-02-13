@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
+
 export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: 'ordinal', slug: '' },
-    yAxis: { title: '', type: 'ordinal', slug: '' },
+    xAxis: { title: '', type: 'linear', slug: '' },
+    yAxis: { title: 'Total', type: 'linear', slug: 'total_count' },
     groupBy: { title: '', type: 'ordinal', slug: '' },
     collapseBy: { title: '', type: 'linear', slug: '' },
     decimals: 1,
@@ -12,7 +13,8 @@ export default {
     suffix: '',
     stackedBars: false,
     orderBy: { order: 'desc', slug: '' },
-    title: '',
+    title: 'Título',
+    subtitle: 'Subtítulo',
     colors: [
       '#a6cee3',
       '#1f78b4',
@@ -24,6 +26,31 @@ export default {
       '#ff7f00',
       '#cab2d6'
     ],
+    labels: false,
+    availableGraphs:[
+      {
+        chartType:'bars',
+        chartCompatibleDataTypes:['linear', 'ordinal']
+      },
+      {
+        chartType:'heatmap',
+        chartCompatibleDataTypes:['ordinal']
+      },
+      {
+        chartType:'spineplot',
+        chartCompatibleDataTypes:['ordinal']
+      },
+      {
+        chartType:'scatter',
+        chartCompatibleDataTypes:['linear']
+      },
+      {
+        chartType:'timeline',
+        chartCompatibleDataTypes:['date', 'linear']
+      },
+    ],
+    opacity: 0.8,
+    theme: 'light',
     labels: false
   },
   mutations: {
@@ -31,9 +58,13 @@ export default {
       state.xAxis.title = payload ? payload.variableName : '';
       state.xAxis.slug = payload ? payload.variableName : '';
       state.xAxis.type = payload ? payload.variableNameDataType : '';
+      state.collapseBy = { title: '', type: 'linear', slug: '' };
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
+          state.orderBy.slug = state.collapseBy.slug;
+        } else if (state.yAxis && state.yAxis.type === 'linear') {
+          state.collapseBy = state.yAxis;
           state.orderBy.slug = state.collapseBy.slug;
         }
       }
@@ -55,8 +86,16 @@ export default {
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
+      /** Reset yAxis */
+      if (payload === null) {
+        state.yAxis = { title: 'Total', type: 'linear', slug: 'total_count' };
+      }
+      state.collapseBy = { title: '', type: 'linear', slug: '' };
       if (!state.collapseBy || state.collapseBy.title === '') {
-        if (state.yAxis && state.yAxis.type === 'linear') {
+        if (state.xAxis && state.xAxis.type === 'linear') {
+          state.collapseBy = state.xAxis;
+          state.orderBy.slug = state.collapseBy.slug;
+        } else if (state.yAxis && state.yAxis.type === 'linear') {
           state.collapseBy = state.yAxis;
           state.orderBy.slug = state.collapseBy.slug;
         }
@@ -67,6 +106,7 @@ export default {
         }
         state.chart = 'heatmap';
         // state.chart = 'spineplot';
+        state.groupBy = state.yAxis;
       } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
         state.chart = 'scatter';
       } else if (state.xAxis.type === 'date') {
@@ -79,6 +119,9 @@ export default {
       state.groupBy.title = payload ? payload.variableName : '';
       state.groupBy.slug = payload ? payload.variableName : '';
       state.groupBy.type = payload ? payload.variableNameDataType : '';
+    },
+    SET_CHART_TYPE(state, payload) {
+      state.chart = payload;
     }
   },
   actions: {
@@ -91,9 +134,22 @@ export default {
     UPDATE_GROUP_BY({ commit }, payload) {
       commit('SET_GROUP_BY', payload);
     },
+    UPDATE_CHART_TYPE({ commit }, payload) {
+      commit('SET_CHART_TYPE', payload)
+    }
   },
   getters: {
+    getAvailableCharts: state => {
+      return state.availableGraphs.map(chart => {
+        if(
+          chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
+          chart.chartCompatibleDataTypes.includes(state.yAxis.type)
+        ) {
+          return { ...chart, disabled: false }
+        };
+        return { ...chart, disabled: true };
+      });
+    }
   },
-  getters: {},
   setters: {}
 };

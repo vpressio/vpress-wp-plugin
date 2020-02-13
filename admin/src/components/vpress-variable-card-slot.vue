@@ -1,19 +1,11 @@
 <template>
   <v-card class="ma-1">
-    <v-row no-gutters>
-      <v-col class="slotHeaderColumn">
         <v-label>
           {{ slotLabel }}
         </v-label>
-      </v-col>
-      <v-col cols="1" class="slotHeaderColumn" v-if="cardId">
         <v-btn @click="remove" small icon>
           X
         </v-btn>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
         <v-card
           :ref="id"
           :id="id"
@@ -25,8 +17,6 @@
         >
           <slot />
         </v-card>
-      </v-col>
-    </v-row>
   </v-card>
 </template>
 <script>
@@ -56,10 +46,11 @@ export default {
         card.style.display = 'block';
         this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
       } else {
-
         const slot = document.getElementById(this.slotId);
         const oldCard = document.getElementById(this.cardId);
-        const newColumnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+        const newColumnDataToTransferInString = dataTransfer.getData(
+          'columnDataToTransferInString'
+        );
         const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
         const newCard = document.getElementById(newColumnDataToTransferInObject.id);
 
@@ -71,10 +62,10 @@ export default {
         this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
       }
     },
-    dragOver(e) {
+    dragOver(event) {
       if (this.$store.state.chartConfig);
     },
-    remove(e) {
+    remove(_event) {
       const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
       if (card) slot.removeChild(card);

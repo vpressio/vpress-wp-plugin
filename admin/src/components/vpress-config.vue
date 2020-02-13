@@ -165,7 +165,7 @@ export default {
     VpressVariableCardSlot,
     VpressExpansionPanel,
     VpressStateSubscriber,
-    VpressInputControl
+    VpressInputControl,
   },
   data() {
     return {
@@ -258,7 +258,7 @@ export default {
 }
 
 .graph {
-  margin: 12px 0 0 12px;
+  margin: 12px 0 0 0;
 }
 
 * >>> .config-tabs > .v-tabs-bar {
