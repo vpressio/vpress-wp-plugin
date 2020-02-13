@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+
 export default {
   namespaced: true,
   state: {
@@ -24,7 +25,29 @@ export default {
       '#ff7f00',
       '#cab2d6'
     ],
-    labels: false
+    labels: false,
+    availableGraphs:[
+      {
+        chartType:'bars',
+        chartCompatibleDataType:['linear','ordinal']
+      },
+      {
+        chartType:'heatmap',
+        chartCompatibleDataType:['ordinal']
+      },
+      {
+        chartType:'spineplot',
+        chartCompatibleDataType:['ordinal']
+      },
+      {
+        chartType:'scatter',
+        chartCompatibleDataType:['linear']
+      },
+      {
+        chartType:'timeline',
+        chartCompatibleDataType:['date', 'linear']
+      },
+    ]
   },
   mutations: {
     SET_X_AXIS(state, payload) {
@@ -79,6 +102,10 @@ export default {
       state.groupBy.title = payload ? payload.variableName : '';
       state.groupBy.slug = payload ? payload.variableName : '';
       state.groupBy.type = payload ? payload.variableNameDataType : '';
+    },
+    SET_CHART_TYPE(state, payload) {
+      state.chart = payload;
+      console.log(state.chart);
     }
   },
   actions: {
@@ -91,9 +118,19 @@ export default {
     UPDATE_GROUP_BY({ commit }, payload) {
       commit('SET_GROUP_BY', payload);
     },
+    UPDATE_CHART_TYPE({ commit }, payload) {
+      commit('SET_CHART_TYPE', payload)
+    }
   },
   getters: {
+    getChartTypes: state => {
+      return state.availableGraphs.map(chart => {
+        console.log(chart.chartCompatibleDataType)
+        if(chart.chartCompatibleDataType.includes(state.xAxis.type) && chart.chartCompatibleDataType.includes(state.yAxis.type))
+        return {...chart, disabled:false};
+        return {...chart, disabled:true};
+      });
+    }
   },
-  getters: {},
   setters: {}
 };
