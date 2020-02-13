@@ -82,7 +82,9 @@ export default {
         }
         state.chart = 'heatmap';
         // state.chart = 'spineplot';
-        state.groupBy = state.yAxis;
+        if (!state.groupBy.slug) {
+          state.groupBy = state.yAxis;
+        }
       } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
         state.chart = 'scatter';
       } else if (state.xAxis.type === 'date') {

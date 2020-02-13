@@ -72,10 +72,12 @@ export default {
         this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
       }
     },
-    dragOver(event) {
+    dragOver() {
+      // (event) {
       if (this.$store.state.chartConfig);
     },
-    remove(event) {
+    remove() {
+      // (event) {
       const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
       if (card) slot.removeChild(card);

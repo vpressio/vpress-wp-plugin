@@ -1,10 +1,10 @@
 <template lang="pug">
-  .chart-container.center-align(class="light-themed")
-    div.layout-row.left-align.label-font.bold.layout-align-start-end
-      h2.generated-title(v-show="!editableTitle", @dblclick="toggleEditTitle") {{ generatedTitle }}
-      input.center-align.edit-title(type="text", v-model="chartConfig.title", v-show="editableTitle", @blur="toggleEditTitle")
-      h3.generated-subtitle(v-show="!editableSubtitle", @dblclick="toggleEditSubtitle") {{ chartConfig.subtitle }}
-      input.center-align.edit-subtitle(v-show="editableSubtitle", type="text", v-model="chartConfig.subtitle", @blur="toggleEditSubtitle")
+  .chart-container.center-align(:class="`${chartConfig.theme}-themed`")
+    .layout-row.left-align.label-font.bold.layout-align-start-end
+      .col-12.py-0
+        h2.generated-title.mb-0 {{ generatedTitle }}
+      .col-12.py-0
+        h3.generated-subtitle.mb-0 {{ chartConfig.subtitle }}
 
     #empty-chart.empty-chart
       .vertical-align
@@ -40,8 +40,6 @@ export default {
   },
   data() {
     return {
-      editableTitle: false,
-      editableSubtitle: false,
       windowWidth: window.innerWidth,
       locale: d3.timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
@@ -165,18 +163,6 @@ export default {
     }
   },
   methods: {
-    toggleEditTitle() {
-      this.editableTitle = !this.editableTitle;
-      if (this.chartConfig.title === '') {
-        this.chartConfig.title = 'Título';
-      }
-    },
-    toggleEditSubtitle() {
-      if (this.chartConfig.subtitle === '') {
-        this.chartConfig.subtitle = 'Subtítulo';
-      }
-      this.editableSubtitle = !this.editableSubtitle;
-    },
     customGraphStyles() {
       return 'main-class';
     },
@@ -433,22 +419,26 @@ export default {
             }
           },
           load: function(chart) {
+            /** Remove labels that are not a number */
             if (vm.chartConfig.chart === 'timeline') {
-              d3.selectAll('.x.axis .tick text').each(() => {
+              chart._svg.selectAll('.x.axis .tick text').each(() => {
                 if (isNaN(parseInt(d3.select(this).text(), 10))) {
                   d3.select(this).remove();
                 }
               });
             }
+            /** Rotate labels for "Año" in bars */
             if (chart._config.x === 'Año' && vm.chartConfig.chart === 'bars') {
               chart._svg
                 .selectAll('.x.axis .tick text')
                 .attr('transform', 'translate(-14, 18)rotate(-90)');
             }
+            /** Hide labels if are not set as visible */
             if (!vm.chartConfig.labels) {
-              d3.selectAll('.dbox-label').style('display', 'none');
+              chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
-            d3.selectAll('.x.axis .tick text').each(function() {
+            /** Rotate x axis ticks texts */
+            chart._svg.selectAll('.x.axis .tick text').each(function() {
               if (
                 d3.select(this).attr('transform') &&
                 d3
@@ -459,6 +449,7 @@ export default {
                 d3.select(this).style('font-size', '11');
               }
             });
+            vm.$emit('chart_loaded', vm.$el);
           }
         }
       };
@@ -750,6 +741,7 @@ export default {
   font-weight: bold;
   text-transform: uppercase;
   text-align: center;
+  display: initial;
 }
 .generated-subtitle,
 .edit-subtitle {
@@ -757,6 +749,7 @@ export default {
   font-weight: bold;
   text-transform: uppercase;
   text-align: center;
+  display: initial;
 }
 
 .empty-chart {
