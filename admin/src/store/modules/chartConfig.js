@@ -15,20 +15,10 @@ export default {
     orderBy: { order: 'desc', slug: '' },
     title: 'Título',
     subtitle: 'Subtítulo',
-    colors: [
-      '#a6cee3',
-      '#1f78b4',
-      '#b2df8a',
-      '#33a02c',
-      '#fb9a99',
-      '#e31a1c',
-      '#fdbf6f',
-      '#ff7f00',
-      '#cab2d6'
-    ],
+    labels: false,
     opacity: 0.8,
     theme: 'light',
-    labels: false,
+    colors: ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f'],
     availableGraphs: [
       {
         chartType: 'bars',
@@ -49,6 +39,30 @@ export default {
       {
         chartType: 'timeline',
         chartCompatibleDataTypes: ['date', 'linear']
+      }
+    ],
+    availableColors: [
+      {
+        colorSchemeType: 'SECUENCIAL',
+        schemes: [
+          ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'],
+          ['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'],
+          ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f']
+        ]
+      },
+      {
+        colorSchemeType: 'DIVERGENTE',
+        schemes: [
+          ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
+          ['#d7191c', '#fdae61', '#ffffbf', '#abd9e9', '#2c7bb6']
+        ]
+      },
+      {
+        colorSchemeType: 'CUALITATIVO',
+        schemes: [
+          ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99'],
+          ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+        ]
       }
     ]
   },
@@ -82,7 +96,6 @@ export default {
       }
     },
     SET_Y_AXIS(state, payload) {
-      debugger;
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
@@ -124,6 +137,14 @@ export default {
     },
     SET_CHART_TYPE(state, payload) {
       state.chart = payload;
+    },
+    SET_CHART_THEME(state, payload) {
+      const isDarkThemeActivated = payload;
+
+      isDarkThemeActivated ? (state.theme = 'dark') : (state.theme = 'light');
+    },
+    SET_CHART_COLORS(state, payload) {
+      state.colors = payload;
     }
   },
   actions: {
@@ -138,6 +159,12 @@ export default {
     },
     UPDATE_CHART_TYPE({ commit }, payload) {
       commit('SET_CHART_TYPE', payload);
+    },
+    UPDATE_CHART_THEME({ commit }, payload) {
+      commit('SET_CHART_THEME', payload);
+    },
+    UPDATE_CHART_COLORS({ commit }, payload) {
+      commit('SET_CHART_COLORS', payload);
     }
   },
   getters: {
@@ -152,6 +179,5 @@ export default {
         return { ...chart, disabled: true };
       });
     }
-  },
-  setters: {}
+  }
 };

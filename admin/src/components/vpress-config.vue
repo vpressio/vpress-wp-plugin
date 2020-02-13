@@ -86,21 +86,23 @@
                         <v-divider />
                       </v-card>
                       <v-row>
-                        <v-col cols="6">
+                        <v-col>
                           <VpressVariableCardSlot
                             id="UPDATE_X_AXIS"
                             ref="UPDATE_X_AXIS"
                             slotLabel="Eje X"
                           />
                         </v-col>
-                        <v-col cols="6">
+                        <v-col>
                           <VpressVariableCardSlot
                             id="UPDATE_Y_AXIS"
                             ref="UPDATE_Y_AXIS"
                             slotLabel="Eje Y"
                           />
                         </v-col>
-                        <v-col cols="6">
+                      </v-row>
+                      <v-row>
+                        <v-col>
                           <VpressVariableCardSlot
                             id="UPDATE_GROUP_BY"
                             ref="UPDATE_GROUP_BY"
@@ -113,24 +115,27 @@
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat dark color="#7972AC">
-                    <VpressExpansionPanel panelTitle="FORMATO DE GRÁFICA">
-                      <VpressInputControl inputName="Tipo de gráfica">
-                        <v-select
-                          placeholder="Selecciona una gráfica"
-                          :items="['barras', 'scatter', 'heatmap']"
-                          class="config-text-field"
-                          outlined
-                        />
-                      </VpressInputControl>
-                      <VpressInputControl inputName="Título">
-                        <v-text-field placeholder="Título" class="config-text-field" outlined />
-                      </VpressInputControl>
-                      <VpressInputControl inputName="Color">
-                        <v-text-field placeholder="Color" class="config-text-field" outlined />
-                      </VpressInputControl>
+                    <VpressExpansionPanel panelTitle="TEXTO DE EJES">
                       <VpressInputControl inputName="Prefijo">
                         <v-text-field placeholder="Prefijo" class="config-text-field" outlined />
                       </VpressInputControl>
+                      <VpressInputControl inputName="Sufijo">
+                        <v-text-field placeholder="Sufijo" class="config-text-field" outlined />
+                      </VpressInputControl>
+                    </VpressExpansionPanel>
+                    <VpressExpansionPanel panelTitle="TEMA">
+                      <VpressInputControl inputName="Tema">
+                        <v-switch
+                          dense
+                          inset
+                          v-model="darkTheme"
+                          :label="isDarkThemeActivated ? 'Obscuro' : 'Claro'"
+                          class="config-switch"
+                        />
+                      </VpressInputControl>
+                    </VpressExpansionPanel>
+                    <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                      <VpressColorSelection />
                     </VpressExpansionPanel>
                   </v-card>
                 </v-tab-item>
@@ -146,10 +151,10 @@
             color="transparent"
           >
             <v-card class="flex-end" flat color="transparent">
-              <v-btn class="save-button" outlined>
+              <v-btn class="save-button" outlined color="primary">
                 Guardar
               </v-btn>
-              <v-btn class="download-button" outlined>
+              <v-btn class="download-button" outlined color="primary">
                 Descargar
               </v-btn>
             </v-card>
@@ -169,6 +174,7 @@ import VpressVariableCardSlot from './vpress-variable-card-slot.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
+import VpressColorSelection from './vpress-config-color-selection.vue';
 
 export default {
   name: 'VpressConfig',
@@ -178,12 +184,14 @@ export default {
     VpressVariableCardSlot,
     VpressExpansionPanel,
     VpressStateSubscriber,
-    VpressInputControl
+    VpressInputControl,
+    VpressColorSelection
   },
   data() {
     return {
       activeTab: 0,
-      dataTypes: []
+      dataTypes: [],
+      darkTheme: false
     };
   },
   computed: {
@@ -191,6 +199,10 @@ export default {
       const numberOfCols = this.activeTab !== 0 ? '4' : '12';
 
       return numberOfCols;
+    },
+    isDarkThemeActivated() {
+      this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
+      return this.$store.state.chartConfig.theme === 'dark' ? true : false;
     }
   },
   methods: {
@@ -313,6 +325,15 @@ export default {
 * >>> .config-text-field > .v-input__control > .v-text-field__details {
   display: none;
 }
+
+* >>> .config-switch > .v-input__control > .v-messages {
+  display: none;
+}
+
+* >>> .config-switch {
+  margin-top: 0;
+}
+
 .limit-scroll {
   max-height: 60vh;
   overflow-y: scroll;
