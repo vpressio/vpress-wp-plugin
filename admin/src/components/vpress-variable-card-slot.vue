@@ -3,7 +3,7 @@
     <v-label>
       {{ slotLabel }}
     </v-label>
-    <v-btn @click="remove" small icon>
+    <v-btn v-show="slotId !== ''" @click="remove" small icon class="float-right">
       X
     </v-btn>
     <v-card
