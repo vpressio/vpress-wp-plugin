@@ -1,32 +1,22 @@
 <template>
   <v-card class="ma-1">
-    <v-row no-gutters>
-      <v-col class="slotHeaderColumn">
-        <v-label>
-          {{ slotLabel }}
-        </v-label>
-      </v-col>
-      <v-col cols="1" class="slotHeaderColumn" v-if="cardId">
-        <v-btn @click="remove" small icon>
-          X
-        </v-btn>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <v-card
-          :ref="id"
-          :id="id"
-          min-height="50"
-          outlined
-          @drop.prevent="drop"
-          @dragover.prevent="dragOver"
-          light
-        >
-          <slot />
-        </v-card>
-      </v-col>
-    </v-row>
+    <v-label>
+      {{ slotLabel }}
+    </v-label>
+    <v-btn v-show="slotId !== ''" @click="remove" small icon class="float-right">
+      X
+    </v-btn>
+    <v-card
+      :ref="id"
+      :id="id"
+      min-height="50"
+      outlined
+      @drop.prevent="drop"
+      @dragover.prevent="dragOver"
+      light
+    >
+      <slot />
+    </v-card>
   </v-card>
 </template>
 <script>
@@ -49,35 +39,35 @@ export default {
         const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
         const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
         const card = document.getElementById(columnDataToTransferInObject.id);
+
         card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
         this.cardId = card.id;
         target.appendChild(card);
         card.style.display = 'block';
         this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
       } else {
-        console.log(this.cardId);
+        const slot = document.getElementById(this.slotId);
+        const oldCard = document.getElementById(this.cardId);
         const newColumnDataToTransferInString = dataTransfer.getData(
           'columnDataToTransferInString'
         );
         const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
         const newCard = document.getElementById(newColumnDataToTransferInObject.id);
 
-        const slot = document.getElementById(this.slotId);
-        const oldCard = document.getElementById(this.cardId);
-
-        if (oldCard) slot.removeChild(oldCard);
+        slot.removeChild(oldCard);
         newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
         this.cardId = newCard.id;
         slot.appendChild(newCard);
-        console.log(slot);
         newCard.style.display = 'block';
         this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
       }
     },
-    dragOver(e) {
+    dragOver() {
+      // (event) {
       if (this.$store.state.chartConfig);
     },
-    remove(e) {
+    remove() {
+      // (event) {
       const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
       if (card) slot.removeChild(card);
@@ -86,7 +76,7 @@ export default {
   }
 };
 </script>
-<style>
+<style scoped>
 .slotHeaderColumn {
   padding: 5px;
 }

@@ -1,10 +1,14 @@
 <template lang="pug">
-  .chart-container
-    div.layout-row.left-align.label-font.bold.layout-align-start-end
-      h2.generated-title {{ generatedTitle }}
+  .chart-container.center-align(:class="`${chartConfig.theme}-themed`")
+    .layout-row.left-align.label-font.bold.layout-align-start-end
+      .col-12.py-0
+        h2.generated-title.mb-0 {{ generatedTitle }}
+      .col-12.py-0
+        h3.generated-subtitle.mb-0 {{ chartConfig.subtitle }}
 
-    #empty-chart.center-align.vertical-align.empty-chart
-      p.tiny.label-font CARGANDO GRÁFICA...
+    #empty-chart.empty-chart
+      .vertical-align
+        p.tiny.label-font CARGANDO GRÁFICA...
 </template>
 
 <script>
@@ -27,7 +31,10 @@ export default {
       stackedBars: Boolean,
       orderBy: String,
       title: String,
+      subtitle: String,
       colors: Array,
+      opacity: Number,
+      theme: String,
       labels: Boolean
     }
   },
@@ -132,8 +139,7 @@ export default {
         this.data &&
         this.data.length > 0 &&
         this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug &&
-        this.chartConfig.collapseBy.slug
+        this.chartConfig.yAxis.slug
       ) {
         this.configChart();
       }
@@ -150,8 +156,7 @@ export default {
         this.data &&
         this.data.length > 0 &&
         this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug &&
-        this.chartConfig.collapseBy.slug
+        this.chartConfig.yAxis.slug
       ) {
         this.configChart();
       }
@@ -414,22 +419,26 @@ export default {
             }
           },
           load: function(chart) {
+            /** Remove labels that are not a number */
             if (vm.chartConfig.chart === 'timeline') {
-              d3.selectAll('.x.axis .tick text').each(() => {
+              chart._svg.selectAll('.x.axis .tick text').each(() => {
                 if (isNaN(parseInt(d3.select(this).text(), 10))) {
                   d3.select(this).remove();
                 }
               });
             }
+            /** Rotate labels for "Año" in bars */
             if (chart._config.x === 'Año' && vm.chartConfig.chart === 'bars') {
               chart._svg
                 .selectAll('.x.axis .tick text')
                 .attr('transform', 'translate(-14, 18)rotate(-90)');
             }
+            /** Hide labels if are not set as visible */
             if (!vm.chartConfig.labels) {
-              d3.selectAll('.dbox-label').style('display', 'none');
+              chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
-            d3.selectAll('.x.axis .tick text').each(function() {
+            /** Rotate x axis ticks texts */
+            chart._svg.selectAll('.x.axis .tick text').each(function() {
               if (
                 d3.select(this).attr('transform') &&
                 d3
@@ -440,6 +449,7 @@ export default {
                 d3.select(this).style('font-size', '11');
               }
             });
+            vm.$emit('chart_loaded', vm.$el);
           }
         }
       };
@@ -540,7 +550,7 @@ export default {
         .colorLegend(this.legendDisplay.title)
         .borderRadius(10)
         .sortBy({ x: 'asc', y: 'desc' })
-        .colors(['#F7EAAD', '#CEB696', '#A6817F', '#7D4D67', '#541850']);
+        .colors(this.chartConfig.colors.slice(0, 5));
     },
     drawSpineplot() {
       const spineplot = this.chart.layer(dbox.spineplot);
@@ -644,27 +654,71 @@ export default {
     },
     parseData(data) {
       const vm = this;
-      if (!_.includes(['heatmap', 'scatter'], vm.chartConfig.chart)) {
-        return d3
+      if (!_.includes(['scatter'], vm.chartConfig.chart)) {
+        let collapsedData = d3
           .nest()
-          .key(d => d[vm.ordinalAxis.slug])
+          .key(d => `${d[vm.ordinalAxis.slug]}_${d[vm.chartConfig.groupBy.slug]}`)
           .rollup(leaves => {
             let obj = {};
+            /**
+             * parse data like:
+             * { x: 'yes', y: 'men', total: 3 }
+             * { x: 'yes', y: 'women', total: 7 }
+             */
             obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
-            obj[vm.chartConfig.collapseBy.slug] = d3.sum(
-              leaves,
-              d => d[vm.chartConfig.collapseBy.slug]
-            );
-            leaves.forEach(leaf => {
-              // Group by properties
-              const prop = leaf[vm.chartConfig.groupBy.slug];
-              const value = leaf[vm.chartConfig.collapseBy.slug];
-              obj[prop] = value;
-            });
+            obj[vm.chartConfig.groupBy.slug] = leaves[0][vm.chartConfig.groupBy.slug];
+            if (vm.chartConfig.collapseBy.slug === 'total_count') {
+              obj['total_count'] = leaves.length;
+              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+            } else {
+              obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                leaves,
+                d => d[vm.chartConfig.collapseBy.slug]
+              );
+            }
             return obj;
           })
           .entries(data)
           .map(obj => obj.value);
+        if (vm.chartConfig.chart !== 'heatmap' && vm.chartConfig.groupBy.slug) {
+          collapsedData = d3
+            .nest()
+            .key(d => d[vm.ordinalAxis.slug])
+            .rollup(leaves => {
+              let obj = {};
+              /**
+               * parse data like:
+               * { x: 'yes', y: 'men', total: 3 }
+               * { x: 'yes', y: 'women', total: 7 }
+               */
+              obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
+              if (vm.chartConfig.collapseBy.slug === 'total_count') {
+                obj['total_count'] = leaves.length;
+                vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+              } else {
+                obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                  leaves,
+                  d => d[vm.chartConfig.collapseBy.slug]
+                );
+              }
+              if (vm.chartConfig.chart !== 'heatmap') {
+                /**
+                 * parse data like:
+                 * { x: 'yes', men: 3, women: 7 }
+                 */
+                leaves.forEach(leaf => {
+                  // Group by properties
+                  const prop = leaf[vm.chartConfig.groupBy.slug];
+                  const value = leaf[vm.chartConfig.collapseBy.slug];
+                  obj[prop] = value;
+                });
+              }
+              return obj;
+            })
+            .entries(collapsedData)
+            .map(obj => obj.value);
+        }
+        return collapsedData;
       } else {
         return data;
       }
@@ -675,8 +729,7 @@ export default {
       this.data &&
       this.data.length > 0 &&
       this.chartConfig.xAxis.slug &&
-      this.chartConfig.yAxis.slug &&
-      this.chartConfig.collapseBy.slug
+      this.chartConfig.yAxis.slug
     ) {
       this.configChart();
     }
@@ -686,9 +739,36 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.generated-title {
+.chart-container.light-themed {
+  color: #666;
+}
+.chart-container.dark-themed *:not(input) {
+  color: #fff;
+}
+.chart-container.dark-themed {
+  background: #222;
+}
+
+.edit-title,
+.edit-subtitle {
+  width: 100%;
+}
+
+.generated-title,
+.edit-title {
+  font-size: 1.4em;
+  font-weight: bold;
   text-transform: uppercase;
   text-align: center;
+  display: initial;
+}
+.generated-subtitle,
+.edit-subtitle {
+  font-size: 1em;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  display: initial;
 }
 
 .empty-chart {
@@ -711,11 +791,22 @@ export default {
 .chart-container {
   width: 100%;
   height: 600px;
-  border-radius: 2em;
-  /* border: solid 1px #666; */
 }
 </style>
 <style>
+.empty-chart > svg {
+  width: 100%;
+  height: auto;
+}
+
+.d3-tip {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.chart-container.dark-themed svg text {
+  fill: #eee;
+}
+
 .square {
   height: 50px;
   width: 50px;

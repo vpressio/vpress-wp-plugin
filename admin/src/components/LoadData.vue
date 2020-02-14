@@ -39,10 +39,7 @@
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
           "
         />
-        <v-btn
-          color="primary"
-          class="float-right" @click="loadFile()"
-        >
+        <v-btn color="primary" class="float-right" @click="loadFile()">
           Procesar
         </v-btn>
       </v-flex>
@@ -111,12 +108,7 @@
         <v-spacer class="pd-2 ma-2"></v-spacer>
         <v-dialog v-model="dialogValidate" persistent max-width="400">
           <template v-slot:activator="{ on }">
-            <v-btn
-              v-show="data.length > 0"
-              color="primary"
-              class="float-right"
-              v-on="on"
-            >
+            <v-btn v-show="data.length > 0" color="primary" class="float-right" v-on="on">
               <v-icon left>mdi-content-save</v-icon> Guardar
             </v-btn>
           </template>
@@ -130,7 +122,14 @@
               <v-btn color="primary" text @click="dialogValidate = false">
                 Cancelar
               </v-btn>
-              <v-btn color="primary" text @click="dialogValidate = false; saveData()">
+              <v-btn
+                color="primary"
+                text
+                @click="
+                  dialogValidate = false;
+                  saveData();
+                "
+              >
                 Aceptar
               </v-btn>
             </v-card-actions>
@@ -155,7 +154,7 @@ export default {
   name: 'LoadData',
   components: {
     // Create FilePond component
-    FilePond: vueFilePond(FilePondPluginFileValidateType),
+    FilePond: vueFilePond(FilePondPluginFileValidateType)
   },
   data() {
     return {
@@ -171,14 +170,14 @@ export default {
       pastedData: '',
       snack: false,
       snackColor: '',
-      snackText: '',
+      snackText: ''
     };
   },
   computed: {
     /** If data-table's data should be displayed in CSV text */
     dataText() {
       return FReader.JSONtoCSV(this.data);
-    },
+    }
   },
   mounted() {},
   methods: {
@@ -198,21 +197,21 @@ export default {
       const files = this.$refs.pond.getFiles();
       // eslint-disable-next-line
       FReader.readExcel(files[0].file)
-        .then((content) => {
+        .then(content => {
           // eslint-disable-next-line
-          self.headers = Object.keys(content[0]).map((o) => ({
+          self.headers = Object.keys(content[0]).map(o => ({
             text: o,
             value: o,
-            sortable: true,
+            sortable: true
           }));
           // eslint-disable-next-line
           setTimeout(() => {
             self.data = content;
           }, 200);
         })
-        .catch((error) => {
+        .catch(error => {
           // eslint-disable-next-line
-          console.error(error)
+          console.error(error);
         });
     },
     /**
@@ -239,27 +238,21 @@ export default {
               .toLowerCase()
               .split(' ')
               .join('_'),
-            sortable: true,
+            sortable: true
           }));
         } else {
           /** Parse pasted rows to JSON objects */
-          const cellObj = cells.reduce(
-            (previousObject, currentValue, currentIndex) => {
-              const key = headers[currentIndex]
-                .toLowerCase()
-                .split(' ')
-                .join('_');
-              const value = currentValue;
-              return Object.assign(previousObject, {
-                [key]: value,
-              });
-            },
-            {},
-          );
-          if (
-            !self.data[0]
-            || Object.keys(cellObj).length >= Object.keys(self.data[0]).length
-          ) {
+          const cellObj = cells.reduce((previousObject, currentValue, currentIndex) => {
+            const key = headers[currentIndex]
+              .toLowerCase()
+              .split(' ')
+              .join('_');
+            const value = currentValue;
+            return Object.assign(previousObject, {
+              [key]: value
+            });
+          }, {});
+          if (!self.data[0] || Object.keys(cellObj).length >= Object.keys(self.data[0]).length) {
             self.data.push(cellObj);
           }
         }
@@ -288,8 +281,8 @@ export default {
     },
     close() {
       console.log('Dialog closed');
-    },
-  },
+    }
+  }
 };
 </script>
 <style lang="scss" scoped>
