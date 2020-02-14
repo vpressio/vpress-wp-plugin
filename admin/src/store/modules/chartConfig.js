@@ -75,12 +75,11 @@ export default {
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         } else if (state.yAxis && state.yAxis.type === 'linear') {
           state.collapseBy = state.yAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         }
       }
+      state.orderBy.slug = state.collapseBy.slug;
       if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
         if (!_.includes(['heatmap', 'spineplot'])) {
           console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
@@ -96,23 +95,22 @@ export default {
       }
     },
     SET_Y_AXIS(state, payload) {
+      if (payload === null) {
+        state.yAxis = { title: '', type: '', slug: '' };
+      }
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
       /** Reset yAxis */
-      if (payload === null) {
-        state.yAxis = { title: '', type: '', slug: '' };
-      }
       state.collapseBy = { title: '', type: 'linear', slug: '' };
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         } else if (state.yAxis && state.yAxis.type === 'linear') {
           state.collapseBy = state.yAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         }
       }
+      state.orderBy.slug = state.collapseBy.slug;
       if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
         if (!_.includes(['heatmap', 'spineplot'])) {
           console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
@@ -131,9 +129,21 @@ export default {
       }
     },
     SET_GROUP_BY(state, payload) {
-      state.groupBy.title = payload ? payload.variableName : '';
-      state.groupBy.slug = payload ? payload.variableName : '';
-      state.groupBy.type = payload ? payload.variableNameDataType : '';
+      if (payload === null) {
+        state.groupBy = { title: '', type: '', slug: '' };
+        if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
+          state.collapseBy = { title: '', type: '', slug: '' };
+        }
+      }
+      if (payload && payload.variableNameDataType === 'ordinal') {
+        state.groupBy.title = payload ? payload.variableName : '';
+        state.groupBy.slug = payload ? payload.variableName : '';
+        state.groupBy.type = payload ? payload.variableNameDataType : '';
+      } else if (payload && payload.variableNameDataType === 'linear') {
+        state.collapseBy.title = payload ? payload.variableName : '';
+        state.collapseBy.slug = payload ? payload.variableName : '';
+        state.collapseBy.type = payload ? payload.variableNameDataType : '';
+      }
     },
     SET_CHART_TYPE(state, payload) {
       state.chart = payload;
