@@ -86,14 +86,14 @@
                         <v-divider />
                       </v-card>
                       <v-row>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_X_AXIS"
                             ref="UPDATE_X_AXIS"
                             slotLabel="Eje X"
                           />
                         </v-col>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_Y_AXIS"
                             ref="UPDATE_Y_AXIS"
@@ -102,11 +102,11 @@
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_GROUP_BY"
                             ref="UPDATE_GROUP_BY"
-                            slotLabel="Agrupar"
+                            slotLabel="Colores"
                           />
                         </v-col>
                       </v-row>
