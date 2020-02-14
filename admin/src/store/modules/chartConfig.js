@@ -4,8 +4,8 @@ export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: '', slug: 'X' },
-    yAxis: { title: 'Total', type: '', slug: 'Y' },
+    xAxis: { title: '', type: 'linear', slug: '' },
+    yAxis: { title: '', type: 'linear', slug: '' },
     groupBy: { title: '', type: 'ordinal', slug: '' },
     collapseBy: { title: '', type: 'linear', slug: '' },
     decimals: 1,
@@ -18,102 +18,53 @@ export default {
     labels: false,
     opacity: 0.8,
     theme: 'light',
-    labels: false,
-    colors: [
-      '#f2f0f7',
-      '#cbc9e2',
-      '#9e9ac8',
-      '#756bb1',
-      '#54278f',
-    ],
-    availableGraphs:[
+    colors: ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f'],
+    availableGraphs: [
       {
-        chartType:'bars',
-        chartCompatibleDataTypes:['linear', 'ordinal']
+        chartType: 'bars',
+        chartCompatibleDataTypes: ['linear', 'ordinal']
       },
       {
-        chartType:'heatmap',
-        chartCompatibleDataTypes:['ordinal']
+        chartType: 'heatmap',
+        chartCompatibleDataTypes: ['ordinal']
       },
       {
-        chartType:'spineplot',
-        chartCompatibleDataTypes:['ordinal']
+        chartType: 'spineplot',
+        chartCompatibleDataTypes: ['ordinal']
       },
       {
-        chartType:'scatter',
-        chartCompatibleDataTypes:['linear']
+        chartType: 'scatter',
+        chartCompatibleDataTypes: ['linear']
       },
       {
-        chartType:'timeline',
-        chartCompatibleDataTypes:['date', 'linear']
-      },
-    ],
-    availableColors:[
-      {
-        colorSchemeType:'SECUENCIAL',
-        schemes: [
-          [
-            '#feebe2',
-            '#fbb4b9',
-            '#f768a1',
-            '#c51b8a',
-            '#7a0177',
-          ],
-          [
-            '#ffffcc',
-            '#a1dab4',
-            '#41b6c4',
-            '#2c7fb8',
-            '#253494',
-          ],
-          [
-            '#f2f0f7',
-            '#cbc9e2',
-            '#9e9ac8',
-            '#756bb1',
-            '#54278f',
-          ],
-        ]
-      },
-      {
-        colorSchemeType:'DIVERGENTE',
-        schemes: [
-          [
-            '#e66101',
-            '#fdb863',
-            '#f7f7f7',
-            '#b2abd2',
-            '#5e3c99',
-          ],
-          [
-            '#d7191c',
-            '#fdae61',
-            '#ffffbf',
-            '#abd9e9',
-            '#2c7bb6',
-          ],
-        ]
-      },
-      {
-        colorSchemeType:'CUALITATIVO',
-        schemes: [
-          [
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-          ],
-          [
-            '#e41a1c',
-            '#377eb8',
-            '#4daf4a',
-            '#984ea3',
-            '#ff7f00',
-          ],
-        ]
+        chartType: 'timeline',
+        chartCompatibleDataTypes: ['date', 'linear']
       }
     ],
+    availableColors: [
+      {
+        colorSchemeType: 'SECUENCIAL',
+        schemes: [
+          ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'],
+          ['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'],
+          ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f']
+        ]
+      },
+      {
+        colorSchemeType: 'DIVERGENTE',
+        schemes: [
+          ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
+          ['#d7191c', '#fdae61', '#ffffbf', '#abd9e9', '#2c7bb6']
+        ]
+      },
+      {
+        colorSchemeType: 'CUALITATIVO',
+        schemes: [
+          ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99'],
+          ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+        ]
+      }
+    ]
   },
   mutations: {
     SET_X_AXIS(state, payload) {
@@ -124,12 +75,11 @@ export default {
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         } else if (state.yAxis && state.yAxis.type === 'linear') {
           state.collapseBy = state.yAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         }
       }
+      state.orderBy.slug = state.collapseBy.slug;
       if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
         if (!_.includes(['heatmap', 'spineplot'])) {
           console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
@@ -145,30 +95,31 @@ export default {
       }
     },
     SET_Y_AXIS(state, payload) {
+      if (payload === null) {
+        state.yAxis = { title: '', type: '', slug: '' };
+      }
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
       /** Reset yAxis */
-      if (payload === null) {
-        state.yAxis = { title: 'Total', type: 'linear', slug: 'total_count' };
-      }
       state.collapseBy = { title: '', type: 'linear', slug: '' };
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         } else if (state.yAxis && state.yAxis.type === 'linear') {
           state.collapseBy = state.yAxis;
-          state.orderBy.slug = state.collapseBy.slug;
         }
       }
+      state.orderBy.slug = state.collapseBy.slug;
       if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
         if (!_.includes(['heatmap', 'spineplot'])) {
           console.warn("Ordinal axes can be displayed in 'heatmap' or 'spineplot'");
         }
         state.chart = 'heatmap';
         // state.chart = 'spineplot';
-        state.groupBy = state.yAxis;
+        if (!state.groupBy.slug) {
+          state.groupBy = state.yAxis;
+        }
       } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
         state.chart = 'scatter';
       } else if (state.xAxis.type === 'date') {
@@ -178,9 +129,21 @@ export default {
       }
     },
     SET_GROUP_BY(state, payload) {
-      state.groupBy.title = payload ? payload.variableName : '';
-      state.groupBy.slug = payload ? payload.variableName : '';
-      state.groupBy.type = payload ? payload.variableNameDataType : '';
+      if (payload === null) {
+        state.groupBy = { title: '', type: '', slug: '' };
+        if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
+          state.collapseBy = { title: '', type: '', slug: '' };
+        }
+      }
+      if (payload && payload.variableNameDataType === 'ordinal') {
+        state.groupBy.title = payload ? payload.variableName : '';
+        state.groupBy.slug = payload ? payload.variableName : '';
+        state.groupBy.type = payload ? payload.variableNameDataType : '';
+      } else if (payload && payload.variableNameDataType === 'linear') {
+        state.collapseBy.title = payload ? payload.variableName : '';
+        state.collapseBy.slug = payload ? payload.variableName : '';
+        state.collapseBy.type = payload ? payload.variableNameDataType : '';
+      }
     },
     SET_CHART_TYPE(state, payload) {
       state.chart = payload;
@@ -188,9 +151,7 @@ export default {
     SET_CHART_THEME(state, payload) {
       const isDarkThemeActivated = payload;
 
-      isDarkThemeActivated
-        ? state.theme = 'dark'
-        : state.theme = 'light';
+      isDarkThemeActivated ? (state.theme = 'dark') : (state.theme = 'light');
     },
     SET_CHART_COLORS(state, payload) {
       state.colors = payload;
@@ -210,7 +171,7 @@ export default {
       commit('SET_CHART_TYPE', payload);
     },
     UPDATE_CHART_THEME({ commit }, payload) {
-      commit('SET_CHART_THEME', payload); 
+      commit('SET_CHART_THEME', payload);
     },
     UPDATE_CHART_COLORS({ commit }, payload) {
       commit('SET_CHART_COLORS', payload);
@@ -219,11 +180,11 @@ export default {
   getters: {
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
-        if(
+        if (
           chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
           chart.chartCompatibleDataTypes.includes(state.yAxis.type)
         ) {
-          return { ...chart, disabled: false }
+          return { ...chart, disabled: false };
         }
         return { ...chart, disabled: true };
       });

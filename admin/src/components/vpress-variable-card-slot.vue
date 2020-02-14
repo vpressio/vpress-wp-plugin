@@ -1,22 +1,22 @@
 <template>
   <v-card class="ma-1">
-        <v-label>
-          {{ slotLabel }}
-        </v-label>
-        <v-btn @click="remove" small icon>
-          X
-        </v-btn>
-        <v-card
-          :ref="id"
-          :id="id"
-          min-height="50"
-          outlined
-          @drop.prevent="drop"
-          @dragover.prevent="dragOver"
-          light
-        >
-          <slot />
-        </v-card>
+    <v-label>
+      {{ slotLabel }}
+    </v-label>
+    <v-btn v-show="slotId !== ''" @click="remove" small icon class="float-right">
+      X
+    </v-btn>
+    <v-card
+      :ref="id"
+      :id="id"
+      min-height="50"
+      outlined
+      @drop.prevent="drop"
+      @dragover.prevent="dragOver"
+      light
+    >
+      <slot />
+    </v-card>
   </v-card>
 </template>
 <script>
@@ -62,10 +62,12 @@ export default {
         this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
       }
     },
-    dragOver(event) {
+    dragOver() {
+      // (event) {
       if (this.$store.state.chartConfig);
     },
-    remove(_event) {
+    remove() {
+      // (event) {
       const slot = document.getElementById(this.slotId);
       const card = document.getElementById(this.cardId);
       if (card) slot.removeChild(card);

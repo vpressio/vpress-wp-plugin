@@ -6,51 +6,47 @@
         <span class="font-weight-light">MATERIAL DESIGN</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-        text
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
+      <v-btn text href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank">
         <span class="mr-2">Latest Release</span>
       </v-btn>
     </v-app-bar>
 
     <v-content>
-      <HelloWorld/>
+      <HelloWorld />
     </v-content>
   </v-app>
 </template>
 
 <script>
-const axios = require('axios');
-import HelloWorld from './components/HelloWorld';
+const axios = require("axios");
+import HelloWorld from "./components/HelloWorld";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld,
+    HelloWorld
   },
   data: () => ({
     //
   }),
   mounted: () => {
-    console.log('Alecs', window.wpApiSettings.nonce);
-    axios.get('http://localhost:8888/kellogg-mexico-wp/wp-json/wp/v2/posts').then((response) => {
+    axios.get("http://localhost:8888/kellogg-mexico-wp/wp-json/wp/v2/posts").then(response => {
       console.log(response);
     });
     axios({
-      method: 'post',
-      headers: { 'X-WP-Nonce': window.wpApiSettings.nonce },
-      url: 'http://localhost:8888/kellogg-mexico-wp/wp-json/wp/v2/posts',
+      method: "post",
+      headers: { "X-WP-Nonce": window.wpApiSettings.nonce },
+      url: "http://localhost:8888/kellogg-mexico-wp/wp-json/wp/v2/posts",
       data: {
-        title: 'test',
-      },
-    }).then((response) => {
-      console.log(response);
-    }).catch((error) => {
-      console.log(error);
-    });
-  },
-
+        title: "test"
+      }
+    })
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
 };
 </script>

@@ -12,17 +12,8 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col 
-          :cols="numberOfColsIftabIsNotZero"
-          class="config"
-        >
-          <v-card 
-            class="graph-tools"
-            flat
-            color="#222A32"
-            width="40"
-            dark
-          >
+        <v-col :cols="numberOfColsIftabIsNotZero" class="config">
+          <v-card class="graph-tools" flat color="#222A32" width="40" dark>
             <v-card class="pa-2" height="40" color="#181D25" flat>
               <v-img src="../assets/images/logo.svg"></v-img>
             </v-card>
@@ -68,6 +59,19 @@
                         class="pb-3 variableCard-container"
                       >
                         <VpressVariableCard
+                          :id="`cardId_total`"
+                          draggable="true"
+                          :columnData="{
+                            variableName: 'total_count',
+                            variableNameDataType: 'linear'
+                          }"
+                        >
+                          Conteo de observaciones
+                          <span class="variableCardDataType">
+                            linear
+                          </span>
+                        </VpressVariableCard>
+                        <VpressVariableCard
                           v-for="(card, cardIndex) in dataTypes"
                           :key="`cardId_${cardIndex}`"
                           :id="`cardId_${cardIndex}`"
@@ -82,14 +86,14 @@
                         <v-divider />
                       </v-card>
                       <v-row>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_X_AXIS"
                             ref="UPDATE_X_AXIS"
                             slotLabel="Eje X"
                           />
                         </v-col>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_Y_AXIS"
                             ref="UPDATE_Y_AXIS"
@@ -98,11 +102,11 @@
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col>
+                        <v-col cols="6">
                           <VpressVariableCardSlot
                             id="UPDATE_GROUP_BY"
                             ref="UPDATE_GROUP_BY"
-                            slotLabel="Agrupar"
+                            slotLabel="Colores"
                           />
                         </v-col>
                       </v-row>
@@ -110,31 +114,18 @@
                   </v-card>
                 </v-tab-item>
                 <v-tab-item>
-                  <v-card 
-                    class="border-radius-none"
-                    flat
-                    dark
-                    color="#7972AC"
-                  >
+                  <v-card class="border-radius-none" flat dark color="#7972AC">
                     <VpressExpansionPanel panelTitle="TEXTO DE EJES">
-                    <VpressInputControl inputName="Prefijo">
-                      <v-text-field 
-                        placeholder="Prefijo"
-                        class="config-text-field"
-                        outlined 
-                      />
-                    </VpressInputControl>
-                    <VpressInputControl inputName="Sufijo">
-                      <v-text-field 
-                        placeholder="Sufijo"
-                        class="config-text-field"
-                        outlined 
-                      />
-                    </VpressInputControl>
-                  </VpressExpansionPanel>
+                      <VpressInputControl inputName="Prefijo">
+                        <v-text-field placeholder="Prefijo" class="config-text-field" outlined />
+                      </VpressInputControl>
+                      <VpressInputControl inputName="Sufijo">
+                        <v-text-field placeholder="Sufijo" class="config-text-field" outlined />
+                      </VpressInputControl>
+                    </VpressExpansionPanel>
                     <VpressExpansionPanel panelTitle="TEMA">
                       <VpressInputControl inputName="Tema">
-                        <v-switch 
+                        <v-switch
                           dense
                           inset
                           v-model="darkTheme"
@@ -144,7 +135,7 @@
                       </VpressInputControl>
                     </VpressExpansionPanel>
                     <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                      <VpressColorSelection/>
+                      <VpressColorSelection />
                     </VpressExpansionPanel>
                   </v-card>
                 </v-tab-item>
@@ -200,20 +191,18 @@ export default {
     return {
       activeTab: 0,
       dataTypes: [],
-      darkTheme:false
+      darkTheme: false
     };
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      const numberOfCols = this.activeTab !== 0
-        ? '4'
-        : '12';
+      const numberOfCols = this.activeTab !== 0 ? '4' : '12';
 
       return numberOfCols;
     },
     isDarkThemeActivated() {
-        this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-        return this.$store.state.chartConfig.theme === 'dark' ? true : false;
+      this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
+      return this.$store.state.chartConfig.theme === 'dark' ? true : false;
     }
   },
   methods: {
@@ -297,14 +286,10 @@ export default {
   margin: 12px 0 0 0;
 }
 
-* >>> .config-tabs
-> .v-tabs-bar {
+* >>> .config-tabs > .v-tabs-bar {
   height: 40px;
 }
-* >>> .config-tabs
-> .v-slide-group
-> .v-slide-group__wrapper
-> .v-slide-group__content {
+* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content {
   margin-top: 5px;
 }
 
@@ -327,36 +312,26 @@ export default {
   display: none;
 }
 
-* >>> .config-tabs
-> .v-slide-group
-> .v-slide-group__wrapper
-> .v-slide-group__content
-> .v-tab {
+* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content > .v-tab {
   font-size: 0.8rem;
   min-width: 87px;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-input__slot {
+* >>> .config-text-field > .v-input__control > .v-input__slot {
   min-height: 30px;
   margin: 0;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-text-field__details {
+* >>> .config-text-field > .v-input__control > .v-text-field__details {
   display: none;
 }
 
-* >>> .config-switch
-> .v-input__control
-> .v-messages {
+* >>> .config-switch > .v-input__control > .v-messages {
   display: none;
 }
 
 * >>> .config-switch {
-  margin-top: 0 ;
+  margin-top: 0;
 }
 
 .limit-scroll {
