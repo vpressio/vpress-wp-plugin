@@ -1,7 +1,7 @@
 <template>
   <v-card flat class="px-2 py-3">
     <v-row>
-      <v-col cols="2" class="buttons-header">
+      <v-col v-show="!$vuetify.breakpoint.smAndDown" cols="3" class="buttons-header">
         TIPOS DE GRÁFICOS
       </v-col>
       <v-col>

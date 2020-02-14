@@ -60,8 +60,8 @@ export default {
       {
         colorSchemeType: 'CUALITATIVO',
         schemes: [
-          ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99'],
-          ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']
+          ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f'],
+          ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628']
         ]
       }
     ]

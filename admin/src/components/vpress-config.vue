@@ -114,22 +114,14 @@
                   </v-card>
                 </v-tab-item>
                 <v-tab-item>
-                  <v-card class="border-radius-none" flat dark color="#7972AC">
-                    <VpressExpansionPanel panelTitle="TEXTO DE EJES">
-                      <VpressInputControl inputName="Prefijo">
-                        <v-text-field placeholder="Prefijo" class="config-text-field" outlined />
-                      </VpressInputControl>
-                      <VpressInputControl inputName="Sufijo">
-                        <v-text-field placeholder="Sufijo" class="config-text-field" outlined />
-                      </VpressInputControl>
-                    </VpressExpansionPanel>
+                  <v-card class="border-radius-none" flat dark>
                     <VpressExpansionPanel panelTitle="TEMA">
                       <VpressInputControl inputName="Tema">
                         <v-switch
                           dense
                           inset
                           v-model="darkTheme"
-                          :label="isDarkThemeActivated ? 'Obscuro' : 'Claro'"
+                          :color="isDarkThemeActivated"
                           class="config-switch"
                         />
                       </VpressInputControl>
@@ -202,7 +194,7 @@ export default {
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-      return this.$store.state.chartConfig.theme === 'dark' ? true : false;
+      return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     }
   },
   methods: {
@@ -215,7 +207,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style  scoped>
 .widthFitContent {
   width: fit-content;
 }
@@ -299,7 +291,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972ac;
+  background-color: var(--v-secondary-color);
 }
 
 *
@@ -312,21 +304,31 @@ export default {
   display: none;
 }
 
-* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content > .v-tab {
+* >>> .config-tabs
+> .v-slide-group
+> .v-slide-group__wrapper
+> .v-slide-group__content
+> .v-tab {
   font-size: 0.8rem;
   min-width: 87px;
 }
 
-* >>> .config-text-field > .v-input__control > .v-input__slot {
+* >>> .config-text-field
+> .v-input__control
+> .v-input__slot {
   min-height: 30px;
   margin: 0;
 }
 
-* >>> .config-text-field > .v-input__control > .v-text-field__details {
+* >>> .config-text-field
+> .v-input__control
+> .v-text-field__details {
   display: none;
 }
 
-* >>> .config-switch > .v-input__control > .v-messages {
+* >>> .config-switch
+> .v-input__control
+> .v-messages {
   display: none;
 }
 
