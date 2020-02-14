@@ -679,7 +679,23 @@ export default {
             return obj;
           })
           .entries(data)
-          .map(obj => obj.value);
+          .map(obj => obj.value)
+          .sort((a, b) => {
+            if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+                return -1;
+              } else {
+                return 1;
+              }
+            } else {
+              //desc
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          });
         if (vm.chartConfig.chart !== 'heatmap' && vm.chartConfig.groupBy.slug) {
           collapsedData = d3
             .nest()

@@ -136,10 +136,20 @@ export default {
         }
       }
       if (payload && payload.variableNameDataType === 'ordinal') {
-        state.groupBy.title = payload ? payload.variableName : '';
-        state.groupBy.slug = payload ? payload.variableName : '';
-        state.groupBy.type = payload ? payload.variableNameDataType : '';
-      } else if (payload && payload.variableNameDataType === 'linear') {
+        if (
+          payload.variableName !== state.xAxis.slug &&
+          payload.variableName !== state.yAxis.slug &&
+          state.chart !== 'heatmap'
+        ) {
+          state.groupBy.title = payload ? payload.variableName : '';
+          state.groupBy.slug = payload ? payload.variableName : '';
+          state.groupBy.type = payload ? payload.variableNameDataType : '';
+        }
+      } else if (
+        payload &&
+        payload.variableNameDataType === 'linear' &&
+        state.chart === 'heatmap'
+      ) {
         state.collapseBy.title = payload ? payload.variableName : '';
         state.collapseBy.slug = payload ? payload.variableName : '';
         state.collapseBy.type = payload ? payload.variableNameDataType : '';
@@ -147,6 +157,12 @@ export default {
     },
     SET_CHART_TYPE(state, payload) {
       state.chart = payload;
+    },
+    SET_STACK_BARS(state, payload) {
+      state.stackedBars = payload;
+    },
+    SET_SHOW_LABELS(state, payload) {
+      state.labels = payload;
     },
     SET_CHART_THEME(state, payload) {
       const isDarkThemeActivated = payload;
@@ -169,6 +185,12 @@ export default {
     },
     UPDATE_CHART_TYPE({ commit }, payload) {
       commit('SET_CHART_TYPE', payload);
+    },
+    UPDATE_STACK_BARS({ commit }, payload) {
+      commit('SET_STACK_BARS', payload);
+    },
+    UPDATE_SHOW_LABELS({ commit }, payload) {
+      commit('SET_SHOW_LABELS', payload);
     },
     UPDATE_CHART_THEME({ commit }, payload) {
       commit('SET_CHART_THEME', payload);
