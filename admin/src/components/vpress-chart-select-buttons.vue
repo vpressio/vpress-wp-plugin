@@ -38,6 +38,7 @@ export default {
       this.$store.dispatch('chartConfig/UPDATE_CHART_TYPE', chartType);
     },
     requireImg(chartType) {
+      // eslint-disable-next-line
       return require( `../assets/images/${chartType}.svg`);
     }
   }

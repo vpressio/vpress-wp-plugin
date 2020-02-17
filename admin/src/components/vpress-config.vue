@@ -2,19 +2,23 @@
   <v-responsive>
     <v-container>
       <v-row>
-        <v-col>
-          <h1>
-            <strong>
-              Modulo de carga de datos
-            </strong>
-            versión demo
-          </h1>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col :cols="numberOfColsIftabIsNotZero" class="config">
-          <v-card class="graph-tools" flat color="#222A32" width="40" dark>
-            <v-card class="pa-2" height="40" color="#181D25" flat>
+        <v-col 
+          :cols="numberOfColsIftabIsNotZero"
+          class="config"
+        >
+          <v-card 
+            class="graph-tools"
+            flat
+            color="#222A32"
+            width="40"
+            dark
+          >
+            <v-card
+              class="pa-2"
+              height="40"
+              color="#181D25"
+              flat
+            >
               <v-img src="../assets/images/logo.svg"></v-img>
             </v-card>
           </v-card>
@@ -56,7 +60,7 @@
                         ref="card_slot_start"
                         id="card_slot_start"
                         flat
-                        class="pb-3 variableCard-container"
+                        class="pb-3 px-3 variableCard-container"
                       >
                         <VpressVariableCard
                           :id="`cardId_total`"
@@ -85,31 +89,7 @@
                         </VpressVariableCard>
                         <v-divider />
                       </v-card>
-                      <v-row>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_X_AXIS"
-                            ref="UPDATE_X_AXIS"
-                            slotLabel="Eje X"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_Y_AXIS"
-                            ref="UPDATE_Y_AXIS"
-                            slotLabel="Eje Y"
-                          />
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_GROUP_BY"
-                            ref="UPDATE_GROUP_BY"
-                            slotLabel="Colores"
-                          />
-                        </v-col>
-                      </v-row>
+                      <VpressVariableCardSlots/>
                     </VpressExpansionPanel>
                   </v-card>
                 </v-tab-item>
@@ -162,7 +142,7 @@
 <script>
 import LoadData from './LoadData.vue';
 import VpressVariableCard from './vpress-variable-card.vue';
-import VpressVariableCardSlot from './vpress-variable-card-slot.vue';
+import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
@@ -173,7 +153,7 @@ export default {
   components: {
     LoadData,
     VpressVariableCard,
-    VpressVariableCardSlot,
+    VpressVariableCardSlots,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
@@ -278,10 +258,14 @@ export default {
   margin: 12px 0 0 0;
 }
 
-* >>> .config-tabs > .v-tabs-bar {
+* >>> .config-tabs
+> .v-tabs-bar {
   height: 40px;
 }
-* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content {
+* >>> .config-tabs
+> .v-slide-group
+> .v-slide-group__wrapper
+> .v-slide-group__content {
   margin-top: 5px;
 }
 

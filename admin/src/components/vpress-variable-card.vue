@@ -6,7 +6,7 @@
     @dragstart="dragStart"
     @dragend="dragEnd"
     @dragover.stop
-    class="border-radius-none my-2 mx-4 card-flex"
+    class="border-radius-none card-flex mb-3"
     color="#9292A9"
     max-height="50"
     dark
