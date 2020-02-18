@@ -1,16 +1,11 @@
 <template>
   <v-responsive>
     <v-container>
-      <v-row>
+      <!-- <v-row>
         <v-col>
-          <h1>
-            <strong>
-              Modulo de carga de datos
-            </strong>
-            versión demo
-          </h1>
+          <h1>Vpress</h1>
         </v-col>
-      </v-row>
+      </v-row> -->
       <v-row>
         <v-col :cols="numberOfColsIftabIsNotZero" class="config">
           <v-card class="graph-tools" flat color="#222A32" width="40" dark>
