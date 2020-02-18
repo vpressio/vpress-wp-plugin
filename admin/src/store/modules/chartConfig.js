@@ -71,7 +71,9 @@ export default {
       state.xAxis.title = payload ? payload.variableName : '';
       state.xAxis.slug = payload ? payload.variableName : '';
       state.xAxis.type = payload ? payload.variableNameDataType : '';
-      state.collapseBy = { title: '', type: 'linear', slug: '' };
+      if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
+        state.collapseBy = { title: '', type: 'linear', slug: '' };
+      }
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
@@ -102,7 +104,9 @@ export default {
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
       /** Reset yAxis */
-      state.collapseBy = { title: '', type: 'linear', slug: '' };
+      if (!_.includes([state.xAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
+        state.collapseBy = { title: '', type: 'linear', slug: '' };
+      }
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
           state.collapseBy = state.xAxis;
@@ -118,7 +122,7 @@ export default {
         state.chart = 'heatmap';
         // state.chart = 'spineplot';
         if (!state.groupBy.slug) {
-          state.groupBy = state.yAxis;
+          state.groupBy = Object.assign({}, state.yAxis);
         }
       } else if (state.xAxis.type === 'linear' && state.yAxis.type === 'linear') {
         state.chart = 'scatter';

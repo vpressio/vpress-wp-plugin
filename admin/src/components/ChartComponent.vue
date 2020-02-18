@@ -85,21 +85,26 @@ export default {
     },
     legendDisplay() {
       const vm = this;
+      let legendDisplay;
       if (
         vm.chartConfig.groupBy &&
         vm.chartConfig.groupBy.slug &&
         vm.chartConfig.groupBy.slug !== vm.chartConfig.xAxis.slug
       ) {
-        return vm.chartConfig.groupBy;
+        legendDisplay = vm.chartConfig.groupBy;
       } else if (
         vm.chartConfig.yAxis &&
         vm.chartConfig.yAxis.slug &&
         vm.chartConfig.yAxis.type === 'ordinal'
       ) {
-        return vm.chartConfig.yAxis;
+        legendDisplay = vm.chartConfig.yAxis;
       } else {
-        return vm.chartConfig.xAxis;
+        legendDisplay = vm.chartConfig.xAxis;
       }
+      if (vm.chartConfig.chart === 'heatmap') {
+        legendDisplay.title = vm.chartConfig.collapseBy.title;
+      }
+      return legendDisplay;
     },
     ordinalAxis() {
       const vm = this;
@@ -708,15 +713,10 @@ export default {
                * { x: 'yes', y: 'women', total: 7 }
                */
               obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
-              if (vm.chartConfig.collapseBy.slug === 'total_count') {
-                obj['total_count'] = leaves.length;
-                vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
-              } else {
-                obj[vm.chartConfig.collapseBy.slug] = d3.sum(
-                  leaves,
-                  d => d[vm.chartConfig.collapseBy.slug]
-                );
-              }
+              obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                leaves,
+                d => d[vm.chartConfig.collapseBy.slug]
+              );
               if (vm.chartConfig.chart !== 'heatmap') {
                 /**
                  * parse data like:
