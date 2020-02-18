@@ -94,35 +94,54 @@ export default {
   methods: {
     drop(e) {
       const { dataTransfer, target } = e;
+      
+      const cardSlotId = target.id;
+      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
 
-      this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
+      const VariableCardToAppend = document.getElementById(columnDataToTransferInObject.id);
 
-      if (target.children.length < 1) {
-        const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-        const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-        const card = document.getElementById(columnDataToTransferInObject.id);
+      VariableCardToAppend.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
 
-        card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
-        this.cardId = card.id;
-        target.appendChild(card);
-        card.style.display = 'block';
-        this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
-      } else {
-        const slot = document.getElementById(this.slotId);
-        const oldCard = document.getElementById(this.cardId);
-        const newColumnDataToTransferInString = dataTransfer.getData(
-          'columnDataToTransferInString'
-        );
-        const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
-        const newCard = document.getElementById(newColumnDataToTransferInObject.id);
+      target.appendChild(VariableCardToAppend);
 
-        slot.removeChild(oldCard);
-        newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
-        this.cardId = newCard.id;
-        slot.appendChild(newCard);
-        newCard.style.display = 'block';
-        this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
-      }
+      VariableCardToAppend.style.display = 'block';
+
+      this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
+
+
+
+      console.log(columnDataToTransferInObject, cardSlotId);
+      // this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
+
+      // if (target.children.length < 1) {
+      //   const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+      //   const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+      // const card = document.getElementById(columnDataToTransferInObject.id);
+
+      //   card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
+      //   this.cardId = card.id;
+      //   target.appendChild(card);
+      //   card.style.display = 'block';
+      //   this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
+      //   debugger
+      // } else {
+      //   const slot = document.getElementById(this.slotId);
+      //   const oldCard = document.getElementById(this.cardId);
+      //   const newColumnDataToTransferInString = dataTransfer.getData(
+      //     'columnDataToTransferInString'
+      //   );
+      //   const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
+      //   const newCard = document.getElementById(newColumnDataToTransferInObject.id);
+
+      //   slot.removeChild(oldCard);
+      //   newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
+      //   this.cardId = newCard.id;
+      //   slot.appendChild(newCard);
+      //   newCard.style.display = 'block';
+      //   this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
+      //   debugger
+      // }
     },
     dragOver() {
       if (this.$store.state.chartConfig);

@@ -53,42 +53,7 @@
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
                     <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                      <v-card-text>
-                        ARRASTRA LA SELECCIÓN
-                      </v-card-text>
-                      <v-card
-                        ref="card_slot_start"
-                        id="card_slot_start"
-                        flat
-                        class="pb-3 px-3 variableCard-container"
-                      >
-                        <VpressVariableCard
-                          :id="`cardId_total`"
-                          draggable="true"
-                          :columnData="{
-                            variableName: 'total_count',
-                            variableNameDataType: 'linear'
-                          }"
-                        >
-                          Conteo de observaciones
-                          <span class="variableCardDataType">
-                            linear
-                          </span>
-                        </VpressVariableCard>
-                        <VpressVariableCard
-                          v-for="(card, cardIndex) in dataTypes"
-                          :key="`cardId_${cardIndex}`"
-                          :id="`cardId_${cardIndex}`"
-                          draggable="true"
-                          :columnData="card"
-                        >
-                          {{ card.variableName }}
-                          <span class="variableCardDataType">
-                            {{ card.variableNameDataType }}
-                          </span>
-                        </VpressVariableCard>
-                        <v-divider />
-                      </v-card>
+                      <VpressVariableCardStartContainer :variableCards="dataTypesCards"/>
                       <VpressVariableCardSlots/>
                     </VpressExpansionPanel>
                   </v-card>
@@ -141,7 +106,7 @@
 </template>
 <script>
 import LoadData from './LoadData.vue';
-import VpressVariableCard from './vpress-variable-card.vue';
+import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
 import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
@@ -152,7 +117,7 @@ export default {
   name: 'VpressConfig',
   components: {
     LoadData,
-    VpressVariableCard,
+    VpressVariableCardStartContainer,
     VpressVariableCardSlots,
     VpressExpansionPanel,
     VpressStateSubscriber,
@@ -175,6 +140,9 @@ export default {
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
+    },
+    dataTypesCards(){
+      return this.dataTypes;
     }
   },
   methods: {
@@ -194,17 +162,6 @@ export default {
 
 .widthAll {
   width: 100%;
-}
-
-.variableCard-container {
-  height: 300px;
-  overflow-y: scroll;
-}
-
-.variableCardDataType {
-  font-size: 12px;
-  font-weight: 500;
-  color: #cfcfcf;
 }
 
 .padding-y-none {

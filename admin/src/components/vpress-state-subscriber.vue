@@ -31,6 +31,7 @@ export default {
     this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig);
       this.chartConfig = chartConfig;
+      console.log(chartConfig)
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
     });
   },
