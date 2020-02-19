@@ -676,10 +676,32 @@ export default {
               obj['total_count'] = leaves.length;
               vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
             } else {
-              obj[vm.chartConfig.collapseBy.slug] = d3.sum(
-                leaves,
-                d => d[vm.chartConfig.collapseBy.slug]
-              );
+              switch (vm.chartConfig.collapseBy.func) {
+                case 'min':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.min(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                case 'max':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.max(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                case 'mean':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.mean(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                default:
+                  obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+              }
             }
             return obj;
           })
@@ -713,10 +735,32 @@ export default {
                * { x: 'yes', y: 'women', total: 7 }
                */
               obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
-              obj[vm.chartConfig.collapseBy.slug] = d3.sum(
-                leaves,
-                d => d[vm.chartConfig.collapseBy.slug]
-              );
+              switch (vm.chartConfig.collapseBy.func) {
+                case 'min':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.min(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                case 'max':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.max(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                case 'mean':
+                  obj[vm.chartConfig.collapseBy.slug] = d3.mean(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+                default:
+                  obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                    leaves,
+                    d => d[vm.chartConfig.collapseBy.slug]
+                  );
+                  break;
+              }
               if (vm.chartConfig.chart !== 'heatmap') {
                 /**
                  * parse data like:
