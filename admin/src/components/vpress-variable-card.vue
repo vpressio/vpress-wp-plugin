@@ -8,7 +8,6 @@
     @dragover.stop
     class="border-radius-none card-flex mb-3"
     color="#9292A9"
-    max-height="50"
     dark
     hover
     style="text-overflow: ellipsis;overflow: hidden; "
@@ -36,19 +35,11 @@ export default {
       draggable:true
     };
   },
-  created() {
-    // if(this.inSlot) {
-    //   this.draggable = false;
-    // }
-  },
   mounted(){
-    // if(!this.inSlot) {
       this.setHtmlElements();
-    // }
   },
   methods: {
     dragStart(e) {
-      this.setHtmlElements();
       const { target, dataTransfer } = e;
       const columnDataToTransferInObject = { ...this.columnData, id: this.variableCardClone.id, parentId: this.variableCardParent.id };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
@@ -57,7 +48,6 @@ export default {
     },
     dragEnd(e) {
       const { target } = e;
-      
     },
     setHtmlElements() {
       this.variableCard = this.$refs[this.id].$el;

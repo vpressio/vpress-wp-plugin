@@ -17,8 +17,10 @@
             id="UPDATE_X_AXIS"
             min-height="50"
             outlined
-            @drop.prevent="drop"
+            @dragenter="dragEnter"
             @dragover.prevent="dragOver"
+            @dragleave="dragLeave"
+            @drop.stop.self="drop"
             light
             class="pt-2 px-2 pb-1"
           >
@@ -42,8 +44,10 @@
             id="UPDATE_Y_AXIS"
             min-height="50"
             outlined
-            @drop.prevent="drop"
+            @dragenter="dragEnter"
             @dragover.prevent="dragOver"
+            @dragleave="dragLeave"
+            @drop.stop.self="drop"
             light
             class="pt-2 px-2 pb-1"
           >
@@ -69,8 +73,10 @@
             id="UPDATE_GROUP_BY"
             min-height="50"
             outlined
-            @drop.prevent="drop"
+            @dragenter="dragEnter"
             @dragover.prevent="dragOver"
+            @dragleave="dragLeave"
+            @drop.stop.self="drop"
             light
             class="pt-2 px-2 pb-1"
           >
@@ -92,84 +98,55 @@ export default {
   props: ['id', 'slotLabel'],
   data() {
     return {
-      cardId: null,
-      slotId: null,
-    
+      cardSlots: {
+        UPDATE_X_AXIS_CARD: null,
+        UPDATE_Y_AXIS_CARD: null,
+        UPDATE_GROUP_BY_CARD: null,
+      }
     };
   },
   methods: {
-    drop(e) {
-      const { dataTransfer, target } = e;
-
-      const cardSlotId = target.id;
+    drop(event) {
+      const { dataTransfer, target } = event;
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      
-        console.log(target.id)
-      if(this.cardId){
-        const startParent = document.getElementById(columnDataToTransferInObject.parentId)
-        startParent.append(this.$refs[cardSlotId].$el.firstChild);
-      }
-     
-      const VariableCardToAppend = document.getElementById(columnDataToTransferInObject.id);
-      // console.log(document.getElementById(columnDataToTransferInObject.id))
-      if(`${columnDataToTransferInObject.id}_${target.id}` !== `${columnDataToTransferInObject.id}_${target.id}`){
-        VariableCardToAppend.setAttribute('id', `${columnDataToTransferInObject.id}_${target.id}`);
-      }
+      const startParent = document.getElementById(columnDataToTransferInObject.parentId);
+      const cardToAppendInSlot = document.getElementById(columnDataToTransferInObject.id);
+      const cardCloneWithOldId = cardToAppendInSlot.cloneNode(true);
+      const cardSlotId = target.id;
+      const cardToAppendInSlotId = columnDataToTransferInObject.id;
+      const newCardId = `${cardToAppendInSlotId}_${cardSlotId}`;
 
-      console.log(VariableCardToAppend.id)
-      // if (target.children.length > 1) {
-      //   console.log(target.children.length)
-      //   console.log(this.$refs[this.cardId].$el)
-        
-      // };
+      this.$store.dispatch(`chartConfig/${target.id}`, columnDataToTransferInObject);
+      if(this.cardSlots[`${target.id}_CARD`]){
+        target.removeChild(this.cardSlots[`${target.id}_CARD`])
+      };
 
-      target.appendChild(VariableCardToAppend);
+      startParent.appendChild(cardCloneWithOldId);
 
-      VariableCardToAppend.style.display = 'block';
+      if( newCardId !== newCardId ) {
+        cardToAppendInSlot.setAttribute('id', newCardId);
+      };
 
-      // this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
-      this.cardId = VariableCardToAppend.id;
-      // debugger
-
-
-
-
-
-
-      // this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
-
-      // if (target.children.length < 1) {
-      //   const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-      //   const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      // const card = document.getElementById(columnDataToTransferInObject.id);
-
-      //   card.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
-      //   this.cardId = card.id;
-      //   target.appendChild(card);
-      //   card.style.display = 'block';
-      //   this.$store.dispatch(`chartConfig/${this.slotId}`, columnDataToTransferInObject);
-      //   debugger
-      // } else {
-      //   const slot = document.getElementById(this.slotId);
-      //   const oldCard = document.getElementById(this.cardId);
-      //   const newColumnDataToTransferInString = dataTransfer.getData(
-      //     'columnDataToTransferInString'
-      //   );
-      //   const newColumnDataToTransferInObject = JSON.parse(newColumnDataToTransferInString);
-      //   const newCard = document.getElementById(newColumnDataToTransferInObject.id);
-
-      //   slot.removeChild(oldCard);
-      //   newCard.setAttribute('id', `${newColumnDataToTransferInObject.id}_${this.slotId}`);
-      //   this.cardId = newCard.id;
-      //   slot.appendChild(newCard);
-      //   newCard.style.display = 'block';
-      //   this.$store.dispatch(`chartConfig/${this.slotId}`, newColumnDataToTransferInObject);
-      //   debugger
-      // }
+      target.appendChild(cardToAppendInSlot);
+      cardToAppendInSlot.style.display = 'block';
+      this.cardSlots[`${target.id}_CARD`] = cardToAppendInSlot;
     },
     dragOver() {
-      if (this.$store.state.chartConfig);
+    },
+    dragEnter(event) {
+      const { target } = event;
+
+      if(this.cardSlots[`${target.id}_CARD`]) {
+        currentCardInSlot.style.display = 'none';
+      }
+    },
+    dragLeave(event) {
+      const { target } = event;
+
+      if(this.cardSlots[`${target.id}_CARD`] && currentCardInSlot.style.display === 'none') {
+        currentCardInSlot.style.display = 'block';
+      }
     }
   }
 };
