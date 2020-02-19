@@ -22,7 +22,7 @@
             light
             class="pt-2 px-2 pb-1"
           >
-            <slot />
+            <slot/>
           </v-card>
         </v-card>
       </v-col>
@@ -47,7 +47,7 @@
             light
             class="pt-2 px-2 pb-1"
           >
-            <slot />
+            <slot/>
           </v-card>
         </v-card>
       </v-col>
@@ -74,7 +74,7 @@
             light
             class="pt-2 px-2 pb-1"
           >
-            <slot />
+            <slot/>
           </v-card>
         </v-card>
       </v-col>
@@ -82,36 +82,61 @@
   </v-card>
 </template>
 <script>
+import VpressVariableCard from './vpress-variable-card.vue';
+
 export default {
   name: 'VpressVariableCardSlots',
+  components: {
+    VpressVariableCard
+  },
   props: ['id', 'slotLabel'],
   data() {
     return {
-      cardId: '',
-      slotId: ''
+      cardId: null,
+      slotId: null,
+    
     };
   },
   methods: {
     drop(e) {
       const { dataTransfer, target } = e;
-      
+
       const cardSlotId = target.id;
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-
+      
+        console.log(target.id)
+      if(this.cardId){
+        const startParent = document.getElementById(columnDataToTransferInObject.parentId)
+        startParent.append(this.$refs[cardSlotId].$el.firstChild);
+      }
+     
       const VariableCardToAppend = document.getElementById(columnDataToTransferInObject.id);
+      // console.log(document.getElementById(columnDataToTransferInObject.id))
+      if(`${columnDataToTransferInObject.id}_${target.id}` !== `${columnDataToTransferInObject.id}_${target.id}`){
+        VariableCardToAppend.setAttribute('id', `${columnDataToTransferInObject.id}_${target.id}`);
+      }
 
-      VariableCardToAppend.setAttribute('id', `${columnDataToTransferInObject.id}_${this.slotId}`);
+      console.log(VariableCardToAppend.id)
+      // if (target.children.length > 1) {
+      //   console.log(target.children.length)
+      //   console.log(this.$refs[this.cardId].$el)
+        
+      // };
 
       target.appendChild(VariableCardToAppend);
 
       VariableCardToAppend.style.display = 'block';
 
-      this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
+      // this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
+      this.cardId = VariableCardToAppend.id;
+      // debugger
 
 
 
-      console.log(columnDataToTransferInObject, cardSlotId);
+
+
+
       // this.slotId = this.slotId.length === 0 ? target.id : this.slotId;
 
       // if (target.children.length < 1) {
@@ -157,5 +182,15 @@ export default {
 .slot-label {
   color:#382E82;
   font-weight: 500;
+}
+
+.card-flex {
+  display: flex;
+}
+
+.card-text {
+  color: white !important;
+  font-weight: 900;
+  font-size: 1rem;
 }
 </style>

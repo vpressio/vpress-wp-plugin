@@ -9,9 +9,10 @@
       flat
       class="pb-3 px-3 variableCard-container"
     >
-      <!-- <VpressVariableCard
+      <VpressVariableCard
         :id="`cardId_total`"
         :parentId="variableCardsContainerId"
+        :parentRefs="$refs"
         :columnData="{
           variableName: 'total_count',
           variableNameDataType: 'linear'
@@ -21,13 +22,13 @@
         <span class="variableCardDataType">
           linear
         </span>
-      </VpressVariableCard> -->
+      </VpressVariableCard>
       <VpressVariableCard
         v-for="(card, cardIndex) in variableCards"
         :key="`cardId_${cardIndex}`"
         :id="`cardId_${cardIndex}`"
         :parentId="variableCardsContainerId"
-        :parent="variableCardsContainer"
+        :parentRefs="$refs"
         :columnData="card"
       >
         {{ card.variableName }}
@@ -51,11 +52,7 @@ export default {
   data() {
     return {
       variableCardsContainerId:'cardStartContainer',
-      variableCardsContainer:this.$refs[this.variableCardsContainerId],
     }
-  },
-  created() {
-    console.log(this.$refs.cardStartContainer)
   }
 }
 </script>

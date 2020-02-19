@@ -21,49 +21,60 @@
 <script>
 export default {
   name: 'VpressVariableCard',
-  props: ['id', 'columnData', 'parentId', 'parent'],
+  props: {
+    id: String,
+    columnData: Object,
+    parentId: String ,
+    parentRefs: Object,
+    inSlot: Boolean
+  },
   data() {
     return {
       variableCardParent: null,
       variableCard:null,
       variableCardClone: null,
-      draggable:false
+      draggable:true
     };
   },
-  created(){
-    this.setHtmlElements();
+  created() {
+    // if(this.inSlot) {
+    //   this.draggable = false;
+    // }
+  },
+  mounted(){
+    // if(!this.inSlot) {
+      this.setHtmlElements();
+    // }
   },
   methods: {
     dragStart(e) {
+      this.setHtmlElements();
       const { target, dataTransfer } = e;
-
-      const columnDataToTransferInObject = { ...this.columnData, id: this.variableCardClone.id };
+      const columnDataToTransferInObject = { ...this.columnData, id: this.variableCardClone.id, parentId: this.variableCardParent.id };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
 
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd(e) {
       const { target } = e;
-      target.style.display = 'block';
+      
     },
-    async setHtmlElements() {
-      // console.log(this.parent)
-      // this.variableCard = await document.getElementById(this.id);
+    setHtmlElements() {
+      this.variableCard = this.$refs[this.id].$el;
 
-      // const variableCardClone = this.variableCard.cloneNode(this.id);
+      const variableCardClone = this.variableCard.cloneNode(true);
 
-      // variableCardClone.setAttribute('id', `${this.id}_clone`);
-      // variableCardClone.setAttribute('draggable', false);
-      // variableCardClone.style.display = 'none';
+      variableCardClone.setAttribute('id', `${this.id}_clone`);
+      variableCardClone.setAttribute('draggable', false);
+      variableCardClone.style.display = 'none';
 
-      // this.variableCardClone = variableCardClone;
+      this.variableCardClone = variableCardClone;
 
-      // const variableCardParent = await document.getElementById(this.parentId);
+      const variableCardParent = this.parentRefs.cardStartContainer.$el;
 
-      // variableCardParent.appendChild(this.variableCardClone);
+      variableCardParent.appendChild(this.variableCardClone);
 
-      // this.variableCardParent = variableCardParent;
-      // this.draggable = true;
+      this.variableCardParent = variableCardParent;
     }
   }
 };
