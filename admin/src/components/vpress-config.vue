@@ -1,25 +1,29 @@
 <template>
   <v-responsive>
-    <v-container>
+    <v-container >
       <v-row>
-        <v-col>
-          <h1>
-            <strong>
-              Modulo de carga de datos
-            </strong>
-            versión demo
-          </h1>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col :cols="numberOfColsIftabIsNotZero" class="config">
-          <v-card class="graph-tools" flat color="#222A32" width="40" dark>
-            <v-card class="pa-2" height="40" color="#181D25" flat>
+        <v-col 
+          :cols="numberOfColsIftabIsNotZero"
+          class="config"
+        >
+          <v-card 
+            class="graph-tools"
+            flat
+            color="#222A32"
+            width="40"
+            dark
+          >
+            <v-card
+              class="pa-2"
+              height="40"
+              color="#181D25"
+              flat
+            >
               <v-img src="../assets/images/logo.svg"></v-img>
             </v-card>
           </v-card>
-          <v-card class="graph-sidebar" flat color="transparent">
-            <v-card class="padding-none border-radius-none widthAll">
+          <v-card class="graph-sidebar"  color="transparent">
+            <v-card flat class="padding-none border-radius-none widthAll">
               <v-tabs
                 dark
                 class="config-tabs"
@@ -49,87 +53,20 @@
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
                     <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                      <v-card-text>
-                        ARRASTRA LA SELECCIÓN
-                      </v-card-text>
-                      <v-card
-                        ref="card_slot_start"
-                        id="card_slot_start"
-                        flat
-                        class="pb-3 variableCard-container"
-                      >
-                        <VpressVariableCard
-                          :id="`cardId_total`"
-                          draggable="true"
-                          :columnData="{
-                            variableName: 'total_count',
-                            variableNameDataType: 'linear'
-                          }"
-                        >
-                          Conteo de observaciones
-                          <span class="variableCardDataType">
-                            linear
-                          </span>
-                        </VpressVariableCard>
-                        <VpressVariableCard
-                          v-for="(card, cardIndex) in dataTypes"
-                          :key="`cardId_${cardIndex}`"
-                          :id="`cardId_${cardIndex}`"
-                          draggable="true"
-                          :columnData="card"
-                        >
-                          {{ card.variableName }}
-                          <span class="variableCardDataType">
-                            {{ card.variableNameDataType }}
-                          </span>
-                        </VpressVariableCard>
-                        <v-divider />
-                      </v-card>
-                      <v-row>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_X_AXIS"
-                            ref="UPDATE_X_AXIS"
-                            slotLabel="Eje X"
-                          />
-                        </v-col>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_Y_AXIS"
-                            ref="UPDATE_Y_AXIS"
-                            slotLabel="Eje Y"
-                          />
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="6">
-                          <VpressVariableCardSlot
-                            id="UPDATE_GROUP_BY"
-                            ref="UPDATE_GROUP_BY"
-                            slotLabel="Colores"
-                          />
-                        </v-col>
-                      </v-row>
+                      <VpressVariableCardStartContainer :variableCards="dataTypesCards"/>
+                      <VpressVariableCardSlots/>
                     </VpressExpansionPanel>
                   </v-card>
                 </v-tab-item>
                 <v-tab-item>
-                  <v-card class="border-radius-none" flat dark color="#7972AC">
-                    <VpressExpansionPanel panelTitle="TEXTO DE EJES">
-                      <VpressInputControl inputName="Prefijo">
-                        <v-text-field placeholder="Prefijo" class="config-text-field" outlined />
-                      </VpressInputControl>
-                      <VpressInputControl inputName="Sufijo">
-                        <v-text-field placeholder="Sufijo" class="config-text-field" outlined />
-                      </VpressInputControl>
-                    </VpressExpansionPanel>
+                  <v-card class="border-radius-none" flat dark>
                     <VpressExpansionPanel panelTitle="TEMA">
                       <VpressInputControl inputName="Tema">
                         <v-switch
                           dense
                           inset
                           v-model="darkTheme"
-                          :label="isDarkThemeActivated ? 'Obscuro' : 'Claro'"
+                          :color="isDarkThemeActivated"
                           class="config-switch"
                         />
                       </VpressInputControl>
@@ -169,8 +106,8 @@
 </template>
 <script>
 import LoadData from './LoadData.vue';
-import VpressVariableCard from './vpress-variable-card.vue';
-import VpressVariableCardSlot from './vpress-variable-card-slot.vue';
+import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
+import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
@@ -180,8 +117,8 @@ export default {
   name: 'VpressConfig',
   components: {
     LoadData,
-    VpressVariableCard,
-    VpressVariableCardSlot,
+    VpressVariableCardStartContainer,
+    VpressVariableCardSlots,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
@@ -202,7 +139,10 @@ export default {
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-      return this.$store.state.chartConfig.theme === 'dark' ? true : false;
+      return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
+    },
+    dataTypesCards(){
+      return this.dataTypes;
     }
   },
   methods: {
@@ -215,24 +155,13 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style  scoped>
 .widthFitContent {
   width: fit-content;
 }
 
 .widthAll {
   width: 100%;
-}
-
-.variableCard-container {
-  height: 300px;
-  overflow-y: scroll;
-}
-
-.variableCardDataType {
-  font-size: 12px;
-  font-weight: 500;
-  color: #cfcfcf;
 }
 
 .padding-y-none {
@@ -268,6 +197,7 @@ export default {
 }
 .config {
   display: flex;
+  flex-wrap:wrap;
 }
 
 .border-radius-none {
@@ -275,8 +205,7 @@ export default {
 }
 
 .graph-sidebar {
-  display: flex !important;
-  width: inherit;
+  width: calc(100% - 40px);
 }
 .graph-display {
   width: inherit;
@@ -286,10 +215,14 @@ export default {
   margin: 12px 0 0 0;
 }
 
-* >>> .config-tabs > .v-tabs-bar {
+* >>> .config-tabs
+> .v-tabs-bar {
   height: 40px;
 }
-* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content {
+* >>> .config-tabs
+> .v-slide-group
+> .v-slide-group__wrapper
+> .v-slide-group__content {
   margin-top: 5px;
 }
 
@@ -299,7 +232,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972ac;
+  background-color: var(--v-secondary-color);
 }
 
 *
@@ -312,21 +245,31 @@ export default {
   display: none;
 }
 
-* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content > .v-tab {
+* >>> .config-tabs
+> .v-slide-group
+> .v-slide-group__wrapper
+> .v-slide-group__content
+> .v-tab {
   font-size: 0.8rem;
   min-width: 87px;
 }
 
-* >>> .config-text-field > .v-input__control > .v-input__slot {
+* >>> .config-text-field
+> .v-input__control
+> .v-input__slot {
   min-height: 30px;
   margin: 0;
 }
 
-* >>> .config-text-field > .v-input__control > .v-text-field__details {
+* >>> .config-text-field
+> .v-input__control
+> .v-text-field__details {
   display: none;
 }
 
-* >>> .config-switch > .v-input__control > .v-messages {
+* >>> .config-switch
+> .v-input__control
+> .v-messages {
   display: none;
 }
 
