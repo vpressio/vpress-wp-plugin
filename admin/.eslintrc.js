@@ -1,7 +1,8 @@
 module.exports = {
   env: {
     browser: true,
-    es6: true
+    es6: true,
+    node : true,
   },
   extends: ['eslint:recommended', 'plugin:vue/essential'],
   globals: {
@@ -17,7 +18,6 @@ module.exports = {
       files: ['**/__tests__/*.{j,t}s?(x)'],
       env: {
         jest: true,
-        node : true,
       }
     }
   ],
