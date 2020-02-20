@@ -30,6 +30,8 @@ export default {
 }
 
 .input-control{
-    padding: 12px 22px
+    padding: 12px 22px;
+    display: flex;
+    justify-content: center;
 }
 </style>
