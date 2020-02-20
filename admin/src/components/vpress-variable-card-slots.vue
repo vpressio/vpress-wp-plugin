@@ -1,5 +1,5 @@
 <template>
-  <v-card class="py-5 px-3">
+  <v-card flat class="py-5 px-3">
     <v-row class="ma-0">
       <v-col cols="6" class="pa-0">
         <v-card flat class="ma-1">
@@ -15,14 +15,14 @@
           <v-card
             ref="UPDATE_X_AXIS"
             id="UPDATE_X_AXIS"
-            min-height="50"
+            height="75"
             outlined
             @dragenter="dragEnter"
-            @dragover.prevent="dragOver"
+            @dragover.prevent
             @dragleave="dragLeave"
             @drop.stop.self="drop"
             light
-            class="pt-2 px-2 pb-1"
+            class="pa-2"
           >
             <slot/>
           </v-card>
@@ -42,14 +42,14 @@
           <v-card
             ref="UPDATE_Y_AXIS"
             id="UPDATE_Y_AXIS"
-            min-height="50"
+            height="75"
             outlined
             @dragenter="dragEnter"
-            @dragover.prevent="dragOver"
+            @dragover.prevent
             @dragleave="dragLeave"
             @drop.stop.self="drop"
             light
-            class="pt-2 px-2 pb-1"
+            class="pa-2"
           >
             <slot/>
           </v-card>
@@ -63,7 +63,7 @@
               color="secondary"
               dense
             >
-              mdi-view-sequential
+              mdi-palette-outline
             </v-icon>
             <span class="slot-label">
               Colores
@@ -71,14 +71,14 @@
           <v-card
             ref="UPDATE_GROUP_BY"
             id="UPDATE_GROUP_BY"
-            min-height="50"
+            height="75"
             outlined
             @dragenter="dragEnter"
-            @dragover.prevent="dragOver"
+            @dragover.prevent
             @dragleave="dragLeave"
             @drop.stop.self="drop"
             light
-            class="pt-2 px-2 pb-1"
+            class="pa-2"
           >
             <slot/>
           </v-card>
@@ -107,67 +107,51 @@ export default {
   },
   methods: {
     drop(event) {
+      
       const { dataTransfer, target } = event;
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      const startParent = document.getElementById(columnDataToTransferInObject.parentId);
-      const cardToAppendInSlot = document.getElementById(columnDataToTransferInObject.id);
-      const cardCloneWithOldId = cardToAppendInSlot.cloneNode(true);
+      const originalCard = document.getElementById(columnDataToTransferInObject.id);
+      const cardToAppendInSlot = originalCard.cloneNode(true);
       const cardSlotId = target.id;
-      const cardToAppendInSlotId = columnDataToTransferInObject.id;
-      const newCardId = `${cardToAppendInSlotId}_${cardSlotId}`;
+      const originalCardId = columnDataToTransferInObject.id;
+      const newCardId = `${originalCardId}_${cardSlotId}`;
 
-      this.$store.dispatch(`chartConfig/${target.id}`, columnDataToTransferInObject);
+      this.$store.dispatch(`chartConfig/${cardSlotId }`, columnDataToTransferInObject);
       if(this.cardSlots[`${target.id}_CARD`]){
-        target.removeChild(this.cardSlots[`${target.id}_CARD`])
+        target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
       };
-
-      startParent.appendChild(cardCloneWithOldId);
-
-      if( newCardId !== newCardId ) {
-        cardToAppendInSlot.setAttribute('id', newCardId);
-      };
-
-      target.appendChild(cardToAppendInSlot);
+      cardToAppendInSlot.setAttribute('id', newCardId);
+      cardToAppendInSlot.children[0].style.zIndex = 1;
+      cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( _, cardToAppendInSlot, cardSlotId);
       cardToAppendInSlot.style.display = 'block';
-      this.cardSlots[`${target.id}_CARD`] = cardToAppendInSlot;
-    },
-    dragOver() {
+      target.appendChild(cardToAppendInSlot);
+      this.cardSlots[`${cardSlotId}_CARD`] = cardToAppendInSlot;
     },
     dragEnter(event) {
       const { target } = event;
 
       if(this.cardSlots[`${target.id}_CARD`]) {
-        currentCardInSlot.style.display = 'none';
+        this.cardSlots[`${target.id}_CARD`].style.display = 'none';
       }
     },
     dragLeave(event) {
       const { target } = event;
-
-      if(this.cardSlots[`${target.id}_CARD`] && currentCardInSlot.style.display === 'none') {
-        currentCardInSlot.style.display = 'block';
+      if(
+        this.cardSlots[`${target.id}_CARD`] &&
+        this.cardSlots[`${target.id}_CARD`].style.display === 'none'
+      ) {
+        this.cardSlots[`${target.id}_CARD`].style.display = 'block';
+      }
+    },
+    removeCard(_event, nodeToRemove, cardSlotId) {
+      const { target } = event;
+      return () => {
+        this.$store.dispatch(`chartConfig/${cardSlotId }`, null);
+        this.cardSlots[`${cardSlotId}_CARD`] = null;
+        nodeToRemove.remove();
       }
     }
   }
 };
 </script>
-<style scoped>
-.slotHeaderColumn {
-  padding: 5px;
-}
-
-.slot-label {
-  color:#382E82;
-  font-weight: 500;
-}
-
-.card-flex {
-  display: flex;
-}
-
-.card-text {
-  color: white !important;
-  font-weight: 900;
-  font-size: 1rem;
-}
-</style>

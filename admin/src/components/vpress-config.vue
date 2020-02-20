@@ -1,6 +1,6 @@
 <template>
   <v-responsive>
-    <v-container>
+    <v-container >
       <v-row>
         <v-col 
           :cols="numberOfColsIftabIsNotZero"
@@ -22,8 +22,8 @@
               <v-img src="../assets/images/logo.svg"></v-img>
             </v-card>
           </v-card>
-          <v-card class="graph-sidebar" flat color="transparent">
-            <v-card class="padding-none border-radius-none widthAll">
+          <v-card class="graph-sidebar"  color="transparent">
+            <v-card flat class="padding-none border-radius-none widthAll">
               <v-tabs
                 dark
                 class="config-tabs"
@@ -197,6 +197,7 @@ export default {
 }
 .config {
   display: flex;
+  flex-wrap:wrap;
 }
 
 .border-radius-none {
@@ -204,8 +205,7 @@ export default {
 }
 
 .graph-sidebar {
-  display: flex !important;
-  width: inherit;
+  width: calc(100% - 40px);
 }
 .graph-display {
   width: inherit;

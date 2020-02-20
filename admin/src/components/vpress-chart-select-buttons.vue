@@ -14,41 +14,65 @@
           :class="graph.disabled ? 'grey darken-1' : ''"
           class="mx-1"
         >
-          <v-img
-            :src="requireImg(graph.chartType)"
-            :alt="graph.chartType"
-            width="30"
-          ></v-img>
+          <v-img :src="requireImg(graph.chartType)" :alt="graph.chartType" width="30"></v-img>
         </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-btn @click="toggleLabels">ETIQUETAS</v-btn>
+        <v-btn v-show="chartIsBarsGrouped" @click="toggleBarsType">{{
+          stackedBars ? 'BARRAS AGRUPADAS' : 'BARRAS APILADAS'
+        }}</v-btn>
       </v-col>
     </v-row>
   </v-card>
 </template>
 <script>
 export default {
-  name:"VpressChartSelectButtons",
-  props:['availableCharts'],
-  data(){
+  name: 'VpressChartSelectButtons',
+  props: ['availableCharts'],
+  data() {
     return {
-      graphs:[]
+      labels: false,
+      stackedBars: false,
+      graphs: []
+    };
+  },
+  created() {
+    this.labels = this.$store.state.chartConfig.labels;
+    this.stackedBars = this.$store.state.chartConfig.stackedBars;
+  },
+  computed: {
+    chartIsBarsGrouped() {
+      return (
+        this.$store.state.chartConfig.chart === 'bars' && this.$store.state.chartConfig.groupBy.slug
+      );
     }
   },
-  methods:{
-    setChartType(chartType){
+  methods: {
+    setChartType(chartType) {
       this.$store.dispatch('chartConfig/UPDATE_CHART_TYPE', chartType);
     },
     requireImg(chartType) {
-      // eslint-disable-next-line
-      return require( `../assets/images/${chartType}.svg`);
+      return require(`../assets/images/${chartType}.svg`);
+    },
+    toggleLabels() {
+      this.labels = !this.labels;
+      this.$store.dispatch('chartConfig/UPDATE_SHOW_LABELS', this.labels);
+    },
+    toggleBarsType() {
+      this.stackedBars = !this.stackedBars;
+      this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', this.stackedBars);
     }
   }
-}
+};
 </script>
 <style scoped>
-  .buttons-header{
-    border-right:solid 0.5px;
-    padding-left:32px;
-    font-weight: 600;
-    line-height: initial;
-  }
+.buttons-header {
+  border-right: solid 0.5px;
+  padding-left: 32px;
+  font-weight: 600;
+  line-height: initial;
+}
 </style>

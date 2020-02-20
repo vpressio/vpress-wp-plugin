@@ -10,6 +10,7 @@
       class="pb-3 px-3 variableCard-container"
     >
       <VpressVariableCard
+        class="mb-3"
         :id="`cardId_total`"
         :parentId="variableCardsContainerId"
         :parentRefs="$refs"
@@ -18,12 +19,28 @@
           variableNameDataType: 'linear'
         }"
       >
-        Conteo de observaciones
-        <span class="variableCardDataType">
-          linear
-        </span>
+        <div class="removeButtonContainer pr-1">
+          <v-btn x-small icon>
+            <v-icon
+              dense
+              style="margin-bottom:auto"
+              @click.stop="removeCard"
+            >
+              mdi-window-close
+            </v-icon>
+          </v-btn>
+        </div>
+        <div class="dataTypeContainer">
+          <span class="variableCardDataType pr-1">
+            linear
+          </span>
+        </div>
+        <div class="dataTypeTitle pa-3">
+          Conteo de observaciones
+        </div>
       </VpressVariableCard>
       <VpressVariableCard
+        class="mb-3"
         v-for="(card, cardIndex) in variableCards"
         :key="`cardId_${cardIndex}`"
         :id="`cardId_${cardIndex}`"
@@ -31,10 +48,25 @@
         :parentRefs="$refs"
         :columnData="card"
       >
-        {{ card.variableName }}
-        <span class="variableCardDataType">
-          {{ card.variableNameDataType }}
-        </span>
+        <div class="removeButtonContainer pr-1">
+          <v-btn x-small icon>
+            <v-icon
+              dense
+              style="margin-bottom:auto"
+              @click.stop="removeCard"
+            >
+              mdi-window-close
+            </v-icon>
+          </v-btn>
+        </div>
+        <div class="dataTypeContainer">
+          <span class="variableCardDataType pr-1">
+            {{ card.variableNameDataType }}
+          </span>
+        </div>
+        <div class="dataTypeTitle pa-3">
+          {{ card.variableName }}
+        </div>
       </VpressVariableCard>
       <v-divider />
     </v-card>
@@ -58,7 +90,7 @@ export default {
 </script>
 <style scoped>
 .variableCard-container {
-  max-height: 300px;
+  max-height: 340px;
   overflow-y: scroll;
 }
 
@@ -67,4 +99,35 @@ export default {
   font-weight: 500;
   color: #cfcfcf;
 }
+.dataTypeTitle {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.dataTypeTitle {
+  text-overflow: ellipsis;
+  overflow: hidden; 
+  width: 100%;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.dataTypeContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.removeButtonContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  z-index: -1;
+}
+
 </style>
