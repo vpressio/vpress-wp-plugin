@@ -122,6 +122,7 @@ export default {
         target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
       };
       cardToAppendInSlot.setAttribute('id', newCardId);
+      cardToAppendInSlot.draggable = false;
       cardToAppendInSlot.children[0].style.zIndex = 1;
       cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( _, cardToAppendInSlot, cardSlotId);
       cardToAppendInSlot.style.display = 'block';
