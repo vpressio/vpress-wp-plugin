@@ -33,7 +33,7 @@ export default {
   },
   methods: {
     dragStart(e) {
-      const { target, dataTransfer } = e;
+      const { dataTransfer } = e;
       const columnDataToTransferInObject = { ...this.columnData, id: this.id };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
 

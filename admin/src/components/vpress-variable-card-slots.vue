@@ -88,13 +88,8 @@
   </v-card>
 </template>
 <script>
-import VpressVariableCard from './vpress-variable-card.vue';
-
 export default {
   name: 'VpressVariableCardSlots',
-  components: {
-    VpressVariableCard
-  },
   props: ['id', 'slotLabel'],
   data() {
     return {
@@ -118,13 +113,13 @@ export default {
       const newCardId = `${originalCardId}_${cardSlotId}`;
 
       this.$store.dispatch(`chartConfig/${cardSlotId }`, columnDataToTransferInObject);
-      if(this.cardSlots[`${target.id}_CARD`]){
+      if(this.cardSlots[`${target.id}_CARD`]) {
         target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
-      };
+      }
       cardToAppendInSlot.setAttribute('id', newCardId);
       cardToAppendInSlot.draggable = false;
       cardToAppendInSlot.children[0].style.zIndex = 1;
-      cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( _, cardToAppendInSlot, cardSlotId);
+      cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( event, cardToAppendInSlot, cardSlotId);
       cardToAppendInSlot.style.display = 'block';
       target.appendChild(cardToAppendInSlot);
       this.cardSlots[`${cardSlotId}_CARD`] = cardToAppendInSlot;
@@ -146,7 +141,6 @@ export default {
       }
     },
     removeCard(_event, nodeToRemove, cardSlotId) {
-      const { target } = event;
       return () => {
         this.$store.dispatch(`chartConfig/${cardSlotId }`, null);
         this.cardSlots[`${cardSlotId}_CARD`] = null;
