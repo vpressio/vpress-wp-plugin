@@ -148,7 +148,9 @@ export default {
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
+      console.log(tabIndex);
       if (this.dataTypes.length === 0 && this.activeTab !== 0) {
+        console.log(this.dataTypes.length === 0 && this.activeTab !== 0)
         this.dataTypes = this.$store.getters['data/dataType'];
       }
     }

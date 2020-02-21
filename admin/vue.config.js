@@ -1,13 +1,13 @@
 module.exports = {
   productionSourceMap: false,
-  publicPath:
-    process.env.NODE_ENV === 'production'
-      ? 'kellogg-mexico-wp/wp-content/plugins/vpress/dist/'
-      : 'http://localhost:8080/',
-  outputDir: '../dist',
+  // publicPath:
+  //   process.env.NODE_ENV === 'production'
+  //     ? 'kellogg-mexico-wp/wp-content/plugins/vpress/dist/'
+  //     : 'http://localhost:8080/',
+  // outputDir: '../dist',
   configureWebpack: {
     devServer: {
-      contentBase: '/wp-content/plugins/vpress/dist/',
+      // contentBase: '/wp-content/plugins/vpress/dist/',
       allowedHosts: [''],
       headers: {
         'Access-Control-Allow-Origin': '*'
