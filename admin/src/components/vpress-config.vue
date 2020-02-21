@@ -43,12 +43,8 @@
                 </v-tab>
               </v-tabs>
               <v-tabs-items v-model="activeTab">
-                <v-tab-item>
-                  <v-card class="border-radius-none" outlined>
-                    <v-card-title>
-                      <load-data />
-                    </v-card-title>
-                  </v-card>
+                <v-tab-item class="pa-5">
+                  <load-data />
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
@@ -142,15 +138,14 @@ export default {
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
+      console.log(this.dataTypes);
       return this.dataTypes;
     }
   },
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
-      console.log(tabIndex);
-      if (this.dataTypes.length === 0 && this.activeTab !== 0) {
-        console.log(this.dataTypes.length === 0 && this.activeTab !== 0)
+      if (this.activeTab === 1 && this.dataTypes !== this.$store.getters['data/dataType']) {
         this.dataTypes = this.$store.getters['data/dataType'];
       }
     }
