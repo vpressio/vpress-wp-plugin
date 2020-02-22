@@ -120,7 +120,7 @@ export default {
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      this.showOperationButton = true;
+      this.showOperationButton = this.columnData.variableNameDataType === 'linear';
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;
