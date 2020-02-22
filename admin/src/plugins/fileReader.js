@@ -9,7 +9,7 @@ const FReader = {
       const reader = new FileReader();
 
       // Closure to capture the file information.
-      reader.onload = (function (theFile) {
+      reader.onload = (function () {
         return function (e) {
           return resolve(e.target.result);
         };
@@ -30,7 +30,7 @@ const FReader = {
       const reader = new FileReader();
 
       // Closure to capture the file information.
-      reader.onload = (function (theFile) {
+      reader.onload = (function () {
         return function (e) {
           return resolve(e.target.result);
         };
