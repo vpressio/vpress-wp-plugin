@@ -47,7 +47,7 @@ export default {
   props: ['variableCards'],
   data() {
     return {
-      variableCardsContainerId:'cardStartContainer',
+      variableCardsContainerId: 'cardStartContainer',
     }
   }
 }

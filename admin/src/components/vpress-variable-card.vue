@@ -96,7 +96,7 @@ export default {
       variableCardParent: null,
       variableCard:null,
       variableCardClone: null,
-      draggable:true,
+      draggable: true,
       showOperationButton: null,
       selectedFunc: '',
       funcs: [
@@ -104,7 +104,7 @@ export default {
         { type: 'mean', name: 'Promedio' },
         { type: 'min', name: 'Mínimo' },
         { type: 'max', name: 'Máximo' },
-        { type:'', name: 'Sin mutar' }
+        { type: '', name: 'Sin mutar' }
       ]
     };
   },
@@ -129,9 +129,9 @@ export default {
 };
 </script>
 <style scoped>
-  .card-flex {
-    height:100%;
-  }
+.card-flex {
+  height:100%;
+}
 
 .dataTypeTitle {
   font-weight: 500;
