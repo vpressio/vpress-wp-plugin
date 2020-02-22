@@ -2,11 +2,7 @@ module.exports = {
   env: {
     browser: true,
     es6: true,
-<<<<<<< HEAD
     node:true
-=======
-    node : true,
->>>>>>> dev
   },
   extends: ['eslint:recommended', 'plugin:vue/essential'],
   globals: {
