@@ -11,7 +11,6 @@ div(class="chart")
 <script>
 // @ is an alias to /src
 import ChartComponent from '../components/ChartComponent.vue';
-import * as _ from 'lodash';
 
 export default {
   name: 'chart',

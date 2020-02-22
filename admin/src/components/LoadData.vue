@@ -59,6 +59,7 @@
             hide-details
             full-width
             style="width:50%; display: inline-flex"
+            class="mb-5"
           ></v-text-field>
         </div>
         <textarea
