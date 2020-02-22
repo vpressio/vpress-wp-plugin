@@ -4,10 +4,10 @@ export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: 'linear', slug: '' },
-    yAxis: { title: '', type: 'linear', slug: '' },
-    groupBy: { title: '', type: 'ordinal', slug: '' },
-    collapseBy: { title: '', type: 'linear', slug: '' },
+    xAxis: { title: '', type: 'linear', slug: '' , func: ''},
+    yAxis: { title: '', type: 'linear', slug: '', func: ''},
+    groupBy: { title: '', type: 'ordinal', slug: ''},
+    collapseBy: { title: '', type: 'linear', slug: ''},
     decimals: 1,
     preffix: '',
     suffix: '',
@@ -71,6 +71,7 @@ export default {
       state.xAxis.title = payload ? payload.variableName : '';
       state.xAxis.slug = payload ? payload.variableName : '';
       state.xAxis.type = payload ? payload.variableNameDataType : '';
+      state.xAxis.func = payload ? payload.func : '';
       if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
         state.collapseBy = { title: '', type: 'linear', slug: '' };
       }
@@ -103,6 +104,7 @@ export default {
       state.yAxis.title = payload ? payload.variableName : '';
       state.yAxis.slug = payload ? payload.variableName : '';
       state.yAxis.type = payload ? payload.variableNameDataType : '';
+      state.yAxis.func = payload ? payload.func : '';
       /** Reset yAxis */
       if (!_.includes([state.xAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
         state.collapseBy = { title: '', type: 'linear', slug: '' };

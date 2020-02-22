@@ -138,7 +138,6 @@ export default {
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
-      console.log(this.dataTypes);
       return this.dataTypes;
     }
   },
