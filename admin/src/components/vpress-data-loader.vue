@@ -197,7 +197,6 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
-
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
@@ -244,12 +243,12 @@ export default {
      * Read spreadsheets file, parsed into JSON data
      * Set headers and data for data-table
      */
-    loadFile() {
+    loadFile(file) {
       const self = this;
-      const files = this.$refs.pond.getFiles();
+      const files = file || this.$refs.pond.getFiles()[0].file;
       // eslint-disable-next-line
-      console.log(files[0].file)
-      FReader.readExcel(files[0].file)
+      console.log(this.$refs.pond.getFiles())
+      FReader.readExcel(files)
         .then(content => {
           // eslint-disable-next-line
           self.headers = Object.keys(content[0]).map(o => ({
@@ -337,10 +336,12 @@ export default {
       console.log('Dialog closed');
     },
     selectTestDataset() {
-      this.$refs.pond.addFile('../../public/test-csv/credit.csv')
-        .then(file =>{
-          this.loadFile(file)
-        });
+      // this.$refs.pond.addFile('/admin/src/credit.csv')
+      //   .then(file =>{
+      //     console.log(file)
+      //     this.loadFile(file)
+      //   });
+      console.log('Hola, chepe')
     } 
   }
 };
