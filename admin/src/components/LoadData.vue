@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container>
     <v-layout row justify-center align-center>
       <v-flex xs12>
         <v-toolbar full-width>

@@ -228,7 +228,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: var(--v-secondary-color);
+  background-color: #7972AC;
 }
 
 *

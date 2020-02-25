@@ -32,6 +32,12 @@ export default {
       const chartConfig = _.cloneDeep(state.chartConfig);
       this.chartConfig = chartConfig;
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
+      console.log('--------------------------')
+      console.log('EJE_X',Object.values(this.$store.state.chartConfig.yAxis))
+      console.log('EJE_Y',Object.values(this.$store.state.chartConfig.xAxis))
+      console.log('GROUP',Object.values(this.$store.state.chartConfig.groupBy))
+      console.log('COLLAPSE',Object.values(this.$store.state.chartConfig.collapseBy))
+      console.log('--------------------------')
     });
   },
   computed: {
