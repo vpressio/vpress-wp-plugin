@@ -341,7 +341,6 @@ export default {
       //     console.log(file)
       //     this.loadFile(file)
       //   });
-      console.log('Hola, chepe')
     } 
   }
 };
