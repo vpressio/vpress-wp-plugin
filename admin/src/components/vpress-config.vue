@@ -1,6 +1,6 @@
 <template>
   <v-responsive>
-    <v-container >
+    <v-container fluid>
       <v-row>
         <v-col 
           :cols="numberOfColsIftabIsNotZero"
@@ -30,7 +30,6 @@
                 v-model="activeTab"
                 background-color="primary"
                 color="white"
-                @change="tabChange"
               >
                 <v-tab>
                   DATOS
@@ -44,7 +43,7 @@
               </v-tabs>
               <v-tabs-items v-model="activeTab">
                 <v-tab-item class="pa-5">
-                  <load-data />
+                  <VpressDataLoader :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
@@ -76,7 +75,7 @@
             </v-card>
           </v-card>
         </v-col>
-        <v-col cols="8">
+        <v-col cols="7">
           <v-card
             v-if="activeTab !== 0"
             class="padding-y-none graph-display"
@@ -101,7 +100,7 @@
   </v-responsive>
 </template>
 <script>
-import LoadData from './LoadData.vue';
+import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
 import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
@@ -112,7 +111,7 @@ import VpressColorSelection from './vpress-config-color-selection.vue';
 export default {
   name: 'VpressConfig',
   components: {
-    LoadData,
+    VpressDataLoader,
     VpressVariableCardStartContainer,
     VpressVariableCardSlots,
     VpressExpansionPanel,
@@ -123,13 +122,12 @@ export default {
   data() {
     return {
       activeTab: 0,
-      dataTypes: [],
       darkTheme: false
     };
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      const numberOfCols = this.activeTab !== 0 ? '4' : '12';
+      const numberOfCols = this.activeTab !== 0 ? '5' : '12';
 
       return numberOfCols;
     },
@@ -138,15 +136,14 @@ export default {
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
-      return this.dataTypes;
+      if (this.activeTab === 1)
+        return this.$store.getters['data/dataType'];
+      return [];
     }
   },
   methods: {
     tabChange(tabIndex) {
       this.activeTab = tabIndex;
-      if (this.activeTab === 1 && this.dataTypes !== this.$store.getters['data/dataType']) {
-        this.dataTypes = this.$store.getters['data/dataType'];
-      }
     }
   }
 };
@@ -247,7 +244,8 @@ export default {
 > .v-slide-group__content
 > .v-tab {
   font-size: 0.8rem;
-  min-width: 87px;
+  width: fit-content;
+  min-width: 40px;
 }
 
 * >>> .config-text-field
@@ -278,4 +276,15 @@ export default {
   overflow-y: scroll;
   overflow-x: hidden;
 }
+
+@media only screen and (max-width: 960px) {
+  * >>> .config-tabs
+  > .v-slide-group
+  > .v-slide-group__wrapper
+  > .v-slide-group__content
+  > .v-tab {
+  font-size: 0.68rem;
+}
+}
+
 </style>

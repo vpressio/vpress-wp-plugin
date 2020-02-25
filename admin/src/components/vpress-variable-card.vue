@@ -29,7 +29,7 @@
       </span>
        <span
           v-if="variableMutation !== 'Sin mutar' && variableMutation"
-          class="variableCardDataType pl-3 py-1"
+          class="variableCardDataType pl-1 py-1"
         >
           {{ `(${variableMutation})` }}
         </span>
@@ -66,11 +66,11 @@
                 v-for="(func, funcIndex) in funcs"
                 :key="`func_${funcIndex}`"
                 @click="selectFunc(func)"
-                :class="{ 'selected-func': selectedFunc === func.type }"
+                :class="{ 'selected-func': selectedFunc === func }"
               >
                 <v-list-item-title
                   class="func-menu"
-                  :class="{ 'selected-func': selectedFunc === func.type }"
+                  :class="{ 'selected-func': selectedFunc === func }"
                   :dark="selectedFunc === func.type"
                 >
                   {{ func.name }}
