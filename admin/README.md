@@ -32,3 +32,10 @@ yarn lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+### CORS Storage
+Instalar gsutil tool: https://cloud.google.com/storage/docs/gsutil
+```
+gsutil cors set cors.json gs://vpress-def8f.appspot.com
+```

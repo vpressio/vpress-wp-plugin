@@ -46,7 +46,7 @@
         </v-toolbar>
       </v-flex>
       <v-flex
-        v-show="data.length === 0 && uploadType === 1" 
+        v-show="data.length === 0 && uploadType === 1"
         xs12
         class="mt-3"
       >
@@ -332,16 +332,12 @@ export default {
       this.snackColor = 'info';
       this.snackText = 'Dialog opened';
     },
-    close() {
-      console.log('Dialog closed');
-    },
-    selectTestDataset() {
-      // this.$refs.pond.addFile('/admin/src/credit.csv')
-      //   .then(file =>{
-      //     console.log(file)
-      //     this.loadFile(file)
-      //   });
-    } 
+    close() {},
+    async selectTestDataset() {
+      let url = 'https://firebasestorage.googleapis.com/v0/b/vpress-def8f.appspot.com/o/peliculas.csv?alt=media&token=4c1e963c-4337-426b-b35c-b5e366ab86e3';
+      let blob = await fetch(url).then(r => r.blob());
+      this.loadFile(blob)
+    }
   }
 };
 </script>
