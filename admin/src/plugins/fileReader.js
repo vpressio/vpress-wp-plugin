@@ -40,7 +40,7 @@ const FReader = {
         return reject(error);
       };
 
-      reader.readAsBinaryString(file);
+      reader.readAsText(file, 'UTF-8');
     }));
   },
   /**
