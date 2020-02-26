@@ -11,10 +11,9 @@
           text
           @click="setChartType(graph.chartType)"
           :disabled="graph.disabled"
-          :class="graph.disabled ? 'grey darken-1' : ''"
           class="mx-1"
         >
-          <v-img :src="requireImg(graph.chartType)" :alt="graph.chartType" width="30"></v-img>
+          <v-img :class="graph.disabled ? 'disabled-graph-image' : ''" :src="requireImg(graph.chartType)" :alt="graph.chartType" width="30"></v-img>
         </v-btn>
       </v-col>
     </v-row>
@@ -74,5 +73,9 @@ export default {
   padding-left: 32px;
   font-weight: 600;
   line-height: initial;
+}
+
+.disabled-graph-image{
+  filter: opacity(30%);
 }
 </style>

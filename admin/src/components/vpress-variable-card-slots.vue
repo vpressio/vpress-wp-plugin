@@ -1,7 +1,7 @@
 <template>
   <v-card flat class="py-5 px-3">
     <v-row class="ma-0">
-      <v-col cols="6" class="pa-0">
+      <v-col cols="6" sm="12" md="6" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"
@@ -28,7 +28,7 @@
           </v-card>
         </v-card>
       </v-col>
-      <v-col cols="6" class="pa-0">
+      <v-col cols="6" sm="12" md="6" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"
@@ -57,7 +57,7 @@
       </v-col>
     </v-row>
     <v-row class="ma-0">
-      <v-col cols="6" class="pa-0">
+      <v-col cols="6" sm="12" md="6" class="pa-0">
         <v-card flat class="ma-1">
           <v-icon 
               color="secondary"

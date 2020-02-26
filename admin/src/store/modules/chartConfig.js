@@ -4,10 +4,10 @@ export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: 'linear', slug: '' , func: ''},
-    yAxis: { title: '', type: 'linear', slug: '', func: ''},
+    xAxis: { title: '', type: '', slug: '' , func: ''},
+    yAxis: { title: '', type: '', slug: '', func: ''},
     groupBy: { title: '', type: 'ordinal', slug: ''},
-    collapseBy: { title: '', type: 'linear', slug: ''},
+    collapseBy: { title: '', type: 'linear', slug: '', func: ''},
     decimals: 1,
     preffix: '',
     suffix: '',
@@ -22,7 +22,7 @@ export default {
     availableGraphs: [
       {
         chartType: 'bars',
-        chartCompatibleDataTypes: ['linear', 'ordinal']
+        chartCompatibleDataTypes: ['linear', 'ordinal'],
       },
       {
         chartType: 'heatmap',
@@ -73,7 +73,7 @@ export default {
       state.xAxis.type = payload ? payload.variableNameDataType : '';
       state.xAxis.func = payload ? payload.func : '';
       if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
-        state.collapseBy = { title: '', type: 'linear', slug: '' };
+        state.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
       }
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
@@ -107,7 +107,7 @@ export default {
       state.yAxis.func = payload ? payload.func : '';
       /** Reset yAxis */
       if (!_.includes([state.xAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
-        state.collapseBy = { title: '', type: 'linear', slug: '' };
+        state.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
       }
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
@@ -138,7 +138,7 @@ export default {
       if (payload === null) {
         state.groupBy = { title: '', type: '', slug: '' };
         if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
-          state.collapseBy = { title: '', type: '', slug: '' };
+          state.collapseBy = { title: '', type: '', slug: '', func:'' };
         }
       }
       if (payload && payload.variableNameDataType === 'ordinal') {
@@ -159,6 +159,7 @@ export default {
         state.collapseBy.title = payload ? payload.variableName : '';
         state.collapseBy.slug = payload ? payload.variableName : '';
         state.collapseBy.type = payload ? payload.variableNameDataType : '';
+        state.collapseBy.type = payload ? payload.func : '';
       }
     },
     SET_CHART_TYPE(state, payload) {
@@ -212,6 +213,15 @@ export default {
           chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
           chart.chartCompatibleDataTypes.includes(state.yAxis.type)
         ) {
+          if (
+            chart.chartCompatibleDataTypes.length > 1 &&
+            state.xAxis.type === state.yAxis.type
+          ) {
+            return { ...chart, disabled: true };
+          }
+          if(chart.chart === 'spineplot' && state.collapseBy.slug === '') {
+            return { ...chart, disabled: true };
+          }
           return { ...chart, disabled: false };
         }
         return { ...chart, disabled: true };

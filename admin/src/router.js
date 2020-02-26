@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Home from './views/Home.vue';
-import LoadData from './components/LoadData.vue';
+import VpressDataLoader from './components/vpress-data-loader.vue';
 
 Vue.use(Router);
 
@@ -30,8 +30,8 @@ export default new Router({
     },
     {
       path: '/load-data',
-      name: 'loadData',
-      component: LoadData
+      name: 'VpressDataLoader',
+      component: VpressDataLoader
     }
   ]
 });

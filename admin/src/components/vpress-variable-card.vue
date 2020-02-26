@@ -6,7 +6,7 @@
     @dragstart="dragStart"
     @dragend.prevent="dragEnd"
     @dragover.stop
-    class="border-radius-none card-flex pr-5"
+    class="border-radius-none card-flex pr-5 pb-2"
     :class="{ 'pr-5': showOperationButton }"
     color="#9292A9"
     dark
@@ -24,9 +24,15 @@
       </v-btn>
     </div>
     <div class="dataTypeContainer">
-      <span class="variableCardDataType pl-3">
+      <span class="variableCardDataType pl-3 py-1">
         {{ variableNameDataType }}
       </span>
+       <span
+          v-if="variableMutation !== 'Sin mutar' && variableMutation"
+          class="variableCardDataType pl-1 py-1"
+        >
+          {{ `(${variableMutation})` }}
+        </span>
     </div>
     <div>
       <div
@@ -50,7 +56,7 @@
               <v-icon
                 dense
               >
-                mdi-sigma
+                mdi-dots-horizontal
               </v-icon>
             </v-btn>
           </template>
@@ -59,12 +65,12 @@
                 class="px-5"
                 v-for="(func, funcIndex) in funcs"
                 :key="`func_${funcIndex}`"
-                @click="selectFunc(func.type)"
-                :class="{ 'selected-func': selectedFunc === func.type }"
+                @click="selectFunc(func)"
+                :class="{ 'selected-func': selectedFunc === func }"
               >
                 <v-list-item-title
                   class="func-menu"
-                  :class="{ 'selected-func': selectedFunc === func.type }"
+                  :class="{ 'selected-func': selectedFunc === func }"
                   :dark="selectedFunc === func.type"
                 >
                   {{ func.name }}
@@ -111,16 +117,21 @@ export default {
   created() {
     this.showOperationButton = this.columnData.variableNameDataType === 'linear';
   },
+  computed: {
+    variableMutation() {
+      return this.selectedFunc.name;
+    }
+  },
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc };
+      const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
       this.showOperationButton = false;
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      this.showOperationButton = true;
+      this.showOperationButton = this.columnData.variableNameDataType === 'linear';
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;

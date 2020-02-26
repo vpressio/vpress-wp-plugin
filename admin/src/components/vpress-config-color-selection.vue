@@ -9,6 +9,7 @@
             :key="`scheme_${schemeIndex}`"
             :width="schemeCardSize"
             hover
+            flat
             class="ma-2"
             @click="selectColorScheme(scheme)"
           >
