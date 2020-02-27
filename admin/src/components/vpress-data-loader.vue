@@ -192,6 +192,7 @@
     </v-layout>
   </v-container>
 </template>
+
 <script>
 /* eslint-disable guard-for-in */
 /* eslint-disable no-loop-func */
@@ -247,8 +248,8 @@ export default {
       const self = this;
       const files = file || this.$refs.pond.getFiles()[0].file;
       // eslint-disable-next-line
-      console.log(this.$refs.pond.getFiles())
-      FReader.readExcel(files)
+      if (files['name'].indexOf('.csv') >= 0) {
+        FReader.readCSV(files)
         .then(content => {
           // eslint-disable-next-line
           self.headers = Object.keys(content[0]).map(o => ({
@@ -265,6 +266,25 @@ export default {
           // eslint-disable-next-line
           console.error(error);
         });
+      } else {
+        FReader.readExcel(files)
+          .then(content => {
+            // eslint-disable-next-line
+            self.headers = Object.keys(content[0]).map(o => ({
+              text: o,
+              value: o,
+              sortable: true
+            }));
+            // eslint-disable-next-line
+            setTimeout(() => {
+              self.data = content;
+            }, 200);
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.error(error);
+          });
+      }
     },
     /**
      * Parse pasted data into JSON object array
@@ -341,6 +361,7 @@ export default {
   }
 };
 </script>
+
 <style lang="scss" scoped>
 textarea {
   border: solid 2px #666;
