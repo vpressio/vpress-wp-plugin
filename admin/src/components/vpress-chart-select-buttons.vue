@@ -13,7 +13,13 @@
           :disabled="graph.disabled"
           class="mx-1"
         >
-          <v-img :class="graph.disabled ? 'disabled-graph-image' : ''" :src="requireImg(graph.chartType)" :alt="graph.chartType" width="30"></v-img>
+          <v-img
+            :class="graph.disabled ? 'disabled-graph-image' : ''"
+            :src="requireImg(graph.chartType)"
+            :alt="graph.chartType"
+            width="30"
+            height="30"
+          />
         </v-btn>
       </v-col>
     </v-row>

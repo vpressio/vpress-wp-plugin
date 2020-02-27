@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-layout row justify-center align-center>
       <v-flex xs12>
         <v-toolbar full-width flat>
@@ -314,7 +314,7 @@ export default {
       self.loading = false;
     },
     saveData() {
-      this.$emit('update:tabChange', 1);
+      this.$emit('update:tabChange', true);
       this.$store.dispatch('data/set', this.data);
     },
     save() {

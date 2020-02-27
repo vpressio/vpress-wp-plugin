@@ -104,7 +104,7 @@ export default {
       variableCardClone: null,
       draggable: true,
       showOperationButton: null,
-      selectedFunc: '',
+      selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
@@ -126,6 +126,7 @@ export default {
     dragStart(e) {
       const { dataTransfer } = e;
       const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
+      console.log(columnDataToTransferInObject)
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
       this.showOperationButton = false;
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);

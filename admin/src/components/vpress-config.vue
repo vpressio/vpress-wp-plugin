@@ -19,7 +19,7 @@
               color="#181D25"
               flat
             >
-              <v-img src="../assets/images/logo.svg"></v-img>
+              <v-img style="height:100%;width:100%" src="../assets/images/logo.svg"></v-img>
             </v-card>
           </v-card>
           <v-card class="graph-sidebar"  color="transparent">
@@ -136,8 +136,10 @@ export default {
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
-      if (this.activeTab === 1)
-        return this.$store.getters['data/dataType'];
+      // eslint-disable-next-line
+        // console.log(this.$store.getters['data/dataType'] === this.$store.getters['data/dataType'])
+      // if (this.activeTab === 1)
+      //   return this.$store.getters['data/dataType'];
       return [];
     }
   },
