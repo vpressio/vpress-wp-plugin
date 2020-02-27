@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import XLSX from 'xlsx';
 
 const FReader = {
@@ -40,7 +41,7 @@ const FReader = {
         return reject(error);
       };
 
-      reader.readAsText(file, 'UTF-8');
+      reader.readAsBinaryString(file);
     }));
   },
   /**
@@ -73,11 +74,14 @@ const FReader = {
     const lines = csv.split('\n');
     const result = [];
     const headers = lines[0].split(',');
+    _.forEach(headers, function(value, index) {
+      headers[index] = _.trim(value, '"');
+    })
     for (let i = 1; i < lines.length; i++) {
       const obj = {};
       const currentline = lines[i].split(',');
       for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = currentline[j];
+        obj[headers[j]] = _.trim(currentline[j], '"');
       }
       result.push(obj);
     }
