@@ -43,7 +43,7 @@
               </v-tabs>
               <v-tabs-items v-model="activeTab">
                 <v-tab-item class="pa-5">
-                  <VpressDataLoader :tabChange.sync="activeTab"/>
+                  <VpressDataLoader :tabChange.sync="changedTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
@@ -75,9 +75,8 @@
             </v-card>
           </v-card>
         </v-col>
-        <v-col cols="7">
+        <v-col cols="7" v-if="activeTab !== 0">
           <v-card
-            v-if="activeTab !== 0"
             class="padding-y-none graph-display"
             flat
             color="transparent"
@@ -122,6 +121,7 @@ export default {
   data() {
     return {
       activeTab: 0,
+      changedTab:0,
       darkTheme: false
     };
   },
@@ -137,17 +137,21 @@ export default {
     },
     dataTypesCards(){
       // eslint-disable-next-line
-        // console.log(this.$store.getters['data/dataType'] === this.$store.getters['data/dataType'])
-      // if (this.activeTab === 1)
-      //   return this.$store.getters['data/dataType'];
+      console.log(this.$store.getters['data/dataType'] === this.$store.getters['data/dataType'])
+      // this.changeTab(this.changedTab)
+      if (this.activeTab === 1)
+        return this.$store.getters['data/dataType'];
       return [];
     }
+
   },
   methods: {
-    tabChange(tabIndex) {
-      this.activeTab = tabIndex;
+    changeTab() {
+      // this.activeTab = tabIndex;
+      // console.log(this.activeTab)
     }
   }
+
 };
 </script>
 <style  scoped>

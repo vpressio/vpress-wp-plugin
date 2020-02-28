@@ -103,7 +103,7 @@
               @click="selectTestDataset"
             >
               <v-card-title>
-                Créditos
+                Películas
               </v-card-title>
               <v-card-text>
                 Datos prueba
@@ -247,8 +247,7 @@ export default {
     loadFile(file) {
       const self = this;
       const files = file || this.$refs.pond.getFiles()[0].file;
-      // eslint-disable-next-line
-      if (files['name'].indexOf('.csv') >= 0) {
+      if (files['name'] && files['name'].indexOf('.csv') >= 0) {
         FReader.readCSV(files)
         .then(content => {
           // eslint-disable-next-line
@@ -334,7 +333,7 @@ export default {
       self.loading = false;
     },
     saveData() {
-      this.$emit('update:tabChange', true);
+      this.$emit('update:tabChange', 1);
       this.$store.dispatch('data/set', this.data);
     },
     save() {
