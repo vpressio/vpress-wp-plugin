@@ -28,10 +28,24 @@
         xs12
         class="mt-3"
       >
-        <v-col style="display:flex;" cols="12">
-          <h4 class="ml-5">
+      <v-row class="ma-0">
+        <v-col cols="12">
+          <h4>
             DATOS DE PRUEBA
           </h4>
+        </v-col>
+        <v-col cols="3" class="mx-4" v-for="(dataSet, dataSetIndex) in testDatasets" :key="dataSetIndex">
+          <v-btn
+            
+            color="primary"
+            @click="selectTestDataset(dataSet.name)"
+            :loading="dataSetName === dataSet.name  && loading"
+          >
+            {{ dataSet.name }}
+          </v-btn>
+        </v-col>
+        </v-row>
+        <v-col style="display:flex;" cols="12">
           <v-spacer/>
           <v-btn
             outlined
@@ -53,35 +67,19 @@
             </v-icon>
           </v-btn>
         </v-col>
-        <v-col cols="3">
-          <v-card
-              hover
-              color="primary"
-              dark
-              class="pa-1"
-              @click="selectTestDataset"
-            >
-              <v-card-title class="pt-2 pl-5 pb-0">
-                Películas
-              </v-card-title>
-              <v-card-text class="pb-2 pl-5">
-                Datos prueba
-              </v-card-text>
-            </v-card>
-        </v-col>
-        <v-col cols="9" v-show="data.length === 0 && uploadType === 1">
+        <v-col cols="12" v-show="data.length === 0 && uploadType === 1">
           <FilePond
             v-model="loadedFile"
             ref="pond"
             accepted-file-types="
-              text/html,
+              text/dbf
               text/csv,
               application/vnd.ms-excel,
               application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
             "
           />
         </v-col>
-        <v-col cols="9" v-show="data.length !== 0">
+        <v-col cols="12" v-show="data.length !== 0">
           <VpressDataTable
             :dataText="dataText"
             :headers="headers"
@@ -152,16 +150,16 @@
       </v-row>
   </v-container>
 </template>
-
 <script>
 /* eslint-disable guard-for-in */
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
+import VpressDataTable from './vpress-data-table';
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
-import VpressDataTable from './vpress-data-table';
+import { storage } from '../plugins/firebase';
 import 'filepond/dist/filepond.min.css'; // Import styles
 
 export default {
@@ -175,13 +173,25 @@ export default {
   data() {
     return {
       loading: false,
+      dataSetName: '',
       showTable: true,
       uploadType: 1,
       headers: [],
       data: [],
       pastedData: '',
-      loadedFile: []
+      loadedFile: [],
+      testDatasets: []
+
     };
+  },
+  created() {
+    storage
+      .ref()
+      .child('/testDatasets')
+      .listAll()
+      .then(res =>{
+        this.testDatasets = res.items;
+      });
   },
   computed: {
     /** If data-table's data should be displayed in CSV text */
@@ -214,7 +224,7 @@ export default {
      */
     loadFile(file) {
       const self = this;
-      const files = file || this.$refs.pond.getFiles()[0].file;
+      const files = file || self.$refs.pond.getFiles()[0].file;
       if (files['name'] && files['name'].indexOf('.csv') >= 0) {
         FReader.readCSV(files)
         .then(content => {
@@ -227,16 +237,19 @@ export default {
           // eslint-disable-next-line
           setTimeout(() => {
             self.data = content;
+            self.loading = false
           }, 200);
         })
         .catch(error => {
           // eslint-disable-next-line
+          self.loading = false
           console.error(error);
         });
       } else {
         FReader.readExcel(files)
           .then(content => {
             // eslint-disable-next-line
+            self.loading = false
             self.headers = Object.keys(content[0]).map(o => ({
               text: o,
               value: o,
@@ -249,6 +262,7 @@ export default {
           })
           .catch(error => {
             // eslint-disable-next-line
+            self.loading = false
             console.error(error);
           });
       }
@@ -304,10 +318,25 @@ export default {
       this.$emit('update:tabChange', 1);
       this.$store.dispatch('data/set', this.data);
     },
-    async selectTestDataset() {
-      let url = 'https://firebasestorage.googleapis.com/v0/b/vpress-def8f.appspot.com/o/peliculas.csv?alt=media&token=4c1e963c-4337-426b-b35c-b5e366ab86e3';
-      let blob = await fetch(url).then(r => r.blob());
-      this.loadFile(blob)
+    async selectTestDataset(fileName) {
+      const self = this;
+      self.loading = true;
+      self.dataSetName = fileName;
+      storage
+      .ref()
+      .child(`/testDatasets/${fileName}`)
+      .getDownloadURL()
+      .then(DownloadURL => {
+        fetch(DownloadURL)
+          .then(file =>{
+            file
+              .blob()
+              .then(res =>{
+                self.loadFile(res)
+                
+              })
+          });
+      })
     }
   }
 };
