@@ -1,6 +1,6 @@
 <template>
   <v-responsive>
-    <v-container fluid>
+    <v-container>
       <v-row>
         <v-col 
           :cols="numberOfColsIftabIsNotZero"
@@ -30,20 +30,21 @@
                 v-model="activeTab"
                 background-color="primary"
                 color="white"
+                grow
               >
                 <v-tab>
                   DATOS
                 </v-tab>
-                <v-tab>
+                <v-tab :disabled="dataTypesCards.length === 0">
                   CONFIGURACIÓN
                 </v-tab>
-                <v-tab>
+                <v-tab :disabled="dataTypesCards.length === 0">
                   ESTILO
                 </v-tab>
               </v-tabs>
               <v-tabs-items v-model="activeTab">
                 <v-tab-item class="pa-5">
-                  <VpressDataLoader :tabChange.sync="changedTab"/>
+                  <VpressDataLoader :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <v-card class="border-radius-none" flat>
@@ -75,7 +76,7 @@
             </v-card>
           </v-card>
         </v-col>
-        <v-col cols="7" v-if="activeTab !== 0">
+        <v-col cols="8" v-if="activeTab !== 0">
           <v-card
             class="padding-y-none graph-display"
             flat
@@ -121,13 +122,12 @@ export default {
   data() {
     return {
       activeTab: 0,
-      changedTab:0,
       darkTheme: false
     };
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      const numberOfCols = this.activeTab !== 0 ? '5' : '12';
+      const numberOfCols = this.activeTab !== 0 ? '4' : '12';
 
       return numberOfCols;
     },
@@ -137,19 +137,11 @@ export default {
     },
     dataTypesCards(){
       // eslint-disable-next-line
-      console.log(this.$store.getters['data/dataType'] === this.$store.getters['data/dataType'])
-      // this.changeTab(this.changedTab)
-      if (this.activeTab === 1)
         return this.$store.getters['data/dataType'];
-      return [];
-    }
+    },
 
   },
   methods: {
-    changeTab() {
-      // this.activeTab = tabIndex;
-      // console.log(this.activeTab)
-    }
   }
 
 };

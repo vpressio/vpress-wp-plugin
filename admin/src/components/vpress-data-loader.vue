@@ -41,7 +41,7 @@
             Limpiar
           </v-btn>
           <v-btn
-            :disabled="data.length > 0"
+            :disabled="data.length === 0"
             color="primary"
             class="float-right ml-1"
             @click="saveData()"
@@ -71,6 +71,7 @@
         </v-col>
         <v-col cols="9" v-show="data.length === 0 && uploadType === 1">
           <FilePond
+            v-model="loadedFile"
             ref="pond"
             accepted-file-types="
               text/html,
@@ -78,15 +79,7 @@
               application/vnd.ms-excel,
               application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
             "
-            v-on:init="loadFile"
           />
-          <v-btn
-            color="primary"
-            class="float-right"
-            @click="loadFile()"
-          >
-            Procesar
-          </v-btn>
         </v-col>
         <v-col cols="9" v-show="data.length !== 0">
           <VpressDataTable
@@ -101,7 +94,7 @@
         xs12
         class="mt-3"
       >
-        <v-col>
+        <v-col v-show="data.length === 0">
           <v-textarea
             id="excel_data"
             v-model="pastedData"
@@ -118,6 +111,37 @@
           >
             Procesar
           </v-btn>
+        </v-col>
+        <v-col v-show="data.length !== 0">
+          <v-row>
+            <v-spacer/>
+            <v-btn
+              outlined
+              rounded
+              @click="cleanDataAndHeaders"
+            >
+              Limpiar
+            </v-btn>
+            <v-btn
+              :disabled="data.length === 0"
+              color="primary"
+              class="float-right ml-1"
+              @click="saveData()"
+              rounded
+            >
+                Siguiente
+              <v-icon class="ml-3">
+                mdi-arrow-right
+              </v-icon>
+            </v-btn>
+          </v-row>
+          <v-row>
+            <VpressDataTable
+              :dataText="dataText"
+              :headers="headers"
+              :data="data"
+            />
+          </v-row>
         </v-col>
       </v-row>
       <v-row v-show="loading" xs12>
@@ -156,6 +180,7 @@ export default {
       headers: [],
       data: [],
       pastedData: '',
+      loadedFile: []
     };
   },
   computed: {
@@ -164,15 +189,24 @@ export default {
       return FReader.JSONtoCSV(this.data);
     }
   },
+  watch: {
+    loadedFile(oldFileArray, newFileArray) {
+      if (oldFileArray[0] !== newFileArray[0] && oldFileArray[0]) {
+        this.loadFile();
+      }
+    },
+    
+  },
   methods: {
     /** Reset to empty values */
     reset(uploadType) {
       this.uploadType = uploadType;
-      this.$refs.pond.removeFile();
     },
     cleanDataAndHeaders() {
       this.data = [];
       this.headers = [];
+      this.$refs.pond.removeFile();
+      this.$store.dispatch('data/set', this.data);
     },
     /**
      * Read spreadsheets file, parsed into JSON data
