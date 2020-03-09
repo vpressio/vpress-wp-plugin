@@ -1,102 +1,100 @@
 <template>
   <v-responsive>
-    <v-container>
-      <v-row>
-        <v-col 
-          :cols="numberOfColsIftabIsNotZero"
-          class="config"
+    <v-row>
+      <v-col 
+        :cols="numberOfColsIftabIsNotZero"
+        class="config"
+      >
+        <v-card 
+          class="graph-tools"
+          flat
+          color="#222A32"
+          width="40"
+          dark
         >
-          <v-card 
-            class="graph-tools"
-            flat
-            color="#222A32"
-            width="40"
-            dark
-          >
-            <v-card
-              class="pa-2"
-              height="40"
-              color="#181D25"
-              flat
-            >
-              <v-img style="height:100%;width:100%" src="../assets/images/logo.svg"></v-img>
-            </v-card>
-          </v-card>
-          <v-card class="graph-sidebar"  color="transparent">
-            <v-card flat class="padding-none border-radius-none widthAll">
-              <v-tabs
-                dark
-                class="config-tabs"
-                v-model="activeTab"
-                background-color="primary"
-                color="white"
-                grow
-              >
-                <v-tab>
-                  DATOS
-                </v-tab>
-                <v-tab :disabled="dataTypesCards.length === 0">
-                  CONFIGURACIÓN
-                </v-tab>
-                <v-tab :disabled="dataTypesCards.length === 0">
-                  ESTILO
-                </v-tab>
-              </v-tabs>
-              <v-tabs-items v-model="activeTab">
-                <v-tab-item class="pa-5">
-                  <VpressDataLoader :tabChange.sync="activeTab"/>
-                </v-tab-item>
-                <v-tab-item>
-                  <v-card class="border-radius-none" flat>
-                    <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                      <VpressVariableCardStartContainer :variableCards="dataTypesCards"/>
-                      <VpressVariableCardSlots/>
-                    </VpressExpansionPanel>
-                  </v-card>
-                </v-tab-item>
-                <v-tab-item>
-                  <v-card class="border-radius-none" flat dark>
-                    <VpressExpansionPanel panelTitle="TEMA">
-                      <VpressInputControl inputName="Tema">
-                        <v-switch
-                          dense
-                          inset
-                          v-model="darkTheme"
-                          :color="isDarkThemeActivated"
-                          class="config-switch"
-                        />
-                      </VpressInputControl>
-                    </VpressExpansionPanel>
-                    <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                      <VpressColorSelection />
-                    </VpressExpansionPanel>
-                  </v-card>
-                </v-tab-item>
-              </v-tabs-items>
-            </v-card>
-          </v-card>
-        </v-col>
-        <v-col cols="8" v-if="activeTab !== 0">
           <v-card
-            class="padding-y-none graph-display"
+            class="pa-2"
+            height="40"
+            color="#181D25"
             flat
-            color="transparent"
           >
-            <v-card class="flex-end" flat color="transparent">
-              <v-btn class="save-button" outlined color="primary">
-                Guardar
-              </v-btn>
-              <v-btn class="download-button" outlined color="primary">
-                Descargar
-              </v-btn>
-            </v-card>
-            <v-card class="graph">
-              <VpressStateSubscriber />
-            </v-card>
+            <v-img style="height:100%;width:100%" src="../assets/images/logo.svg"></v-img>
           </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
+        </v-card>
+        <v-card class="graph-sidebar"  color="transparent">
+          <v-card flat class="padding-none border-radius-none widthAll">
+            <v-tabs
+              dark
+              class="config-tabs"
+              v-model="activeTab"
+              background-color="primary"
+              color="white"
+              grow
+            >
+              <v-tab>
+                DATOS
+              </v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">
+                CONFIGURACIÓN
+              </v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">
+                ESTILO
+              </v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="activeTab">
+              <v-tab-item class="pa-5">
+                <VpressDataLoader :tabChange.sync="activeTab"/>
+              </v-tab-item>
+              <v-tab-item>
+                <v-card class="border-radius-none" flat>
+                  <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                    <VpressVariableCardStartContainer :variableCards="dataTypesCards"/>
+                    <VpressVariableCardSlots/>
+                  </VpressExpansionPanel>
+                </v-card>
+              </v-tab-item>
+              <v-tab-item>
+                <v-card class="border-radius-none" flat dark>
+                  <VpressExpansionPanel panelTitle="TEMA">
+                    <VpressInputControl inputName="Tema">
+                      <v-switch
+                        dense
+                        inset
+                        v-model="darkTheme"
+                        :color="isDarkThemeActivated"
+                        class="config-switch"
+                      />
+                    </VpressInputControl>
+                  </VpressExpansionPanel>
+                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                    <VpressColorSelection />
+                  </VpressExpansionPanel>
+                </v-card>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card>
+        </v-card>
+      </v-col>
+      <v-col cols="8" v-if="activeTab !== 0">
+        <v-card
+          class="padding-y-none graph-display"
+          flat
+          color="transparent"
+        >
+          <v-card class="flex-end" flat color="transparent">
+            <v-btn class="save-button" outlined color="primary">
+              Guardar
+            </v-btn>
+            <v-btn class="download-button" outlined color="primary">
+              Descargar
+            </v-btn>
+          </v-card>
+          <v-card class="graph">
+            <VpressStateSubscriber />
+          </v-card>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-responsive>
 </template>
 <script>
