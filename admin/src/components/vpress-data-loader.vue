@@ -155,12 +155,14 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
+import * as d3 from 'd3';
 import VpressDataTable from './vpress-data-table';
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
 import { storage } from '../plugins/firebase';
 import 'filepond/dist/filepond.min.css'; // Import styles
+const csv = require("../../public/adult.data.csv")
 
 export default {
   name: 'VpressDataLoader',
@@ -192,6 +194,18 @@ export default {
       .then(res =>{
         this.testDatasets = res.items;
       });
+    console.log(csv)
+    d3.csv(csv)
+      .then(res => console.log(res))
+    
+    //   d3.csv("../../2016.csv")
+    // .on("progress", function(evt) {
+    //     console.log("Amount loaded: " + evt.loaded)
+    // })
+    // .get(function(data) {
+    //   console.log(data)
+    //     console.timeEnd("totalTime:");
+    // });
   },
   computed: {
     /** If data-table's data should be displayed in CSV text */
