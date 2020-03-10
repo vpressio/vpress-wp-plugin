@@ -15,7 +15,7 @@
           <v-card
             ref="UPDATE_X_AXIS"
             id="UPDATE_X_AXIS"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -42,7 +42,7 @@
           <v-card
             ref="UPDATE_Y_AXIS"
             id="UPDATE_Y_AXIS"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -69,7 +69,7 @@
           <v-card
             ref="UPDATE_GROUP_BY"
             id="UPDATE_GROUP_BY"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -112,7 +112,7 @@ export default {
 
       this.$store.dispatch(`chartConfig/${cardSlotId }`, columnDataToTransferInObject);
       if(this.cardSlots[`${target.id}_CARD`]) {
-        target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
+        // target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
       }
       cardToAppendInSlot.setAttribute('id', newCardId);
       cardToAppendInSlot.draggable = false;
@@ -131,12 +131,12 @@ export default {
     },
     dragLeave(event) {
       const { target } = event;
-      if(
-        this.cardSlots[`${target.id}_CARD`] &&
-        this.cardSlots[`${target.id}_CARD`].style.display === 'none'
-      ) {
+      // if(
+      //   this.cardSlots[`${target.id}_CARD`] &&
+      //   this.cardSlots[`${target.id}_CARD`].style.display === 'none'
+      // ) {
         this.cardSlots[`${target.id}_CARD`].style.display = 'block';
-      }
+      // }
     },
     removeCard(_event, nodeToRemove, cardSlotId) {
       return () => {

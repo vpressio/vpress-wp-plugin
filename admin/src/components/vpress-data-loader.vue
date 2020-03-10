@@ -156,7 +156,7 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
 import VpressDataTable from './vpress-data-table';
 import VpressFileDrop from './vpress-file-drop'
 import vueFilePond from 'vue-filepond'; // Import FilePond
@@ -164,7 +164,7 @@ import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/d
 import { FReader } from '../plugins/fileReader';
 import { storage } from '../plugins/firebase';
 import 'filepond/dist/filepond.min.css'; // Import styles
-const csv = require("../../public/adult.data.csv")
+// const csv = require("../../public/adult.data.csv")
 
 export default {
   name: 'VpressDataLoader',
@@ -197,9 +197,9 @@ export default {
       .then(res =>{
         this.testDatasets = res.items;
       });
-    console.log(csv)
-    d3.csv(csv)
-      .then(res => console.log(res))
+    // console.log(csv)
+    // d3.csv(csv)
+    //   .then(res => console.log(res))
     
     //   d3.csv("../../2016.csv")
     // .on("progress", function(evt) {
