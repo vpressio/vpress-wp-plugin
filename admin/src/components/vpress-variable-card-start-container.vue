@@ -49,7 +49,7 @@ export default {
 </script>
 <style scoped>
 .variableCard-container {
-  max-height: 340px;
+  /* max-height: 340px; */
   overflow-y: scroll;
 }
 

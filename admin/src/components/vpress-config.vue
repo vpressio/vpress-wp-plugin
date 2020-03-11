@@ -1,115 +1,116 @@
 <template>
   <v-responsive>
-    <v-row class="ma-0">
-      <v-col 
-        :cols="numberOfColsIftabIsNotZero"
-        class="config pa-0"
+    <div style="display:flex">
+    <div>
+      <v-card 
+        class="border-radius-none"
+        flat
+        color="#222A32"
+        width="50"
+        style="height:100%"
+        dark
       >
-        <v-card 
-          class="graph-tools"
+        <v-card
+          class="pa-1 border-radius-none"
+          color="#181D25"
           flat
-          color="#222A32"
-          width="50"
-          dark
         >
-          <v-card
-            class="pa-1"
-            height="50"
-            color="#181D25"
-            flat
-          >
-            <v-img
-              style="height:100%;width:100%"
-              src="../assets/images/logo.svg"
-            />
-          </v-card>
+          <v-img
+            style="height:40px;width:40px"
+            src="../assets/images/logo.svg"
+          />
         </v-card>
-        <v-card class="graph-sidebar"  color="transparent">
-          <v-card flat class="padding-none border-radius-none widthAll">
-            <v-tabs
-              dark
-              class="config-tabs"
-              v-model="activeTab"
-              background-color="primary"
-              color="white"
-              :grow="numberOfColsIftabIsNotZero !== '12'"
-            >
-              <v-tab>
-                DATOS
-              </v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">
-                CONFIGURACIÓN
-              </v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">
-                ESTILO
-              </v-tab>
-            </v-tabs>
-            <v-tabs-items v-model="activeTab">
-              <v-tab-item class="pa-5">
-                <VpressDataLoader :tabChange.sync="activeTab"/>
-              </v-tab-item>
-              <v-tab-item>
-                <v-card class="border-radius-none" flat>
+      </v-card>
+    </div>
+    <div>
+      <v-row class="ma-0">
+        <v-col 
+          :cols="4"
+          class="pa-0"
+          style="display:flex"
+        >
+          <v-tabs
+            dark
+            class="config-tabs"
+            v-model="activeTab"
+            background-color="primary"
+            color="white"
+            grow
+          >
+            <v-tab>
+              DATOS
+            </v-tab>
+            <v-tab :disabled="dataTypesCards.length === 0">
+              CONFIGURACIÓN
+            </v-tab>
+            <v-tab :disabled="dataTypesCards.length === 0">
+              ESTILO
+            </v-tab>
+          </v-tabs>
+        </v-col>
+        <v-col cols="8" style="border:solid" class="pa-0">
+          <v-card class="flex-end" flat color="transparent">
+              <v-btn class="save-button" outlined color="primary">
+                Guardar
+              </v-btn>
+              <v-btn class="download-button" outlined color="primary">
+                Descargar
+              </v-btn>
+            </v-card>
+        </v-col>
+      </v-row>
+      <v-row class="ma-0">
+        <v-col cols="4" class="pa-0">
+            <v-card flat class="pa-0 border-radius-none">
+              <v-tabs-items v-model="activeTab">
+                <v-tab-item>
+                  <!-- <VpressDataLoader :tabChange.sync="activeTab"/> -->
+                </v-tab-item>
+                <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <v-row>
-                      <v-col>
+                    <v-row class="ma-0">
+                      <v-col cols="6">
                         <VpressVariableCardStartContainer
                         :variableCards="dataTypesCards"
                         />
                       </v-col>
-                      <v-col>
+                      <v-col cols="6">
                         <VpressVariableCardSlots/>
                       </v-col>
                     </v-row>
                   </VpressExpansionPanel>
-                </v-card>
-              </v-tab-item>
-              <v-tab-item>
-                <v-card class="border-radius-none" flat dark>
-                  <VpressExpansionPanel panelTitle="TEMA">
-                    <VpressInputControl inputName="Tema">
-                      <v-switch
-                        dense
-                        inset
-                        v-model="darkTheme"
-                        :color="isDarkThemeActivated"
-                        class="config-switch"
-                      />
-                    </VpressInputControl>
-                  </VpressExpansionPanel>
-                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                    <VpressColorSelection/>
-                  </VpressExpansionPanel>
-                </v-card>
-              </v-tab-item>
-            </v-tabs-items>
-          </v-card>
-        </v-card>
-      </v-col>
-      <v-col cols="7" v-if="activeTab !== 0" class="pa-0">
-        <v-card
-          class="padding-y-none graph-display"
-          flat
-          color="transparent"
-        >
-          <v-card class="flex-end" flat color="transparent">
-            <v-btn class="save-button" outlined color="primary">
-              Guardar
-            </v-btn>
-            <v-btn class="download-button" outlined color="primary">
-              Descargar
-            </v-btn>
-          </v-card>
+                </v-tab-item>
+                <v-tab-item>
+                    <VpressExpansionPanel panelTitle="TEMA">
+                      <VpressInputControl inputName="Tema">
+                        <v-switch
+                          dense
+                          inset
+                          v-model="darkTheme"
+                          :color="isDarkThemeActivated"
+                          class="config-switch"
+                        />
+                      </VpressInputControl>
+                    </VpressExpansionPanel>
+                    <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                      <VpressColorSelection/>
+                    </VpressExpansionPanel>
+                </v-tab-item>
+              </v-tabs-items>
+            </v-card>
+        </v-col>
+        <v-col cols="8" v-if="activeTab !== 0">
           <v-card flat class="graph">
             <VpressStateSubscriber />
           </v-card>
-        </v-card>
-      </v-col>
-    </v-row>
+        </v-col>
+      </v-row>
+    </div>
+    </div>
   </v-responsive>
 </template>
 <script>
-import VpressDataLoader from './vpress-data-loader.vue';
+// import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
 import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
@@ -120,7 +121,7 @@ import VpressColorSelection from './vpress-config-color-selection.vue';
 export default {
   name: 'VpressConfig',
   components: {
-    VpressDataLoader,
+    // VpressDataLoader,
     VpressVariableCardStartContainer,
     VpressVariableCardSlots,
     VpressExpansionPanel,
@@ -136,9 +137,10 @@ export default {
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      const numberOfCols = this.activeTab !== 0 ? '5' : '12';
+      return '5'
+      // const numberOfCols = this.activeTab !== 0 ? '5' : '12';
 
-      return numberOfCols;
+      // return numberOfCols;
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
@@ -164,15 +166,6 @@ export default {
   width: 100%;
 }
 
-.padding-y-none {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-.padding-none {
-  padding: 0 !important;
-}
-
 .flex-end {
   display: flex !important;
   justify-content: flex-end;
@@ -195,18 +188,11 @@ export default {
 .graph-tools {
   border-radius: 0px !important;
 }
-.config {
-  display: flex;
-  flex-wrap:wrap;
-}
 
 .border-radius-none {
   border-radius: 0px !important;
 }
 
-.graph-sidebar {
-  width: calc(100% - 50px);
-}
 .graph-display {
   width: inherit;
 }
@@ -251,7 +237,6 @@ export default {
 > .v-slide-group__content
 > .v-tab {
   font-size: 0.8rem;
-  width: fit-content;
   min-width: 50px;
 }
 
