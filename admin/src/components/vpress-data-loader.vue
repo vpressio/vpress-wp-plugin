@@ -68,7 +68,7 @@
           </v-btn>
         </v-col>
         <v-col cols="12" v-show="data.length === 0 && uploadType === 1">
-          <VpressFileDrop/>
+          <!-- <VpressFileDrop/> -->
           <FilePond
             v-model="loadedFile"
             ref="pond"
@@ -158,7 +158,7 @@
 /* eslint-disable no-restricted-syntax */
 // import * as d3 from 'd3';
 import VpressDataTable from './vpress-data-table';
-import VpressFileDrop from './vpress-file-drop'
+// import VpressFileDrop from './vpress-file-drop'
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
@@ -172,7 +172,7 @@ export default {
     // Create FilePond component
     FilePond: vueFilePond(FilePondPluginFileValidateType),
     VpressDataTable,
-    VpressFileDrop
+    // VpressFileDrop
   },
   props: ['tabChange'],
   data() {
