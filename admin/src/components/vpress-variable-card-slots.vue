@@ -110,9 +110,9 @@ export default {
       const originalCardId = columnDataToTransferInObject.id;
       const newCardId = `${originalCardId}_${cardSlotId}`;
 
-      this.$store.dispatch(`chartConfig/${cardSlotId }`, columnDataToTransferInObject);
+      this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
       if(this.cardSlots[`${target.id}_CARD`]) {
-        // target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
+        target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
       }
       cardToAppendInSlot.setAttribute('id', newCardId);
       cardToAppendInSlot.draggable = false;
@@ -131,12 +131,12 @@ export default {
     },
     dragLeave(event) {
       const { target } = event;
-      // if(
-      //   this.cardSlots[`${target.id}_CARD`] &&
-      //   this.cardSlots[`${target.id}_CARD`].style.display === 'none'
-      // ) {
+      if(
+        this.cardSlots[`${target.id}_CARD`] &&
+        this.cardSlots[`${target.id}_CARD`].style.display === 'none'
+      ) {
         this.cardSlots[`${target.id}_CARD`].style.display = 'block';
-      // }
+      }
     },
     removeCard(_event, nodeToRemove, cardSlotId) {
       return () => {

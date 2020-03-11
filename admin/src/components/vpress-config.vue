@@ -5,7 +5,7 @@
         class="border-radius-none"
         flat
         color="#222A32"
-        width="50"
+        width="45"
         style="height:100vh"
         dark
       >
@@ -15,14 +15,14 @@
           flat
         >
           <v-img
-            style="height:40px;width:40px"
+            style="height:35px;width:45px"
             src="../assets/images/logo.svg"
           />
         </v-card>
       </v-card>
-      <div style="width:calc(100% - 50px);height:100vh">
+      <div style="width:calc(100% - 45px);height:100vh">
         <v-row class="ma-0">
-          <v-col class="pa-0" cols="4">
+          <v-col class="pa-0" cols="2">
             <v-tabs
               dark
               class="config-tabs"
@@ -35,39 +35,44 @@
                 DATOS
               </v-tab>
               <v-tab :disabled="dataTypesCards.length === 0">
-                CONFIGURACIÓN
+                CONFIGURA
               </v-tab>
               <v-tab :disabled="dataTypesCards.length === 0">
                 ESTILO
               </v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="py-0 px-5 flex-end__container" cols="8">
+          <v-col class="py-0 px-5 flex-end__container" cols="10">
             <v-btn class="save-button" outlined color="primary">
-                Guardar
-              </v-btn>
-              <v-btn class="share-button " outlined color="primary">
-                Compartir
-              </v-btn>
-              <v-btn class="download-button" outlined color="primary">
-                Descargar
-              </v-btn>
+              Guardar
+            </v-btn>
+            <v-btn class="share-button " outlined color="primary">
+              Compartir
+            </v-btn>
+            <v-btn class="download-button" outlined color="primary">
+              Descargar
+            </v-btn>
           </v-col>
-          <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero" style="height: calc(100vh - 50px);">
+          <v-col
+            class="pa-0"
+            :cols="numberOfColsIftabIsNotZero"
+            style="height: calc(100vh - 45px);"
+          >
+            <v-card style="height:100%">
             <v-tabs-items v-model="activeTab">
               <v-tab-item>
-                <VpressDataLoader :tabChange.sync="activeTab" style="height: calc(100vh - 50px);overflow-y: scroll;"/>
+                <VpressDataLoader
+                  :tabChange.sync="activeTab"
+                  style="height: calc(100vh - 45px);overflow-y: scroll;"
+                />
               </v-tab-item>
               <v-tab-item>
                 <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                   <v-row class="ma-0">
-                    <v-col cols="6" style="height: calc(100vh - 64px);overflow-y: scroll;">
+                    <v-col style="height: calc(100vh - 90px);overflow-y: scroll;">
                       <VpressVariableCardStartContainer
                       :variableCards="dataTypesCards"
                       />
-                    </v-col>
-                    <v-col cols="6">
-                      <VpressVariableCardSlots/>
                     </v-col>
                   </v-row>
                 </VpressExpansionPanel>
@@ -89,9 +94,15 @@
                 </VpressExpansionPanel>
               </v-tab-item>
             </v-tabs-items>
+            </v-card>
           </v-col>
-          <v-col v-if="numberOfColsIftabIsNotZero === '4'" class="px-5 py-0" cols="8">
-            <v-card class="graph">
+          <v-col cols="2" class="py-0 px-3">
+            <v-card style="height:100%">
+              <VpressVariableCardSlots/>
+            </v-card>
+          </v-col>
+          <v-col v-if="numberOfColsIftabIsNotZero === '2'" class="py-0 pl-0 pr-3" cols="8">
+            <v-card>
               <VpressStateSubscriber />
             </v-card>
           </v-col>
@@ -129,7 +140,7 @@ export default {
   computed: {
     numberOfColsIftabIsNotZero() {
       // return '5'
-      const numberOfCols = this.activeTab !== 0 ? '4' : '12';
+      const numberOfCols = this.activeTab !== 0 ? '2' : '12';
 
       return numberOfCols;
     },
@@ -178,13 +189,9 @@ export default {
   border-radius: 0px !important;
 }
 
-.graph {
-  margin: 12px 0 0 0;
-}
-
 * >>> .config-tabs
 > .v-tabs-bar {
-  height: 50px;
+  height: 46px;
 }
 * >>> .config-tabs
 > .v-slide-group
@@ -217,8 +224,9 @@ export default {
 > .v-slide-group__wrapper
 > .v-slide-group__content
 > .v-tab {
+  min-width:40px;
   font-size: 0.8rem;
-  min-width: 50px;
+  padding:0;
 }
 
 * >>> .config-text-field

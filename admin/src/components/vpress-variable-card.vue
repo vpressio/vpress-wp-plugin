@@ -50,13 +50,13 @@
               small
               icon
               dark
-              style="background-color: #382E82"
+              style="background-color: transparent"
               v-on="on"
             >
               <v-icon
                 dense
               >
-                mdi-dots-horizontal
+                mdi-dots-vertical
               </v-icon>
             </v-btn>
           </template>
@@ -79,7 +79,7 @@
             </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-3 pl-3" :class="{ 'pr-5':showOperationButton }">
+      <div class="dataTypeTitle py-2 pl-3" :class="{ 'pr-5':showOperationButton }">
         {{ variableName }}
       </div>
     </div>
@@ -103,7 +103,7 @@ export default {
       variableCard:null,
       variableCardClone: null,
       draggable: true,
-      showOperationButton: null,
+      showOperationButton: false,
       selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
         { type: 'sum', name: 'Suma' },
@@ -114,9 +114,6 @@ export default {
       ]
     };
   },
-  created() {
-    this.showOperationButton = this.columnData.variableNameDataType === 'linear';
-  },
   computed: {
     variableMutation() {
       return this.selectedFunc.name;
@@ -126,13 +123,12 @@ export default {
     dragStart(e) {
       const { dataTransfer } = e;
       const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
-      console.log(columnDataToTransferInObject)
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
       this.showOperationButton = false;
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      this.showOperationButton = this.columnData.variableNameDataType === 'linear';
+      this.showOperationButton = false;
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;

@@ -68,7 +68,6 @@
           </v-btn>
         </v-col>
         <v-col cols="12" v-show="data.length === 0 && uploadType === 1">
-          <!-- <VpressFileDrop/> -->
           <FilePond
             v-model="loadedFile"
             ref="pond"
@@ -156,15 +155,12 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
-// import * as d3 from 'd3';
 import VpressDataTable from './vpress-data-table';
-// import VpressFileDrop from './vpress-file-drop'
 import vueFilePond from 'vue-filepond'; // Import FilePond
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
 import { storage } from '../plugins/firebase';
 import 'filepond/dist/filepond.min.css'; // Import styles
-// const csv = require("../../public/adult.data.csv")
 
 export default {
   name: 'VpressDataLoader',
@@ -172,7 +168,6 @@ export default {
     // Create FilePond component
     FilePond: vueFilePond(FilePondPluginFileValidateType),
     VpressDataTable,
-    // VpressFileDrop
   },
   props: ['tabChange'],
   data() {
@@ -185,30 +180,12 @@ export default {
       data: [],
       pastedData: '',
       loadedFile: [],
-      testDatasets: []
-
+      testDatasets: [],
+      dataSetDir: '/testDatasets'
     };
   },
   created() {
-    storage
-      .ref()
-      .child('/testDatasets')
-      .listAll()
-      .then(res =>{
-        this.testDatasets = res.items;
-      });
-    // console.log(csv)
-    // d3.csv(csv)
-    //   .then(res => console.log(res))
-    
-    //   d3.csv("../../2016.csv")
-    // .on("progress", function(evt) {
-    //     console.log("Amount loaded: " + evt.loaded)
-    // })
-    // .get(function(data) {
-    //   console.log(data)
-    //     console.timeEnd("totalTime:");
-    // });
+    this.getDatasets();
   },
   computed: {
     /** If data-table's data should be displayed in CSV text */
@@ -221,10 +198,26 @@ export default {
       if (oldFileArray[0] !== newFileArray[0] && oldFileArray[0]) {
         this.loadFile();
       }
-    },
-    
+    }
   },
   methods: {
+    getDatasets() {
+      this.dataSetDir = this.$route.query.datasets
+        ? `/${this.$route.query.datasets}`
+        : '/testDatasets';
+
+      storage
+        .ref()
+        .child(this.dataSetDir)
+        .listAll()
+        .then(res => {
+          if(res.items.length === 0) console.log(`Sin coincidencias para ${this.dataSetDir}`);
+          this.testDatasets = res.items;
+        })
+        .catch( err => {
+          console.error(err)
+        })
+    },
     /** Reset to empty values */
     reset(uploadType) {
       this.uploadType = uploadType;
@@ -341,7 +334,7 @@ export default {
       self.dataSetName = fileName;
       storage
       .ref()
-      .child(`/testDatasets/${fileName}`)
+      .child(`${this.dataSetDir}/${fileName}`)
       .getDownloadURL()
       .then(DownloadURL => {
         fetch(DownloadURL)
