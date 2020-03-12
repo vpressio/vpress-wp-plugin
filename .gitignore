@@ -8,6 +8,7 @@ yarn-error.log
 /admin/tests/e2e/screenshots/
 
 # local env files
+/admin/.env
 .env.local
 .env.*.local
 

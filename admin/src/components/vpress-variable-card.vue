@@ -16,7 +16,7 @@
       <v-btn x-small icon>
         <v-icon
           dense
-          style="margin-bottom:auto"
+          class="removeIcon"
           @click.stop="removeCard"
         >
           mdi-window-close
@@ -50,13 +50,13 @@
               small
               icon
               dark
-              style="background-color: #382E82"
+              class="operationButton"
               v-on="on"
             >
               <v-icon
                 dense
               >
-                mdi-dots-horizontal
+                mdi-dots-vertical
               </v-icon>
             </v-btn>
           </template>
@@ -79,7 +79,7 @@
             </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-3 pl-3" :class="{ 'pr-5':showOperationButton }">
+      <div class="dataTypeTitle py-2 pl-3" :class="{ 'pr-5':showOperationButton }">
         {{ variableName }}
       </div>
     </div>
@@ -103,8 +103,8 @@ export default {
       variableCard:null,
       variableCardClone: null,
       draggable: true,
-      showOperationButton: null,
-      selectedFunc: '',
+      showOperationButton: false,
+      selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
@@ -113,9 +113,6 @@ export default {
         { type: '', name: 'Sin mutar' }
       ]
     };
-  },
-  created() {
-    this.showOperationButton = this.columnData.variableNameDataType === 'linear';
   },
   computed: {
     variableMutation() {
@@ -131,7 +128,7 @@ export default {
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      this.showOperationButton = this.columnData.variableNameDataType === 'linear';
+      this.showOperationButton = false;
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;
@@ -195,6 +192,14 @@ export default {
 .selected-func {
   background-color:#7972AC;
   color:#FFF;
+}
+
+.removeIcon {
+  margin-bottom: auto;
+}
+
+.operationButton {
+  background-color: transparent;
 }
 
 </style>

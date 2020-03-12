@@ -1,7 +1,7 @@
 <template>
   <v-card flat class="py-5 px-3">
     <v-row class="ma-0">
-      <v-col cols="6" sm="12" md="6" class="pa-0">
+      <v-col cols="12" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"
@@ -15,7 +15,7 @@
           <v-card
             ref="UPDATE_X_AXIS"
             id="UPDATE_X_AXIS"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -28,7 +28,7 @@
           </v-card>
         </v-card>
       </v-col>
-      <v-col cols="6" sm="12" md="6" class="pa-0">
+      <v-col cols="12" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"
@@ -42,7 +42,7 @@
           <v-card
             ref="UPDATE_Y_AXIS"
             id="UPDATE_Y_AXIS"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -55,9 +55,7 @@
           </v-card>
         </v-card>
       </v-col>
-    </v-row>
-    <v-row class="ma-0">
-      <v-col cols="6" sm="12" md="6" class="pa-0">
+      <v-col class="pa-0">
         <v-card flat class="ma-1">
           <v-icon 
               color="secondary"
@@ -71,7 +69,7 @@
           <v-card
             ref="UPDATE_GROUP_BY"
             id="UPDATE_GROUP_BY"
-            height="75"
+            min-height="75"
             outlined
             @dragenter="dragEnter"
             @dragover.prevent
@@ -112,7 +110,7 @@ export default {
       const originalCardId = columnDataToTransferInObject.id;
       const newCardId = `${originalCardId}_${cardSlotId}`;
 
-      this.$store.dispatch(`chartConfig/${cardSlotId }`, columnDataToTransferInObject);
+      this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
       if(this.cardSlots[`${target.id}_CARD`]) {
         target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
       }
