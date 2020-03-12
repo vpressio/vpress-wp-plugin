@@ -1,12 +1,11 @@
 <template>
-  <v-responsive style="flex-wrap:wrap;">
+  <v-responsive class="config-container">
     <v-row class="ma-0">
       <v-card 
-        class="border-radius-none"
+        class="border-radius-none sideToolbar"
         flat
         color="#222A32"
         width="45"
-        style="height:100vh"
         dark
       >
         <v-card
@@ -15,12 +14,12 @@
           flat
         >
           <v-img
-            style="height:35px;width:45px"
+            class="vpress-icon"
             src="../assets/images/logo.svg"
           />
         </v-card>
       </v-card>
-      <div style="width:calc(100% - 45px);height:100vh">
+      <div class="config-wrapper">
         <v-row class="ma-0">
           <v-col class="pa-0" cols="2">
             <v-tabs
@@ -54,22 +53,20 @@
             </v-btn>
           </v-col>
           <v-col
-            class="pa-0"
+            class="pa-0 config-down-section"
             :cols="numberOfColsIftabIsNotZero"
-            style="height: calc(100vh - 45px);"
           >
-            <v-card style="height:100%">
+            <v-card class="fill-height">
             <v-tabs-items v-model="activeTab">
               <v-tab-item>
                 <VpressDataLoader
                   :tabChange.sync="activeTab"
-                  style="height: calc(100vh - 45px);overflow-y: scroll;"
                 />
               </v-tab-item>
               <v-tab-item>
                 <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                   <v-row class="ma-0">
-                    <v-col style="height: calc(100vh - 90px);overflow-y: scroll;">
+                    <v-col class="variablecards__overflow">
                       <VpressVariableCardStartContainer
                       :variableCards="dataTypesCards"
                       />
@@ -97,7 +94,7 @@
             </v-card>
           </v-col>
           <v-col cols="2" class="py-0 px-3">
-            <v-card style="height:100%">
+            <v-card class="fill-height">
               <VpressVariableCardSlots/>
             </v-card>
           </v-col>
@@ -160,6 +157,36 @@ export default {
 };
 </script>
 <style  scoped>
+
+.config-container{
+  flex-wrap:wrap;
+}
+
+.sideToolbar {
+  height:100vh;
+}
+
+.vpress-icon {
+  height:35px;
+  width:45px;
+}
+
+.config-wrapper {
+  width:calc(100% - 45px);
+  height:100vh;
+}
+
+.config-down-section {
+  height: calc(100vh - 45px);
+}
+.fill-height {
+  height:100%
+}
+
+.variableCards__overflow {
+  height: calc(100vh - 90px);
+  overflow-y: scroll;
+}
 
 .flex-end__container {
   display: flex !important;

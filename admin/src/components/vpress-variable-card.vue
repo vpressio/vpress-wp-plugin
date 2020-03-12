@@ -16,7 +16,7 @@
       <v-btn x-small icon>
         <v-icon
           dense
-          style="margin-bottom:auto"
+          class="removeIcon"
           @click.stop="removeCard"
         >
           mdi-window-close
@@ -50,7 +50,7 @@
               small
               icon
               dark
-              style="background-color: transparent"
+              class="operationButton"
               v-on="on"
             >
               <v-icon
@@ -192,6 +192,14 @@ export default {
 .selected-func {
   background-color:#7972AC;
   color:#FFF;
+}
+
+.removeIcon {
+  margin-bottom: auto;
+}
+
+.operationButton {
+  background-color: transparent;
 }
 
 </style>

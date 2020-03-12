@@ -1,28 +1,5 @@
 <template>
   <v-container>
-    <!-- <div
-      style="display: flex"
-    >
-      <h3 class="table-title">
-        Datos
-      </h3>
-      <v-text-field
-        v-model="search"
-        prepend-icon="mdi-magnify"
-        label="Search"
-        hide-details
-        full-width
-        style="width:50%; display: inline-flex"
-        class="mb-5"
-      ></v-text-field>
-    </div> -->
-    <v-textarea
-      v-if="data.length > 0 && headers.length > 0 && !showTable"
-      v-model="dataText"
-      name="parsedData"
-      outlined
-      style="width: 100%; height: 370px"
-    ></v-textarea>
     <v-data-table
       v-show="data.length > 0 && headers.length > 0"
       :headers="headers"
@@ -76,7 +53,6 @@ export default {
   data() {
     return {
       showTable: true,
-      search: '',
       snack: false,
       snackColor: '',
       snackText: ''

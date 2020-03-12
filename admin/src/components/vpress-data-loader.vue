@@ -45,7 +45,7 @@
           </v-btn>
         </v-col>
         </v-row>
-        <v-col style="display:flex;" cols="12">
+        <v-col class="dataTableContainer" cols="12">
           <v-spacer/>
           <v-btn
             outlined
@@ -156,11 +156,11 @@
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
 import VpressDataTable from './vpress-data-table';
-import vueFilePond from 'vue-filepond'; // Import FilePond
+import vueFilePond from 'vue-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
 import { storage } from '../plugins/firebase';
-import 'filepond/dist/filepond.min.css'; // Import styles
+import 'filepond/dist/filepond.min.css';
 
 export default {
   name: 'VpressDataLoader',
@@ -361,6 +361,10 @@ export default {
   border-bottom: 3px solid transparent;
   padding: 0 !important;
   margin: 0 20px 0 0;
+}
+
+.dataTableContainer{
+  display:flex;
 }
 
 @media (min-width: 1904px) {
