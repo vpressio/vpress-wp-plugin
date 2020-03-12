@@ -5,7 +5,6 @@
       :headers="headers"
       :items="data"
       :item-key="headers[0] ? headers[0].value : ''"
-      :search="search"
       class="elevation-1"
     >
       <template v-slot:item="props">

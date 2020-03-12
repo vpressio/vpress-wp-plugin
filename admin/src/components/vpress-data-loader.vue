@@ -4,19 +4,19 @@
         <v-toolbar full-width flat>
           <v-btn
             color="primary"
-            :class="{selectedUploadType: uploadType === 1}"
+            :class="{selectedUploadType: uploadType === 'upload'}"
             class="uploadTypeButton"
             text
-            @click="reset(1)"
+            @click="changeUploadType('upload')"
           >
             Sube tus datos
           </v-btn>
           <v-btn
             color="primary"
-            :class="{selectedUploadType: uploadType === 2}"
+            :class="{selectedUploadType: uploadType === 'paste'}"
             class="uploadTypeButton"
             text
-            @click="reset(2)"
+            @click="changeUploadType('paste')"
           >
             Pega tus datos
           </v-btn>
@@ -24,7 +24,7 @@
         </v-toolbar>
       </v-row>
       <v-row
-        v-show="uploadType === 1"
+        v-show="uploadType === 'upload'"
         xs12
         class="mt-3"
       >
@@ -67,7 +67,7 @@
             </v-icon>
           </v-btn>
         </v-col>
-        <v-col cols="12" v-show="data.length === 0 && uploadType === 1">
+        <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
           <FilePond
             v-model="loadedFile"
             ref="pond"
@@ -88,7 +88,7 @@
         </v-col>
       </v-row>
       <v-row
-        v-show="uploadType === 2"
+        v-show="uploadType === 'paste'"
         xs12
         class="mt-3"
       >
@@ -175,7 +175,7 @@ export default {
       loading: false,
       dataSetName: '',
       showTable: true,
-      uploadType: 1,
+      uploadType: 'upload',
       headers: [],
       data: [],
       pastedData: '',
@@ -219,7 +219,7 @@ export default {
         })
     },
     /** Reset to empty values */
-    reset(uploadType) {
+    changeUploadType(uploadType) {
       this.uploadType = uploadType;
     },
     cleanDataAndHeaders() {
