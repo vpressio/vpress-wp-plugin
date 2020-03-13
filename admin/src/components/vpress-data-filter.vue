@@ -77,10 +77,6 @@ import _ from 'lodash'
 
 export default {
   props: {
-    open: {
-      type: Boolean,
-      default: false
-    },
     column: {
       type: String,
       default: '',
