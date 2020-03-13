@@ -10,8 +10,6 @@
       {{ label }}
     </span>
     <v-card
-      :ref="slotId"
-      :id="slotId"
       min-height="50"
       outlined
       @dragenter="dragEnter"
@@ -28,10 +26,12 @@
         :key="`variable_${variableIndex}`"
         :variableName="variable.variableName"
         :variableNameDataType="variable.variableNameDataType"
-        showOperationButton
+        :showOperationButton="showOperationButton"
         :variablesInSlot.sync="variablesInSlot"
         :columnData="variable"
         @drop.stop.self="drop"
+        :inSlot="true"
+        :slotId="slotId"
       />
       <p class="slot_placeholder my-2" v-if="variablesInSlot.length < maxStack" @drop.stop.self="drop">
         Números o categorías aquí.
@@ -61,7 +61,8 @@ export default {
   data() {
     return {
       variablesInSlot: [],
-      openFilterDialog: false
+      openFilterDialog: false,
+      showOperationButton: true
     }
   },
   methods: {
@@ -83,6 +84,7 @@ export default {
       this.variablesInSlot.push(variableData);
     },
     filterData() {
+      this.showOperationButton = false;
       this.openFilterDialog = true;
     }
   }

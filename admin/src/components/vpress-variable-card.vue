@@ -79,6 +79,7 @@ export default {
   name: 'VpressVariableCard',
   props: {
     id: String,
+    slotId: String,
     columnData: Object,
     inSlot: Boolean,
     variableName: String,
@@ -102,6 +103,11 @@ export default {
   computed: {
     variableMutation() {
       return this.selectedFunc.name;
+    }
+  },
+  created() {
+    if(this.inSlot) {
+      this.$store.dispatch(`chartConfig/${this.slotId}`, this.columnData);
     }
   },
   methods: {

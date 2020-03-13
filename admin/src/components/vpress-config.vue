@@ -21,7 +21,7 @@
       </v-card>
       <div class="config-wrapper">
         <v-row class="ma-0">
-          <v-col class="pa-0" cols="2">
+          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
             <v-tabs
               dark
               class="config-tabs"
@@ -41,16 +41,18 @@
               </v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="py-0 px-5 flex-end__container" cols="10">
-            <v-btn class="save-button" outlined color="primary">
-              Guardar
-            </v-btn>
-            <v-btn class="share-button " outlined color="primary">
-              Compartir
-            </v-btn>
-            <v-btn class="download-button" outlined color="primary">
-              Descargar
-            </v-btn>
+          <v-col class="py-0 px-5 flex-end__container" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
+            <div  v-show="false">
+              <v-btn class="save-button" outlined color="primary">
+                Guardar
+              </v-btn>
+              <v-btn class="share-button " outlined color="primary">
+                Compartir
+              </v-btn>
+              <v-btn class="download-button" outlined color="primary">
+                Descargar
+              </v-btn>
+            </div>
           </v-col>
           <v-col
             class="pa-0 config-down-section"
@@ -98,7 +100,7 @@
               <VpressVariableSlotsContainer/>
             </v-card>
           </v-col>
-          <v-col v-if="numberOfColsIftabIsNotZero === '2'" class="py-0 pl-0 pr-3" cols="8">
+          <v-col v-if="numberOfColsIftabIsNotZero !== '12'" class="py-0 pl-0 pr-3" :cols="this.$vuetify.breakpoint.lgAndDown ? 7 : 8">
             <v-card>
               <VpressStateSubscriber />
             </v-card>
@@ -138,8 +140,8 @@ export default {
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      // return '5'
-      const numberOfCols = this.activeTab !== 0 ? '2' : '12';
+      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2
+      const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
 
       return numberOfCols;
     },
@@ -148,7 +150,6 @@ export default {
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
-      // eslint-disable-next-line
         return this.$store.getters['data/dataType'];
     },
 
@@ -180,6 +181,7 @@ export default {
 
 .config-down-section {
   height: calc(100vh - 45px);
+  overflow-y: scroll;
 }
 .fill-height {
   height:100%

@@ -35,26 +35,26 @@ export default {
           slotId:"UPDATE_X_AXIS",
           icon:"mdi-view-sequential",
           label:"Columnas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
           slotId:"UPDATE_Y_AXIS",
           icon:"mdi-view-parallel",
           label:"Filas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
           slotId:"UPDATE_GROUP_BY",
-          icon:" mdi-palette-outline",
+          icon:"mdi-palette-outline",
           label:"Colores",
           maxStack: 1,
           filter: false
         },
         {
           slotId:"Filter",
-          icon:"",
+          icon:"mdi-tune",
           label: "Filtrar",
           maxStack: 1,
           filter: true
