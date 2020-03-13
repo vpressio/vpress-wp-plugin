@@ -2,6 +2,14 @@
   <v-card flat class="py-5 px-3">
     <v-row class="ma-0">
       <v-col cols="12" class="pa-0">
+        <VpressVariableCardSlot
+          slotId="UPDATE_DATA"
+          icon="mdi-google-controller"
+          label="Test"
+          :dataType="['linear','ordinal']"
+        />
+      </v-col>
+      <v-col cols="12" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"
@@ -86,8 +94,13 @@
   </v-card>
 </template>
 <script>
+import VpressVariableCardSlot from './variable-card-slot';
+
 export default {
   name: 'VpressVariableCardSlots',
+  components: {
+    VpressVariableCardSlot
+  },
   props: ['id', 'slotLabel'],
   data() {
     return {
@@ -95,32 +108,13 @@ export default {
         UPDATE_X_AXIS_CARD: null,
         UPDATE_Y_AXIS_CARD: null,
         UPDATE_GROUP_BY_CARD: null,
-      }
+      },
     };
   },
   methods: {
     drop(event) {
-      
-      const { dataTransfer, target } = event;
-      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      const originalCard = document.getElementById(columnDataToTransferInObject.id);
-      const cardToAppendInSlot = originalCard.cloneNode(true);
-      const cardSlotId = target.id;
-      const originalCardId = columnDataToTransferInObject.id;
-      const newCardId = `${originalCardId}_${cardSlotId}`;
-
-      this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
-      if(this.cardSlots[`${target.id}_CARD`]) {
-        target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
-      }
-      cardToAppendInSlot.setAttribute('id', newCardId);
-      cardToAppendInSlot.draggable = false;
-      cardToAppendInSlot.children[0].style.zIndex = 1;
-      cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( event, cardToAppendInSlot, cardSlotId);
-      cardToAppendInSlot.style.display = 'block';
-      target.appendChild(cardToAppendInSlot);
-      this.cardSlots[`${cardSlotId}_CARD`] = cardToAppendInSlot;
+      const { dataTransfer } = event;
+      console.log(dataTransfer.getData('columnDataToTransferInString'));
     },
     dragEnter(event) {
       const { target } = event;
@@ -144,7 +138,30 @@ export default {
         this.cardSlots[`${cardSlotId}_CARD`] = null;
         nodeToRemove.remove();
       }
-    }
+    },
+    // drop(event) {
+      
+    //   const { dataTransfer, target } = event;
+    //   const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
+    //   const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+    //   const originalCard = document.getElementById(columnDataToTransferInObject.id);
+    //   const cardToAppendInSlot = originalCard.cloneNode(true);
+    //   const cardSlotId = target.id;
+    //   const originalCardId = columnDataToTransferInObject.id;
+    //   const newCardId = `${originalCardId}_${cardSlotId}`;
+
+    //   this.$store.dispatch(`chartConfig/${cardSlotId}`, columnDataToTransferInObject);
+    //   if(this.cardSlots[`${target.id}_CARD`]) {
+    //     target.removeChild(this.cardSlots[`${cardSlotId }_CARD`])
+    //   }
+    //   cardToAppendInSlot.setAttribute('id', newCardId);
+    //   cardToAppendInSlot.draggable = false;
+    //   cardToAppendInSlot.children[0].style.zIndex = 1;
+    //   cardToAppendInSlot.children[0].children[0].onclick = this.removeCard( event, cardToAppendInSlot, cardSlotId);
+    //   cardToAppendInSlot.style.display = 'block';
+    //   target.appendChild(cardToAppendInSlot);
+    //   this.cardSlots[`${cardSlotId}_CARD`] = cardToAppendInSlot;
+    // },
   }
 };
 </script>

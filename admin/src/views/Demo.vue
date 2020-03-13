@@ -5,7 +5,7 @@
 import VpressConfig from '../components/vpress-config.vue';
 
 export default {
-  name: 'Home',
+  name: 'Demo',
   components: {
     VpressConfig,
   },
