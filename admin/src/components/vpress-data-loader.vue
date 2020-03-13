@@ -1,38 +1,61 @@
 <template>
-  <v-container>
-    <v-layout row justify-center align-center>
-      <v-flex xs12>
+  <v-container fluid>
+      <v-row>
         <v-toolbar full-width flat>
           <v-btn
             color="primary"
-            :class="{selectedUploadType: uploadType === 1}"
+            :class="{selectedUploadType: uploadType === 'upload'}"
             class="uploadTypeButton"
             text
-            @click="reset(1)"
+            @click="changeUploadType('upload')"
           >
-            Sube un archivo
+            Sube tus datos
           </v-btn>
           <v-btn
             color="primary"
-            :class="{selectedUploadType: uploadType === 2}"
+            :class="{selectedUploadType: uploadType === 'paste'}"
             class="uploadTypeButton"
             text
-            @click="reset(2)"
+            @click="changeUploadType('paste')"
           >
             Pega tus datos
           </v-btn>
+          <v-spacer/>
+        </v-toolbar>
+      </v-row>
+      <v-row
+        v-show="uploadType === 'upload'"
+        xs12
+        class="mt-3"
+      >
+      <v-row class="ma-0">
+        <v-col cols="12">
+          <h4>
+            DATOS DE PRUEBA
+          </h4>
+        </v-col>
+        <v-col cols="3" class="mx-4" v-for="(dataSet, dataSetIndex) in testDatasets" :key="dataSetIndex">
           <v-btn
+            
             color="primary"
-            :class="{selectedUploadType: uploadType === 3}"
-            class="uploadTypeButton"
-            text
-            @click="reset(3)"
+            @click="selectTestDataset(dataSet.name)"
+            :loading="dataSetName === dataSet.name  && loading"
           >
-            Datos de prueba
+            {{ dataSet.name }}
           </v-btn>
+        </v-col>
+        </v-row>
+        <v-col class="dataTableContainer" cols="12">
           <v-spacer/>
           <v-btn
-            v-show="data.length > 0"
+            outlined
+            rounded
+            @click="cleanDataAndHeaders"
+          >
+            Limpiar
+          </v-btn>
+          <v-btn
+            :disabled="data.length === 0"
             color="primary"
             class="float-right ml-1"
             @click="saveData()"
@@ -43,188 +66,126 @@
               mdi-arrow-right
             </v-icon>
           </v-btn>
-        </v-toolbar>
-      </v-flex>
-      <v-flex
-        v-show="data.length === 0 && uploadType === 1"
+        </v-col>
+        <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
+          <FilePond
+            v-model="loadedFile"
+            ref="pond"
+            accepted-file-types="
+              text/dbf
+              text/csv,
+              application/vnd.ms-excel,
+              application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            "
+          />
+        </v-col>
+        <v-col cols="12" v-show="data.length !== 0">
+          <VpressDataTable
+            :dataText="dataText"
+            :headers="headers"
+            :data="data"
+          />
+        </v-col>
+      </v-row>
+      <v-row
+        v-show="uploadType === 'paste'"
         xs12
         class="mt-3"
       >
-        <FilePond
-          ref="pond"
-          accepted-file-types="
-            text/html,
-            text/csv,
-            application/vnd.ms-excel,
-            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-          "
-        />
-        <v-btn
-          color="primary"
-          class="float-right"
-          @click="loadFile()"
-        >
-          Procesar
-        </v-btn>
-      </v-flex>
-      <v-flex
-        v-show="data.length === 0 && uploadType === 2"
-        xs12
-        class="mt-3"
-      >
-        <v-textarea
-          id="excel_data"
-          v-model="pastedData"
-          name="excel_data"
-          outlined
-          placeholder="Pega tus datos desde Excel"
-          class="pl-4 pt-4"
-        ></v-textarea>
-        <v-btn
-          :disabled="!pastedData"
-          color="primary"
-          class="float-right"
-          @click="parsePastedData()"
-        >
-          Procesar
-        </v-btn>
-      </v-flex>
-      <v-flex
-        v-show="data.length === 0 && uploadType === 3"
-        style="width:100%"
-      >
-        <v-row class="ma-0">
-          <v-col cols="3" class="pa-2">
-            <v-card
-              hover
-              color="primary"
-              dark
-              class="pa-1"
-              @click="selectTestDataset"
+        <v-col v-show="data.length === 0">
+          <v-textarea
+            id="excel_data"
+            v-model="pastedData"
+            name="excel_data"
+            outlined
+            placeholder="Pega tus datos desde Excel"
+            class="pl-4 pt-4"
+          ></v-textarea>
+          <v-btn
+            :disabled="!pastedData"
+            color="primary"
+            class="float-right"
+            @click="parsePastedData()"
+          >
+            Procesar
+          </v-btn>
+        </v-col>
+        <v-col v-show="data.length !== 0">
+          <v-row>
+            <v-spacer/>
+            <v-btn
+              outlined
+              rounded
+              @click="cleanDataAndHeaders"
             >
-              <v-card-title>
-                Créditos
-              </v-card-title>
-              <v-card-text>
-                Datos prueba
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-flex>
-      <v-flex v-show="loading" xs12>
+              Limpiar
+            </v-btn>
+            <v-btn
+              :disabled="data.length === 0"
+              color="primary"
+              class="float-right ml-1"
+              @click="saveData()"
+              rounded
+            >
+                Siguiente
+              <v-icon class="ml-3">
+                mdi-arrow-right
+              </v-icon>
+            </v-btn>
+          </v-row>
+          <v-row>
+            <VpressDataTable
+              :dataText="dataText"
+              :headers="headers"
+              :data="data"
+            />
+          </v-row>
+        </v-col>
+      </v-row>
+      <v-row v-show="loading" xs12>
         <v-progress-linear
           indeterminate
           color="primary"
         />
-      </v-flex>
-      <v-flex>
-        <div
-          v-if="data.length > 0 && headers.length > 0"
-          style="display: flex"
-        >
-          <h3 class="table-title">
-            Datos
-          </h3>
-          <v-text-field
-            v-model="search"
-            prepend-icon="mdi-magnify"
-            label="Search"
-            hide-details
-            full-width
-            style="width:50%; display: inline-flex"
-            class="mb-5"
-          ></v-text-field>
-        </div>
-        <v-textarea
-          v-if="data.length > 0 && headers.length > 0 && !showTable"
-          v-model="dataText"
-          name="parsedData"
-          outlined
-          style="width: 100%; height: 370px"
-        ></v-textarea>
-        <v-data-table
-          v-show="data.length > 0 && headers.length > 0"
-          :headers="headers"
-          :items="data"
-          :item-key="headers[0] ? headers[0].value : ''"
-          :search="search"
-          class="elevation-1"
-        >
-          <template v-slot:item="props">
-            <tr>
-              <td v-for="header in props.headers" :key="header.value">
-                <v-edit-dialog
-                  :return-value.sync="props.item[header.value]"
-                  large
-                  persistent
-                  @save="save"
-                  @cancel="cancel"
-                  @open="open"
-                  @close="close"
-                >
-                  {{ props.item[header.value] }}
-                  <template v-slot:input>
-                    <v-text-field
-                      v-model="props.item[header.value]"
-                      label="Edit"
-                      single-line
-                      counter
-                    ></v-text-field>
-                  </template>
-                </v-edit-dialog>
-              </td>
-            </tr>
-          </template>
-        </v-data-table>
-        <v-snackbar
-          v-model="snack"
-          :timeout="3000"
-          :color="snackColor"
-        >
-          {{ snackText }}
-          <v-btn text @click="snack = false">
-            Close
-          </v-btn>
-        </v-snackbar>
-        <v-spacer class="pd-2 ma-2"></v-spacer>
-      </v-flex>
-    </v-layout>
+      </v-row>
   </v-container>
 </template>
-
 <script>
 /* eslint-disable guard-for-in */
 /* eslint-disable no-loop-func */
 /* eslint-disable vue/valid-v-for */
 /* eslint-disable no-restricted-syntax */
-import vueFilePond from 'vue-filepond'; // Import FilePond
+import VpressDataTable from './vpress-data-table';
+import vueFilePond from 'vue-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
 import { FReader } from '../plugins/fileReader';
-import 'filepond/dist/filepond.min.css'; // Import styles
+import { storage } from '../plugins/firebase';
+import 'filepond/dist/filepond.min.css';
 
 export default {
   name: 'VpressDataLoader',
   components: {
     // Create FilePond component
-    FilePond: vueFilePond(FilePondPluginFileValidateType)
+    FilePond: vueFilePond(FilePondPluginFileValidateType),
+    VpressDataTable,
   },
   props: ['tabChange'],
   data() {
     return {
       loading: false,
+      dataSetName: '',
       showTable: true,
-      uploadType: 1,
-      search: '',
-      selected: [],
-      empty: [],
+      uploadType: 'upload',
       headers: [],
       data: [],
       pastedData: '',
-      snack: false,
-      snackColor: '',
-      snackText: ''
+      loadedFile: [],
+      testDatasets: [],
+      dataSetDir: '/testDatasets'
     };
+  },
+  created() {
+    this.getDatasets();
   },
   computed: {
     /** If data-table's data should be displayed in CSV text */
@@ -232,13 +193,40 @@ export default {
       return FReader.JSONtoCSV(this.data);
     }
   },
+  watch: {
+    loadedFile(oldFileArray, newFileArray) {
+      if (oldFileArray[0] !== newFileArray[0] && oldFileArray[0]) {
+        this.loadFile();
+      }
+    }
+  },
   methods: {
+    getDatasets() {
+      this.dataSetDir = this.$route.query.datasets
+        ? `/${this.$route.query.datasets}`
+        : '/testDatasets';
+
+      storage
+        .ref()
+        .child(this.dataSetDir)
+        .listAll()
+        .then(res => {
+          if(res.items.length === 0) console.log(`Sin coincidencias para ${this.dataSetDir}`);
+          this.testDatasets = res.items;
+        })
+        .catch( err => {
+          console.error(err)
+        })
+    },
     /** Reset to empty values */
-    reset(uploadType) {
+    changeUploadType(uploadType) {
       this.uploadType = uploadType;
+    },
+    cleanDataAndHeaders() {
       this.data = [];
       this.headers = [];
       this.$refs.pond.removeFile();
+      this.$store.dispatch('data/set', this.data);
     },
     /**
      * Read spreadsheets file, parsed into JSON data
@@ -246,9 +234,8 @@ export default {
      */
     loadFile(file) {
       const self = this;
-      const files = file || this.$refs.pond.getFiles()[0].file;
-      // eslint-disable-next-line
-      if (files['name'].indexOf('.csv') >= 0) {
+      const files = file || self.$refs.pond.getFiles()[0].file;
+      if (files['name'] && files['name'].indexOf('.csv') >= 0) {
         FReader.readCSV(files)
         .then(content => {
           // eslint-disable-next-line
@@ -260,16 +247,19 @@ export default {
           // eslint-disable-next-line
           setTimeout(() => {
             self.data = content;
+            self.loading = false
           }, 200);
         })
         .catch(error => {
           // eslint-disable-next-line
+          self.loading = false
           console.error(error);
         });
       } else {
         FReader.readExcel(files)
           .then(content => {
             // eslint-disable-next-line
+            self.loading = false
             self.headers = Object.keys(content[0]).map(o => ({
               text: o,
               value: o,
@@ -282,6 +272,7 @@ export default {
           })
           .catch(error => {
             // eslint-disable-next-line
+            self.loading = false
             console.error(error);
           });
       }
@@ -337,43 +328,30 @@ export default {
       this.$emit('update:tabChange', 1);
       this.$store.dispatch('data/set', this.data);
     },
-    save() {
-      this.snack = true;
-      this.snackColor = 'success';
-      this.snackText = 'Data saved';
-    },
-    cancel() {
-      this.snack = true;
-      this.snackColor = 'error';
-      this.snackText = 'Canceled';
-    },
-    open() {
-      this.snack = true;
-      this.snackColor = 'info';
-      this.snackText = 'Dialog opened';
-    },
-    close() {},
-    async selectTestDataset() {
-      let url = 'https://firebasestorage.googleapis.com/v0/b/vpress-def8f.appspot.com/o/peliculas.csv?alt=media&token=4c1e963c-4337-426b-b35c-b5e366ab86e3';
-      let blob = await fetch(url).then(r => r.blob());
-      this.loadFile(blob)
+    async selectTestDataset(fileName) {
+      const self = this;
+      self.loading = true;
+      self.dataSetName = fileName;
+      storage
+      .ref()
+      .child(`${this.dataSetDir}/${fileName}`)
+      .getDownloadURL()
+      .then(DownloadURL => {
+        fetch(DownloadURL)
+          .then(file =>{
+            file
+              .blob()
+              .then(res =>{
+                self.loadFile(res)
+                
+              })
+          });
+      })
     }
   }
 };
 </script>
-
 <style lang="scss" scoped>
-textarea {
-  border: solid 2px #666;
-  width: 100%;
-  height: 200px;
-}
-.table-title {
-  align-items: center;
-  display: inline-flex;
-  width: 50%;
-}
-
 .selectedUploadType {
   border-bottom: solid 3px #382E82 !important;
   border-radius: 0px;
@@ -383,6 +361,10 @@ textarea {
   border-bottom: 3px solid transparent;
   padding: 0 !important;
   margin: 0 20px 0 0;
+}
+
+.dataTableContainer{
+  display:flex;
 }
 
 @media (min-width: 1904px) {
