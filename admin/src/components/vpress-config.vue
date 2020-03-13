@@ -42,6 +42,7 @@
             </v-tabs>
           </v-col>
           <v-col class="py-0 px-5 flex-end__container" cols="10">
+            <vpress-data-filter column="planeta" type="ordinal" />
             <v-btn class="save-button" outlined color="primary">
               Guardar
             </v-btn>
