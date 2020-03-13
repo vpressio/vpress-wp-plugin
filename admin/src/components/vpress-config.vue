@@ -2,11 +2,11 @@
   <v-responsive>
     <v-container fluid>
       <v-row>
-        <v-col 
+        <v-col
           :cols="numberOfColsIftabIsNotZero"
           class="config"
         >
-          <v-card 
+          <v-card
             class="graph-tools"
             flat
             color="#222A32"
@@ -83,6 +83,7 @@
             color="transparent"
           >
             <v-card class="flex-end" flat color="transparent">
+              <VpressDataFilter column="planeta" type="ordinal" />
               <v-btn class="save-button" outlined color="primary">
                 Guardar
               </v-btn>
@@ -107,6 +108,7 @@ import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
+import VpressDataFilter from './vpress-data-filter.vue'
 
 export default {
   name: 'VpressConfig',
@@ -117,12 +119,14 @@ export default {
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
-    VpressColorSelection
+    VpressColorSelection,
+    VpressDataFilter
   },
   data() {
     return {
       activeTab: 0,
-      darkTheme: false
+      darkTheme: false,
+      openDialog: false
     };
   },
   computed: {
