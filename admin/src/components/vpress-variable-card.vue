@@ -12,17 +12,6 @@
     dark
     hover
   >
-    <div class="removeButtonContainer pr-1">
-      <v-btn x-small icon>
-        <v-icon
-          dense
-          class="removeIcon"
-          @click.stop="removeCard"
-        >
-          mdi-window-close
-        </v-icon>
-      </v-btn>
-    </div>
     <div class="dataTypeContainer">
       <span class="variableCardDataType pl-3 py-1">
         {{ variableNameDataType }}
@@ -95,15 +84,13 @@ export default {
     parentRefs: Object,
     inSlot: Boolean,
     variableName: String,
-    variableNameDataType: String
+    variableNameDataType: String,
+    showOperationButton: Boolean,
+    variablesInSlot: Array
   },
   data() {
     return {
-      variableCardParent: null,
-      variableCard:null,
-      variableCardClone: null,
       draggable: true,
-      showOperationButton: false,
       selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
         { type: 'sum', name: 'Suma' },
@@ -124,11 +111,14 @@ export default {
       const { dataTransfer } = e;
       const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
-      this.showOperationButton = false;
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
-    dragEnd() {
-      this.showOperationButton = false;
+    dragEnd(event) {
+      const { target } = event;
+      if(target.parentNode.id !== 'cardStartContainer') {
+        const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
+         this.$emit('update:variablesInSlot', arrayWithoutThisCard);
+      }
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;

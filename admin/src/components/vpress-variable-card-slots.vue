@@ -10,6 +10,14 @@
         />
       </v-col>
       <v-col cols="12" class="pa-0">
+        <VpressVariableCardSlot
+          slotId="UPDATE_DATOS"
+          icon="mdi-google-controller"
+          label="Test"
+          :dataType="['linear','ordinal']"
+        />
+      </v-col>
+      <v-col cols="12" class="pa-0">
         <v-card flat class="ma-1">
             <v-icon 
               color="secondary"

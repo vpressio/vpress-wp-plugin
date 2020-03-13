@@ -12,7 +12,7 @@
     <v-card
       :ref="slotId"
       :id="slotId"
-      min-height="75"
+      min-height="50"
       outlined
       @dragenter="dragEnter"
       @dragover.prevent
@@ -22,10 +22,19 @@
       class="pa-2"
     >
       <VpressVariableCard
+        :id="variable.id"
+        class="mb-1"
         v-for="(variable, variableIndex) in variablesInSlot"
         :key="`variable_${variableIndex}`"
         :variableName="variable.variableName"
+        :variableNameDataType="variable.variableNameDataType"
+        showOperationButton
+        :variablesInSlot.sync="variablesInSlot"
+        :columnData="variable"
       />
+      <v-label v-if="showPlaceholder" @drop.stop.self="drop">
+        Puedes Arrastrar números o categorías aquí.
+      </v-label>
     </v-card>
   </v-card>
 </template>
@@ -45,7 +54,8 @@ export default {
   },
   data() {
     return {
-      variablesInSlot: []
+      variablesInSlot: [],
+      showPlaceholder:true,
     }
   },
   methods: {
@@ -54,7 +64,6 @@ export default {
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
       this.variablesInSlot.push(columnDataToTransferInObject);
-      console.log(this.variablesInSlot)
     },
     dragEnter() {
 
