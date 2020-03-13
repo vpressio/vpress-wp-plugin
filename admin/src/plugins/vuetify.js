@@ -13,5 +13,5 @@ export default new Vuetify({
         secondary: '#7972AC',
       },
     }
-  },
+  }
 });

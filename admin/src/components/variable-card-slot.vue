@@ -33,29 +33,35 @@
         :columnData="variable"
         @drop.stop.self="drop"
       />
-      <p class="slot_placeholder my-2" v-if="variablesInSlot.length < 2" @drop.stop.self="drop">
+      <p class="slot_placeholder my-2" v-if="variablesInSlot.length < maxStack" @drop.stop.self="drop">
         Números o categorías aquí.
       </p>
     </v-card>
+    <vpress-data-filter v-if="openFilterDialog" column="planeta" type="ordinal" :openFilterDialog.sync="openFilterDialog"/>
   </v-card>
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card';
+import VpressDataFilter from './vpress-data-filter.vue';
 
 export default {
   name: 'VpressCardSlot',
   components: {
-    VpressVariableCard
+    VpressVariableCard,
+    VpressDataFilter
   },
   props: {
     slotId: String,
-    icon: String ,
+    icon: String,
     label: String,
-    dataType: Array
+    maxStack: Number,
+    dataType: Array,
+    filter: Boolean
   },
   data() {
     return {
       variablesInSlot: [],
+      openFilterDialog: false
     }
   },
   methods: {
@@ -63,15 +69,21 @@ export default {
       const { dataTransfer } = event;
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      this.addVariableToSlot(columnDataToTransferInObject)
+      this.addVariableToSlot(columnDataToTransferInObject);
+      if(this.filter) {
+        this.filterData();
+      }
     },
     dragEnter() {
     },
     dragLeave() {
     },
     addVariableToSlot(variableData) {
-      if(this.variablesInSlot.length < 2)
+      if(this.variablesInSlot.length < this.maxStack)
       this.variablesInSlot.push(variableData);
+    },
+    filterData() {
+      this.openFilterDialog = true;
     }
   }
 }

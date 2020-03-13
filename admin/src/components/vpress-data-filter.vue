@@ -4,9 +4,6 @@
       v-model="dialog"
       width="500"
     >
-      <template v-slot:activator="{ on }">
-        <v-btn color="primary" dark v-on="on">Filtrar</v-btn>
-      </template>
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -55,7 +52,7 @@
           <v-btn
             color="secondary"
             outlined
-            @click="dialog = false"
+            @click="closeDialog"
           >
             Cancelar
           </v-btn>
@@ -86,11 +83,12 @@ export default {
       type: String,
       default: '',
       required: true
-    }
+    },
+    openFilterDialog: Boolean
   },
   data () {
     return {
-      dialog: false,
+      dialog: true,
       range: [-9999, 9999],
       selected: []
     }
@@ -113,7 +111,14 @@ export default {
       } else {
         return 0
       }
+    },
+  },
+  methods: {
+    closeDialog() {
+      this.$emit('update:openFilterDialog', false)
+      this.dialog = false
     }
+
   }
 }
 </script>
