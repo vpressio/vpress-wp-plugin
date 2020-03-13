@@ -31,10 +31,11 @@
         showOperationButton
         :variablesInSlot.sync="variablesInSlot"
         :columnData="variable"
+        @drop.stop.self="drop"
       />
-      <v-label v-if="showPlaceholder" @drop.stop.self="drop">
-        Puedes Arrastrar números o categorías aquí.
-      </v-label>
+      <p class="slot_placeholder my-2" v-if="variablesInSlot.length < 2" @drop.stop.self="drop">
+        Números o categorías aquí.
+      </p>
     </v-card>
   </v-card>
 </template>
@@ -55,7 +56,6 @@ export default {
   data() {
     return {
       variablesInSlot: [],
-      showPlaceholder:true,
     }
   },
   methods: {
@@ -63,15 +63,24 @@ export default {
       const { dataTransfer } = event;
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
-      this.variablesInSlot.push(columnDataToTransferInObject);
+      this.addVariableToSlot(columnDataToTransferInObject)
     },
     dragEnter() {
-
     },
     dragLeave() {
-
+    },
+    addVariableToSlot(variableData) {
+      if(this.variablesInSlot.length < 2)
+      this.variablesInSlot.push(variableData);
     }
   }
-  
 }
 </script>
+<style lang="scss" scoped>
+.slot_placeholder {
+  color: #c3c3c3;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 0.8rem;
+}
+</style>

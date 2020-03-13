@@ -80,8 +80,6 @@ export default {
   props: {
     id: String,
     columnData: Object,
-    parentId: String ,
-    parentRefs: Object,
     inSlot: Boolean,
     variableName: String,
     variableNameDataType: String,
