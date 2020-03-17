@@ -1,6 +1,6 @@
 <template>
   <v-card flat class="ma-1">
-    <v-icon 
+    <v-icon
       color="secondary"
       dense
     >
@@ -37,7 +37,7 @@
         Números o categorías aquí.
       </p>
     </v-card>
-    <vpress-data-filter v-if="openFilterDialog" column="planeta" type="ordinal" :openFilterDialog.sync="openFilterDialog"/>
+    <vpress-data-filter v-if="openFilterDialog" :column="filterColumn" :type="filterType" :openFilterDialog.sync="openFilterDialog" />
   </v-card>
 </template>
 <script>
@@ -61,7 +61,9 @@ export default {
   data() {
     return {
       variablesInSlot: [],
-      openFilterDialog: false
+      openFilterDialog: false,
+      filterColumn: '',
+      filterType: ''
     }
   },
   methods: {
@@ -71,7 +73,10 @@ export default {
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
       this.addVariableToSlot(columnDataToTransferInObject);
       if(this.filter) {
-        this.filterData();
+        this.filterData(
+          columnDataToTransferInObject.variableName,
+          columnDataToTransferInObject.variableNameDataType
+        );
       }
     },
     dragEnter() {
@@ -82,7 +87,9 @@ export default {
       if(this.variablesInSlot.length < this.maxStack)
       this.variablesInSlot.push(variableData);
     },
-    filterData() {
+    filterData(column, type) {
+      this.filterType = type;
+      this.filterColumn = column;
       this.openFilterDialog = true;
     }
   }
