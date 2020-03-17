@@ -68,7 +68,7 @@
               <v-tab-item>
                 <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                   <v-row class="ma-0">
-                    <v-col class="variablecards__overflow">
+                    <v-col>
                       <VpressVariableCardStartContainer
                       :variableCards="dataTypesCards"
                       />
@@ -185,11 +185,6 @@ export default {
 }
 .fill-height {
   height:100%
-}
-
-.variableCards__overflow {
-  height: calc(100vh - 90px);
-  overflow-y: scroll;
 }
 
 .flex-end__container {

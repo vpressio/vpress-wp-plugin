@@ -7,7 +7,7 @@
         :key="`slot_${slotIndex}`"
         class="pa-0"
       >
-        <VpressVariableCardSlot
+        <VpressVariableSlot
           :slotId="slot.slotId"
           :icon="slot.icon"
           :label="slot.label"
@@ -20,12 +20,12 @@
   </v-card>
 </template>
 <script>
-import VpressVariableCardSlot from './variable-card-slot';
+import VpressVariableSlot from './variable-variable-slot';
 
 export default {
   name: 'VpressVariableSlotsContainer',
   components: {
-    VpressVariableCardSlot
+    VpressVariableSlot
   },
   props: ['id', 'slotLabel'],
   data() {
@@ -35,7 +35,7 @@ export default {
           slotId:"UPDATE_X_AXIS",
           icon:"mdi-view-sequential",
           label:"Columnas",
-          maxStack: 1,
+          maxStack: 5,
           filter: false
         },
         {
@@ -53,7 +53,7 @@ export default {
           filter: false
         },
         {
-          slotId:"Filter",
+          slotId:"UPDATE_FILTER",
           icon:"mdi-tune",
           label: "Filtrar",
           maxStack: 1,

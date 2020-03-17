@@ -102,6 +102,7 @@ export default {
   },
   computed: {
     variableMutation() {
+      console.log(this.slotId)
       return this.selectedFunc.name;
     }
   },
@@ -117,12 +118,12 @@ export default {
       const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
-    dragEnd(event) {
-      const { target } = event;
-      if(target.parentNode.id !== 'cardStartContainer') {
-        const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
-         this.$emit('update:variablesInSlot', arrayWithoutThisCard);
-      }
+    dragEnd() {
+      // const { target } = event;
+      // if(target.parentNode.id !== 'cardStartContainer') {
+      //   const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
+      //    this.$emit('update:variablesInSlot', arrayWithoutThisCard);
+      // }
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;

@@ -10,12 +10,13 @@
       {{ label }}
     </span>
     <v-card
+      :class="{'pt-5': addMargin}"
       min-height="50"
       outlined
       @dragenter="dragEnter"
-      @dragover.prevent
       @dragleave="dragLeave"
       @drop.stop.self="drop"
+      @dragover.prevent
       light
       class="pa-2"
     >
@@ -29,6 +30,8 @@
         :showOperationButton="showOperationButton"
         :variablesInSlot.sync="variablesInSlot"
         :columnData="variable"
+        @dragenter="dragEnter"
+        @dragleave="dragLeave"
         @drop.stop.self="drop"
         :inSlot="true"
         :slotId="slotId"
@@ -62,7 +65,8 @@ export default {
     return {
       variablesInSlot: [],
       openFilterDialog: false,
-      showOperationButton: true
+      showOperationButton: true,
+      addMargin: false
     }
   },
   methods: {
@@ -71,17 +75,50 @@ export default {
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
       this.addVariableToSlot(columnDataToTransferInObject);
+      this.addMargin = false;
       if(this.filter) {
         this.filterData();
       }
     },
-    dragEnter() {
+    dragEnter(event) {
+      const { target }  = event
+      if (
+        target.firstChild !== null &&
+        target.firstChild.nodeName === "DIV" &&
+        target.firstChild.id.includes('cardId_')
+      ) this.addMargin = true;
     },
-    dragLeave() {
+      dragLeave(event) {
+      const { target }  = event
+      if (
+        target.firstChild !== null &&
+        target.firstChild.nodeName === "DIV" &&
+        target.firstChild.id.includes('cardId_')
+      ) this.addMargin = false;
     },
-    addVariableToSlot(variableData) {
-      if(this.variablesInSlot.length < this.maxStack)
-      this.variablesInSlot.push(variableData);
+    addVariableToSlot(columnData) {
+      if(this.variablesInSlot.length < this.maxStack){
+        const variableArray = [...this.variablesInSlot];
+        const dataInSlot = variableArray.reduce(
+            (data, variable, variableIndex) => {
+              if (variable.id === columnData.id) {
+                data.includesId = true;
+                data.indexIncludedId = variableIndex;
+              }
+              return data
+            },
+            {includesId: false, indexIncludedId: -1}
+          );
+        
+        if (dataInSlot.includesId){
+          variableArray.splice(dataInSlot.indexIncludedId, 1);
+          variableArray.unshift(columnData);
+        } else {
+          variableArray.push(columnData);
+        }
+
+        this.variablesInSlot = variableArray;
+      }
     },
     filterData() {
       this.showOperationButton = false;
