@@ -13,6 +13,7 @@
       min-height="50"
       outlined
       @dragover.prevent
+      @drop.stop.self="drop"
       light
       class="pa-2"
     >
