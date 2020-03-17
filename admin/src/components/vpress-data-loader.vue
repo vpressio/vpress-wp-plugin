@@ -34,9 +34,11 @@
             DATOS DE PRUEBA
           </h4>
         </v-col>
-        <v-col cols="3" class="mx-4" v-for="(dataSet, dataSetIndex) in testDatasets" :key="dataSetIndex">
+        <v-col>
           <v-btn
-            
+            class="mx-4"
+            v-for="(dataSet, dataSetIndex) in testDatasets"
+            :key="dataSetIndex"
             color="primary"
             @click="selectTestDataset(dataSet.name)"
             :loading="dataSetName === dataSet.name  && loading"

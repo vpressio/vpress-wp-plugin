@@ -2,7 +2,7 @@
   <div>
     <VpressChartSelectButtons :availableCharts="availableCharts" />
     <ChartComponent
-      :data="dataChart"
+      :data="chartData"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
     ></ChartComponent>
@@ -22,7 +22,7 @@ export default {
   },
   data() {
     return {
-      dataChart: this.$store.state.data.data,
+      dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.state.chartConfig,
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
     };
@@ -37,7 +37,12 @@ export default {
   computed: {
     displayChartConfig() {
       return this.chartConfig;
+    },
+    chartData() {
+      console.log(this.$store.getters['data/dataFiltered'])
+      return this.$store.getters['data/dataFiltered']
     }
+
   },
   methods: {
     /**

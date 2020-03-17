@@ -6,6 +6,7 @@
     @dragstart="dragStart"
     @dragend.prevent="dragEnd"
     @dragover.stop
+    @drop.stop.self="drop"
     class="border-radius-none card-flex pr-5 pb-2"
     :class="{ 'pr-5': showOperationButton }"
     color="#9292A9"
@@ -89,6 +90,7 @@ export default {
   },
   data() {
     return {
+      columnDataToTransferInObject: {},
       draggable: true,
       selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
@@ -102,7 +104,6 @@ export default {
   },
   computed: {
     variableMutation() {
-      console.log(this.slotId)
       return this.selectedFunc.name;
     }
   },
@@ -114,19 +115,27 @@ export default {
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
-      const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
+      this.columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
+      const columnDataToTransferInString = JSON.stringify(this.columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      // const { target } = event;
-      // if(target.parentNode.id !== 'cardStartContainer') {
-      //   const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
-      //    this.$emit('update:variablesInSlot', arrayWithoutThisCard);
+      const { target } = event;
+      if(target.parentNode.id !== 'cardStartContainer') {
+        const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
+         this.$emit('update:variablesInSlot', arrayWithoutThisCard);
+         this.$store.dispatch('data/setFilter', {});
+      } 
+      // else {
+      //   this.$emit('update:variablesInSlot', [{...this.columnDataToTransferInObject}]);
       // }
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;
+      
+    },
+    drop(event) {
+      console.log(event.target.id)
     }
   },
 };

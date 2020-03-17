@@ -1,6 +1,6 @@
 <template>
-  <v-card flat class="ma-1">
-    <v-icon 
+  <v-card flat class="ma-1" @drop.stop.self="drop">
+    <v-icon
       color="secondary"
       dense
     >
@@ -10,12 +10,8 @@
       {{ label }}
     </span>
     <v-card
-      :class="{'pt-5': addMargin}"
       min-height="50"
       outlined
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-      @drop.stop.self="drop"
       @dragover.prevent
       light
       class="pa-2"
@@ -23,7 +19,7 @@
       <VpressVariableCard
         :id="variable.id"
         class="mb-1"
-        v-for="(variable, variableIndex) in variablesInSlot"
+        v-for="(variable, variableIndex) in variablesToRender"
         :key="`variable_${variableIndex}`"
         :variableName="variable.variableName"
         :variableNameDataType="variable.variableNameDataType"
@@ -40,7 +36,7 @@
         Números o categorías aquí.
       </p>
     </v-card>
-    <vpress-data-filter v-if="openFilterDialog" column="planeta" type="ordinal" :openFilterDialog.sync="openFilterDialog"/>
+    <vpress-data-filter v-if="openFilterDialog" :column="filterColumn" :type="filterType" :openFilterDialog.sync="openFilterDialog" />
   </v-card>
 </template>
 <script>
@@ -65,8 +61,15 @@ export default {
     return {
       variablesInSlot: [],
       openFilterDialog: false,
-      showOperationButton: true,
-      addMargin: false
+      showOperationButton: false,
+      addMargin: false,
+      filterColumn: '',
+      filterType: ''
+    }
+  },
+  computed:{
+    variablesToRender() {
+      return this.variablesInSlot;
     }
   },
   methods: {
@@ -75,29 +78,30 @@ export default {
       const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
       const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
       this.addVariableToSlot(columnDataToTransferInObject);
-      this.addMargin = false;
       if(this.filter) {
-        this.filterData();
+        this.filterData(
+          columnDataToTransferInObject.variableName,
+          columnDataToTransferInObject.variableNameDataType
+        );
       }
     },
-    dragEnter(event) {
-      const { target }  = event
-      if (
-        target.firstChild !== null &&
-        target.firstChild.nodeName === "DIV" &&
-        target.firstChild.id.includes('cardId_')
-      ) this.addMargin = true;
+    dragEnter() {
+      // const { target }  = event
+      // if (
+      //   target.firstChild !== null &&
+      //   target.firstChild.nodeName === "DIV" &&
+      //   target.firstChild.id.includes('cardId_')
+      // ) this.addMargin = false;
     },
-      dragLeave(event) {
-      const { target }  = event
-      if (
-        target.firstChild !== null &&
-        target.firstChild.nodeName === "DIV" &&
-        target.firstChild.id.includes('cardId_')
-      ) this.addMargin = false;
+    dragLeave() {
+      // const { target }  = event
+      // if (
+      //   target.firstChild !== null &&
+      //   target.firstChild.nodeName === "DIV" &&
+      //   target.firstChild.id.includes('cardId_')
+      // ) this.addMargin = true;
     },
     addVariableToSlot(columnData) {
-      if(this.variablesInSlot.length < this.maxStack){
         const variableArray = [...this.variablesInSlot];
         const dataInSlot = variableArray.reduce(
             (data, variable, variableIndex) => {
@@ -109,19 +113,21 @@ export default {
             },
             {includesId: false, indexIncludedId: -1}
           );
-        
         if (dataInSlot.includesId){
           variableArray.splice(dataInSlot.indexIncludedId, 1);
           variableArray.unshift(columnData);
         } else {
-          variableArray.push(columnData);
+          if(this.variablesInSlot.length < this.maxStack){
+            variableArray.push(columnData);
+          }
         }
-
         this.variablesInSlot = variableArray;
-      }
+      
     },
-    filterData() {
+    filterData(column, type) {
       this.showOperationButton = false;
+      this.filterType = type;
+      this.filterColumn = column;
       this.openFilterDialog = true;
     }
   }
