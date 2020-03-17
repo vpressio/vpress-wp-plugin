@@ -42,7 +42,6 @@
             </v-tabs>
           </v-col>
           <v-col class="py-0 px-5 flex-end__container" cols="10">
-            <vpress-data-filter column="planeta" type="ordinal" />
             <v-btn class="save-button" outlined color="primary">
               Guardar
             </v-btn>
@@ -96,7 +95,7 @@
           </v-col>
           <v-col cols="2" class="py-0 px-3">
             <v-card class="fill-height">
-              <VpressVariableCardSlots/>
+              <VpressVariableSlotsContainer/>
             </v-card>
           </v-col>
           <v-col v-if="numberOfColsIftabIsNotZero === '2'" class="py-0 pl-0 pr-3" cols="8">
@@ -112,24 +111,23 @@
 <script>
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
-import VpressVariableCardSlots from './vpress-variable-card-slots.vue';
+import VpressVariableSlotsContainer from './vpress-variable-slots-container.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
-import VpressDataFilter from './vpress-data-filter.vue'
+
 
 export default {
   name: 'VpressConfig',
   components: {
     VpressDataLoader,
     VpressVariableCardStartContainer,
-    VpressVariableCardSlots,
+    VpressVariableSlotsContainer,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
-    VpressColorSelection,
-    VpressDataFilter
+    VpressColorSelection
   },
   data() {
     return {

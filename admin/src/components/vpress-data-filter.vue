@@ -4,9 +4,6 @@
       v-model="dialog"
       width="500"
     >
-      <template v-slot:activator="{ on }">
-        <v-btn color="primary" dark v-on="on">Filtrar</v-btn>
-      </template>
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -17,20 +14,22 @@
           </span>
         </v-card-title>
         <v-card-text class="py-4">
-          <a class="underline">Seleccionar todo</a>
+          <a class="underline" @click="selectAll">Seleccionar todo</a>
           -
-          <a class="underline">Limpiar selección</a>
+          <a class="underline" @click="deselectAll">Limpiar selección</a>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-text class="py-4">
           <template v-if="type == 'linear'">
             <v-range-slider
+              v-if="this.range"
               class="mt-5"
-              v-model="range"
+              v-model="linearFilter"
               dense
               hide-details
-              :min="min"
-              :max="max"
+              :min="range[0]"
+              :max="range[1]"
+              step="0.1"
               thumb-label="always"
               thumb-size="32"
             >
@@ -38,7 +37,7 @@
           </template>
           <template v-else>
             <v-checkbox
-              v-model="selected"
+              v-model="ordinalFilter"
               v-for="item in dataFiltered"
               :key="item"
               :label="item"
@@ -55,13 +54,13 @@
           <v-btn
             color="secondary"
             outlined
-            @click="dialog = false"
+            @click="closeDialog"
           >
             Cancelar
           </v-btn>
           <v-btn
             color="primary"
-            @click="dialog = false"
+            @click="setFilter"
           >
             Aplicar
           </v-btn>
@@ -74,6 +73,7 @@
 
 <script>
 import _ from 'lodash'
+import * as d3 from 'd3';
 
 export default {
   props: {
@@ -86,13 +86,14 @@ export default {
       type: String,
       default: '',
       required: true
-    }
+    },
+    openFilterDialog: Boolean
   },
   data () {
     return {
-      dialog: false,
-      range: [-9999, 9999],
-      selected: []
+      dialog: true,
+      linearFilter: this.range,
+      ordinalFilter: []
     }
   },
   computed: {
@@ -100,19 +101,50 @@ export default {
       const uniq = _.uniqBy(this.$store.state.data.data, this.column);
       return _.map(uniq, this.column);
     },
+    range() {
+      if (this.type == 'linear') {
+        return [
+          d3.min(this.dataFiltered),
+          d3.max(this.dataFiltered)
+        ];
+      } else {
+        return null
+      }
+    },
     min() {
       if (this.type == 'linear') {
         return _.min(this.dataFiltered);
       } else {
-        return 0
+        return null
       }
     },
     max() {
       if (this.type == 'linear') {
         return _.max(this.dataFiltered);
       } else {
-        return 0
+        return null
       }
+    },
+  },
+  methods: {
+    closeDialog() {
+      this.$emit('update:openFilterDialog', false)
+      this.dialog = false
+    },
+    selectAll() {
+      this.ordinalFilter = this.dataFiltered
+    },
+    deselectAll() {
+      this.ordinalFilter = []
+    },
+    setFilter() {
+      const filter = { type: this.type, column: this.column }
+      if (this.type == 'linear') {
+        this.$store.dispatch('data/setFilter', { ...filter, value: this.linearFilter });
+      } else {
+        this.$store.dispatch('data/setFilter', { ...filter, value: this.ordinalFilter });
+      }
+      this.dialog = false
     }
   }
 }

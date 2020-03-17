@@ -8,8 +8,6 @@
     <VpressVariableCard
       class="mb-3"
       :id="`cardId_total`"
-      :parentId="variableCardsContainerId"
-      :parentRefs="$refs"
       :columnData="{
         variableName: 'total_count',
         variableNameDataType: 'linear'
@@ -22,8 +20,6 @@
       v-for="(card, cardIndex) in variableCards"
       :key="`cardId_${cardIndex}`"
       :id="`cardId_${cardIndex}`"
-      :parentId="variableCardsContainerId"
-      :parentRefs="$refs"
       :columnData="card"
       :variableName="card.variableName"
       :variableNameDataType="card.variableNameDataType"
