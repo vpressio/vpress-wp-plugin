@@ -62,7 +62,7 @@ export default {
     return {
       variablesInSlot: [],
       openFilterDialog: false,
-      showOperationButton: false,
+      showOperationButton: true,
       addMargin: false,
       filterColumn: '',
       filterType: ''

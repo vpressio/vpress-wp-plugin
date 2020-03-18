@@ -1,6 +1,6 @@
 <template>
-  <v-container fluid>
-      <v-row>
+  <div style="padding: 1% 3% 1% 3%">
+      <v-row class="ma-0">
         <v-toolbar full-width flat>
           <v-btn
             color="primary"
@@ -26,17 +26,17 @@
       <v-row
         v-show="uploadType === 'upload'"
         xs12
-        class="mt-3"
+        class="mx-0 mb-0 mt-3"
       >
       <v-row class="ma-0">
-        <v-col cols="12">
-          <h4>
+        <v-col class="py-0" cols="12">
+          <h3>
             DATOS DE PRUEBA
-          </h4>
+          </h3>
         </v-col>
-        <v-col>
+        <v-col class="pt-1 pb-0">
           <v-btn
-            class="mx-4"
+            class="mr-4"
             v-for="(dataSet, dataSetIndex) in testDatasets"
             :key="dataSetIndex"
             color="primary"
@@ -45,6 +45,7 @@
           >
             {{ dataSet.name }}
           </v-btn>
+          <v-divider class="mt-4"/>
         </v-col>
         </v-row>
         <v-col class="dataTableContainer" cols="12">
@@ -150,7 +151,7 @@
           color="primary"
         />
       </v-row>
-  </v-container>
+      </div>
 </template>
 <script>
 /* eslint-disable guard-for-in */

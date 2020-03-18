@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <div>
     <v-data-table
       v-show="data.length > 0 && headers.length > 0"
       :headers="headers"
@@ -43,7 +43,7 @@
         Close
       </v-btn>
     </v-snackbar>
-  </v-container>
+  </div>
 </template>
 <script>
 export default {
