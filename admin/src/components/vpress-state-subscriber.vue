@@ -1,23 +1,23 @@
 <template>
   <div>
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <ChartComponent
+    <VpressChartContainer
       :data="dataChart"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
-    ></ChartComponent>
+    ></VpressChartContainer>
   </div>
 </template>
 <script>
 import * as _ from 'lodash';
 import * as d3 from 'd3';
-import ChartComponent from '../components/ChartComponent.vue';
+import VpressChartContainer from '../components/VpressChartContainer.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
 
 export default {
   name: 'vpress-state-subscriber',
   components: {
-    ChartComponent,
+    VpressChartContainer,
     VpressChartSelectButtons
   },
   data() {

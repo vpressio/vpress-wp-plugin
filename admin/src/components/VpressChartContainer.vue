@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import * as dbox from '@dboxjs/core';
 
 export default {
-  name: 'ChartContainer',
+  name: 'VpressChartContainer',
   props: {
     data: Array,
     chartConfig: {
