@@ -1,57 +1,107 @@
 <template>
   <v-container fluid>
-      <v-row>
-        <v-toolbar full-width flat>
-          <v-btn
-            color="primary"
-            :class="{selectedUploadType: uploadType === 'upload'}"
-            class="uploadTypeButton"
-            text
-            @click="changeUploadType('upload')"
-          >
-            Sube tus datos
-          </v-btn>
-          <v-btn
-            color="primary"
-            :class="{selectedUploadType: uploadType === 'paste'}"
-            class="uploadTypeButton"
-            text
-            @click="changeUploadType('paste')"
-          >
-            Pega tus datos
-          </v-btn>
-          <v-spacer/>
-        </v-toolbar>
-      </v-row>
-      <v-row
-        v-show="uploadType === 'upload'"
-        xs12
-        class="mt-3"
-      >
+    <v-row>
+      <v-toolbar full-width flat>
+        <v-btn
+          color="primary"
+          :class="{ selectedUploadType: uploadType === 'upload' }"
+          class="uploadTypeButton"
+          text
+          @click="changeUploadType('upload')"
+        >
+          Sube tus datos
+        </v-btn>
+        <v-btn
+          color="primary"
+          :class="{ selectedUploadType: uploadType === 'paste' }"
+          class="uploadTypeButton"
+          text
+          @click="changeUploadType('paste')"
+        >
+          Pega tus datos
+        </v-btn>
+        <v-spacer />
+      </v-toolbar>
+    </v-row>
+    <v-row v-show="uploadType === 'upload'" xs12 class="mt-3">
       <v-row class="ma-0">
         <v-col cols="12">
           <h4>
             DATOS DE PRUEBA
           </h4>
         </v-col>
-        <v-col cols="3" class="mx-4" v-for="(dataSet, dataSetIndex) in testDatasets" :key="dataSetIndex">
+        <v-col
+          cols="3"
+          class="mx-4"
+          v-for="(dataSet, dataSetIndex) in testDatasets"
+          :key="dataSetIndex"
+        >
           <v-btn
-            
             color="primary"
             @click="selectTestDataset(dataSet.name)"
-            :loading="dataSetName === dataSet.name  && loading"
+            :loading="dataSetName === dataSet.name && loading"
           >
             {{ dataSet.name }}
           </v-btn>
         </v-col>
-        </v-row>
-        <v-col class="dataTableContainer" cols="12">
-          <v-spacer/>
-          <v-btn
-            outlined
-            rounded
-            @click="cleanDataAndHeaders"
-          >
+      </v-row>
+      <v-col class="dataTableContainer" cols="12">
+        <v-spacer />
+        <v-btn outlined rounded @click="cleanDataAndHeaders">
+          Limpiar
+        </v-btn>
+        <v-btn
+          :disabled="data.length === 0"
+          color="primary"
+          class="float-right ml-1"
+          @click="saveData()"
+          rounded
+        >
+          Siguiente
+          <v-icon class="ml-3">
+            mdi-arrow-right
+          </v-icon>
+        </v-btn>
+      </v-col>
+      <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
+        <FilePond
+          v-model="loadedFile"
+          ref="pond"
+          accepted-file-types="
+              text/dbf
+              text/csv,
+              application/vnd.ms-excel,
+              application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            "
+        />
+      </v-col>
+      <v-col cols="12" v-show="data.length !== 0">
+        <VpressDataTable :dataText="dataText" :headers="headers" :data="data" />
+      </v-col>
+    </v-row>
+    <v-row v-show="uploadType === 'paste'" xs12 class="mt-3">
+      <v-col v-show="data.length === 0">
+        <v-textarea
+          id="excel_data"
+          v-model="pastedData"
+          name="excel_data"
+          outlined
+          placeholder="Pega tus datos desde Excel"
+          class="pl-4 pt-4"
+        ></v-textarea>
+        <v-btn
+          :disabled="!pastedData"
+          color="primary"
+          class="float-right"
+          @click="parsePastedData()"
+        >
+          Procesar
+        </v-btn>
+      </v-col>
+      <v-col v-show="data.length !== 0">
+        <v-row>
+          <v-spacer />
+          <v-btn outlined rounded @click="cleanDataAndHeaders">
             Limpiar
           </v-btn>
           <v-btn
@@ -61,93 +111,20 @@
             @click="saveData()"
             rounded
           >
-              Siguiente
+            Siguiente
             <v-icon class="ml-3">
               mdi-arrow-right
             </v-icon>
           </v-btn>
-        </v-col>
-        <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
-          <FilePond
-            v-model="loadedFile"
-            ref="pond"
-            accepted-file-types="
-              text/dbf
-              text/csv,
-              application/vnd.ms-excel,
-              application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-            "
-          />
-        </v-col>
-        <v-col cols="12" v-show="data.length !== 0">
-          <VpressDataTable
-            :dataText="dataText"
-            :headers="headers"
-            :data="data"
-          />
-        </v-col>
-      </v-row>
-      <v-row
-        v-show="uploadType === 'paste'"
-        xs12
-        class="mt-3"
-      >
-        <v-col v-show="data.length === 0">
-          <v-textarea
-            id="excel_data"
-            v-model="pastedData"
-            name="excel_data"
-            outlined
-            placeholder="Pega tus datos desde Excel"
-            class="pl-4 pt-4"
-          ></v-textarea>
-          <v-btn
-            :disabled="!pastedData"
-            color="primary"
-            class="float-right"
-            @click="parsePastedData()"
-          >
-            Procesar
-          </v-btn>
-        </v-col>
-        <v-col v-show="data.length !== 0">
-          <v-row>
-            <v-spacer/>
-            <v-btn
-              outlined
-              rounded
-              @click="cleanDataAndHeaders"
-            >
-              Limpiar
-            </v-btn>
-            <v-btn
-              :disabled="data.length === 0"
-              color="primary"
-              class="float-right ml-1"
-              @click="saveData()"
-              rounded
-            >
-                Siguiente
-              <v-icon class="ml-3">
-                mdi-arrow-right
-              </v-icon>
-            </v-btn>
-          </v-row>
-          <v-row>
-            <VpressDataTable
-              :dataText="dataText"
-              :headers="headers"
-              :data="data"
-            />
-          </v-row>
-        </v-col>
-      </v-row>
-      <v-row v-show="loading" xs12>
-        <v-progress-linear
-          indeterminate
-          color="primary"
-        />
-      </v-row>
+        </v-row>
+        <v-row>
+          <VpressDataTable :dataText="dataText" :headers="headers" :data="data" />
+        </v-row>
+      </v-col>
+    </v-row>
+    <v-row v-show="loading" xs12>
+      <v-progress-linear indeterminate color="primary" />
+    </v-row>
   </v-container>
 </template>
 <script>
@@ -167,7 +144,7 @@ export default {
   components: {
     // Create FilePond component
     FilePond: vueFilePond(FilePondPluginFileValidateType),
-    VpressDataTable,
+    VpressDataTable
   },
   props: ['tabChange'],
   data() {
@@ -211,12 +188,12 @@ export default {
         .child(this.dataSetDir)
         .listAll()
         .then(res => {
-          if(res.items.length === 0) console.log(`Sin coincidencias para ${this.dataSetDir}`);
+          if (res.items.length === 0) console.log(`Sin coincidencias para ${this.dataSetDir}`);
           this.testDatasets = res.items;
         })
-        .catch( err => {
-          console.error(err)
-        })
+        .catch(err => {
+          console.error(err);
+        });
     },
     /** Reset to empty values */
     changeUploadType(uploadType) {
@@ -237,29 +214,29 @@ export default {
       const files = file || self.$refs.pond.getFiles()[0].file;
       if (files['name'] && files['name'].indexOf('.csv') >= 0) {
         FReader.readCSV(files)
-        .then(content => {
-          // eslint-disable-next-line
-          self.headers = Object.keys(content[0]).map(o => ({
-            text: o,
-            value: o,
-            sortable: true
-          }));
-          // eslint-disable-next-line
-          setTimeout(() => {
-            self.data = content;
-            self.loading = false
-          }, 200);
-        })
-        .catch(error => {
-          // eslint-disable-next-line
-          self.loading = false
-          console.error(error);
-        });
+          .then(content => {
+            // eslint-disable-next-line
+            self.headers = Object.keys(content[0]).map(o => ({
+              text: o,
+              value: o,
+              sortable: true
+            }));
+            // eslint-disable-next-line
+            setTimeout(() => {
+              self.data = content;
+              self.loading = false;
+            }, 200);
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            self.loading = false;
+            console.error(error);
+          });
       } else {
         FReader.readExcel(files)
           .then(content => {
             // eslint-disable-next-line
-            self.loading = false
+            self.loading = false;
             self.headers = Object.keys(content[0]).map(o => ({
               text: o,
               value: o,
@@ -272,7 +249,7 @@ export default {
           })
           .catch(error => {
             // eslint-disable-next-line
-            self.loading = false
+            self.loading = false;
             console.error(error);
           });
       }
@@ -333,27 +310,23 @@ export default {
       self.loading = true;
       self.dataSetName = fileName;
       storage
-      .ref()
-      .child(`${this.dataSetDir}/${fileName}`)
-      .getDownloadURL()
-      .then(DownloadURL => {
-        fetch(DownloadURL)
-          .then(file =>{
-            file
-              .blob()
-              .then(res =>{
-                self.loadFile(res)
-                
-              })
+        .ref()
+        .child(`${this.dataSetDir}/${fileName}`)
+        .getDownloadURL()
+        .then(DownloadURL => {
+          fetch(DownloadURL).then(file => {
+            file.blob().then(res => {
+              self.loadFile(res);
+            });
           });
-      })
+        });
     }
   }
 };
 </script>
 <style lang="scss" scoped>
 .selectedUploadType {
-  border-bottom: solid 3px #382E82 !important;
+  border-bottom: solid 3px #382e82 !important;
   border-radius: 0px;
 }
 
@@ -363,8 +336,8 @@ export default {
   margin: 0 20px 0 0;
 }
 
-.dataTableContainer{
-  display:flex;
+.dataTableContainer {
+  display: flex;
 }
 
 @media (min-width: 1904px) {

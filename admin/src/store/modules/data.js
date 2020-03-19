@@ -50,7 +50,6 @@ export default {
           return _.includes(o[state.filter.column], state.filter.value);
         });
       } else if (state.filter.type && state.filter.type == 'linear') {
-        console.log(2)
         return _.filter(state.data, function (o) {
           return o[state.filter.column] >= state.filter.value[0] && o[state.filter.column] <= state.filter.value[1]
         });
