@@ -3,7 +3,7 @@
     <v-row class="ma-0">
       <v-card class="border-radius-none sideToolbar" flat color="#222A32" width="45" dark>
         <v-card class="pa-1 border-radius-none" color="#181D25" flat>
-          <v-img class="vpress-icon" src="../assets/images/logo.svg" />
+          <v-img class="vpress-icon" :src="svgLogo" />
         </v-card>
       </v-card>
       <div class="config-wrapper">
@@ -96,6 +96,7 @@ import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
+import svgLogo from '../assets/images/logo.svg';
 
 export default {
   name: 'VpressConfig',
@@ -112,7 +113,8 @@ export default {
     return {
       activeTab: 0,
       darkTheme: false,
-      openDialog: false
+      openDialog: false,
+      svgLogo: svgLogo
     };
   },
   computed: {
@@ -124,7 +126,6 @@ export default {
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-      console.log(this.$store);
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     dataTypesCards() {
