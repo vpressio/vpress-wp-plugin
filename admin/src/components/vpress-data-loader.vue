@@ -72,6 +72,7 @@
         </v-col>
         <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
           <FilePond
+            class="filepond-wrapper"
             v-model="loadedFile"
             ref="pond"
             accepted-file-types="
@@ -82,7 +83,7 @@
             "
           />
         </v-col>
-        <v-col cols="12" v-show="data.length !== 0">
+        <v-col class="pa-0" cols="12" v-show="data.length !== 0">
           <VpressDataTable
             :dataText="dataText"
             :headers="headers"
@@ -364,6 +365,15 @@ export default {
   border-bottom: 3px solid transparent;
   padding: 0 !important;
   margin: 0 20px 0 0;
+}
+
+.filepond-wrapper {
+  border: dashed;
+  border-top-left-radius: 13px;
+  border-top-right-radius: 13px;
+  border-bottom-right-radius: 13px;
+  border-bottom-left-radius: 13px;
+  min-height: 300px;
 }
 
 .dataTableContainer{

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="width:100%">
     <v-data-table
       v-show="data.length > 0 && headers.length > 0"
       :headers="headers"

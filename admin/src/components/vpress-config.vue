@@ -1,5 +1,6 @@
 <template>
-  <v-responsive style="height:calc( 100% - 40px )">
+  <v-responsive style="min-height:100vh;width:100%;">
+    <VpressAppBar/>
     <div class="config__container">
       <v-card
         class="border-radius-none"
@@ -19,122 +20,125 @@
           />
         </v-card>
       </v-card>
-      <v-row class="ma-0" :style="{ width:`calc( 100% - ${sideBarWidth}px )`}">
-        <v-col
-          class="pa-0"
-          :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2"
-        >
-          <v-tabs
-            dark
-            class="config-tabs"
-            v-model="activeTab"
-            background-color="primary"
-            color="white"
-            grow
+      <div style="width:100%">
+        <v-row class="ma-0">
+          <v-col
+            class="pa-0"
+            :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2"
           >
-            <v-tab>
-              DATOS
-            </v-tab>
-            <v-tab :disabled="dataTypesCards.length === 0">
-              CONFIGURA
-            </v-tab>
-            <v-tab :disabled="dataTypesCards.length === 0">
-              ESTILO
-            </v-tab>
-          </v-tabs>
-        </v-col>
-        <v-col
-          class="pa-0"
-          :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10"
-        >
-          <div class="tributton-container">
-            <v-btn
-              class="left-button"
-              outlined
-              color="primary"
+            <v-tabs
+              dark
+              class="config-tabs"
+              v-model="activeTab"
+              background-color="primary"
+              color="white"
+              grow
             >
-              Guardar
-            </v-btn>
-            <v-btn
-              class="middle-button"
-              outlined
-              color="primary"
-            >
-              Compartir
-            </v-btn>
-            <v-btn
-              class="right-button"
-              outlined
-              color="primary"
-            >
-              Descargar
-            </v-btn>
-          </div>
-        </v-col>
-        <v-col
-          class="pa-0"
-          :cols="numberOfColsIftabIsNotZero"
-        >
-          <v-card>
-          <v-tabs-items v-model="activeTab">
-            <v-tab-item>
-              <VpressDataLoader
-                :tabChange.sync="activeTab"
-              />
-            </v-tab-item>
-            <v-tab-item>
-              <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                <v-row class="ma-0">
-                  <v-col>
-                    <VpressVariableCardStartContainer
-                    :variableCards="dataTypesCards"
+              <v-tab>
+                DATOS
+              </v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">
+                CONFIGURA
+              </v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">
+                ESTILO
+              </v-tab>
+            </v-tabs>
+          </v-col>
+          <v-col
+            class="pa-0"
+            :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10"
+          >
+            <div class="tributton-container">
+              <v-btn
+                class="left-button"
+                outlined
+                color="primary"
+              >
+                Guardar
+              </v-btn>
+              <v-btn
+                class="middle-button"
+                outlined
+                color="primary"
+              >
+                Compartir
+              </v-btn>
+              <v-btn
+                class="right-button"
+                outlined
+                color="primary"
+              >
+                Descargar
+              </v-btn>
+            </div>
+          </v-col>
+          <v-col
+            class="pa-0"
+            :cols="numberOfColsIftabIsNotZero"
+          >
+            <v-card flat>
+            <v-tabs-items v-model="activeTab">
+              <v-tab-item>
+                <VpressDataLoader
+                  :tabChange.sync="activeTab"
+                />
+              </v-tab-item>
+              <v-tab-item>
+                <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                  <v-row class="ma-0">
+                    <v-col>
+                      <VpressVariableCardStartContainer
+                      :variableCards="dataTypesCards"
+                      />
+                    </v-col>
+                  </v-row>
+                </VpressExpansionPanel>
+              </v-tab-item>
+              <v-tab-item>
+                <VpressExpansionPanel panelTitle="TEMA">
+                  <VpressInputControl inputName="Tema">
+                    <v-switch
+                      dense
+                      inset
+                      v-model="darkTheme"
+                      :color="isDarkThemeActivated"
+                      class="config-switch"
                     />
-                  </v-col>
-                </v-row>
-              </VpressExpansionPanel>
-            </v-tab-item>
-            <v-tab-item>
-              <VpressExpansionPanel panelTitle="TEMA">
-                <VpressInputControl inputName="Tema">
-                  <v-switch
-                    dense
-                    inset
-                    v-model="darkTheme"
-                    :color="isDarkThemeActivated"
-                    class="config-switch"
-                  />
-                </VpressInputControl>
-              </VpressExpansionPanel>
-              <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                <VpressColorSelection/>
-              </VpressExpansionPanel>
-            </v-tab-item>
-          </v-tabs-items>
-          </v-card>
-        </v-col>
-        <v-col
-          v-if="numberOfColsIftabIsNotZero !== '12'"
-          cols="2"
-          class="py-0 px-3"
-        >
-          <v-card class="fill-height">
-            <VpressVariableSlotsContainer/>
-          </v-card>
-        </v-col>
-        <v-col
-          v-if="numberOfColsIftabIsNotZero !== '12'"
-          class="py-0 pl-0 pr-3"
-          :cols="this.$vuetify.breakpoint.lgAndDown ? 7 : 8"
-        >
-          <v-card>
-            <VpressStateSubscriber />
-          </v-card>
-        </v-col>
-      </v-row>
+                  </VpressInputControl>
+                </VpressExpansionPanel>
+                <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                  <VpressColorSelection/>
+                </VpressExpansionPanel>
+              </v-tab-item>
+            </v-tabs-items>
+            </v-card>
+          </v-col>
+          <v-col
+            v-if="numberOfColsIftabIsNotZero !== '12'"
+            cols="2"
+            class="py-0 px-3"
+          >
+            <v-card class="fill-height">
+              <VpressVariableSlotsContainer/>
+            </v-card>
+          </v-col>
+          <v-col
+            v-if="numberOfColsIftabIsNotZero !== '12'"
+            class="py-0 pl-0 pr-3"
+            :cols="this.$vuetify.breakpoint.lgAndDown ? 7 : 8"
+          >
+            <v-card>
+              <VpressStateSubscriber />
+            </v-card>
+          </v-col>
+        </v-row>
+      </div>
     </div>
   </v-responsive>
 </template>
 <script>
+import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
 import VpressVariableSlotsContainer from './vpress-variable-slots-container.vue';
@@ -147,6 +151,7 @@ import VpressColorSelection from './vpress-config-color-selection.vue';
 export default {
   name: 'VpressConfig',
   components: {
+    VpressAppBar,
     VpressDataLoader,
     VpressVariableCardStartContainer,
     VpressVariableSlotsContainer,
@@ -192,9 +197,9 @@ export default {
 }
 
 .config__container {
-  display:inline-block;
-  height:100%;
-  border:solid;
+  display:flex;
+  min-height:calc(100vh - 40px);
+  width:100%;
 }
 
 .fill-height {
