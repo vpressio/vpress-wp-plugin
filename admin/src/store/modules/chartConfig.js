@@ -4,10 +4,10 @@ export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: '', slug: '' , func: ''},
-    yAxis: { title: '', type: '', slug: '', func: ''},
-    groupBy: { title: '', type: 'ordinal', slug: ''},
-    collapseBy: { title: '', type: 'linear', slug: '', func: ''},
+    xAxis: { title: '', type: '', slug: '', func: '' },
+    yAxis: { title: '', type: '', slug: '', func: '' },
+    groupBy: { title: '', type: 'ordinal', slug: '' },
+    collapseBy: { title: '', type: 'linear', slug: '', func: '' },
     decimals: 1,
     preffix: '',
     suffix: '',
@@ -73,7 +73,7 @@ export default {
       state.xAxis.type = payload ? payload.variableNameDataType : '';
       state.xAxis.func = payload ? payload.func : '';
       if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
-        state.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
+        state.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
       }
       if (!state.collapseBy || state.collapseBy.title === '') {
         if (state.xAxis && state.xAxis.type === 'linear') {
@@ -138,7 +138,7 @@ export default {
       if (payload === null) {
         state.groupBy = { title: '', type: '', slug: '' };
         if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
-          state.collapseBy = { title: '', type: '', slug: '', func:'' };
+          state.collapseBy = { title: '', type: '', slug: '', func: '' };
         }
       }
       if (payload && payload.variableNameDataType === 'ordinal') {
@@ -207,6 +207,13 @@ export default {
     }
   },
   getters: {
+    fullConfig: state => state,
+    theme: state => state.theme,
+    chart: state => state.chart,
+    labels: state => state.labels,
+    stackedBars: state => state.stackedBars,
+    availableColors: state => state.availableColors,
+    'groupBy.slug': state => state.groupBy.slug,
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
         if (
@@ -219,7 +226,7 @@ export default {
           ) {
             return { ...chart, disabled: true };
           }
-          if(chart.chart === 'spineplot' && state.collapseBy.slug === '') {
+          if (chart.chart === 'spineplot' && state.collapseBy.slug === '') {
             return { ...chart, disabled: true };
           }
           return { ...chart, disabled: false };

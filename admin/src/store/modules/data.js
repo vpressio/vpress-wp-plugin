@@ -23,6 +23,7 @@ export default {
     },
   },
   getters: {
+    data: state => state.data,
     dataType: state => {
       const result = [];
       if (state.data && state.data.length > 0) {

@@ -22,8 +22,8 @@ export default {
   },
   data() {
     return {
-      dataChart: this.$store.state.data.data,
-      chartConfig: this.$store.state.chartConfig,
+      dataChart: this.$store.getters['data/data'],
+      chartConfig: this.$store.getters['chartConfig/fullConfig'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
     };
   },

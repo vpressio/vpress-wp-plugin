@@ -45,13 +45,14 @@ export default {
     };
   },
   created() {
-    this.labels = this.$store.state.chartConfig.labels;
-    this.stackedBars = this.$store.state.chartConfig.stackedBars;
+    this.labels = this.$store.getters['chartConfig/labels'];
+    this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
   },
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.state.chartConfig.chart === 'bars' && this.$store.state.chartConfig.groupBy.slug
+        this.$store.getters['chartConfig/chart'] === 'bars' &&
+        this.$store.getters['chartConfig/groupBy.slug']
       );
     }
   },
@@ -81,7 +82,7 @@ export default {
   line-height: initial;
 }
 
-.disabled-graph-image{
+.disabled-graph-image {
   filter: opacity(30%);
 }
 </style>

@@ -1,10 +1,10 @@
 <template lang="pug">
-  .chart-container.center-align(:class="`${chartConfig.theme}-themed`")
+  .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
         h2.generated-title.mb-0 {{ generatedTitle }}
       .col-12.py-0
-        h3.generated-subtitle.mb-0 {{ chartConfig.subtitle }}
+        h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
     #empty-chart.empty-chart
       .vertical-align
@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     generatedTitle() {
-      return this.chartConfig.title;
+      return this.chartConfig ? this.chartConfig.title : 'Título';
     },
     legendDisplay() {
       const vm = this;
