@@ -4,10 +4,10 @@ export default {
   namespaced: true,
   state: {
     chart: 'bars',
-    xAxis: { title: '', type: '', slug: '' , func: ''},
-    yAxis: { title: '', type: '', slug: '', func: ''},
-    groupBy: { title: '', type: 'ordinal', slug: ''},
-    collapseBy: { title: '', type: 'linear', slug: '', func: ''},
+    xAxis: { title: '', type: '', slug: '', func: '' },
+    yAxis: { title: '', type: '', slug: '', func: '' },
+    groupBy: { title: '', type: 'ordinal', slug: '' },
+    collapseBy: { title: '', type: 'linear', slug: '', func: '' },
     decimals: 1,
     preffix: '',
     suffix: '',
@@ -154,7 +154,7 @@ export default {
           ) {
             return { ...chart, disabled: true };
           }
-          if(chart.chart === 'spineplot' && state.collapseBy.slug === '') {
+          if (chart.chart === 'spineplot' && state.collapseBy.slug === '') {
             return { ...chart, disabled: true };
           }
           return { ...chart, disabled: false };
