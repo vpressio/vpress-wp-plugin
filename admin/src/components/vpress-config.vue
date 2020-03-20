@@ -1,16 +1,17 @@
 <template>
-  <v-responsive style="min-height:100vh;width:100%;">
+  <v-responsive style="max-height:100vh;width:100%;flex-wrap:wrap">
     <VpressAppBar/>
     <div class="config__container">
       <v-card
-        class="border-radius-none"
+        tile
         flat
         color="#222A32"
         :width="`${sideBarWidth}`"
         dark
       >
         <v-card
-          class="pa-1 border-radius-none"
+          tile
+          class="pa-1"
           color="#181D25"
           flat
         >
@@ -77,41 +78,41 @@
             class="pa-0"
             :cols="numberOfColsIftabIsNotZero"
           >
-            <v-card flat>
-            <v-tabs-items v-model="activeTab">
-              <v-tab-item>
-                <VpressDataLoader
-                  :tabChange.sync="activeTab"
-                />
-              </v-tab-item>
-              <v-tab-item>
-                <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                  <v-row class="ma-0">
-                    <v-col>
-                      <VpressVariableCardStartContainer
-                      :variableCards="dataTypesCards"
+            <v-card>
+              <v-tabs-items v-model="activeTab">
+                <v-tab-item>
+                  <VpressDataLoader
+                    :tabChange.sync="activeTab"
+                  />
+                </v-tab-item>
+                <v-tab-item>
+                  <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                    <v-row class="ma-0">
+                      <v-col>
+                        <VpressVariableCardStartContainer
+                        :variableCards="dataTypesCards"
+                        />
+                      </v-col>
+                    </v-row>
+                  </VpressExpansionPanel>
+                </v-tab-item>
+                <v-tab-item>
+                  <VpressExpansionPanel panelTitle="TEMA">
+                    <VpressInputControl inputName="Tema">
+                      <v-switch
+                        dense
+                        inset
+                        v-model="darkTheme"
+                        :color="isDarkThemeActivated"
+                        class="config-switch"
                       />
-                    </v-col>
-                  </v-row>
-                </VpressExpansionPanel>
-              </v-tab-item>
-              <v-tab-item>
-                <VpressExpansionPanel panelTitle="TEMA">
-                  <VpressInputControl inputName="Tema">
-                    <v-switch
-                      dense
-                      inset
-                      v-model="darkTheme"
-                      :color="isDarkThemeActivated"
-                      class="config-switch"
-                    />
-                  </VpressInputControl>
-                </VpressExpansionPanel>
-                <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                  <VpressColorSelection/>
-                </VpressExpansionPanel>
-              </v-tab-item>
-            </v-tabs-items>
+                    </VpressInputControl>
+                  </VpressExpansionPanel>
+                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                    <VpressColorSelection/>
+                  </VpressExpansionPanel>
+                </v-tab-item>
+              </v-tabs-items>
             </v-card>
           </v-col>
           <v-col
@@ -230,10 +231,6 @@ export default {
   border-top-right-radius: 13px !important;
 }
 
-.border-radius-none {
-  border-radius: 0px !important;
-}
-
 * >>> .config-tabs
 > .v-tabs-bar {
   height: 46px;
@@ -298,9 +295,8 @@ export default {
 }
 
 .limit-scroll {
-  max-height: 60vh;
   overflow-y: scroll;
-  overflow-x: hidden;
+  max-height:85vh
 }
 
 @media only screen and (max-width: 960px) {

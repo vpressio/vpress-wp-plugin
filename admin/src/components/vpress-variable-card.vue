@@ -7,7 +7,8 @@
     @dragend.prevent="dragEnd"
     @dragover.stop
     @drop.stop.self="drop"
-    class="border-radius-none card-flex pr-5 pb-2"
+    tile
+    class="pr-5 pb-2"
     :class="{ 'pr-5': showOperationButton }"
     color="#9292A9"
     dark
@@ -141,9 +142,6 @@ export default {
 };
 </script>
 <style scoped>
-.card-flex {
-  height:100%;
-}
 
 .dataTypeTitle {
   font-weight: 500;

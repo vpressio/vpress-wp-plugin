@@ -3,7 +3,7 @@
     :ref="variableCardsContainerId"
     :id="variableCardsContainerId"
     flat
-    class="py-3 px-3"
+    class="py-3 px-3 cards--container"
   >
     <VpressVariableCard
       class="mb-3"
@@ -43,3 +43,9 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.cards--container {
+  max-height: 77vh;
+  overflow-y: scroll;
+}
+</style>

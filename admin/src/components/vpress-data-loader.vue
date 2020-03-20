@@ -3,7 +3,7 @@
       <v-row class="ma-0">
         <v-toolbar full-width flat>
           <v-btn
-            color="primary"
+            color="#b3aed1"
             :class="{selectedUploadType: uploadType === 'upload'}"
             class="uploadTypeButton"
             text
@@ -12,7 +12,7 @@
             Sube tus datos
           </v-btn>
           <v-btn
-            color="primary"
+            color="#b3aed1"
             :class="{selectedUploadType: uploadType === 'paste'}"
             class="uploadTypeButton"
             text
@@ -30,7 +30,7 @@
           </h3>
         </v-col>
         <v-col
-          cols="3"
+          cols="2"
           class="pt-1 pb-0"
           v-for="(dataSet, dataSetIndex) in testDatasets"
           :key="dataSetIndex"
@@ -339,6 +339,7 @@ export default {
 .selectedUploadType {
   border-bottom: solid 3px #382E82 !important;
   border-radius: 0px;
+  color:#382E82 !important;
 }
 
 .uploadTypeButton {
