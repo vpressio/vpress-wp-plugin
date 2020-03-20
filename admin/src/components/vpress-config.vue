@@ -49,7 +49,7 @@
             class="pa-0"
             :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10"
           >
-            <div class="tributton-container">
+            <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn
                 class="left-button"
                 outlined

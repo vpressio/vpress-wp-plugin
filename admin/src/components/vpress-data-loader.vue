@@ -23,78 +23,84 @@
           <v-spacer/>
         </v-toolbar>
       </v-row>
-      <v-row
-        v-show="uploadType === 'upload'"
-        xs12
-        class="mx-0 mb-0 mt-3"
-      >
-      <v-row class="ma-0">
+      <v-row class="ma-0" v-show="uploadType === 'upload'">
         <v-col class="py-0" cols="12">
           <h3>
             DATOS DE PRUEBA
           </h3>
         </v-col>
-        <v-col class="pt-1 pb-0">
-          <v-btn
-            class="mr-4"
-            v-for="(dataSet, dataSetIndex) in testDatasets"
-            :key="dataSetIndex"
+        <v-col
+          cols="3"
+          class="pt-1 pb-0"
+          v-for="(dataSet, dataSetIndex) in testDatasets"
+          :key="dataSetIndex"
+        >
+          <v-card
+            dark
+            class="mr-4 mb-2"
             color="primary"
             @click="selectTestDataset(dataSet.name)"
             :loading="dataSetName === dataSet.name  && loading"
           >
-            {{ dataSet.name }}
-          </v-btn>
-          <v-divider class="mt-4"/>
+            <v-card-title class="px-3 pt-0 pb-3" style="font-size:1rem">
+              Datos de prueba
+            </v-card-title>
+            <v-card-subtitle class="px-3 pb-2" style="line-height:1">
+              {{ dataSet.name.replace(/\.[^/.]+$/, "") }}
+            </v-card-subtitle>
+          </v-card>
         </v-col>
-        </v-row>
-        <v-col class="dataTableContainer" cols="12">
-          <v-spacer/>
-          <v-btn
-            outlined
-            rounded
-            @click="cleanDataAndHeaders"
-          >
-            Limpiar
-          </v-btn>
-          <v-btn
-            :disabled="data.length === 0"
+      </v-row>
+      <v-row
+        xs12
+        class="ma-0"
+      >
+        <v-col cols="12">
+          <v-divider class="mb-4"/>
+          <div class="dataTableContainer">
+            <v-spacer/>
+            <v-btn
+              class="px-5"
+              height="50"
+              rounded
+              outlined
+              @click="cleanDataAndHeaders"
+              :disabled="data.length === 0"
+            >
+              Limpiar
+            </v-btn>
+            <v-btn
+              :disabled="data.length === 0"
+              height="50"
+              color="primary"
+              class="float-right ml-1 px-5"
+              @click="saveData()"
+              rounded
+            >
+                Siguiente
+              <v-icon class="ml-3">
+                mdi-arrow-right
+              </v-icon>
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row class="ma-0" v-if="data.length === 0 && uploadType === 'upload'">
+        <v-col cols="12" >
+          <VpressFilepond :file.sync="files"/>
+        </v-col>
+        <v-col>
+          <v-progress-linear
+            v-show="computedFile.length >= 1"
+            indeterminate
             color="primary"
-            class="float-right ml-1"
-            @click="saveData()"
-            rounded
-          >
-              Siguiente
-            <v-icon class="ml-3">
-              mdi-arrow-right
-            </v-icon>
-          </v-btn>
-        </v-col>
-        <v-col cols="12" v-show="data.length === 0 && uploadType === 'upload'">
-          <FilePond
-            class="filepond-wrapper"
-            v-model="loadedFile"
-            ref="pond"
-            accepted-file-types="
-              text/dbf
-              text/csv,
-              application/vnd.ms-excel,
-              application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-            "
-          />
-        </v-col>
-        <v-col class="pa-0" cols="12" v-show="data.length !== 0">
-          <VpressDataTable
-            :dataText="dataText"
-            :headers="headers"
-            :data="data"
           />
         </v-col>
       </v-row>
       <v-row
-        v-show="uploadType === 'paste'"
+        v-show="uploadType === 'paste' && data.length === 0"
         xs12
-        class="mt-3"
+        class="ma-0"
       >
         <v-col v-show="data.length === 0">
           <v-textarea
@@ -106,72 +112,46 @@
             class="pl-4 pt-4"
           ></v-textarea>
           <v-btn
+            height="50"
+            rounded
             :disabled="!pastedData"
             color="primary"
-            class="float-right"
+            class="px-5 float-right"
             @click="parsePastedData()"
           >
             Procesar
           </v-btn>
         </v-col>
-        <v-col v-show="data.length !== 0">
-          <v-row>
-            <v-spacer/>
-            <v-btn
-              outlined
-              rounded
-              @click="cleanDataAndHeaders"
-            >
-              Limpiar
-            </v-btn>
-            <v-btn
-              :disabled="data.length === 0"
-              color="primary"
-              class="float-right ml-1"
-              @click="saveData()"
-              rounded
-            >
-                Siguiente
-              <v-icon class="ml-3">
-                mdi-arrow-right
-              </v-icon>
-            </v-btn>
-          </v-row>
-          <v-row>
-            <VpressDataTable
-              :dataText="dataText"
-              :headers="headers"
-              :data="data"
-            />
-          </v-row>
+      </v-row>
+      <v-row class="ma-0" v-show="data.length !== 0">
+        <v-col class="pa-0" cols="12">
+          <VpressDataTable
+            :dataText="dataText"
+            :headers="headers"
+            :data="data"
+          />
+        </v-col>
+        <v-col>
+          <v-progress-linear
+            v-show="loading"
+            indeterminate
+            color="primary"
+          />
         </v-col>
       </v-row>
-      <v-row v-show="loading" xs12>
-        <v-progress-linear
-          indeterminate
-          color="primary"
-        />
-      </v-row>
-      </div>
+    </div>
 </template>
 <script>
-/* eslint-disable guard-for-in */
-/* eslint-disable no-loop-func */
-/* eslint-disable vue/valid-v-for */
-/* eslint-disable no-restricted-syntax */
-import VpressDataTable from './vpress-data-table';
-import vueFilePond from 'vue-filepond';
-import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm'; // Import plugins
+import VpressFilepond from './vpress-filepond.vue';
+import VpressDataTable from './vpress-data-table.vue';
 import { FReader } from '../plugins/fileReader';
 import { storage } from '../plugins/firebase';
-import 'filepond/dist/filepond.min.css';
 
 export default {
   name: 'VpressDataLoader',
   components: {
-    // Create FilePond component
-    FilePond: vueFilePond(FilePondPluginFileValidateType),
-    VpressDataTable,
+    VpressFilepond,
+    VpressDataTable
   },
   props: ['tabChange'],
   data() {
@@ -183,9 +163,9 @@ export default {
       headers: [],
       data: [],
       pastedData: '',
-      loadedFile: [],
       testDatasets: [],
-      dataSetDir: '/testDatasets'
+      dataSetDir: '/testDatasets',
+      files: []
     };
   },
   created() {
@@ -195,13 +175,12 @@ export default {
     /** If data-table's data should be displayed in CSV text */
     dataText() {
       return FReader.JSONtoCSV(this.data);
-    }
-  },
-  watch: {
-    loadedFile(oldFileArray, newFileArray) {
-      if (oldFileArray[0] !== newFileArray[0] && oldFileArray[0]) {
-        this.loadFile();
+    },
+    computedFile() {
+      if(this.files.length >= 1){
+        this.loadFile(this.files[0].file);
       }
+      return this.files
     }
   },
   methods: {
@@ -227,9 +206,9 @@ export default {
       this.uploadType = uploadType;
     },
     cleanDataAndHeaders() {
-      this.data = [];
-      this.headers = [];
-      this.$refs.pond.removeFile();
+      this.data= [];
+      this.headers= [];
+      this.files= []
       this.$store.dispatch('data/set', this.data);
     },
     /**
@@ -356,6 +335,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+
 .selectedUploadType {
   border-bottom: solid 3px #382E82 !important;
   border-radius: 0px;
@@ -367,14 +347,6 @@ export default {
   margin: 0 20px 0 0;
 }
 
-.filepond-wrapper {
-  border: dashed;
-  border-top-left-radius: 13px;
-  border-top-right-radius: 13px;
-  border-bottom-right-radius: 13px;
-  border-bottom-left-radius: 13px;
-  min-height: 300px;
-}
 
 .dataTableContainer{
   display:flex;
