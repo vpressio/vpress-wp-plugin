@@ -78,7 +78,7 @@
             class="pa-0"
             :cols="numberOfColsIftabIsNotZero"
           >
-            <v-card>
+            <v-card flat>
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
                   <VpressDataLoader
@@ -116,18 +116,20 @@
             </v-card>
           </v-col>
           <v-col
-            v-if="numberOfColsIftabIsNotZero !== '12'"
+            v-show="activeTab === 1"
+            style="transition: opacity 1s ease-out;"
             cols="2"
-            class="py-0 px-3"
+            class="py-0 pl-3 pr-0"
           >
             <v-card class="fill-height">
               <VpressVariableSlotsContainer/>
             </v-card>
           </v-col>
           <v-col
-            v-if="numberOfColsIftabIsNotZero !== '12'"
-            class="py-0 pl-0 pr-3"
-            :cols="this.$vuetify.breakpoint.lgAndDown ? 7 : 8"
+            v-show="numberOfColsIftabIsNotZero !== '12'"
+            class="py-0 pr-2 pl-4"
+            :lg="activeTab === 1 ? 7 : 9"
+            :xl="activeTab === 1 ? 8 : 10"
           >
             <v-card>
               <VpressStateSubscriber />
@@ -150,7 +152,7 @@ import VpressColorSelection from './vpress-config-color-selection.vue';
 
 
 export default {
-  name: 'VpressConfig',
+  name: 'Vpress',
   components: {
     VpressAppBar,
     VpressDataLoader,

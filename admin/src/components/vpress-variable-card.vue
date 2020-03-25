@@ -110,7 +110,7 @@ export default {
   },
   created() {
     if(this.inSlot) {
-      this.$store.dispatch(`chartConfig/${this.slotId}`, this.columnData);
+      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { name:  this.slotId, body: this.columnData });
     }
   },
   methods: {
@@ -125,6 +125,7 @@ export default {
       if(target.parentNode.id !== 'cardStartContainer') {
         const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
          this.$emit('update:variablesInSlot', arrayWithoutThisCard);
+         this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { name: this.slotId, body:{ variableName: '', variableNameDataType: '', func:'' }});
          this.$store.dispatch('data/setFilter', {});
       } 
       // else {

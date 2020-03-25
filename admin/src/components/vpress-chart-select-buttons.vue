@@ -23,14 +23,14 @@
         </v-btn>
       </v-col>
     </v-row>
-    <!-- <v-row>
+    <v-row>
       <v-col>
         <v-btn @click="toggleLabels">ETIQUETAS</v-btn>
         <v-btn v-show="chartIsBarsGrouped" @click="toggleBarsType">{{
           stackedBars ? 'BARRAS AGRUPADAS' : 'BARRAS APILADAS'
         }}</v-btn>
       </v-col>
-    </v-row> -->
+    </v-row>
   </v-card>
 </template>
 <script>

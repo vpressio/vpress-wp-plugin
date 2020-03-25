@@ -1,21 +1,13 @@
 <template>
-  <VpressConfig/>
+  <Vpress/>
 </template>
 <script>
-import VpressConfig from '../components/vpress-config.vue';
+import Vpress from '../components/vpress.vue';
 
 export default {
   name: 'Demo',
   components: {
-    VpressConfig
+    Vpress
   },
 };
 </script>
-<style lang="scss">
-// .demo-container {
-//   border:solid;
-//   width:100%;
-//   height:100vh;
-//   flex-wrap:wrap;
-// }
-</style>

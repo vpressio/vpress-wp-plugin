@@ -32,31 +32,31 @@ export default {
     return {
       slots: [
         {
-          slotId:"UPDATE_X_AXIS",
+          slotId:"xAxis",
           icon:"mdi-view-sequential",
           label:"Columnas",
-          maxStack: 1,
+          maxStack: 2,
           filter: false
         },
         {
-          slotId:"UPDATE_Y_AXIS",
+          slotId:"yAxis",
           icon:"mdi-view-parallel",
           label:"Filas",
-          maxStack: 1,
+          maxStack: 2,
           filter: false
         },
         {
-          slotId:"UPDATE_GROUP_BY",
+          slotId:"aggregation",
           icon:" mdi-palette-outline",
           label:"Colores",
           maxStack: 1,
           filter: false
         },
         {
-          slotId:"Filter",
+          slotId:"filter",
           icon:"mdi-tune",
           label: "Filtrar",
-          maxStack: 1,
+          maxStack: 3,
           filter: true
         }
       ]
