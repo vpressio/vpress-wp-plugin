@@ -1,32 +1,15 @@
 <template>
   <v-responsive style="max-height:100vh;width:100%;flex-wrap:wrap">
-    <VpressAppBar/>
+    <VpressAppBar />
     <div class="config__container">
-      <v-card
-        tile
-        flat
-        color="#222A32"
-        :width="`${sideBarWidth}`"
-        dark
-      >
-        <v-card
-          tile
-          class="pa-1"
-          color="#181D25"
-          flat
-        >
-          <v-img
-            class="vpress-icon"
-            src="../assets/images/logo.svg"
-          />
+      <v-card tile flat color="#222A32" :width="`${sideBarWidth}`" dark>
+        <v-card tile class="pa-1" color="#181D25" flat>
+          <v-img class="vpress-icon" src="../assets/images/logo.svg" />
         </v-card>
       </v-card>
       <div style="width:100%">
         <v-row class="ma-0">
-          <v-col
-            class="pa-0"
-            :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2"
-          >
+          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
             <v-tabs
               dark
               class="config-tabs"
@@ -35,63 +18,33 @@
               color="white"
               grow
             >
-              <v-tab>
-                DATOS
-              </v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">
-                CONFIGURA
-              </v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">
-                ESTILO
-              </v-tab>
+              <v-tab>DATOS</v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">CONFIGURA</v-tab>
+              <v-tab :disabled="dataTypesCards.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
-          <v-col
-            class="pa-0"
-            :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10"
-          >
+          <v-col class="pa-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn
-                class="left-button"
-                outlined
-                color="primary"
-              >
-                Guardar
-              </v-btn>
-              <v-btn
-                class="middle-button"
-                outlined
-                color="primary"
-              >
-                Compartir
-              </v-btn>
-              <v-btn
-                class="right-button"
-                outlined
-                color="primary"
-              >
-                Descargar
-              </v-btn>
+              <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
+              <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
+              <v-btn class="right-button" outlined color="primary">Descargar</v-btn>
             </div>
           </v-col>
-          <v-col
-            class="pa-0"
-            :cols="numberOfColsIftabIsNotZero"
-          >
+          <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
             <v-card flat>
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader
-                    :tabChange.sync="activeTab"
-                  />
+                  <VpressDataLoader :tabChange.sync="activeTab" />
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                     <v-row class="ma-0">
                       <v-col>
-                        <VpressVariableCardStartContainer
-                        :variableCards="dataTypesCards"
-                        />
+                        <v-img class="db-icon" src="../assets/images/db1.svg" />
+                        <span class="db-titulo">Nombre de la Base de Datos</span>
+                        <hr class="v-divider theme--light hr-divider" />
+                        <p class="ordinal-lineal">Ordinal</p>
+                        <VpressVariableCardStartContainer :variableCards="dataTypesCards" />
                       </v-col>
                     </v-row>
                   </VpressExpansionPanel>
@@ -109,7 +62,7 @@
                     </VpressInputControl>
                   </VpressExpansionPanel>
                   <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                    <VpressColorSelection/>
+                    <VpressColorSelection />
                   </VpressExpansionPanel>
                 </v-tab-item>
               </v-tabs-items>
@@ -122,7 +75,7 @@
             class="py-0 pl-3 pr-0"
           >
             <v-card class="fill-height">
-              <VpressVariableSlotsContainer/>
+              <VpressVariableSlotsContainer />
             </v-card>
           </v-col>
           <v-col
@@ -150,7 +103,6 @@ import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
 
-
 export default {
   name: 'Vpress',
   components: {
@@ -168,12 +120,12 @@ export default {
       activeTab: 0,
       darkTheme: false,
       openDialog: false,
-      sideBarWidth:45
+      sideBarWidth: 45
     };
   },
   computed: {
     numberOfColsIftabIsNotZero() {
-      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2
+      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2;
       const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
 
       return numberOfCols;
@@ -182,31 +134,28 @@ export default {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
       return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
     },
-    dataTypesCards(){
-        return this.$store.getters['data/dataType'];
-    },
-
+    dataTypesCards() {
+      return this.$store.getters['data/dataType'];
+    }
   },
-  methods: {
-  }
-
+  methods: {}
 };
 </script>
 <style  scoped>
-
 .vpress-icon {
-  width:40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
+  margin: 3px;
 }
 
 .config__container {
-  display:flex;
-  min-height:calc(100vh - 40px);
-  width:100%;
+  display: flex;
+  min-height: calc(100vh - 40px);
+  width: 100%;
 }
 
 .fill-height {
-  height:100%
+  height: 100%;
 }
 
 .tributton-container {
@@ -233,14 +182,14 @@ export default {
   border-top-right-radius: 13px !important;
 }
 
-* >>> .config-tabs
-> .v-tabs-bar {
+* >>> .config-tabs > .v-tabs-bar {
   height: 46px;
 }
-* >>> .config-tabs
-> .v-slide-group
-> .v-slide-group__wrapper
-> .v-slide-group__content {
+*
+  >>> .config-tabs
+  > .v-slide-group
+  > .v-slide-group__wrapper
+  > .v-slide-group__content {
   margin-top: 5px;
 }
 
@@ -250,7 +199,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972AC;
+  background-color: #7972ac;
 }
 
 *
@@ -263,32 +212,27 @@ export default {
   display: none;
 }
 
-* >>> .config-tabs
-> .v-slide-group
-> .v-slide-group__wrapper
-> .v-slide-group__content
-> .v-tab {
-  min-width:0px;
+*
+  >>> .config-tabs
+  > .v-slide-group
+  > .v-slide-group__wrapper
+  > .v-slide-group__content
+  > .v-tab {
+  min-width: 0px;
   font-size: 0.8rem;
-  padding:0;
+  padding: 0;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-input__slot {
+* >>> .config-text-field > .v-input__control > .v-input__slot {
   min-height: 30px;
   margin: 0;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-text-field__details {
+* >>> .config-text-field > .v-input__control > .v-text-field__details {
   display: none;
 }
 
-* >>> .config-switch
-> .v-input__control
-> .v-messages {
+* >>> .config-switch > .v-input__control > .v-messages {
   display: none;
 }
 
@@ -298,17 +242,48 @@ export default {
 
 .limit-scroll {
   overflow-y: scroll;
-  max-height:85vh
+  max-height: 85vh;
+}
+
+.v-application .pa-0 {
+  padding: 0px !important;
+  box-shadow: 8px -8px 10px -6px rgba(0, 0, 0, 0.15);
+}
+
+.ordinal-lineal {
+  font-size: 1rem;
+  color: #382e82;
+  font-weight: 500;
+  margin: 0 0 0 16px;
+}
+
+.hr-divider {
+  width: 91%;
+  margin-left: 15px;
+  margin-bottom: 10px;
+}
+
+.db-icon {
+  width: 17px;
+  margin: 4px 10px 13px 16px;
+  display: inline-flex;
+  padding-bottom: 1px;
+}
+
+.db-titulo {
+  color: #737373;
+  font-size: 1rem;
+  font-family: Roboto;
 }
 
 @media only screen and (max-width: 960px) {
-  * >>> .config-tabs
-  > .v-slide-group
-  > .v-slide-group__wrapper
-  > .v-slide-group__content
-  > .v-tab {
-  font-size: 0.68rem;
+  *
+    >>> .config-tabs
+    > .v-slide-group
+    > .v-slide-group__wrapper
+    > .v-slide-group__content
+    > .v-tab {
+    font-size: 0.68rem;
+  }
 }
-}
-
 </style>

@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class=" pa-5 vpress-filepond"
+    class="pa-5 vpress-filepond"
     hover
     flat
     height="400"
@@ -19,14 +19,10 @@
           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         "
       />
-      <v-label>
-        {{ fileTypeDynamicMessage }}
-      </v-label>
+      <v-label>{{ fileTypeDynamicMessage }}</v-label>
     </div>
     <div v-show="!showFilepond" class="vpress-filepond--content">
-      <v-card-title class="vpress-filepond--instruction">
-        Arrastra y suelta tus datos.
-      </v-card-title>
+      <v-card-title class="vpress-filepond--instruction">Arrastra y suelta tus datos</v-card-title>
       <v-btn
         class="my-5"
         rounded
@@ -35,12 +31,10 @@
         height="50"
         @click="activateFileInput"
       >
-        <v-icon left>mdi-file-upload-outline</v-icon> Subir datos
+        <v-icon class="icon-upload" left>mdi-file-upload-outline</v-icon>Subir datos
       </v-btn>
-      <input v-show="false" type="file"  ref="fileInput" id="fileInput" @input="fileInputAction">
-      <v-label>
-        Formatos permitidos xls - xlsx - csv
-      </v-label>
+      <input v-show="false" type="file" ref="fileInput" id="fileInput" @input="fileInputAction" />
+      <v-label>Formatos permitidos xls - xlsx - csv</v-label>
     </div>
   </v-card>
 </template>
@@ -52,7 +46,7 @@ import 'filepond/dist/filepond.min.css';
 export default {
   name: 'VpressFileDrop',
   components: {
-    FilePond: vueFilePond(FilePondPluginFileValidateType),
+    FilePond: vueFilePond(FilePondPluginFileValidateType)
   },
   props: ['file'],
   data() {
@@ -60,7 +54,7 @@ export default {
       inPondFiles: [],
       showFilepond: false,
       fileTypeMessage: ''
-    }
+    };
   },
   computed: {
     fileTypeDynamicMessage() {
@@ -69,38 +63,40 @@ export default {
   },
   methods: {
     handleFile(file) {
-      this.$refs.pond.addFile(file)
-        .then( file =>{
+      this.$refs.pond
+        .addFile(file)
+        .then(file => {
           this.$emit('update:file', [file]);
         })
-        .catch( () =>{
-          this.fileTypeMessage = 'Hubo un error al intentar abrir este archivo.'
+        .catch(() => {
+          this.fileTypeMessage =
+            'Hubo un error al intentar abrir este archivo.';
           this.showFilepond = true;
-        })
+        });
     },
     activateFileInput() {
-      this.$refs.fileInput.click()
+      this.$refs.fileInput.click();
     },
     fileInputAction(e) {
-      const { target } = e
+      const { target } = e;
       this.handleFile(target.files[0]);
     },
     dropFile(e) {
       const { dataTransfer } = e;
-      this.handleFile(dataTransfer.files[0])
+      this.handleFile(dataTransfer.files[0]);
     },
     hideFilepond() {
       this.showFilepond = false;
     }
   }
-}
+};
 </script>
 <style lang="scss" scoped>
-
-.vpress-filepond{
-  border:dashed #C3C3C3;
-  display:flex;align-items:center;
-  justify-content:center;
+.vpress-filepond {
+  border: dashed #c3c3c3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-top-left-radius: 30px !important ;
   border-top-right-radius: 30px !important;
   border-bottom-right-radius: 30px !important;
@@ -108,18 +104,24 @@ export default {
 }
 
 .vpress-filepond--content {
-  display:flex;
-  flex-direction:column;
-  align-items: center
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.vpress-filepond--instruction{
+.vpress-filepond--instruction {
   font-size: 1.8rem;
-  color: #42454C;
-  font-weight: 400;
+  color: #42454c;
+  font-weight: 600;
+  padding-bottom: 0px;
+}
+.icon-upload {
+  font-size: 25px;
+  padding-left: 21px;
+  padding-right: 10px;
 }
 
 .filepond--width {
-  width:80%
+  width: 80%;
 }
 </style>

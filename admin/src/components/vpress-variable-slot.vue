@@ -1,22 +1,8 @@
 <template>
   <v-card flat class="ma-1" @drop.stop.self="drop">
-    <v-icon
-      color="secondary"
-      dense
-    >
-      {{ icon }}
-    </v-icon>
-    <span>
-      {{ label }}
-    </span>
-    <v-card
-      min-height="50"
-      outlined
-      @dragover.prevent
-      @drop.stop.self="drop"
-      light
-      class="pa-2"
-    >
+    <v-icon color="secondary" dense>{{ icon }}</v-icon>
+    <span>{{ label }}</span>
+    <v-card min-height="50" outlined @dragover.prevent @drop.stop.self="drop" light class="pa-2">
       <VpressVariableCard
         :id="variable.id"
         class="mb-1"
@@ -33,11 +19,18 @@
         :inSlot="true"
         :slotId="slotId"
       />
-      <p class="slot_placeholder my-2" v-if="variablesInSlot.length < maxStack" @drop.stop.self="drop">
-        Números o categorías aquí.
-      </p>
+      <p
+        class="slot_placeholder my-2"
+        v-if="variablesInSlot.length < maxStack"
+        @drop.stop.self="drop"
+      >Números o categorías aquí.</p>
     </v-card>
-    <vpress-data-filter v-if="openFilterDialog" :column="filterColumn" :type="filterType" :openFilterDialog.sync="openFilterDialog" />
+    <vpress-data-filter
+      v-if="openFilterDialog"
+      :column="filterColumn"
+      :type="filterType"
+      :openFilterDialog.sync="openFilterDialog"
+    />
   </v-card>
 </template>
 <script>
@@ -66,9 +59,9 @@ export default {
       addMargin: false,
       filterColumn: '',
       filterType: ''
-    }
+    };
   },
-  computed:{
+  computed: {
     variablesToRender() {
       return this.variablesInSlot;
     }
@@ -76,10 +69,14 @@ export default {
   methods: {
     drop(event) {
       const { dataTransfer } = event;
-      const columnDataToTransferInString = dataTransfer.getData('columnDataToTransferInString');
-      const columnDataToTransferInObject = JSON.parse(columnDataToTransferInString);
+      const columnDataToTransferInString = dataTransfer.getData(
+        'columnDataToTransferInString'
+      );
+      const columnDataToTransferInObject = JSON.parse(
+        columnDataToTransferInString
+      );
       this.addVariableToSlot(columnDataToTransferInObject);
-      if(this.filter) {
+      if (this.filter) {
         this.filterData(
           columnDataToTransferInObject.variableName,
           columnDataToTransferInObject.variableNameDataType
@@ -103,27 +100,26 @@ export default {
       // ) this.addMargin = true;
     },
     addVariableToSlot(columnData) {
-        const variableArray = [...this.variablesInSlot];
-        const dataInSlot = variableArray.reduce(
-            (data, variable, variableIndex) => {
-              if (variable.id === columnData.id) {
-                data.includesId = true;
-                data.indexIncludedId = variableIndex;
-              }
-              return data
-            },
-            {includesId: false, indexIncludedId: -1}
-          );
-        if (dataInSlot.includesId){
-          variableArray.splice(dataInSlot.indexIncludedId, 1);
-          variableArray.unshift(columnData);
-        } else {
-          if(this.variablesInSlot.length < this.maxStack){
-            variableArray.push(columnData);
+      const variableArray = [...this.variablesInSlot];
+      const dataInSlot = variableArray.reduce(
+        (data, variable, variableIndex) => {
+          if (variable.id === columnData.id) {
+            data.includesId = true;
+            data.indexIncludedId = variableIndex;
           }
+          return data;
+        },
+        { includesId: false, indexIncludedId: -1 }
+      );
+      if (dataInSlot.includesId) {
+        variableArray.splice(dataInSlot.indexIncludedId, 1);
+        variableArray.unshift(columnData);
+      } else {
+        if (this.variablesInSlot.length < this.maxStack) {
+          variableArray.push(columnData);
         }
-        this.variablesInSlot = variableArray;
-      
+      }
+      this.variablesInSlot = variableArray;
     },
     filterData(column, type) {
       this.showOperationButton = false;
@@ -132,7 +128,7 @@ export default {
       this.openFilterDialog = true;
     }
   }
-}
+};
 </script>
 <style lang="scss" scoped>
 .slot_placeholder {
