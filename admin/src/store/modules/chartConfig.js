@@ -84,7 +84,7 @@ export default {
 
       // If the other axis include the same variable it will reset collpase field.
       if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
-        state.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
+        state.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
       }
 
       // If collapse is not been set. collapseby will be the axis with the linear data type
@@ -164,7 +164,7 @@ export default {
 
         // if both are ordinal reset collapse by
         if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
-          state.collapseBy = { title: '', type: '', slug: '', func:'' };
+          state.collapseBy = { title: '', type: '', slug: '', func: '' };
         }
       }
 
@@ -282,6 +282,13 @@ export default {
     }
   },
   getters: {
+    fullConfig: state => state,
+    theme: state => state.theme,
+    chart: state => state.chart,
+    labels: state => state.labels,
+    stackedBars: state => state.stackedBars,
+    availableColors: state => state.availableColors,
+    'groupBy.slug': state => state.groupBy.slug,
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
         if (
@@ -294,7 +301,7 @@ export default {
           ) {
             return { ...chart, disabled: true };
           }
-          if(chart.chart === 'spineplot' && state.collapseBy.slug === '') {
+          if (chart.chart === 'spineplot' && state.collapseBy.slug === '') {
             return { ...chart, disabled: true };
           }
           return { ...chart, disabled: false };

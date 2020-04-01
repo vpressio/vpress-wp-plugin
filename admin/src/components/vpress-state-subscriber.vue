@@ -1,29 +1,46 @@
 <template>
-  <div>
-    <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <ChartComponent
-      :data="chartData"
-      :chartConfig="chartConfig"
-      @chart_loaded="onChartIsLoaded"
-    ></ChartComponent>
-  </div>
+  <v-row>
+    <v-col
+      xl="2"
+      lg="3"
+      class="px-2 py-0"
+    >
+      <v-card flat>
+        <vpressSlotGroup/>
+      </v-card>
+    </v-col>
+    <v-col xl="10" lg="9" class="pl-0 pr-5 py-0">
+      <v-card>
+        <VpressChartSelectButtons :availableCharts="availableCharts" />
+        <VpressChartContainer
+          :data="chartData"
+          :chartConfig="chartConfig"
+          @chart_loaded="onChartIsLoaded"
+        />
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 <script>
 import * as _ from 'lodash';
 import * as d3 from 'd3';
-import ChartComponent from '../components/ChartComponent.vue';
+import VpressChartContainer from '../components/VpressChartContainer.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
+import VpressSlotGroup from '../components/vpress-slot-group.vue';
 
 export default {
   name: 'vpress-state-subscriber',
   components: {
-    ChartComponent,
-    VpressChartSelectButtons
+    VpressChartContainer,
+    VpressChartSelectButtons,
+    VpressSlotGroup
   },
   data() {
     return {
       dataChart: this.$store.getters['data/dataFiltered'],
-      chartConfig: this.$store.state.chartConfig,
+      // chartConfig: this.$store.state.chartConfig,
+      // dataChart: this.$store.getters['data/data'],
+      chartConfig: this.$store.getters['chartConfig/fullConfig'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
     };
   },

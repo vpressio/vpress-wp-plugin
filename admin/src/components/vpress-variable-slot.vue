@@ -1,11 +1,18 @@
 <template>
   <v-card flat class="ma-1" @drop.stop.self="drop">
     <v-icon
+      v-if="slotIcon.length === 0"
       color="secondary"
       dense
     >
       {{ icon }}
     </v-icon>
+    <img
+      v-if="slotIcon.length !== 0"
+      :src="iconSrc"
+      width="15"
+      height="15"
+    ><img>
     <span>
       {{ label }}
     </span>
@@ -33,7 +40,7 @@
         :inSlot="true"
         :slotId="slotId"
       />
-      <p class="slot_placeholder my-2" v-if="variablesInSlot.length < maxStack" @drop.stop.self="drop">
+      <p class="slot_placeholder my-2" v-if="variablesInSlot.length <= maxStack" @drop.stop.self="drop">
         Números o categorías aquí.
       </p>
     </v-card>
@@ -53,6 +60,7 @@ export default {
   props: {
     slotId: String,
     icon: String,
+    slotIcon: String,
     label: String,
     maxStack: Number,
     dataType: Array,
@@ -71,6 +79,9 @@ export default {
   computed:{
     variablesToRender() {
       return this.variablesInSlot;
+    },
+    iconSrc() {
+      return require(`../assets/images/${this.slotIcon}.svg`);
     }
   },
   methods: {
@@ -118,8 +129,9 @@ export default {
           variableArray.splice(dataInSlot.indexIncludedId, 1);
           variableArray.unshift(columnData);
         } else {
-          if(this.variablesInSlot.length < this.maxStack){
-            variableArray.push(columnData);
+          if(this.variablesInSlot.length <= this.maxStack){
+            variableArray.splice(0, 1, columnData);
+            console.log(variableArray)
           }
         }
         this.variablesInSlot = variableArray;

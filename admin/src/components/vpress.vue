@@ -1,5 +1,5 @@
 <template>
-  <v-responsive style="max-height:100vh;width:100%;flex-wrap:wrap">
+  <v-responsive>
     <VpressAppBar/>
     <div class="config__container">
       <v-card
@@ -87,13 +87,9 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <v-row class="ma-0">
-                      <v-col>
-                        <VpressVariableCardStartContainer
-                        :variableCards="dataTypesCards"
-                        />
-                      </v-col>
-                    </v-row>
+                    <VpressVariableCardStartContainer
+                      :variableCards="dataTypesCards"
+                    />
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
@@ -116,24 +112,12 @@
             </v-card>
           </v-col>
           <v-col
-            v-show="activeTab === 1"
-            style="transition: opacity 1s ease-out;"
-            cols="2"
-            class="py-0 pl-3 pr-0"
-          >
-            <v-card class="fill-height">
-              <VpressVariableSlotsContainer/>
-            </v-card>
-          </v-col>
-          <v-col
+            class="pa-0"
             v-show="numberOfColsIftabIsNotZero !== '12'"
-            class="py-0 pr-2 pl-4"
-            :lg="activeTab === 1 ? 7 : 9"
-            :xl="activeTab === 1 ? 8 : 10"
+            lg="9"
+            xl="10"
           >
-            <v-card>
-              <VpressStateSubscriber />
-            </v-card>
+            <VpressStateSubscriber />
           </v-col>
         </v-row>
       </div>
@@ -144,12 +128,10 @@
 import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
-import VpressVariableSlotsContainer from './vpress-variable-slots-container.vue';
 import VpressExpansionPanel from './vpress-expansionPanel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
-
 
 export default {
   name: 'Vpress',
@@ -157,7 +139,6 @@ export default {
     VpressAppBar,
     VpressDataLoader,
     VpressVariableCardStartContainer,
-    VpressVariableSlotsContainer,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
@@ -180,16 +161,14 @@ export default {
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-      return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
+      return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     dataTypesCards(){
         return this.$store.getters['data/dataType'];
     },
 
   },
-  methods: {
-  }
-
+  methods: {}
 };
 </script>
 <style  scoped>
@@ -206,7 +185,7 @@ export default {
 }
 
 .fill-height {
-  height:100%
+  height: 100%;
 }
 
 .tributton-container {
@@ -233,14 +212,10 @@ export default {
   border-top-right-radius: 13px !important;
 }
 
-* >>> .config-tabs
-> .v-tabs-bar {
+* >>> .config-tabs > .v-tabs-bar {
   height: 46px;
 }
-* >>> .config-tabs
-> .v-slide-group
-> .v-slide-group__wrapper
-> .v-slide-group__content {
+* >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content {
   margin-top: 5px;
 }
 
@@ -250,7 +225,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972AC;
+  background-color: #7972ac;
 }
 
 *
@@ -270,25 +245,19 @@ export default {
 > .v-tab {
   min-width:0px;
   font-size: 0.8rem;
-  padding:0;
+  padding: 0;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-input__slot {
+* >>> .config-text-field > .v-input__control > .v-input__slot {
   min-height: 30px;
   margin: 0;
 }
 
-* >>> .config-text-field
-> .v-input__control
-> .v-text-field__details {
+* >>> .config-text-field > .v-input__control > .v-text-field__details {
   display: none;
 }
 
-* >>> .config-switch
-> .v-input__control
-> .v-messages {
+* >>> .config-switch > .v-input__control > .v-messages {
   display: none;
 }
 
@@ -302,13 +271,8 @@ export default {
 }
 
 @media only screen and (max-width: 960px) {
-  * >>> .config-tabs
-  > .v-slide-group
-  > .v-slide-group__wrapper
-  > .v-slide-group__content
-  > .v-tab {
-  font-size: 0.68rem;
+  * >>> .config-tabs > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content > .v-tab {
+    font-size: 0.68rem;
+  }
 }
-}
-
 </style>

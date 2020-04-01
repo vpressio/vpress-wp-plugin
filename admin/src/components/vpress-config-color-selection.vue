@@ -34,7 +34,7 @@ export default {
     };
   },
   created() {
-    this.colorSchemes = this.$store.state.chartConfig.availableColors;
+    this.colorSchemes = this.$store.getters['chartConfig/availableColors'];
   },
   methods: {
     selectColorScheme(scheme) {

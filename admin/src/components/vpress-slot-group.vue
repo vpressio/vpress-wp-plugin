@@ -10,6 +10,7 @@
         <VpressVariableCardSlot
           :slotId="slot.slotId"
           :icon="slot.icon"
+          :slotIcon="slot.slotIcon"
           :label="slot.label"
           :maxStack="slot.maxStack"
           :dataType="['linear','ordinal']"
@@ -34,28 +35,32 @@ export default {
         {
           slotId:"xAxis",
           icon:"mdi-view-sequential",
+          slotIcon: "eje-x",
           label:"Columnas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
           slotId:"yAxis",
           icon:"mdi-view-parallel",
+          slotIcon: "eje-y",
           label:"Filas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
           slotId:"aggregation",
           icon:" mdi-palette-outline",
-          label:"Colores",
+          slotIcon: "color",
+          label:"Color",
           maxStack: 1,
           filter: false
         },
         {
           slotId:"filter",
           icon:"mdi-tune",
-          label: "Filtrar",
+          slotIcon: "",
+          label: "Filtros",
           maxStack: 3,
           filter: true
         }

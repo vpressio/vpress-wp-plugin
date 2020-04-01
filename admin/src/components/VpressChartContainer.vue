@@ -1,10 +1,10 @@
 <template lang="pug">
-  .chart-container.center-align(:class="`${chartConfig.theme}-themed`")
+  .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
         h2.generated-title.mb-0 {{ generatedTitle }}
       .col-12.py-0
-        h3.generated-subtitle.mb-0 {{ chartConfig.subtitle }}
+        h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
     #empty-chart.empty-chart
       .vertical-align
@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import * as dbox from '@dboxjs/core';
 
 export default {
-  name: 'ChartContainer',
+  name: 'VpressChartContainer',
   props: {
     data: Array,
     chartConfig: {
@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     generatedTitle() {
-      return this.chartConfig.title;
+      return this.chartConfig ? this.chartConfig.title : 'Título';
     },
     legendDisplay() {
       const vm = this;
@@ -192,7 +192,7 @@ export default {
           .node().offsetWidth || 1200;
       this.height =
         // this.chartConfig.height ||
-        this.width * 0.6 || 500;
+        this.width * 0.6 || 300;
 
       /** Configure margins */
       this.margin = { top: 10, right: 170, bottom: 50, left: 80 };

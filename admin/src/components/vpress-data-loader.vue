@@ -84,7 +84,7 @@
             @click="saveData()"
             rounded
           >
-              Siguiente
+            Siguiente
             <v-icon class="ml-3">
               mdi-arrow-right
             </v-icon>
@@ -193,9 +193,9 @@ export default {
           if(res.items.length === 0) console.warn(`Sin coincidencias para ${this.dataSetDir}`);
           this.testDatasets = res.items;
         })
-        .catch( err => {
-          console.error(err)
-        })
+        .catch(err => {
+          console.error(err);
+        });
     },
     selectTestDataset(fileName) {
       const self = this;
@@ -270,7 +270,7 @@ export default {
           })
           .catch(error => {
             // eslint-disable-next-line
-            self.loading = false
+            self.loading = false;
             console.error(error);
           });
       }

@@ -1,8 +1,15 @@
 <template>
   <v-card flat class="px-2 py-3">
     <v-row>
-      <v-col v-show="!$vuetify.breakpoint.smAndDown" cols="3" class="buttons-header">
-        TIPOS DE GRÁFICOS
+      <v-col
+        class="buttons-header"
+        v-show="!$vuetify.breakpoint.smAndDown"
+        xl="2"
+        lg="3"
+      >
+        TIPOS DE
+        <br/>
+        GRÁFICOS
       </v-col>
       <v-col>
         <v-btn
@@ -45,13 +52,14 @@ export default {
     };
   },
   created() {
-    this.labels = this.$store.state.chartConfig.labels;
-    this.stackedBars = this.$store.state.chartConfig.stackedBars;
+    this.labels = this.$store.getters['chartConfig/labels'];
+    this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
   },
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.state.chartConfig.chart === 'bars' && this.$store.state.chartConfig.groupBy.slug
+        this.$store.getters['chartConfig/chart'] === 'bars' &&
+        this.$store.getters['chartConfig/groupBy.slug']
       );
     }
   },
@@ -75,13 +83,15 @@ export default {
 </script>
 <style scoped>
 .buttons-header {
+  display: flex;
+  justify-content: center;
+  align-self: center;
   border-right: solid 0.5px;
-  padding-left: 32px;
   font-weight: 600;
   line-height: initial;
 }
 
-.disabled-graph-image{
+.disabled-graph-image {
   filter: opacity(30%);
 }
 </style>
