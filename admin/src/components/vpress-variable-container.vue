@@ -1,28 +1,43 @@
 <template>
-  <v-card
-    :ref="variableCardsContainerId"
-    :id="variableCardsContainerId"
-    flat
-    class="py-3 px-3"
-  >
-    <v-row>
+  <v-row class="px-5">
+    <v-col cols="12" class="pb-0 pt-1">
       <v-img class="db-icon" src="../assets/images/db1.svg" />
-        <span class="db-titulo">Nombre de la Base de Datos</span>
-        <hr class="v-divider theme--light hr-divider" />
-        <p class="ordinal-lineal">Ordinal</p>
-      <v-col cols="12" style="height:30vh;overflow-y:scroll;">
+      <span class="db-titulo">Nombre de la Base de Datos</span>
+      <hr class="v-divider theme--light hr-divider" />
+    </v-col>
+    <v-col cols="12" class="pt-0">
+      <p
+        v-show="oirdinalVariables.length > 0"
+        class="ordinal-lineal"
+      >
+        Ordinal
+      </p>
+      <div
+        v-show="oirdinalVariables.length > 0"
+        class="card--container"
+        :id="`${variableCardsContainerId}_ordinal`"
+        :ref="`${variableCardsContainerId}_ordinal`"
+      >
         <VpressVariableCard
           class="mb-3"
-          v-for="(card, cardIndex) in linearVariables"
+          v-for="(card, cardIndex) in oirdinalVariables"
           :key="`cardId_${cardIndex}`"
           :id="`cardId_${cardIndex}`"
           :columnData="card"
           :variableName="card.variableName"
           :variableNameDataType="card.variableNameDataType"
         />
-      </v-col>
-      <v-col cols="12" style="height:30vh;overflow-y:scroll;">
-        <p class="ordinal-lineal">Linear</p>
+      </div>
+    </v-col>
+    <v-col cols="12" class="pt-0">
+      <p
+        v-show="oirdinalVariables.length > 0"
+        class="ordinal-lineal">Linear
+      </p>
+      <div class="card--container"
+        :id="`${variableCardsContainerId}_auxiliar`"
+        :ref="`${variableCardsContainerId}_auxiliar`"
+      >
         <VpressVariableCard
           class="mb-3"
           :id="`cardId_total`"
@@ -33,19 +48,25 @@
           variableName="Conteo de observaciones"
           variableNameDataType="linear"
         />
-        <VpressVariableCard
-          class="mb-3"
-          v-for="(card, cardIndex) in oirdinalVariables"
-          :key="`cardId_${cardIndex}`"
-          :id="`cardId_${cardIndex}`"
-          :columnData="card"
-          :variableName="card.variableName"
-          :variableNameDataType="card.variableNameDataType"
-        />
-      </v-col>
-      <v-divider />
-    </v-row>
-  </v-card>
+        <div
+          v-show="linearVariables.length > 0"
+          :id="`${variableCardsContainerId}_linear`"
+          :ref="`${variableCardsContainerId}_linear`"
+          >
+          <VpressVariableCard
+            class="mb-3"
+            v-for="(card, cardIndex) in linearVariables"
+            :key="`cardId_${cardIndex}`"
+            :id="`cardId_${cardIndex}`"
+            :columnData="card"
+            :variableName="card.variableName"
+            :variableNameDataType="card.variableNameDataType"
+          />
+        </div>
+      </div>
+    </v-col>
+    <v-divider />
+  </v-row>
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card.vue';
@@ -96,5 +117,10 @@ export default {
   color: #737373;
   font-size: 1rem;
   font-family: Roboto;
+}
+
+.card--container{
+  max-height:30vh;
+  overflow-y:scroll;
 }
 </style>

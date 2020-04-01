@@ -122,7 +122,7 @@ export default {
     },
     dragEnd() {
       const { target } = event;
-      if(target.parentNode.id !== 'cardStartContainer') {
+      if(target.parentNode.id.includes('cardStartContainer')) {
         const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
          this.$emit('update:variablesInSlot', arrayWithoutThisCard);
          this.$store.dispatch(
