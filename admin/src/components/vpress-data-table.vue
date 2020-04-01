@@ -1,6 +1,5 @@
 <template>
   <v-container
-  class="container--height"
     :class="{'data-table--container':$vuetify.breakpoint.xlOnly}"
   >
     <v-data-table
@@ -27,12 +26,6 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-
-.container--height {
-  overflow: scroll;
-  max-height: 400px
-}
-
 .data-table--container {
   max-width: 1785px !important;
 }

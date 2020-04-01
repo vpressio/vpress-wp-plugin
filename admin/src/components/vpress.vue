@@ -1,6 +1,6 @@
 <template>
-  <v-responsive style="max-height:100vh;width:100%;flex-wrap:wrap">
-    <VpressAppBar />
+  <v-responsive>
+    <VpressAppBar/>
     <div class="config__container">
       <v-card tile flat color="#222A32" :width="`${sideBarWidth}`" dark>
         <v-card tile class="pa-1" color="#181D25" flat>
@@ -38,15 +38,9 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <v-row class="ma-0">
-                      <v-col>
-                        <v-img class="db-icon" src="../assets/images/db1.svg" />
-                        <span class="db-titulo">Nombre de la Base de Datos</span>
-                        <hr class="v-divider theme--light hr-divider" />
-                        <p class="ordinal-lineal">Ordinal</p>
-                        <VpressVariableCardStartContainer :variableCards="dataTypesCards" />
-                      </v-col>
-                    </v-row>
+                    <VpressVariableContainer
+                      :variableCards="dataTypesCards"
+                    />
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
@@ -69,24 +63,12 @@
             </v-card>
           </v-col>
           <v-col
-            v-show="activeTab === 1"
-            style="transition: opacity 1s ease-out;"
-            cols="2"
-            class="py-0 pl-3 pr-0"
-          >
-            <v-card class="fill-height">
-              <VpressVariableSlotsContainer />
-            </v-card>
-          </v-col>
-          <v-col
+            class="pa-0"
             v-show="numberOfColsIftabIsNotZero !== '12'"
-            class="py-0 pr-2 pl-4"
-            :lg="activeTab === 1 ? 7 : 9"
-            :xl="activeTab === 1 ? 8 : 10"
+            lg="9"
+            xl="10"
           >
-            <v-card>
-              <VpressStateSubscriber />
-            </v-card>
+            <VpressStateSubscriber />
           </v-col>
         </v-row>
       </div>
@@ -96,9 +78,8 @@
 <script>
 import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
-import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
-import VpressVariableSlotsContainer from './vpress-variable-slots-container.vue';
-import VpressExpansionPanel from './vpress-expansionPanel.vue';
+import VpressVariableContainer from './vpress-variable-container.vue';
+import VpressExpansionPanel from './vpress-expansion-panel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
@@ -108,8 +89,7 @@ export default {
   components: {
     VpressAppBar,
     VpressDataLoader,
-    VpressVariableCardStartContainer,
-    VpressVariableSlotsContainer,
+    VpressVariableContainer,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
@@ -132,7 +112,7 @@ export default {
     },
     isDarkThemeActivated() {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
-      return this.$store.state.chartConfig.theme === 'dark' ? 'black' : '';
+      return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     dataTypesCards() {
       return this.$store.getters['data/dataType'];
@@ -149,9 +129,7 @@ export default {
 }
 
 .config__container {
-  display: flex;
-  min-height: calc(100vh - 40px);
-  width: 100%;
+  display:flex;
 }
 
 .fill-height {
@@ -245,44 +223,12 @@ export default {
   max-height: 85vh;
 }
 
-.v-application .pa-0 {
-  padding: 0px !important;
-  box-shadow: 8px -8px 10px -6px rgba(0, 0, 0, 0.15);
-}
-
-.ordinal-lineal {
-  font-size: 1rem;
-  color: #382e82;
-  font-weight: 500;
-  margin: 0 0 0 16px;
-}
-
-.hr-divider {
-  width: 91%;
-  margin-left: 15px;
-  margin-bottom: 10px;
-}
-
-.db-icon {
-  width: 17px;
-  margin: 4px 10px 13px 16px;
-  display: inline-flex;
-  padding-bottom: 1px;
-}
-
-.db-titulo {
-  color: #737373;
-  font-size: 1rem;
-  font-family: Roboto;
-}
-
 @media only screen and (max-width: 960px) {
-  *
-    >>> .config-tabs
-    > .v-slide-group
-    > .v-slide-group__wrapper
-    > .v-slide-group__content
-    > .v-tab {
+  * >>> .config-tabs
+  > .v-slide-group
+  > .v-slide-group__wrapper
+  > .v-slide-group__content
+  > .v-tab {
     font-size: 0.68rem;
   }
 }

@@ -1,8 +1,29 @@
 <template>
   <v-card flat class="ma-1" @drop.stop.self="drop">
-    <v-icon color="secondary" dense>{{ icon }}</v-icon>
-    <span>{{ label }}</span>
-    <v-card min-height="50" outlined @dragover.prevent @drop.stop.self="drop" light class="pa-2">
+    <v-icon
+      v-if="slotIcon.length === 0"
+      color="secondary"
+      dense
+    >
+      {{ icon }}
+    </v-icon>
+    <img
+      v-if="slotIcon.length !== 0"
+      :src="iconSrc"
+      width="15"
+      height="15"
+    ><img>
+    <span>
+      {{ label }}
+    </span>
+    <v-card
+      min-height="50"
+      outlined
+      @dragover.prevent
+      @drop.stop.self="drop"
+      light
+      class="pa-2"
+    >
       <VpressVariableCard
         :id="variable.id"
         class="mb-1"
@@ -20,12 +41,14 @@
         :slotId="slotId"
       />
       <p
+        v-if="variablesInSlot.length <= maxStack"
         class="slot_placeholder my-2"
-        v-if="variablesInSlot.length < maxStack"
         @drop.stop.self="drop"
-      >Números o categorías aquí.</p>
+      >
+        Números o categorías aquí.
+      </p>
     </v-card>
-    <vpress-data-filter
+    <VpressSlotFilter
       v-if="openFilterDialog"
       :column="filterColumn"
       :type="filterType"
@@ -35,17 +58,18 @@
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card';
-import VpressDataFilter from './vpress-data-filter.vue';
+import VpressSlotFilter from './vpress-slot-filter.vue';
 
 export default {
   name: 'VpressCardSlot',
   components: {
     VpressVariableCard,
-    VpressDataFilter
+    VpressSlotFilter
   },
   props: {
     slotId: String,
     icon: String,
+    slotIcon: String,
     label: String,
     maxStack: Number,
     dataType: Array,
@@ -64,6 +88,9 @@ export default {
   computed: {
     variablesToRender() {
       return this.variablesInSlot;
+    },
+    iconSrc() {
+      return require(`../assets/images/${this.slotIcon}.svg`);
     }
   },
   methods: {
@@ -100,24 +127,25 @@ export default {
       // ) this.addMargin = true;
     },
     addVariableToSlot(columnData) {
-      const variableArray = [...this.variablesInSlot];
-      const dataInSlot = variableArray.reduce(
-        (data, variable, variableIndex) => {
-          if (variable.id === columnData.id) {
-            data.includesId = true;
-            data.indexIncludedId = variableIndex;
+        const variableArray = [...this.variablesInSlot];
+        const dataInSlot = variableArray.reduce(
+            (data, variable, variableIndex) => {
+              if (variable.id === columnData.id) {
+                data.includesId = true;
+                data.indexIncludedId = variableIndex;
+              }
+              return data
+            },
+            {includesId: false, indexIncludedId: -1}
+          );
+        if (dataInSlot.includesId){
+          variableArray.splice(dataInSlot.indexIncludedId, 1);
+          variableArray.unshift(columnData);
+        } else {
+          if(this.variablesInSlot.length <= this.maxStack){
+            variableArray.splice(0, 1, columnData);
+            console.log(variableArray)
           }
-          return data;
-        },
-        { includesId: false, indexIncludedId: -1 }
-      );
-      if (dataInSlot.includesId) {
-        variableArray.splice(dataInSlot.indexIncludedId, 1);
-        variableArray.unshift(columnData);
-      } else {
-        if (this.variablesInSlot.length < this.maxStack) {
-          variableArray.push(columnData);
-        }
       }
       this.variablesInSlot = variableArray;
     },

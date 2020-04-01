@@ -4,29 +4,24 @@ import vpress from '../../utils/vpress.js';
 export default {
   namespaced: true,
   state: {
-    chart: 'bars',
-    xAxis: { title: '', type: '', slug: '' , func: ''},
-    yAxis: { title: '', type: '', slug: '', func: ''},
-    groupBy: { title: '', type: 'ordinal', slug: ''},
-    collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-    previousState: {
+    chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
+      orderBy: { order: 'desc', slug: '' },
+      decimals: 1,
+      preffix: '',
+      suffix: '',
+      stackedBars: false,
+      title: 'Título',
+      subtitle: 'Subtítulo',
+      labels: false,
+      opacity: 0.8,
+      theme: 'light',
+      colors: ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f'],
     },
-    orderBy: { order: 'desc', slug: '' },
-    decimals: 1,
-    preffix: '',
-    suffix: '',
-    stackedBars: false,
-    title: 'Título',
-    subtitle: 'Subtítulo',
-    labels: false,
-    opacity: 0.8,
-    theme: 'light',
-    colors: ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f'],
     availableGraphs: [
       {
         chartType: 'bars',
@@ -84,7 +79,7 @@ export default {
 
       // If the other axis include the same variable it will reset collpase field.
       if (!_.includes([state.yAxis.slug, state.groupBy.slug], state.collapseBy.slug)) {
-        state.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
+        state.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
       }
 
       // If collapse is not been set. collapseby will be the axis with the linear data type
@@ -164,7 +159,7 @@ export default {
 
         // if both are ordinal reset collapse by
         if (state.xAxis.type === 'ordinal' && state.yAxis.type === 'ordinal') {
-          state.collapseBy = { title: '', type: '', slug: '', func:'' };
+          state.collapseBy = { title: '', type: '', slug: '', func: '' };
         }
       }
 
@@ -211,46 +206,37 @@ export default {
       state.colors = payload;
     },
     SET_CHART_VALUES(state, payload) {
-      console.log('Into mutation')
-      const {
-        chart,
-        xAxis,
-        yAxis,
-        groupBy,
-        collapseBy,
-        orderBy,
-      } = state;
+      // console.log('Into mutation')
+      // const {
+      //   chart,
+      //   xAxis,
+      //   yAxis,
+      //   groupBy,
+      //   collapseBy,
+      //   orderBy,
+      // } = state;
 
-      state.previousState = {
-        chart: chart,
-        xAxis: xAxis,
-        yAxis: yAxis,
-        groupBy: groupBy,
-        collapseBy: collapseBy,
-        orderBy: orderBy
-      }
+      // state.previousState = {
+      //   chart: chart,
+      //   xAxis: xAxis,
+      //   yAxis: yAxis,
+      //   groupBy: groupBy,
+      //   collapseBy: collapseBy,
+      //   orderBy: orderBy
+      // }
 
-      state.chart = payload.chart,
-      state.xAxis = payload.xAxis,
-      state.yAxis = payload.yAxis,
-      state.groupBy = payload.groupBy,
-      state.collapseBy = payload.collapseBy
-      state.orderBy = payload.orderBy
+      state.chartValues.chart = payload.chart,
+      state.chartValues.xAxis = payload.xAxis,
+      state.chartValues.yAxis = payload.yAxis,
+      state.chartValues.groupBy = payload.groupBy,
+      state.chartValues.collapseBy = payload.collapseBy
+      state.chartValues.orderBy = payload.orderBy
     }
   },
   actions: {
     async UPDATE_CHART_VALUES({ state, commit }, payload) {
       try {
-        console.log(payload)
-        const currentChartValues = {
-          chart: state.chart,
-          xAxis: state.xAxis,
-          yAxis: state.yAxis,
-          groupBy: state.groupBy,
-          collapseBy: state.collapseBy,
-          orderBy: state.orderBy
-        };
-        const newChartValues = await vpress.merge(currentChartValues, payload);
+        const newChartValues = await vpress.merge(state.chartValues, payload);
         commit('SET_CHART_VALUES', newChartValues);
       } catch (error) {
         console.warn(error)
@@ -282,19 +268,26 @@ export default {
     }
   },
   getters: {
+    chart: state => state.chartValues,
+    theme: state => state.chartValues.theme,
+    chartType: state => state.chartValues.chart,
+    labels: state => state.chartValues.labels,
+    'groupBy.slug': state => state.chartValues.groupBy.slug,
+    stackedBars: state => state.chartValues.stackedBars,
+    availableColors: state => state.availableColors,
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
         if (
-          chart.chartCompatibleDataTypes.includes(state.xAxis.type) &&
-          chart.chartCompatibleDataTypes.includes(state.yAxis.type)
+          chart.chartCompatibleDataTypes.includes(state.chartValues.xAxis.type) &&
+          chart.chartCompatibleDataTypes.includes(state.chartValues.yAxis.type)
         ) {
           if (
             chart.chartCompatibleDataTypes.length > 1 &&
-            state.xAxis.type === state.yAxis.type
+            state.chartValues.xAxis.type === state.chartValues.yAxis.type
           ) {
             return { ...chart, disabled: true };
           }
-          if(chart.chart === 'spineplot' && state.collapseBy.slug === '') {
+          if (chart.chartValues.chart === 'spineplot' && state.chartValues.collapseBy.slug === '') {
             return { ...chart, disabled: true };
           }
           return { ...chart, disabled: false };

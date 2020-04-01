@@ -15,12 +15,12 @@
     hover
   >
     <div class="dataTypeContainer">
-      <span class="variableCardDataType pl-3 py-1">
+      <!-- <span class="variableCardDataType pl-3 py-1">
         {{ variableNameDataType }}
-      </span>
+      </!-->
        <span
           v-if="variableMutation !== 'Sin mutar' && variableMutation"
-          class="variableCardDataType pl-1 py-1"
+          class="variableCardDataType pl-3 py-1"
         >
           {{ `(${variableMutation})` }}
         </span>
@@ -125,7 +125,17 @@ export default {
       if(target.parentNode.id !== 'cardStartContainer') {
         const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
          this.$emit('update:variablesInSlot', arrayWithoutThisCard);
-         this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { name: this.slotId, body:{ variableName: '', variableNameDataType: '', func:'' }});
+         this.$store.dispatch(
+           `chartConfig/UPDATE_CHART_VALUES`,
+           {
+             name: this.slotId,
+             body: {
+               variableName: '',
+               variableNameDataType: '',
+               func:''
+              }
+            }
+          );
          this.$store.dispatch('data/setFilter', {});
       } 
       // else {

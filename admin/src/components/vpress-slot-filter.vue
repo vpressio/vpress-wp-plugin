@@ -1,9 +1,6 @@
 <template>
   <div class="text-center">
-    <v-dialog
-      v-model="dialog"
-      width="500"
-    >
+    <v-dialog v-model="dialog" width="500">
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -51,17 +48,10 @@
         <v-divider></v-divider>
         <v-card-actions class="py-4">
           <v-spacer></v-spacer>
-          <v-btn
-            color="secondary"
-            outlined
-            @click="closeDialog"
-          >
+          <v-btn color="secondary" outlined @click="closeDialog">
             Cancelar
           </v-btn>
-          <v-btn
-            color="primary"
-            @click="setFilter"
-          >
+          <v-btn color="primary" @click="setFilter">
             Aplicar
           </v-btn>
           <v-spacer></v-spacer>
@@ -72,7 +62,7 @@
 </template>
 
 <script>
-import _ from 'lodash'
+import _ from 'lodash';
 import * as d3 from 'd3';
 
 export default {
@@ -89,56 +79,53 @@ export default {
     },
     openFilterDialog: Boolean
   },
-  data () {
+  data() {
     return {
       dialog: true,
       linearFilter: this.range,
       ordinalFilter: []
-    }
+    };
   },
   computed: {
     dataFiltered() {
-      const uniq = _.uniqBy(this.$store.state.data.data, this.column);
+      const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
       return _.map(uniq, this.column);
     },
     range() {
       if (this.type == 'linear') {
-        return [
-          d3.min(this.dataFiltered),
-          d3.max(this.dataFiltered)
-        ];
+        return [d3.min(this.dataFiltered), d3.max(this.dataFiltered)];
       } else {
-        return null
+        return null;
       }
     },
     min() {
       if (this.type == 'linear') {
         return _.min(this.dataFiltered);
       } else {
-        return null
+        return null;
       }
     },
     max() {
       if (this.type == 'linear') {
         return _.max(this.dataFiltered);
       } else {
-        return null
+        return null;
       }
-    },
+    }
   },
   methods: {
     closeDialog() {
-      this.$emit('update:openFilterDialog', false)
-      this.dialog = false
+      this.$emit('update:openFilterDialog', false);
+      this.dialog = false;
     },
     selectAll() {
-      this.ordinalFilter = this.dataFiltered
+      this.ordinalFilter = this.dataFiltered;
     },
     deselectAll() {
-      this.ordinalFilter = []
+      this.ordinalFilter = [];
     },
     setFilter() {
-      const filter = { type: this.type, column: this.column }
+      const filter = { type: this.type, column: this.column };
       if (this.type == 'linear') {
         this.$store.dispatch('data/setFilter', { ...filter, value: this.linearFilter });
       } else {
@@ -148,7 +135,7 @@ export default {
       this.$emit('update:openFilterDialog', false)
     }
   }
-}
+};
 </script>
 
 <style scoped>

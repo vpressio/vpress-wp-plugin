@@ -68,7 +68,9 @@
             rounded
           >
             Siguiente
-            <v-icon class="ml-3 icon-arrow">mdi-arrow-right</v-icon>
+            <v-icon class="ml-3 icon-arrow">
+              mdi-arrow-right
+            </v-icon>
           </v-btn>
         </div>
       </v-col>
