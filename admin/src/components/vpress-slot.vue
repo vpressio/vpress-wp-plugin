@@ -40,22 +40,31 @@
         :inSlot="true"
         :slotId="slotId"
       />
-      <p class="slot_placeholder my-2" v-if="variablesInSlot.length <= maxStack" @drop.stop.self="drop">
+      <p
+        v-if="variablesInSlot.length <= maxStack"
+        class="slot_placeholder my-2"
+        @drop.stop.self="drop"
+      >
         Números o categorías aquí.
       </p>
     </v-card>
-    <vpress-data-filter v-if="openFilterDialog" :column="filterColumn" :type="filterType" :openFilterDialog.sync="openFilterDialog" />
+    <VpressSlotFilter
+      v-if="openFilterDialog"
+      :column="filterColumn"
+      :type="filterType"
+      :openFilterDialog.sync="openFilterDialog"
+    />
   </v-card>
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card';
-import VpressDataFilter from './vpress-data-filter.vue';
+import VpressSlotFilter from './vpress-slot-filter.vue';
 
 export default {
   name: 'VpressCardSlot',
   components: {
     VpressVariableCard,
-    VpressDataFilter
+    VpressSlotFilter
   },
   props: {
     slotId: String,

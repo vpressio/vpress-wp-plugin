@@ -7,7 +7,7 @@
         :key="`slot_${slotIndex}`"
         class="pa-0"
       >
-        <VpressVariableCardSlot
+        <VpressSlot
           :slotId="slot.slotId"
           :icon="slot.icon"
           :slotIcon="slot.slotIcon"
@@ -21,12 +21,12 @@
   </v-card>
 </template>
 <script>
-import VpressVariableCardSlot from './vpress-variable-slot';
+import VpressSlot from './vpress-slot';
 
 export default {
   name: 'VpressVariableSlotsContainer',
   components: {
-    VpressVariableCardSlot
+    VpressSlot
   },
   props: ['id', 'slotLabel'],
   data() {

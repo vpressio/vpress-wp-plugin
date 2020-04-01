@@ -6,7 +6,7 @@
       class="px-2 py-0"
     >
       <v-card flat>
-        <vpressSlotGroup/>
+        <VpressSlotGroup/>
       </v-card>
     </v-col>
     <v-col xl="10" lg="9" class="pl-0 pr-5 py-0">
@@ -24,7 +24,7 @@
 <script>
 import * as _ from 'lodash';
 import * as d3 from 'd3';
-import VpressChartContainer from '../components/VpressChartContainer.vue';
+import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
 import VpressSlotGroup from '../components/vpress-slot-group.vue';
 
@@ -38,16 +38,13 @@ export default {
   data() {
     return {
       dataChart: this.$store.getters['data/dataFiltered'],
-      // chartConfig: this.$store.state.chartConfig,
-      // dataChart: this.$store.getters['data/data'],
-      chartConfig: this.$store.getters['chartConfig/fullConfig'],
+      chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
     };
   },
   created() {
     this.$store.subscribe((mutation, state) => {
-      const chartConfig = _.cloneDeep(state.chartConfig);
-      console.log(chartConfig)
+      const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
     });

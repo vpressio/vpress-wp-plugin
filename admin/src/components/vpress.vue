@@ -87,7 +87,7 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <VpressVariableCardStartContainer
+                    <VpressVariableContainer
                       :variableCards="dataTypesCards"
                     />
                   </VpressExpansionPanel>
@@ -127,8 +127,8 @@
 <script>
 import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
-import VpressVariableCardStartContainer from './vpress-variable-card-start-container';
-import VpressExpansionPanel from './vpress-expansionPanel.vue';
+import VpressVariableContainer from './vpress-variable-container.vue';
+import VpressExpansionPanel from './vpress-expansion-panel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
@@ -138,7 +138,7 @@ export default {
   components: {
     VpressAppBar,
     VpressDataLoader,
-    VpressVariableCardStartContainer,
+    VpressVariableContainer,
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
@@ -180,8 +180,6 @@ export default {
 
 .config__container {
   display:flex;
-  min-height:calc(100vh - 40px);
-  width:100%;
 }
 
 .fill-height {
