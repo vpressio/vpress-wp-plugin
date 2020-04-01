@@ -6,6 +6,7 @@
         v-show="!$vuetify.breakpoint.smAndDown"
         xl="2"
         lg="3"
+        md="3"
       >
         TIPOS DE
         <br/>

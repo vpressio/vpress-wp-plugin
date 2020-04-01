@@ -15,12 +15,12 @@
     hover
   >
     <div class="dataTypeContainer">
-      <span class="variableCardDataType pl-3 py-1">
+      <!-- <span class="variableCardDataType pl-3 py-1">
         {{ variableNameDataType }}
-      </span>
+      </!-->
        <span
           v-if="variableMutation !== 'Sin mutar' && variableMutation"
-          class="variableCardDataType pl-1 py-1"
+          class="variableCardDataType pl-3 py-1"
         >
           {{ `(${variableMutation})` }}
         </span>

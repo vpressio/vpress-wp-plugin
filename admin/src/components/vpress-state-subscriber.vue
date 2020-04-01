@@ -3,13 +3,14 @@
     <v-col
       xl="2"
       lg="3"
+      md="3"
       class="px-2 py-0"
     >
       <v-card flat>
         <VpressSlotGroup/>
       </v-card>
     </v-col>
-    <v-col xl="10" lg="9" class="pl-0 pr-5 py-0">
+    <v-col xl="10" lg="9" md="9" class="pl-0 pr-5 py-0">
       <v-card>
         <VpressChartSelectButtons :availableCharts="availableCharts" />
         <VpressChartContainer
