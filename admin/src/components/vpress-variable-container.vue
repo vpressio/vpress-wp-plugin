@@ -2,7 +2,7 @@
   <v-row class="px-5">
     <v-col cols="12" class="pb-0 pt-1">
       <v-img class="db-icon" src="../assets/images/db1.svg" />
-      <span class="db-titulo">Nombre de la Base de Datos</span>
+      <span class="db-titulo">{{ dataSetName  }}</span>
       <hr class="v-divider theme--light hr-divider" />
     </v-col>
     <v-col cols="12" class="pt-0">
@@ -15,52 +15,46 @@
       <div
         v-show="oirdinalVariables.length > 0"
         class="card--container"
-        :id="`${variableCardsContainerId}_ordinal`"
-        :ref="`${variableCardsContainerId}_ordinal`"
+        :id="`${cardsContainerId}_ordinal`"
+        :ref="`${cardsContainerId}_ordinal`"
       >
         <VpressVariableCard
           class="mb-3"
-          v-for="(card, cardIndex) in oirdinalVariables"
-          :key="`cardId_${cardIndex}`"
-          :id="`cardId_${cardIndex}`"
-          :columnData="card"
-          :variableName="card.variableName"
-          :variableNameDataType="card.variableNameDataType"
+          v-for="(variable, variableIndex) in oirdinalVariables"
+          :key="`cardId_${variableIndex}`"
+          :id="`cardId_${variableIndex}`"
+          :variableData="variable"
         />
       </div>
     </v-col>
     <v-col cols="12" class="pt-0">
       <p
-        v-show="oirdinalVariables.length > 0"
+        v-show="linearVariables.length > 0"
         class="ordinal-lineal">Linear
       </p>
       <div class="card--container"
-        :id="`${variableCardsContainerId}_auxiliar`"
-        :ref="`${variableCardsContainerId}_auxiliar`"
+        :id="`${cardsContainerId}_auxiliar`"
+        :ref="`${cardsContainerId}_auxiliar`"
       >
         <VpressVariableCard
           class="mb-3"
           :id="`cardId_total`"
-          :columnData="{
-            variableName: 'total_count',
-            variableNameDataType: 'linear'
+          :variableData="{
+            title: 'total_count',
+            type: 'linear'
           }"
-          variableName="Conteo de observaciones"
-          variableNameDataType="linear"
         />
         <div
           v-show="linearVariables.length > 0"
-          :id="`${variableCardsContainerId}_linear`"
-          :ref="`${variableCardsContainerId}_linear`"
+          :id="`${cardsContainerId}_linear`"
+          :ref="`${cardsContainerId}_linear`"
           >
           <VpressVariableCard
             class="mb-3"
-            v-for="(card, cardIndex) in linearVariables"
-            :key="`cardId_${cardIndex}`"
-            :id="`cardId_${cardIndex}`"
-            :columnData="card"
-            :variableName="card.variableName"
-            :variableNameDataType="card.variableNameDataType"
+            v-for="(variable, variableIndex) in linearVariables"
+            :key="`cardId_${variableIndex}`"
+            :id="`cardId_${variableIndex}`"
+            :variableData="variable"
           />
         </div>
       </div>
@@ -72,22 +66,22 @@
 import VpressVariableCard from './vpress-variable-card.vue';
 
 export default {
-  name: 'VpressVariableCardStartContainer',
+  name: 'VpressVariableContainer',
   components: {
     VpressVariableCard
   },
-  props: ['variableCards'],
+  props: ['variableData', 'dataSetName'],
   data() {
     return {
-      variableCardsContainerId: 'cardStartContainer',
+      cardsContainerId: 'cardStartContainer'
     }
   },
   computed: {
     linearVariables() {
-      return this.variableCards.filter(card => card.variableNameDataType === 'linear')
+      return this.variableData.filter(variable => variable.type === 'linear')
     },
     oirdinalVariables() {
-      return this.variableCards.filter(card => card.variableNameDataType === 'ordinal')
+      return this.variableData.filter(variable => variable.type === 'ordinal')
     }
   }
 }

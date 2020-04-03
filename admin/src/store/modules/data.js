@@ -4,6 +4,7 @@ export default {
   namespaced: true,
   state: {
     data: null,
+    dataSetName:'',
     filter: {}
   },
   mutations: {
@@ -12,11 +13,15 @@ export default {
     },
     SET_FILTER(state, data) {
       state.filter = data
+    },
+    SET_DATASET_NAME(state, dataSetName) {
+      state.dataSetName = dataSetName
     }
   },
   actions: {
-    set({ commit }, data) {
+    saveData({ commit }, { data, dataSetName }) {
       commit('SET_DATA', data);
+      commit('SET_DATASET_NAME', dataSetName)
     },
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
@@ -24,19 +29,20 @@ export default {
   },
   getters: {
     data: state => state.data,
+    dataSetName: state => state.dataSetName,
     dataType: state => {
       const result = [];
       if (state.data && state.data.length > 0) {
         // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of Object.entries(state.data[0])) {
-          let typeOfValue = 'ordinal';
-          /** @todo Add a date type */
-          if (typeof value === 'number') {
-            typeOfValue = 'linear';
+          let typeOfValue = 'linear';
+        /** @todo Add a date type */
+          if (isNaN(+value)) {
+            typeOfValue = 'ordinal';
           }
           result.push({
-            variableNameDataType: typeOfValue,
-            variableName: key
+            type: typeOfValue,
+            title: key
           });
         }
       }

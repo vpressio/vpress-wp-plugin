@@ -25,19 +25,16 @@
       class="pa-2"
     >
       <VpressVariableCard
-        :id="variable.id"
         class="mb-1"
         v-for="(variable, variableIndex) in variablesToRender"
+        :id="variable.id"
         :key="`variable_${variableIndex}`"
-        :variableName="variable.variableName"
-        :variableNameDataType="variable.variableNameDataType"
-        :showOperationButton="showOperationButton"
         :variablesInSlot.sync="variablesInSlot"
-        :columnData="variable"
+        :variableData="variable"
         @dragenter="dragEnter"
         @dragleave="dragLeave"
         @drop.stop.self="drop"
-        :inSlot="true"
+        inSlot
         :slotId="slotId"
       />
       <p
@@ -61,7 +58,7 @@ import VpressVariableCard from './vpress-variable-card';
 import VpressSlotFilter from './vpress-slot-filter.vue';
 
 export default {
-  name: 'VpressCardSlot',
+  name: 'VpressSlot',
   components: {
     VpressVariableCard,
     VpressSlotFilter
@@ -79,15 +76,14 @@ export default {
     return {
       variablesInSlot: [],
       openFilterDialog: false,
-      showOperationButton: true,
       addMargin: false,
       filterColumn: '',
-      filterType: ''
+      filterType: '' 
     };
   },
   computed: {
     variablesToRender() {
-      return this.variablesInSlot;
+      return [this.$store.getters[`chartConfig/${this.slotId}`]];
     },
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
@@ -96,61 +92,53 @@ export default {
   methods: {
     drop(event) {
       const { dataTransfer } = event;
+      
+
       const columnDataToTransferInString = dataTransfer.getData(
         'columnDataToTransferInString'
       );
       const columnDataToTransferInObject = JSON.parse(
         columnDataToTransferInString
       );
-      this.addVariableToSlot(columnDataToTransferInObject);
+
+      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { body: columnDataToTransferInObject, name: this.slotId})
+        .then( () =>{
+          console.log(this.$store.getters[`chartConfig/${this.slotId}`])
+          this.addVariableToSlot(columnDataToTransferInObject);
+        })
+        .catch(error => console.log(error))
+
       if (this.filter) {
         this.filterData(
-          columnDataToTransferInObject.variableName,
-          columnDataToTransferInObject.variableNameDataType
+          columnDataToTransferInObject.title,
+          columnDataToTransferInObject.type
         );
       }
     },
     dragEnter() {
-      // const { target }  = event
-      // if (
-      //   target.firstChild !== null &&
-      //   target.firstChild.nodeName === "DIV" &&
-      //   target.firstChild.id.includes('cardId_')
-      // ) this.addMargin = false;
     },
     dragLeave() {
-      // const { target }  = event
-      // if (
-      //   target.firstChild !== null &&
-      //   target.firstChild.nodeName === "DIV" &&
-      //   target.firstChild.id.includes('cardId_')
-      // ) this.addMargin = true;
     },
-    addVariableToSlot(columnData) {
+    addVariableToSlot(variableData) {
         const variableArray = [...this.variablesInSlot];
         const dataInSlot = variableArray.reduce(
             (data, variable, variableIndex) => {
-              if (variable.id === columnData.id) {
+              if (variable.id === variableData.id) {
                 data.includesId = true;
                 data.indexIncludedId = variableIndex;
               }
               return data
             },
-            {includesId: false, indexIncludedId: -1}
+            { includesId: false, indexIncludedId: -1 }
           );
         if (dataInSlot.includesId){
-          variableArray.splice(dataInSlot.indexIncludedId, 1);
-          variableArray.unshift(columnData);
-        } else {
-          if(this.variablesInSlot.length <= this.maxStack){
-            variableArray.splice(0, 1, columnData);
-            console.log(variableArray)
-          }
-      }
+          variableArray.splice(dataInSlot.indexIncludedId, 1, variableData);
+        } else if (this.variablesInSlot.length <= this.maxStack) {
+          variableArray.splice(0, 1, variableData); 
+        }
       this.variablesInSlot = variableArray;
     },
     filterData(column, type) {
-      this.showOperationButton = false;
       this.filterType = type;
       this.filterColumn = column;
       this.openFilterDialog = true;

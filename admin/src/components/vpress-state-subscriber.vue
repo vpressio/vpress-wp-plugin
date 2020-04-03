@@ -1,17 +1,25 @@
 <template>
-  <v-row>
+  <v-row class="ma-0">
     <v-col
+      class="pa-0"
       xl="2"
       lg="3"
       md="3"
-      class="px-2 py-0"
     >
-      <v-card flat>
-        <VpressSlotGroup/>
+      <v-card class="mx-2">
+        <VpressSlotGroup
+          :chartConfig="chartConfig"
+          :availableCharts='availableCharts'
+        />
       </v-card>
     </v-col>
-    <v-col xl="10" lg="9" md="9" class="pl-0 pr-5 py-0">
-      <v-card>
+    <v-col
+      class="pa-0"
+      xl="10"
+      lg="9"
+      md="9"
+    >
+      <v-card class="mr-2">
         <VpressChartSelectButtons :availableCharts="availableCharts" />
         <VpressChartContainer
           :data="chartData"
@@ -55,8 +63,7 @@ export default {
       return this.chartConfig;
     },
     chartData() {
-      console.log(this.$store.getters['data/dataFiltered'])
-      return this.$store.getters['data/dataFiltered']
+      return this.$store.getters['data/dataFiltered'];
     }
 
   },

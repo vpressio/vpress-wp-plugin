@@ -20,7 +20,7 @@ export default {
       labels: false,
       opacity: 0.8,
       theme: 'light',
-      colors: ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f'],
+      colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
     },
     availableGraphs: [
       {
@@ -190,47 +190,23 @@ export default {
       }
     },
     SET_CHART_TYPE(state, payload) {
-      state.chart = payload;
+      state.chartValues.chart = payload;
     },
     SET_STACK_BARS(state, payload) {
-      state.stackedBars = payload;
+      state.chartValues.stackedBars = payload;
     },
     SET_SHOW_LABELS(state, payload) {
-      state.labels = payload;
+      state.chartValues.labels = payload;
     },
     SET_CHART_THEME(state, payload) {
       const isDarkThemeActivated = payload;
-      isDarkThemeActivated ? (state.theme = 'dark') : (state.theme = 'light');
+      isDarkThemeActivated ? (state.chartValues.theme = 'dark') : (state.chartValues.theme = 'light');
     },
     SET_CHART_COLORS(state, payload) {
-      state.colors = payload;
+      state.chartValues.colors = payload;
     },
     SET_CHART_VALUES(state, payload) {
-      // console.log('Into mutation')
-      // const {
-      //   chart,
-      //   xAxis,
-      //   yAxis,
-      //   groupBy,
-      //   collapseBy,
-      //   orderBy,
-      // } = state;
-
-      // state.previousState = {
-      //   chart: chart,
-      //   xAxis: xAxis,
-      //   yAxis: yAxis,
-      //   groupBy: groupBy,
-      //   collapseBy: collapseBy,
-      //   orderBy: orderBy
-      // }
-
-      state.chartValues.chart = payload.chart,
-      state.chartValues.xAxis = payload.xAxis,
-      state.chartValues.yAxis = payload.yAxis,
-      state.chartValues.groupBy = payload.groupBy,
-      state.chartValues.collapseBy = payload.collapseBy
-      state.chartValues.orderBy = payload.orderBy
+      state.chartValues = payload;
     }
   },
   actions: {
@@ -238,6 +214,7 @@ export default {
       try {
         const newChartValues = await vpress.merge(state.chartValues, payload);
         commit('SET_CHART_VALUES', newChartValues);
+        return newChartValues;
       } catch (error) {
         console.warn(error)
       }
@@ -269,6 +246,25 @@ export default {
   },
   getters: {
     chart: state => state.chartValues,
+    slotVariable: state => {
+      return value => state.chartValues[value]
+    },
+    xAxis: state => state.chartValues.xAxis,
+    yAxis: state => state.chartValues.yAxis,
+    aggregation: state => {
+      if (state.chartValues.chart === 'bars') {
+        return state.chartValues.collapseBy
+      }
+      if (state.chartValues.chart === 'heatmap' || state.chartValues.chart === 'SPINEPLOT') {
+        return state.chartValues.collapseBy
+      }
+      if (state.chartValues.chart === 'scatter') {
+        return state.chartValues.groupBy
+      }
+      if (state.chartValues.chart === 'timeline') {
+        return state.chartValues.collapseBy
+      }
+    },
     theme: state => state.chartValues.theme,
     chartType: state => state.chartValues.chart,
     labels: state => state.chartValues.labels,
@@ -287,7 +283,7 @@ export default {
           ) {
             return { ...chart, disabled: true };
           }
-          if (chart.chartValues.chart === 'spineplot' && state.chartValues.collapseBy.slug === '') {
+          if (state.chartValues.chart === 'spineplot' && state.chartValues.collapseBy.slug === '') {
             return { ...chart, disabled: true };
           }
           return { ...chart, disabled: false };
