@@ -6,19 +6,21 @@
     @dragstart="dragStart"
     @dragend.prevent="dragEnd"
     @dragover.stop
-    class="border-radius-none card-flex pr-5 pb-2"
+    @drop.stop.self="drop"
+    tile
+    class="pr-5 pb-2"
     :class="{ 'pr-5': showOperationButton }"
     color="#9292A9"
     dark
     hover
   >
     <div class="dataTypeContainer">
-      <span class="variableCardDataType pl-3 py-1">
+      <!-- <span class="variableCardDataType pl-3 py-1">
         {{ variableNameDataType }}
-      </span>
+      </!-->
        <span
           v-if="variableMutation !== 'Sin mutar' && variableMutation"
-          class="variableCardDataType pl-1 py-1"
+          class="variableCardDataType pl-3 py-1"
         >
           {{ `(${variableMutation})` }}
         </span>
@@ -79,6 +81,7 @@ export default {
   name: 'VpressVariableCard',
   props: {
     id: String,
+    slotId: String,
     columnData: Object,
     inSlot: Boolean,
     variableName: String,
@@ -88,6 +91,7 @@ export default {
   },
   data() {
     return {
+      columnDataToTransferInObject: {},
       draggable: true,
       selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
@@ -104,30 +108,51 @@ export default {
       return this.selectedFunc.name;
     }
   },
+  created() {
+    if(this.inSlot) {
+      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { name:  this.slotId, body: this.columnData });
+    }
+  },
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      const columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
-      const columnDataToTransferInString = JSON.stringify(columnDataToTransferInObject);
+      this.columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
+      const columnDataToTransferInString = JSON.stringify(this.columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
-    dragEnd(event) {
+    dragEnd() {
       const { target } = event;
-      if(target.parentNode.id !== 'cardStartContainer') {
+      if(target.parentNode.id.includes('cardStartContainer')) {
         const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
          this.$emit('update:variablesInSlot', arrayWithoutThisCard);
-      }
+         this.$store.dispatch(
+           `chartConfig/UPDATE_CHART_VALUES`,
+           {
+             name: this.slotId,
+             body: {
+               variableName: '',
+               variableNameDataType: '',
+               func:''
+              }
+            }
+          );
+         this.$store.dispatch('data/setFilter', {});
+      } 
+      // else {
+      //   this.$emit('update:variablesInSlot', [{...this.columnDataToTransferInObject}]);
+      // }
     },
     selectFunc(selectedFuncType) {
       this.selectedFunc = selectedFuncType;
+      
+    },
+    drop(event) {
+      console.log(event.target.id)
     }
   },
 };
 </script>
 <style scoped>
-.card-flex {
-  height:100%;
-}
 
 .dataTypeTitle {
   font-weight: 500;

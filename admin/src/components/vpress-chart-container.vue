@@ -192,7 +192,7 @@ export default {
           .node().offsetWidth || 1200;
       this.height =
         // this.chartConfig.height ||
-        this.width * 0.6 || 500;
+        this.width * 0.6 || 300;
 
       /** Configure margins */
       this.margin = { top: 10, right: 170, bottom: 50, left: 80 };

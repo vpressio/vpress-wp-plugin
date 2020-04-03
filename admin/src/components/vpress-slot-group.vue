@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="py-5 px-3">
+  <v-card class="py-5 px-3">
     <v-row class="ma-0">
       <v-col  
         cols="12"
@@ -7,9 +7,10 @@
         :key="`slot_${slotIndex}`"
         class="pa-0"
       >
-        <VpressVariableCardSlot
+        <VpressSlot
           :slotId="slot.slotId"
           :icon="slot.icon"
+          :slotIcon="slot.slotIcon"
           :label="slot.label"
           :maxStack="slot.maxStack"
           :dataType="['linear','ordinal']"
@@ -20,43 +21,47 @@
   </v-card>
 </template>
 <script>
-import VpressVariableCardSlot from './variable-card-slot';
+import VpressSlot from './vpress-slot';
 
 export default {
   name: 'VpressVariableSlotsContainer',
   components: {
-    VpressVariableCardSlot
+    VpressSlot
   },
   props: ['id', 'slotLabel'],
   data() {
     return {
       slots: [
         {
-          slotId:"UPDATE_X_AXIS",
+          slotId:"xAxis",
           icon:"mdi-view-sequential",
+          slotIcon: "eje-x",
           label:"Columnas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
-          slotId:"UPDATE_Y_AXIS",
+          slotId:"yAxis",
           icon:"mdi-view-parallel",
+          slotIcon: "eje-y",
           label:"Filas",
-          maxStack: 2,
+          maxStack: 1,
           filter: false
         },
         {
-          slotId:"UPDATE_GROUP_BY",
+          slotId:"aggregation",
           icon:" mdi-palette-outline",
-          label:"Colores",
+          slotIcon: "color",
+          label:"Color",
           maxStack: 1,
           filter: false
         },
         {
-          slotId:"Filter",
-          icon:"",
-          label: "Filtrar",
-          maxStack: 1,
+          slotId:"filter",
+          icon:"mdi-tune",
+          slotIcon: "",
+          label: "Filtros",
+          maxStack: 3,
           filter: true
         }
       ]

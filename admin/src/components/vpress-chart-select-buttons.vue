@@ -1,8 +1,16 @@
 <template>
   <v-card flat class="px-2 py-3">
     <v-row>
-      <v-col v-show="!$vuetify.breakpoint.smAndDown" cols="3" class="buttons-header">
-        TIPOS DE GRÁFICOS
+      <v-col
+        class="buttons-header"
+        v-show="!$vuetify.breakpoint.smAndDown"
+        xl="2"
+        lg="3"
+        md="3"
+      >
+        TIPOS DE
+        <br/>
+        GRÁFICOS
       </v-col>
       <v-col>
         <v-btn
@@ -76,8 +84,10 @@ export default {
 </script>
 <style scoped>
 .buttons-header {
+  display: flex;
+  justify-content: center;
+  align-self: center;
   border-right: solid 0.5px;
-  padding-left: 32px;
   font-weight: 600;
   line-height: initial;
 }

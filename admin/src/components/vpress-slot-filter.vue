@@ -132,6 +132,7 @@ export default {
         this.$store.dispatch('data/setFilter', { ...filter, value: this.ordinalFilter });
       }
       this.dialog = false;
+      this.$emit('update:openFilterDialog', false)
     }
   }
 };
