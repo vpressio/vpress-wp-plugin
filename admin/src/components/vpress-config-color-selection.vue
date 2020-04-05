@@ -38,7 +38,6 @@ export default {
   },
   methods: {
     selectColorScheme(scheme) {
-      console.log(scheme)
       this.$store.dispatch('chartConfig/UPDATE_CHART_COLORS', scheme);
     }
   }

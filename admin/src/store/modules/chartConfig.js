@@ -219,6 +219,27 @@ export default {
         console.warn(error)
       }
     },
+    RESET_CHART_VALUES({ commit }) {
+      const initialChartValues = {
+        chart: 'bars',
+        xAxis: { title: '', type: '', slug: '' , func: ''},
+        yAxis: { title: '', type: '', slug: '', func: ''},
+        groupBy: { title: '', type: 'ordinal', slug: ''},
+        collapseBy: { title: '', type: 'linear', slug: '', func: '' },
+        orderBy: { order: 'desc', slug: '' },
+        decimals: 1,
+        preffix: '',
+        suffix: '',
+        stackedBars: false,
+        title: 'Título',
+        subtitle: 'Subtítulo',
+        labels: false,
+        opacity: 0.8,
+        theme: 'light',
+        colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
+      }
+      commit('SET_CHART_VALUES', initialChartValues)
+    },
     UPDATE_X_AXIS({ commit }, payload) {
       commit('SET_X_AXIS', payload);
     },
@@ -253,9 +274,9 @@ export default {
     yAxis: state => state.chartValues.yAxis,
     aggregation: state => {
       if (state.chartValues.chart === 'bars') {
-        return state.chartValues.collapseBy
+        return state.chartValues.groupBy
       }
-      if (state.chartValues.chart === 'heatmap' || state.chartValues.chart === 'SPINEPLOT') {
+      if (state.chartValues.chart === 'heatmap' || state.chartValues.chart === 'spineplot') {
         return state.chartValues.collapseBy
       }
       if (state.chartValues.chart === 'scatter') {

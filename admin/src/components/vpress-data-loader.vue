@@ -296,7 +296,7 @@ export default {
     },
     saveData() {
       this.$emit('update:tabChange', 1);
-      console.log(this.dataSetName)
+      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
       this.$store.dispatch('data/saveData', { data: this.data, dataSetName:this.dataSetName });
     }
   }

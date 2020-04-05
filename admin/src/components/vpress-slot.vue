@@ -83,6 +83,7 @@ export default {
   },
   computed: {
     variablesToRender() {
+      console.log(this.$store.getters[`chartConfig/chart`])
       return [this.$store.getters[`chartConfig/${this.slotId}`]];
     },
     iconSrc() {
@@ -103,7 +104,6 @@ export default {
 
       this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { body: columnDataToTransferInObject, name: this.slotId})
         .then( () =>{
-          console.log(this.$store.getters[`chartConfig/${this.slotId}`])
           this.addVariableToSlot(columnDataToTransferInObject);
         })
         .catch(error => console.log(error))
