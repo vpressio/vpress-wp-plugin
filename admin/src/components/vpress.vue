@@ -74,6 +74,8 @@
   </v-responsive>
 </template>
 <script>
+import { fire } from '../plugins/firebase';
+
 import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
@@ -100,6 +102,9 @@ export default {
       openDialog: false,
       sideBarWidth: 45
     };
+  },
+  created() {
+    console.log(fire)
   },
   computed: {
     numberOfColsIftabIsNotZero() {
