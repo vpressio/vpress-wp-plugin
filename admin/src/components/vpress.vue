@@ -7,7 +7,7 @@
           <v-img class="vpress-icon" src="../assets/images/logo.svg" />
         </v-card>
       </v-card>
-      <div style="width:100%">
+      <div style="width:100%;" class="pb-5">
         <v-row class="ma-0">
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
             <v-tabs
@@ -19,11 +19,11 @@
               grow
             >
               <v-tab>DATOS</v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">CONFIGURA</v-tab>
-              <v-tab :disabled="dataTypesCards.length === 0">ESTILO</v-tab>
+              <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
+              <v-tab :disabled="variableData.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="pa-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
+          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
               <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
@@ -31,15 +31,16 @@
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
-            <v-card flat>
+            <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader :tabChange.sync="activeTab" />
+                  <VpressDataLoader :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                     <VpressVariableContainer
-                      :variableCards="dataTypesCards"
+                      :variableData="variableData"
+                      :dataSetName="dataSetName"
                     />
                   </VpressExpansionPanel>
                 </v-tab-item>
@@ -68,7 +69,7 @@
             lg="9"
             xl="10"
           >
-            <VpressStateSubscriber />
+            <VpressStateSubscriber v-if="variableData.length !== 0"/>
           </v-col>
         </v-row>
       </div>
@@ -100,7 +101,8 @@ export default {
       activeTab: 0,
       darkTheme: false,
       openDialog: false,
-      sideBarWidth: 45
+      sideBarWidth: 45,
+      dataSetFromUrl: {}
     };
   },
   computed: {
@@ -114,11 +116,16 @@ export default {
       this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
-    dataTypesCards() {
+    variableData() {
       return this.$store.getters['data/dataType'];
+    },
+    dataSetName() {
+      if (this.activeTab === 1) {
+        return this.$store.getters['data/dataSetName'].replace(/\.[^/.]+$/, "")
+      }
+      return 'Dataset'
     }
-  },
-  methods: {}
+  }
 };
 </script>
 <style  scoped>

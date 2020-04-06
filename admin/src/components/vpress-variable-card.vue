@@ -1,5 +1,6 @@
 <template>
   <v-card
+    v-show="variableData.type !== '' && variableData.title !== ''"
     :id="id"
     :ref="id"
     :draggable="draggable"
@@ -8,26 +9,14 @@
     @dragover.stop
     @drop.stop.self="drop"
     tile
-    class="pr-5 pb-2"
-    :class="{ 'pr-5': showOperationButton }"
+    :class="{ 'pr-5': inSlot }"
     color="#9292A9"
     dark
     hover
   >
-    <div class="dataTypeContainer">
-      <!-- <span class="variableCardDataType pl-3 py-1">
-        {{ variableNameDataType }}
-      </!-->
-       <span
-          v-if="variableMutation !== 'Sin mutar' && variableMutation"
-          class="variableCardDataType pl-3 py-1"
-        >
-          {{ `(${variableMutation})` }}
-        </span>
-    </div>
     <div>
       <div
-        v-if="showOperationButton"
+        v-if="inSlot"
         class="operationButtonContainer pr-2"
       >
         <v-menu
@@ -51,7 +40,7 @@
               </v-icon>
             </v-btn>
           </template>
-            <v-list>
+            <v-list v-if="variableData.type === 'linear'">
               <v-list-item
                 class="px-5"
                 v-for="(func, funcIndex) in funcs"
@@ -62,16 +51,46 @@
                 <v-list-item-title
                   class="func-menu"
                   :class="{ 'selected-func': selectedFunc === func }"
-                  :dark="selectedFunc === func.type"
+                  :dark="selectedFunc === func"
                 >
                   {{ func.name }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-divider inset></v-divider>
+              <v-list-item
+                class="px-5"
+                @click="removeCard()"
+              >
+                <v-list-item-title
+                  class="func-menu"
+                >
+                  Eliminar
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+            <v-list v-if="variableData.type === 'ordinal'">
+              <v-divider></v-divider>
+              <v-list-item
+                class="px-5"
+                @click="removeCard"
+              >
+                <v-list-item-title
+                  class="func-menu"
+                >
+                  Eliminar
                 </v-list-item-title>
               </v-list-item>
             </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-2 pl-3" :class="{ 'pr-5':showOperationButton }">
-        {{ variableName }}
+      <div class="dataTypeTitle py-2 pl-3" :class="{ 'pr-5':inSlot }">
+        <p class="mb-0"> {{ variableData.title }} </p>
+        <p
+          v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
+          class="variableCardDataType mb-0"
+        >
+          {{ `(${selectedFunc.name})` }}
+        </p>
       </div>
     </div>
   </v-card>
@@ -82,18 +101,14 @@ export default {
   props: {
     id: String,
     slotId: String,
-    columnData: Object,
+    variableData: Object,
     inSlot: Boolean,
-    variableName: String,
-    variableNameDataType: String,
-    showOperationButton: Boolean,
-    variablesInSlot: Array
+    variablesInSlot: Array,
   },
   data() {
     return {
       columnDataToTransferInObject: {},
       draggable: true,
-      selectedFunc: { type: '', name: 'Sin mutar' },
       funcs: [
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
@@ -104,47 +119,51 @@ export default {
     };
   },
   computed: {
-    variableMutation() {
-      return this.selectedFunc.name;
-    }
-  },
-  created() {
-    if(this.inSlot) {
-      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { name:  this.slotId, body: this.columnData });
+    selectedFunc() {
+      if (this.inSlot) {
+        const variable = this.$store.getters[`chartConfig/${this.slotId}`];
+        const funcInStore = this.funcs.reduce((acc, functionInArray) => {
+          if ( variable.func === functionInArray.type) {
+            return acc = functionInArray
+          }
+          return acc
+        } , { type: '', name: 'Sin mutar' })
+        return funcInStore
+      }
+      return { type: '', name: 'Sin mutar' }
     }
   },
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      this.columnDataToTransferInObject = { id: this.id, ...this.columnData, func: this.selectedFunc.type };
+      this.columnDataToTransferInObject = { id: this.id, ...this.variableData, func: this.selectedFunc.type };
       const columnDataToTransferInString = JSON.stringify(this.columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
       const { target } = event;
-      if(target.parentNode.id.includes('cardStartContainer')) {
-        const arrayWithoutThisCard = this.variablesInSlot.filter(data => data.id !== this.id)
-         this.$emit('update:variablesInSlot', arrayWithoutThisCard);
-         this.$store.dispatch(
-           `chartConfig/UPDATE_CHART_VALUES`,
-           {
-             name: this.slotId,
-             body: {
-               variableName: '',
-               variableNameDataType: '',
-               func:''
-              }
-            }
-          );
-         this.$store.dispatch('data/setFilter', {});
+      if(!target.parentNode.id.includes('cardStartContainer')) {
+        this.removeCard()
+        //  this.$store.dispatch('data/setFilter', {});
       } 
-      // else {
-      //   this.$emit('update:variablesInSlot', [{...this.columnDataToTransferInObject}]);
-      // }
     },
-    selectFunc(selectedFuncType) {
-      this.selectedFunc = selectedFuncType;
-      
+    selectFunc(func) {
+      const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
+      variable.func = func.type;
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`,{body: variable, name: this.slotId});
+    },
+    removeCard() {
+      this.$store.dispatch(
+        `chartConfig/MERGE_CHART_VALUE`,
+        {
+          name: this.slotId,
+          body: {
+            title: '',
+            type: '',
+            func:''
+          }
+        }
+      );
     },
     drop(event) {
       console.log(event.target.id)

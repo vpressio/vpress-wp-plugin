@@ -3,8 +3,8 @@ import * as _ from 'lodash';
 const merge = async (chartConfig, newChartValue) => {
   try {
     const {
-      variableName,
-      variableNameDataType,
+      title,
+      type,
       func
     } = newChartValue.body;
     
@@ -12,9 +12,9 @@ const merge = async (chartConfig, newChartValue) => {
       chartConfig,
       newValueName: newChartValue.name,
       newValue: {
-        title: variableName,
-        type: variableNameDataType,
-        slug: variableName,
+        title: title,
+        type: type,
+        slug: title,
         func: func
       }
     }
@@ -57,7 +57,6 @@ const changeAxis = async (payload) => {
       ) {
         chartConfig.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
       }
-
     switch (newValue.type) {
       case 'ordinal':
         if (
@@ -80,8 +79,10 @@ const changeAxis = async (payload) => {
           }
 
           if (chartConfig.xAxis.type === 'linear') {
+            chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
             chartConfig.collapseBy = chartConfig.xAxis
           } else if (chartConfig.yAxis.type === 'linear') {
+            chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
             chartConfig.collapseBy = chartConfig.yAxis
           }
         }
@@ -110,6 +111,7 @@ const changeAxis = async (payload) => {
           }
 
           chartConfig.collapseBy = newValue
+          chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
         }
         break;
       case 'date':
@@ -155,6 +157,7 @@ const changeAggregate = async (payload) => {
       break;
     case 'linear':
       chartConfig.collapseBy = newValue
+      chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
       break;
     case 'date':
       break;

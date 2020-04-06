@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import * as d3 from 'd3';
 import XLSX from 'xlsx';
 
 const FReader = {
@@ -8,7 +9,9 @@ const FReader = {
   readFileAsText(file) {
     return new Promise(((resolve, reject) => {
       const reader = new FileReader();
-
+      if (file.size > 120000000) {
+        reject('El archivo es demasiado grande')
+      }
       // Closure to capture the file information.
       reader.onload = (function () {
         return function (e) {
@@ -19,7 +22,6 @@ const FReader = {
       reader.onerror = function (error) {
         return reject(error);
       };
-
       reader.readAsText(file);
     }));
   },
@@ -29,7 +31,9 @@ const FReader = {
   readFileAsBinary(file) {
     return new Promise(((resolve, reject) => {
       const reader = new FileReader();
-
+      if (file.size > 15000000) {
+        reject('El archivo es demasiado grande')
+      }
       // Closure to capture the file information.
       reader.onload = (function () {
         return function (e) {
@@ -50,7 +54,10 @@ const FReader = {
   readCSV(file) {
     return new Promise(((resolve, reject) => {
       FReader.readFileAsText(file)
-        .then(csv => resolve(FReader.CSVtoJSON(csv)))
+        .then(csv => {
+          const json = d3.csvParse(csv);
+          resolve(json)
+        })
         .catch(error => reject(error));
     }));
   },

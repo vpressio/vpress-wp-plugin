@@ -37,12 +37,12 @@
         <v-card dark class color="primary" @click="selectTestDataset(dataSet.name)">
           <v-card-title
             class="px-3 pt-3 pb-5"
-            style="font-size:1rem;line-height:0.8"
-          >Datos de prueba</v-card-title>
+            style="font-size:1rem;line-height:1"
+          >{{ dataSet.name.replace(/\.[^/.]+$/, "") }}</v-card-title>
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.name.replace(/\.[^/.]+$/, "") }}</v-card-subtitle>
+          >{{ `.${dataSet.name.split('.').pop()}` }}</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -137,13 +137,35 @@ export default {
   },
   created() {
     this.getStorageDatasets();
+    this.getUrlParams()   
+    
   },
   watch: {
     files(newFiles) {
-      if (newFiles.length >= 1) this.loadFile(this.files[0].file);
+      if (newFiles.length >= 1){
+        this.dataSetName = this.files[0].file.name
+        this.loadFile(this.files[0].file);
+      } 
     }
   },
   methods: {
+    getUrlQueries() {
+      // if(this.$route)
+    },
+    getUrlParams() {
+      const self = this;
+      // OtwVQAlrZLwZBvN8jYT3
+      if( this.$route.params.chartid ) {
+        self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid )
+          .then(dataSet => {
+            this.dataSetDir = '/savedDatasets';
+            this.selectTestDataset(dataSet);
+          })
+          .catch(err => {
+            console.warn(err)
+          });
+      }
+    },
     getStorageDatasets() {
       this.dataSetDir = this.$route.query.datasets
         ? `/${this.$route.query.datasets}`
@@ -154,8 +176,9 @@ export default {
         .child(this.dataSetDir)
         .listAll()
         .then(res => {
-          if (res.items.length === 0)
+          if (res.items.length === 0) {
             console.warn(`Sin coincidencias para ${this.dataSetDir}`);
+          }
           this.testDatasets = res.items;
         })
         .catch(err => {
@@ -194,7 +217,6 @@ export default {
     loadFile(file) {
       const self = this;
       self.loading = true;
-
       if (file.type === 'text/csv') {
         FReader.readCSV(file)
           .then(content => {
@@ -289,10 +311,12 @@ export default {
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
+      self.dataSetName = 'Dataset copiado'
     },
     saveData() {
       this.$emit('update:tabChange', 1);
-      this.$store.dispatch('data/set', this.data);
+      // this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('data/saveData', { data: this.data, dataSetName:this.dataSetName });
     }
   }
 };

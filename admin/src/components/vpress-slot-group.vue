@@ -1,24 +1,22 @@
 <template>
-  <v-card class="py-5 px-3">
-    <v-row class="ma-0">
-      <v-col  
-        cols="12"
-        v-for="(slot, slotIndex) in slots"
-        :key="`slot_${slotIndex}`"
-        class="pa-0"
-      >
-        <VpressSlot
-          :slotId="slot.slotId"
-          :icon="slot.icon"
-          :slotIcon="slot.slotIcon"
-          :label="slot.label"
-          :maxStack="slot.maxStack"
-          :dataType="['linear','ordinal']"
-          :filter="slot.filter"
-        />
-      </v-col>
-    </v-row>
-  </v-card>
+  <v-row class="ma-0">
+    <v-col  
+      cols="12"
+      v-for="(slot, slotIndex) in slots"
+      :key="`slot_${slotIndex}`"
+      class="py-2 px-1"
+    >
+      <VpressSlot
+        :slotId="slot.slotId"
+        :icon="slot.icon"
+        :slotIcon="slot.slotIcon"
+        :label="slot.label"
+        :maxStack="slot.maxStack"
+        :dataType="['linear','ordinal']"
+        :filter="slot.filter"
+      />
+    </v-col>
+  </v-row>
 </template>
 <script>
 import VpressSlot from './vpress-slot';
@@ -28,7 +26,7 @@ export default {
   components: {
     VpressSlot
   },
-  props: ['id', 'slotLabel'],
+  props: ['id', 'slotLabel', 'chartConfig','availableCharts'],
   data() {
     return {
       slots: [
@@ -36,7 +34,7 @@ export default {
           slotId:"xAxis",
           icon:"mdi-view-sequential",
           slotIcon: "eje-x",
-          label:"Columnas",
+          label:"Filas",
           maxStack: 1,
           filter: false
         },
@@ -44,7 +42,7 @@ export default {
           slotId:"yAxis",
           icon:"mdi-view-parallel",
           slotIcon: "eje-y",
-          label:"Filas",
+          label:"Columnas",
           maxStack: 1,
           filter: false
         },
@@ -56,14 +54,14 @@ export default {
           maxStack: 1,
           filter: false
         },
-        {
-          slotId:"filter",
-          icon:"mdi-tune",
-          slotIcon: "",
-          label: "Filtros",
-          maxStack: 3,
-          filter: true
-        }
+        // {
+        //   slotId:"filter",
+        //   icon:"mdi-tune",
+        //   slotIcon: "",
+        //   label: "Filtros",
+        //   maxStack: 3,
+        //   filter: true
+        // }
       ]
     };
   }

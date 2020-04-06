@@ -10,6 +10,11 @@ export default new Router({
       path: '/',
       name: 'demo',
       component: Demo
+    },
+    {
+      path: '/chart/:chartid',
+      name: 'demoPlusId',
+      component: Demo
     }
   ]
 });

@@ -8,7 +8,7 @@
 
     #empty-chart.empty-chart
       .vertical-align
-        p.tiny.label-font CARGANDO GRÁFICA...
+        p.tiny.label-font Arrastra algún valor a filas, columnas o color
 </template>
 
 <script>
@@ -851,6 +851,8 @@ export default {
 .chart-container {
   width: 100%;
   min-height: 600px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 </style>
 <style>
