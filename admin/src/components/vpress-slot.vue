@@ -83,7 +83,6 @@ export default {
   },
   computed: {
     variablesToRender() {
-      console.log(this.$store.getters[`chartConfig/chart`])
       return [this.$store.getters[`chartConfig/${this.slotId}`]];
     },
     iconSrc() {
@@ -102,11 +101,11 @@ export default {
         columnDataToTransferInString
       );
 
-      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`, { body: columnDataToTransferInObject, name: this.slotId})
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { body: columnDataToTransferInObject, name: this.slotId})
         .then( () =>{
           this.addVariableToSlot(columnDataToTransferInObject);
         })
-        .catch(error => console.log(error))
+        .catch(error => console.warn(error))
 
       if (this.filter) {
         this.filterData(

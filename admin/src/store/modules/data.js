@@ -1,4 +1,6 @@
-import _ from 'lodash'
+import _ from 'lodash';
+import { storage } from '../../plugins/firebase';
+import axios from 'axios';
 
 export default {
   namespaced: true,
@@ -26,6 +28,25 @@ export default {
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
     },
+    async GET_DATASET_BY_NAME(_context, payload) {
+      try {
+        const datasetUrl = await storage
+        .ref()
+        .child(`savedDatasets/${payload}`)
+        .getDownloadURL()
+        
+        const dataset = await axios.get(
+          datasetUrl,
+          {
+            responseType: 'blob',
+            timeout: 30000
+          }
+        );
+        return dataset.data;
+      } catch (error) {
+        console.warn(error);
+      }
+    }
   },
   getters: {
     data: state => state.data,

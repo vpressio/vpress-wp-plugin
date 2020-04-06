@@ -34,11 +34,14 @@
             <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader :tabChange.sync="activeTab" />
+                  <VpressDataLoader :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <VpressVariableContainer :variableData="variableData" :dataSetName="dataSetName"/>
+                    <VpressVariableContainer
+                      :variableData="variableData"
+                      :dataSetName="dataSetName"
+                    />
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
@@ -74,8 +77,6 @@
   </v-responsive>
 </template>
 <script>
-import { fire } from '../plugins/firebase';
-
 import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
@@ -100,11 +101,9 @@ export default {
       activeTab: 0,
       darkTheme: false,
       openDialog: false,
-      sideBarWidth: 45
+      sideBarWidth: 45,
+      dataSetFromUrl: {}
     };
-  },
-  created() {
-    console.log(fire)
   },
   computed: {
     numberOfColsIftabIsNotZero() {

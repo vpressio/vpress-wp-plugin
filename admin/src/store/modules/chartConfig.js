@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import vpress from '../../utils/vpress.js';
+import { firestore } from '../../plugins/firebase';
 
 export default {
   namespaced: true,
@@ -210,13 +211,37 @@ export default {
     }
   },
   actions: {
-    async UPDATE_CHART_VALUES({ state, commit }, payload) {
+    async MERGE_CHART_VALUE({ state, commit }, payload) {
       try {
         const newChartValues = await vpress.merge(state.chartValues, payload);
         commit('SET_CHART_VALUES', newChartValues);
         return newChartValues;
       } catch (error) {
         console.warn(error)
+      }
+    },
+    async GET_CHART_BY_ID({ commit }, chartId) {
+      try {
+        const doc =
+          await firestore
+            .collection('charts')
+            .doc(chartId)
+            .get();
+        
+        if (!doc.exists) {
+          throw new Error('No matching documents.');
+        }
+        commit(
+          'SET_CHART_VALUES',
+          doc
+            .data()
+            .chartValues
+        )
+        return doc
+          .data()
+          .dataSet
+      } catch (error) {
+        console.warn(error);
       }
     },
     RESET_CHART_VALUES({ commit }) {

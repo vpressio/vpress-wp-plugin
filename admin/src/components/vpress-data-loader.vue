@@ -137,6 +137,8 @@ export default {
   },
   created() {
     this.getStorageDatasets();
+    this.getUrlParams()   
+    
   },
   watch: {
     files(newFiles) {
@@ -147,6 +149,23 @@ export default {
     }
   },
   methods: {
+    getUrlQueries() {
+      // if(this.$route)
+    },
+    getUrlParams() {
+      const self = this;
+      // OtwVQAlrZLwZBvN8jYT3
+      if( this.$route.params.chartid ) {
+        self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid )
+          .then(dataSet => {
+            this.dataSetDir = '/savedDatasets';
+            this.selectTestDataset(dataSet);
+          })
+          .catch(err => {
+            console.warn(err)
+          });
+      }
+    },
     getStorageDatasets() {
       this.dataSetDir = this.$route.query.datasets
         ? `/${this.$route.query.datasets}`
@@ -296,7 +315,7 @@ export default {
     },
     saveData() {
       this.$emit('update:tabChange', 1);
-      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      // this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
       this.$store.dispatch('data/saveData', { data: this.data, dataSetName:this.dataSetName });
     }
   }

@@ -64,9 +64,6 @@ export default {
         // }
       ]
     };
-  },
-  created() {
-    console.log(this.chartConfig, this.availableCharts);
   }
 };
 </script>

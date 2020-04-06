@@ -150,11 +150,11 @@ export default {
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
-      this.$store.dispatch(`chartConfig/UPDATE_CHART_VALUES`,{body: variable, name: this.slotId});
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`,{body: variable, name: this.slotId});
     },
     removeCard() {
       this.$store.dispatch(
-        `chartConfig/UPDATE_CHART_VALUES`,
+        `chartConfig/MERGE_CHART_VALUE`,
         {
           name: this.slotId,
           body: {
