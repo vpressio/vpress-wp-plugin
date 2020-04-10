@@ -59,6 +59,8 @@ const changeAxis = async (payload) => {
       }
     switch (newValue.type) {
       case 'ordinal':
+        chartConfig.orderBy.slug = newValue.slug;
+      console.log(chartConfig.orderBy.slug)
         if (
           chartConfig.xAxis.type === newValue.type &&
           chartConfig.yAxis.type === newValue.type
@@ -79,10 +81,8 @@ const changeAxis = async (payload) => {
           }
 
           if (chartConfig.xAxis.type === 'linear') {
-            chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
             chartConfig.collapseBy = chartConfig.xAxis
           } else if (chartConfig.yAxis.type === 'linear') {
-            chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
             chartConfig.collapseBy = chartConfig.yAxis
           }
         }
@@ -111,7 +111,6 @@ const changeAxis = async (payload) => {
           }
 
           chartConfig.collapseBy = newValue
-          chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
         }
         break;
       case 'date':
@@ -157,7 +156,6 @@ const changeAggregate = async (payload) => {
       break;
     case 'linear':
       chartConfig.collapseBy = newValue
-      chartConfig.orderBy.slug = chartConfig.collapseBy.slug;
       break;
     case 'date':
       break;

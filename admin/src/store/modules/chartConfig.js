@@ -11,7 +11,7 @@ export default {
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: 'desc', slug: '' },
+      orderBy: { order: '', slug: '' },
       decimals: 1,
       preffix: '',
       suffix: '',
@@ -196,6 +196,9 @@ export default {
     SET_STACK_BARS(state, payload) {
       state.chartValues.stackedBars = payload;
     },
+    SET_ORDER_BY(state, payload) {
+      state.chartValues.orderBy.order = payload;
+    },
     SET_SHOW_LABELS(state, payload) {
       state.chartValues.labels = payload;
     },
@@ -280,6 +283,9 @@ export default {
     UPDATE_STACK_BARS({ commit }, payload) {
       commit('SET_STACK_BARS', payload);
     },
+    UPDATE_ORDER_BY({ commit }, payload) {
+      commit('SET_ORDER_BY', payload)
+    },
     UPDATE_SHOW_LABELS({ commit }, payload) {
       commit('SET_SHOW_LABELS', payload);
     },
@@ -316,6 +322,7 @@ export default {
     labels: state => state.chartValues.labels,
     'groupBy.slug': state => state.chartValues.groupBy.slug,
     stackedBars: state => state.chartValues.stackedBars,
+    order: state => state.chartValues.orderBy.order,
     availableColors: state => state.availableColors,
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {

@@ -18,11 +18,9 @@
           :key="graphIndex"
           text
           @click="setChartType(graph.chartType)"
-          :disabled="graph.disabled"
           class="mx-1"
         >
           <v-img
-            :class="graph.disabled ? 'disabled-graph-image' : ''"
             :src="requireImg(graph.chartType)"
             :alt="graph.chartType"
             width="30"
@@ -32,11 +30,38 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col>
-        <v-btn @click="toggleLabels">ETIQUETAS</v-btn>
-        <v-btn v-show="chartIsBarsGrouped" @click="toggleBarsType">{{
-          stackedBars ? 'BARRAS AGRUPADAS' : 'BARRAS APILADAS'
-        }}</v-btn>
+      <v-col class="ml-5">
+        <v-btn
+          class="mr-2"
+          @click="toggleLabels"
+          small
+          color="secondary"
+        >
+          <v-icon>
+            mdi-tag-outline
+          </v-icon>
+        </v-btn>
+        <v-btn
+          v-show="chartIsBarsGrouped"
+          class="mr-2"
+          @click="toggleBarsType"
+          small
+          color="secondary"
+        >
+          <v-icon>
+            {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
+          </v-icon>
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="toggleOrder"
+          small
+          color="secondary"
+        >
+          <v-icon>
+            {{ orderIcon }}
+          </v-icon>
+        </v-btn>
       </v-col>
     </v-row>
   </v-card>
@@ -49,19 +74,31 @@ export default {
     return {
       labels: false,
       stackedBars: false,
+      order: '',
       graphs: []
     };
   },
   created() {
     this.labels = this.$store.getters['chartConfig/labels'];
     this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
+    this.order = this.$store.getters['chartConfig/order'];
   },
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.getters['chartConfig/chart'] === 'bars' &&
-        this.$store.getters['chartConfig/groupBy.slug']
+        this.$store.getters['chartConfig/chart'].chart === 'bars' &&
+        this.$store.getters['chartConfig/groupBy.slug'].length !== 0
       );
+    },
+    orderIcon() {
+      switch (this.order) {
+        case 'asc':
+          return 'mdi-format-vertical-align-top'
+        case 'desc':
+          return 'mdi-format-vertical-align-bottom'
+        default:
+          return 'mdi-fruit-watermelon'
+      }
     }
   },
   methods: {
@@ -78,7 +115,18 @@ export default {
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
       this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', this.stackedBars);
+    },
+    toggleOrder() {
+      const order = [ 'asc', 'desc' ];
+      const selectedOrderIndex = order.indexOf(this.order);
+      if ( (selectedOrderIndex + 1) < order.length) {
+        this.order = order[selectedOrderIndex + 1]
+      } else {
+        this.order = order[0]
+      }
+      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
     }
+    
   }
 };
 </script>
