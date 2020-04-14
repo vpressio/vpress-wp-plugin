@@ -16,6 +16,7 @@
         <v-btn
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
+          :disable="graph.disabled"
           text
           @click="setChartType(graph.chartType)"
           class="mx-1"
@@ -35,7 +36,8 @@
           class="mr-2"
           @click="toggleLabels"
           small
-          color="secondary"
+          dark
+          color="primary"
         >
           <v-icon>
             mdi-tag-outline
@@ -46,7 +48,8 @@
           class="mr-2"
           @click="toggleBarsType"
           small
-          color="secondary"
+          dark
+          color="grey"
         >
           <v-icon>
             {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
@@ -56,7 +59,8 @@
           class="mr-2"
           @click="toggleOrder"
           small
-          color="secondary"
+          dark
+          color="grey"
         >
           <v-icon>
             {{ orderIcon }}
@@ -79,6 +83,7 @@ export default {
     };
   },
   created() {
+    console.log(this.availableCharts)
     this.labels = this.$store.getters['chartConfig/labels'];
     this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
     this.order = this.$store.getters['chartConfig/order'];

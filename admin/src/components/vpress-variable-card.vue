@@ -160,6 +160,7 @@ export default {
           body: {
             title: '',
             type: '',
+            slug: '',
             func:''
           }
         }

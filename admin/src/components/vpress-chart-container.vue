@@ -458,7 +458,6 @@ export default {
           }
         }
       };
-
       this.chart = dbox
         .chart(config)
         .bindTo('.empty-chart')
@@ -491,6 +490,7 @@ export default {
           this.drawScatter();
           break;
         case 'timeline':
+          console.log(this.dataToDraw)
           this.drawTimeline();
           break;
         default:
@@ -600,23 +600,14 @@ export default {
     },
     drawTimeline() {
       const vm = this;
-      const timeline = this.chart
+      const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
         .parseDate('%Y-%m-%d')
         .tip(function(d) {
           let html = '';
-          html += d.name !== 'factor_expansion' ? d.name + '<br>' : '';
-          // moment.locale('es-MX');
-          /** Format dates */
-          let format = '%Y';
-          if (
-            vm.selectedQuestion['minorFrequency'] &&
-            vm.selectedQuestion['minorFrequency'] !== 'anual' &&
-            vm.xAxis.slug !== 'Año'
-          ) {
-            format += '-%b';
-          }
+          html +=  d.name + '<br>';
+          let format = '%Y-%m-%d';
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
             if (typeof timeline.utils.format(d.y) === 'string') {

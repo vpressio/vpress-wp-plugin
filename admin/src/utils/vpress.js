@@ -1,10 +1,12 @@
 import * as _ from 'lodash';
+import * as d3 from 'd3';
 
 const merge = async (chartConfig, newChartValue) => {
   try {
     const {
       title,
       type,
+      slug,
       func
     } = newChartValue.body;
     
@@ -14,7 +16,7 @@ const merge = async (chartConfig, newChartValue) => {
       newValue: {
         title: title,
         type: type,
-        slug: title,
+        slug: slug,
         func: func
       }
     }
@@ -39,6 +41,20 @@ const merge = async (chartConfig, newChartValue) => {
   }
 };
 
+const validateDataType = (data) => {
+  const dateFormats = ['%d/%m/%Y', '%Y-%d-%m'];
+  const dataType = dateFormats.reduce(
+    (acc, dateFormat) => {
+      if (d3.timeParse(dateFormat)(data) !== null) {
+        acc = 'date'
+      }
+      return acc;
+    },
+    'ordinal'
+  )
+  return dataType;
+};
+
 const changeAxis = async (payload) => {
   try {
     const {
@@ -60,10 +76,8 @@ const changeAxis = async (payload) => {
     switch (newValue.type) {
       case 'ordinal':
         chartConfig.orderBy.slug = newValue.slug;
-      console.log(chartConfig.orderBy.slug)
         if (
-          chartConfig.xAxis.type === newValue.type &&
-          chartConfig.yAxis.type === newValue.type
+          chartConfig.xAxis.type === chartConfig.yAxis.type
         ) {
           chartConfig.chart =
             chartConfig.collapseBy.slug === ''
@@ -79,15 +93,29 @@ const changeAxis = async (payload) => {
           if (chartConfig.groupBy === chartConfig[newValueName]) {
             chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
           }
-
+          
           if (chartConfig.xAxis.type === 'linear') {
             chartConfig.collapseBy = chartConfig.xAxis
           } else if (chartConfig.yAxis.type === 'linear') {
             chartConfig.collapseBy = chartConfig.yAxis
           }
+        } else if (
+          chartConfig.xAxis.type === 'date' ||
+          chartConfig.yAxis.type === 'date'
+          ) {
+            chartConfig.chart = chartConfig.collapseBy.slug === ''
+            ? 'heatmap'
+            : 'spineplot';
+          if (chartConfig.xAxis.type === 'date') {
+            chartConfig.groupBy = chartConfig.yAxis
+          } else if (chartConfig.yAxis.type === 'date') {
+            chartConfig.groupBy = chartConfig.yAxis
+          }
+          console.log(chartConfig, newValueName)
         }
         break;
       case 'linear':
+        chartConfig.orderBy.slug = newValue.slug;
         if (
           chartConfig.xAxis.type === newValue.type &&
           chartConfig.yAxis.type === newValue.type
@@ -111,20 +139,34 @@ const changeAxis = async (payload) => {
           }
 
           chartConfig.collapseBy = newValue
+        } else if (
+          chartConfig.xAxis.type === 'date' ||
+          chartConfig.yAxis.type === 'date'
+        ) {
+          chartConfig.chart = 'timeline';
+          chartConfig.collapseBy = newValue;
+          chartConfig.groupBy = { title: '', type: 'ordinal', slug: '' };
         }
         break;
       case 'date':
+        chartConfig.collapseBy = { title: 'Conteo de observaciones', type: 'linear', slug: 'total_count', func: '' }
+        chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
         if (
-          chartConfig.xAxis.type === newValue.type &&
-          chartConfig.yAxis.type === newValue.type
+          chartConfig.xAxis.type === chartConfig.yAxis.type
         ) {
-          throw new Error('Date chart value type is found in more than one axis.')
-        } else if (
-          chartConfig.xAxis.type === newValue.type ||
-          chartConfig.yAxis.type === newValue.type
-        ) {
-          chartConfig.chart = 'timeline'
-        } 
+          chartConfig.chart = 'heatmap'
+          chartConfig.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
+          chartConfig.groupBy = chartConfig.yAxis;
+        }
+        if (chartConfig[newValueName] === chartConfig.xAxis && chartConfig.yAxis.type === 'linear') {
+          chartConfig.chart = 'timeline';
+          chartConfig.collapseBy = chartConfig.yAxis;
+        }
+        if (chartConfig[newValueName] === chartConfig.yAxis && chartConfig.xAxis.type === 'linear') {
+          chartConfig.chart = 'timeline';
+          chartConfig.collapseBy = chartConfig.xAxis
+        }
+        console.log(chartConfig, chartConfig[newValueName], newValue)
         break
       case '':
         console.warn('item removed')
@@ -140,31 +182,60 @@ const changeAxis = async (payload) => {
 };
 
 const changeAggregate = async (payload) => {
-  const {
+  try {
+    const {
     chartConfig,
     newValue
   } = payload;
 
-  switch (newValue.type) {
-    case 'ordinal':
-      if (
-        chartConfig.xAxis.slug !== newValue.slug ||
-        chartConfig.yAxis.slug !== newValue.slug
-      ) {
+    if (newValue.slug === '') {
+    return removeAggregate(chartConfig, newValue);
+  }
+    
+  switch (chartConfig.chart) {
+    case 'bars':
+      if (newValue.type === 'ordinal') {
         chartConfig.groupBy = newValue
+      } else {
+        throw new Error({message:'Las gráficas de barra sólo pueden agruparse por una variable ordinal.', chartConfig})
       }
       break;
-    case 'linear':
-      chartConfig.collapseBy = newValue
+    case 'heatmap':
+      if (newValue.type === 'linear') {
+        chartConfig.collapseBy = newValue
+      } else {
+        throw new Error({message: 'Los heatmap sólo pueden agruparse por una variable linear.', chartConfig: chartConfig})
+      }
       break;
-    case 'date':
+      case 'spineplot':
+        if (newValue.type === 'linear') {
+          chartConfig.collapseBy = newValue
+        } else {
+          throw new Error({message: 'Los spineplot sólo pueden agruparse por una variable linear.', chartConfig: chartConfig})
+        }
+        break;
+        case 'scatter':
+          if (newValue.type === 'linear') {
+            chartConfig.collapseBy = newValue
+          } else if (newValue.type === 'ordinal') {
+            chartConfig.groupBy = newValue
+          }
       break;
-    case '':
-      return removeAggregate(chartConfig, newValue);
+    case 'timeline':
+      if (newValue.type === 'ordinal') {
+        chartConfig.groupBy = newValue
+      } else {
+        throw new Error({message:'Los timeline sólo pueden agruparse por una variable ordinal.', chartConfig: chartConfig})
+      }
+      break;
     default:
-      throw new Error('Invalid variable data type');
+      throw new Error('Invalid chart type');
   }
-  return chartConfig;
+    return chartConfig;
+  } catch (error) {
+    console.warn(error)
+    return error.chartConfig
+  }
 };
 
 const changeFilter = async (payload) => {
@@ -214,5 +285,6 @@ const removeAggregate = async (chartConfig, newValue) => {
 }
 
 export default {
-  merge
+  merge,
+  validateDataType
 };

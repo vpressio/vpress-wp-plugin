@@ -40,7 +40,8 @@
           class="mb-3"
           :id="`cardId_total`"
           :variableData="{
-            title: 'total_count',
+            title: 'Conteo de observaciones',
+            slug: 'total_count',
             type: 'linear'
           }"
         />
@@ -57,6 +58,28 @@
             :variableData="variable"
           />
         </div>
+      </div>
+    </v-col>
+    <v-col cols="12" class="pt-0">
+      <p
+        v-show="dateVariables.length > 0"
+        class="ordinal-lineal"
+      >
+        Fecha
+      </p>
+      <div
+        v-show="dateVariables.length > 0"
+        class="card--container"
+        :id="`${cardsContainerId}_ordinal`"
+        :ref="`${cardsContainerId}_ordinal`"
+      >
+        <VpressVariableCard
+          class="mb-3"
+          v-for="(variable, variableIndex) in dateVariables"
+          :key="`cardId_${variableIndex}`"
+          :id="`cardId_${variableIndex}`"
+          :variableData="variable"
+        />
       </div>
     </v-col>
     <v-divider />
@@ -82,6 +105,9 @@ export default {
     },
     oirdinalVariables() {
       return this.variableData.filter(variable => variable.type === 'ordinal')
+    },
+    dateVariables() {
+      return this.variableData.filter(variable => variable.type === 'date')
     }
   }
 }

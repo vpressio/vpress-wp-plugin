@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { storage } from '../../plugins/firebase';
+import vpress from '../../utils/vpress.js';
 import axios from 'axios';
 
 export default {
@@ -57,13 +58,14 @@ export default {
         // eslint-disable-next-line no-restricted-syntax
         for (const [key, value] of Object.entries(state.data[0])) {
           let typeOfValue = 'linear';
-        /** @todo Add a date type */
+          /** @todo Add a date type */
           if (isNaN(+value)) {
-            typeOfValue = 'ordinal';
+            typeOfValue = vpress.validateDataType(value);
           }
           result.push({
             type: typeOfValue,
-            title: key
+            title: key,
+            slug: key
           });
         }
       }

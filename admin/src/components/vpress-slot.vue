@@ -92,8 +92,6 @@ export default {
   methods: {
     drop(event) {
       const { dataTransfer } = event;
-      
-
       const columnDataToTransferInString = dataTransfer.getData(
         'columnDataToTransferInString'
       );
@@ -102,14 +100,14 @@ export default {
       );
 
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { body: columnDataToTransferInObject, name: this.slotId})
-        .then( () =>{
+        .then( () => {
           this.addVariableToSlot(columnDataToTransferInObject);
         })
         .catch(error => console.warn(error))
 
       if (this.filter) {
         this.filterData(
-          columnDataToTransferInObject.title,
+          columnDataToTransferInObject.slug,
           columnDataToTransferInObject.type
         );
       }
