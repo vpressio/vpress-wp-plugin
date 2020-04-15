@@ -1,12 +1,13 @@
 <template lang="pug">
   .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
+    div {{ayura}}
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
         h2.generated-title.mb-0 {{ generatedTitle }}
       .col-12.py-0
         h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
-    #empty-chart.empty-chart
+    div#empty-chart.empty-chart
       .vertical-align
         p.tiny.label-font Arrastra algún valor a filas, columnas o color
 </template>
@@ -41,6 +42,7 @@ export default {
   data() {
     return {
       windowWidth: window.innerWidth,
+      loadingChart: true,
       locale: d3.timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
         date: '%d.%m.%Y',
@@ -80,6 +82,9 @@ export default {
     };
   },
   computed: {
+    ayura() {
+      return this.loadingChart ? 'Está cargando' : 'No está cargando'
+    },
     generatedTitle() {
       return this.chartConfig ? this.chartConfig.title : 'Título';
     },
@@ -143,13 +148,15 @@ export default {
       if (
         this.data &&
         this.data.length > 0 &&
-        this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug
+        this.chartConfig.xAxis.slug !== '' &&
+        this.chartConfig.yAxis.slug !== ''
       ) {
-        this.configChart();
+        this.loadingChart = true;
+        this.configChart()
       }
     },
     chartConfig() {
+      this.loadingChart = true;
       if (
         !_.includes(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'], this.chartConfig.chart)
       ) {
@@ -160,10 +167,11 @@ export default {
       if (
         this.data &&
         this.data.length > 0 &&
-        this.chartConfig.xAxis.slug &&
-        this.chartConfig.yAxis.slug
+        this.chartConfig.xAxis.slug !== '' &&
+        this.chartConfig.yAxis.slug !== ''
       ) {
-        this.configChart();
+        console.log(this.ayura)
+        this.configChart()
       }
     }
   },
@@ -175,127 +183,126 @@ export default {
      * Draw an interactive chart using dboxjs
      */
     configChart() {
-      const vm = this;
-      // const mobileWidth = 600; // Size in pixels
-      const tabletWidth = 800; // Size in pixels
-      /**
-       * Draw dbox charts according with selected options
-       * (axes, groupby, collapseby, project) and selected chart
-       */
-
-      /** Configure chart size */
-      this.width =
-        // this.chartConfig.width ||
-        d3
-          .select(this.$el)
+        const vm = this;
+        // const mobileWidth = 600; // Size in pixels
+        const tabletWidth = 800; // Size in pixels
+        /**
+         * Draw dbox charts according with selected options
+         * (axes, groupby, collapseby, project) and selected chart
+         */
+  
+        /** Configure chart size */
+        this.width =
+          // this.chartConfig.width ||
+          d3
+            .select(this.$el)
+            .select('.empty-chart')
+            .node().offsetWidth || 1200;
+        this.height =
+          // this.chartConfig.height ||
+          this.width * 0.6 || 300;
+  
+        /** Configure margins */
+        this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
+        if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
+          this.margin.top = 30;
+          if (this.windowWidth <= tabletWidth) {
+            this.margin.left = 40;
+            this.margin.right = 15;
+          }
+        } else if (this.chartConfig.chart === 'scatter') {
+          this.margin.top = 30;
+          if (this.windowWidth <= tabletWidth) {
+            this.margin.left = 80;
+            this.margin.right = 15;
+          }
+        } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
+          this.margin.top = 20;
+          this.margin.right = 100;
+        } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
+          this.margin.left = 15;
+          this.margin.right = 15;
+        }
+        d3.select(this.$el)
           .select('.empty-chart')
-          .node().offsetWidth || 1200;
-      this.height =
-        // this.chartConfig.height ||
-        this.width * 0.6 || 300;
-
-      /** Configure margins */
-      this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
-      if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 40;
-          this.margin.right = 15;
-        }
-      } else if (this.chartConfig.chart === 'scatter') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 80;
-          this.margin.right = 15;
-        }
-      } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
-        this.margin.top = 20;
-        this.margin.right = 100;
-      } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
-        this.margin.left = 15;
-        this.margin.right = 15;
-      }
-      d3.select(this.$el)
-        .select('.empty-chart')
-        .selectAll('*')
-        .remove();
-      d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
-      d3.selectAll('.title-tip').remove();
-
-      this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
-        if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
-          if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
-            return -1;
+          .selectAll('*')
+          .remove();
+        d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
+        d3.selectAll('.title-tip').remove();
+  
+        this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
+          if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
+            if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+              return -1;
+            } else {
+              return 1;
+            }
           } else {
-            return 1;
+            //desc
+            if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+              return 1;
+            } else {
+              return -1;
+            }
           }
-        } else {
-          //desc
-          if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
-            return 1;
-          } else {
-            return -1;
-          }
-        }
-      });
-
-      this.xAxisValues = _.uniq(
-        this.sortedData.map(
-          function(d) {
-            return d[this.chartConfig.xAxis.slug];
-          }.bind(this)
-        )
-      ).sort();
-
-      this.yAxisValues = _.uniq(
-        this.sortedData.map(
-          function(d) {
-            return d[this.chartConfig.yAxis.slug];
-          }.bind(this)
-        )
-      ).sort();
-
-      this.groupByOptions = this.chartConfig.groupBy.slug
-        ? _.uniq(
-            this.sortedData.map(
-              function(d) {
-                return d[this.chartConfig.groupBy.slug];
-              }.bind(this)
-            )
-          )
-        : [];
-
-      this.legendOptions = (this.groupByOptions.length > 0
-        ? this.groupByOptions
-        : this.chartConfig.yAxis.type === 'ordinal'
-        ? this.yAxisValues
-        : this.xAxisValues
-      ).map(obj => {
-        return {
-          id: obj,
-          name: obj,
-          active: true
-        };
-      });
-
-      const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
-      const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
-
-      if (
-        bandWidth < maxFirstWord ||
-        (this.chartConfig.chart === 'spineplot' &&
-          +d3.min(
-            this.data,
+        });
+  
+        this.xAxisValues = _.uniq(
+          this.sortedData.map(
             function(d) {
-              return d[this.chartConfig.collapseBy.slug];
+              return d[this.chartConfig.xAxis.slug];
             }.bind(this)
-          ) < 10)
-      ) {
-        // Too many labels, gonna be vertical
-        this.margin.bottom = 150;
-      }
-
-      this.drawChart();
+          )
+        ).sort();
+  
+        this.yAxisValues = _.uniq(
+          this.sortedData.map(
+            function(d) {
+              return d[this.chartConfig.yAxis.slug];
+            }.bind(this)
+          )
+        ).sort();
+  
+        this.groupByOptions = this.chartConfig.groupBy.slug
+          ? _.uniq(
+              this.sortedData.map(
+                function(d) {
+                  return d[this.chartConfig.groupBy.slug];
+                }.bind(this)
+              )
+            )
+          : [];
+  
+        this.legendOptions = (this.groupByOptions.length > 0
+          ? this.groupByOptions
+          : this.chartConfig.yAxis.type === 'ordinal'
+          ? this.yAxisValues
+          : this.xAxisValues
+        ).map(obj => {
+          return {
+            id: obj,
+            name: obj,
+            active: true
+          };
+        });
+  
+        const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
+        const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
+  
+        if (
+          bandWidth < maxFirstWord ||
+          (this.chartConfig.chart === 'spineplot' &&
+            +d3.min(
+              this.data,
+              function(d) {
+                return d[this.chartConfig.collapseBy.slug];
+              }.bind(this)
+            ) < 10)
+        ) {
+          // Too many labels, gonna be vertical
+          this.margin.bottom = 150;
+        }
+       this.drawChart();
     },
     /**
      * Validate if min value should be zero or less than zero
@@ -314,208 +321,246 @@ export default {
       }
     },
     drawChart() {
-      const vm = this;
-      const tabletWidth = 800;
-      this.filteredData = this.filterData(this.sortedData);
-      this.dataToDraw = this.parseData(this.filteredData);
-      this.groupByOptions = this.chartConfig.groupBy.slug
-        ? _.uniq(
-            this.filteredData.map(
-              function(d) {
-                return d[this.chartConfig.groupBy.slug];
-              }.bind(this)
+        const vm = this;
+        const tabletWidth = 800;
+        this.filteredData = this.filterData(this.sortedData);
+        this.dataToDraw = this.parseData(this.filteredData);
+        this.groupByOptions = this.chartConfig.groupBy.slug
+          ? _.uniq(
+              this.filteredData.map(
+                function(d) {
+                  return d[this.chartConfig.groupBy.slug];
+                }.bind(this)
+              )
             )
-          )
-        : [];
-
-      const config = {
-        regression:
-          this.chartConfig.xAxis.type === 'linear' &&
-          this.chartConfig.yAxis.type === 'linear' &&
-          this.chartConfig.chart === 'scatter',
-        formatPreffix: this.chartConfig.preffix || '',
-        formatSuffix: this.chartConfig.suffix || '',
-        decimals: this.chartConfig.decimals,
-        legendEnabled: this.windowWidth >= tabletWidth ? true : false,
-        size: {
-          width: this.width,
-          height: this.height,
-          margin: this.margin,
-          legendTranslate: this.windowWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
-        },
-        xAxis: {
-          enabled:
-            this.chartConfig.chart !== 'heatmap' && this.chartConfig.chart !== 'spineplot'
-              ? true
-              : false,
-          scale:
-            this.chartConfig.chart === 'timeline'
-              ? 'time'
-              : this.chartConfig.xAxis.type === 'linear'
-              ? 'linear'
-              : 'band',
-          minZero: this.currentMinZero(this.chartConfig.xAxis),
+          : [];
+  
+        const config = {
+          regression:
+            this.chartConfig.xAxis.type === 'linear' &&
+            this.chartConfig.yAxis.type === 'linear' &&
+            this.chartConfig.chart === 'scatter',
           formatPreffix: this.chartConfig.preffix || '',
           formatSuffix: this.chartConfig.suffix || '',
-          text: this.chartConfig.xAxis.title,
-          ticks: {
+          decimals: this.chartConfig.decimals,
+          legendEnabled: this.windowWidth >= tabletWidth ? true : false,
+          size: {
+            width: this.width,
+            height: this.height,
+            margin: this.margin,
+            legendTranslate: this.windowWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
+          },
+          xAxis: {
             enabled:
-              this.chartConfig.chart === 'scatter' ||
-              (this.chartConfig.chart === 'bars' && this.chartConfig.xAxis.type === 'linear')
+              this.chartConfig.chart !== 'heatmap' && this.chartConfig.chart !== 'spineplot'
                 ? true
                 : false,
-            style: 'dashLine',
-            ticks:
-              this.chartConfig.chart === 'timeline' &&
-              this.selectedQuestion &&
-              this.selectedQuestion['minorFrequency'] !== 'anual'
-                ? d3.extent(this.xAxisValues.map(o => +o))[1] > 100000
-                  ? 5
-                  : 8
-                : 5,
-            format:
-              this.chartConfig.chart === 'timeline' && this.chartConfig.yAxis.type === 'date'
-                ? this.formatDatesForTimeline()
-                : undefined
-          }
-        },
-        yAxis: {
-          enabled:
-            this.chartConfig.chart !== 'heatmap' && this.chartConfig.chart !== 'spineplot'
-              ? true
-              : false,
-          scale: this.chartConfig.yAxis.type === 'linear' ? 'linear' : 'band',
-          minZero: this.currentMinZero(this.chartConfig.yAxis),
-          formatPreffix: this.chartConfig.preffix || '',
-          formatSuffix: this.chartConfig.suffix || '',
-          text: this.chartConfig.yAxis.title,
-          ticks: {
-            enabled:
-              this.chartConfig.chart === 'bars' && this.chartConfig.yAxis.type !== 'linear'
-                ? false
-                : true,
-            style: 'dashLine'
-          }
-        },
-        tooltip: {
-          classed: `tip-${vm._uid}`
-        },
-        events: {
-          onClickLegend: function(d, i) {
-            if (d.name === 'Todos' && d.active === true) {
-              vm.legendOptions.forEach((o, index) => {
-                if (index !== 1) {
-                  o.active = false;
-                } else {
-                  o.active = true;
-                }
-              });
-
-              vm.legendChanged(vm.legendOptions);
-            } else if (d.name === 'Todos' && d.active === false) {
-              vm.legendOptions.forEach(o => {
-                o.active = true;
-              });
-
-              vm.legendChanged(vm.legendOptions);
-            } else if (vm.legendOptions.filter(o => o.active).length > 1 || !d.active) {
-              vm.legendOptions[i].active = !vm.legendOptions[i].active;
-              vm.legendChanged(vm.legendOptions);
+            scale:
+              this.chartConfig.chart === 'timeline'
+                ? 'time'
+                : this.chartConfig.xAxis.type === 'linear'
+                ? 'linear'
+                : 'band',
+            minZero: this.currentMinZero(this.chartConfig.xAxis),
+            formatPreffix: this.chartConfig.preffix || '',
+            formatSuffix: this.chartConfig.suffix || '',
+            text: this.chartConfig.xAxis.title,
+            ticks: {
+              enabled:
+                this.chartConfig.chart === 'scatter' ||
+                (this.chartConfig.chart === 'bars' && this.chartConfig.xAxis.type === 'linear')
+                  ? true
+                  : false,
+              style: 'dashLine',
+              ticks:
+                this.chartConfig.chart === 'timeline' &&
+                this.selectedQuestion &&
+                this.selectedQuestion['minorFrequency'] !== 'anual'
+                  ? d3.extent(this.xAxisValues.map(o => +o))[1] > 100000
+                    ? 5
+                    : 8
+                  : 5,
+              format:
+                this.chartConfig.chart === 'timeline' && this.chartConfig.yAxis.type === 'date'
+                  ? this.formatDatesForTimeline()
+                  : undefined
             }
           },
-          load: function(chart) {
-            /** Remove labels that are not a number */
-            if (vm.chartConfig.chart === 'timeline') {
-              chart._svg.selectAll('.x.axis .tick text').each(() => {
-                if (isNaN(parseInt(d3.select(this).text(), 10))) {
-                  d3.select(this).remove();
+          yAxis: {
+            enabled:
+              this.chartConfig.chart !== 'heatmap' && this.chartConfig.chart !== 'spineplot'
+                ? true
+                : false,
+            scale: this.chartConfig.yAxis.type === 'linear' ? 'linear' : 'band',
+            minZero: this.currentMinZero(this.chartConfig.yAxis),
+            formatPreffix: this.chartConfig.preffix || '',
+            formatSuffix: this.chartConfig.suffix || '',
+            text: this.chartConfig.yAxis.title,
+            ticks: {
+              enabled:
+                this.chartConfig.chart === 'bars' && this.chartConfig.yAxis.type !== 'linear'
+                  ? false
+                  : true,
+              style: 'dashLine'
+            }
+          },
+          tooltip: {
+            classed: `tip-${vm._uid}`
+          },
+          events: {
+            onClickLegend: function(d, i) {
+              if (d.name === 'Todos' && d.active === true) {
+                vm.legendOptions.forEach((o, index) => {
+                  if (index !== 1) {
+                    o.active = false;
+                  } else {
+                    o.active = true;
+                  }
+                });
+  
+                vm.legendChanged(vm.legendOptions);
+              } else if (d.name === 'Todos' && d.active === false) {
+                vm.legendOptions.forEach(o => {
+                  o.active = true;
+                });
+  
+                vm.legendChanged(vm.legendOptions);
+              } else if (vm.legendOptions.filter(o => o.active).length > 1 || !d.active) {
+                vm.legendOptions[i].active = !vm.legendOptions[i].active;
+                vm.legendChanged(vm.legendOptions);
+              }
+            },
+            load: function(chart) {
+              /** Remove labels that are not a number */
+              if (vm.chartConfig.chart === 'timeline') {
+                chart._svg.selectAll('.x.axis .tick text').each(() => {
+                  if (isNaN(parseInt(d3.select(this).text(), 10))) {
+                    d3.select(this).remove();
+                  }
+                });
+              }
+              /** Rotate labels for "Año" in bars */
+              if (chart._config.x === 'Año' && vm.chartConfig.chart === 'bars') {
+                chart._svg
+                  .selectAll('.x.axis .tick text')
+                  .attr('transform', 'translate(-14, 18)rotate(-90)');
+              }
+              /** Hide labels if are not set as visible */
+              if (!vm.chartConfig.labels) {
+                chart._svg.selectAll('.dbox-label').style('display', 'none');
+              }
+              /** Rotate x axis ticks texts */
+              chart._svg.selectAll('.x.axis .tick text').each(function() {
+                if (
+                  d3.select(this).attr('transform') &&
+                  d3
+                    .select(this)
+                    .attr('transform')
+                    .search('rotate') !== -1
+                ) {
+                  d3.select(this).style('font-size', '11');
                 }
               });
+              vm.$emit('chart_loaded', vm.$el);
             }
-            /** Rotate labels for "Año" in bars */
-            if (chart._config.x === 'Año' && vm.chartConfig.chart === 'bars') {
-              chart._svg
-                .selectAll('.x.axis .tick text')
-                .attr('transform', 'translate(-14, 18)rotate(-90)');
-            }
-            /** Hide labels if are not set as visible */
-            if (!vm.chartConfig.labels) {
-              chart._svg.selectAll('.dbox-label').style('display', 'none');
-            }
-            /** Rotate x axis ticks texts */
-            chart._svg.selectAll('.x.axis .tick text').each(function() {
-              if (
-                d3.select(this).attr('transform') &&
-                d3
-                  .select(this)
-                  .attr('transform')
-                  .search('rotate') !== -1
-              ) {
-                d3.select(this).style('font-size', '11');
-              }
-            });
-            vm.$emit('chart_loaded', vm.$el);
+          }
+        };
+        this.chart = dbox
+          .chart(config)
+          .bindTo('.empty-chart')
+          .data({
+            raw: this.dataToDraw // Modified data by chartConfig.chart (parse dates or fill NAs)
+          });
+  
+        // If timeline and no groupby, reset legend options
+        if (this.chartConfig.chart === 'timeline' && this.groupByOptions.length === 0) {
+          vm.legendOptions = [{ name: 'Total', active: true }];
+        }
+  
+        if (this.chartConfig.chart !== 'heatmap') {
+          this.chart.legend(vm.legendOptions);
+          this.chart.legendTitle(vm.legendDisplay.title);
+          this.chart.legendType('checkbox');
+        }
+        const drawAsync = async (callback) => {
+          try {
+            return await new Promise(resolve => {
+              resolve(callback());
+            })
+          } catch (error) {
+            console.warn(error)
           }
         }
-      };
-      this.chart = dbox
-        .chart(config)
-        .bindTo('.empty-chart')
-        .data({
-          raw: this.dataToDraw // Modified data by chartConfig.chart (parse dates or fill NAs)
-        });
 
-      // If timeline and no groupby, reset legend options
-      if (this.chartConfig.chart === 'timeline' && this.groupByOptions.length === 0) {
-        vm.legendOptions = [{ name: 'Total', active: true }];
-      }
-
-      if (this.chartConfig.chart !== 'heatmap') {
-        this.chart.legend(vm.legendOptions);
-        this.chart.legendTitle(vm.legendDisplay.title);
-        this.chart.legendType('checkbox');
-      }
-
-      switch (this.chartConfig.chart) {
-        case 'bars':
-          this.drawBars();
-          break;
-        case 'heatmap':
-          this.drawHeatmap();
-          break;
-        case 'spineplot':
-          this.drawSpineplot();
-          break;
-        case 'scatter':
-          this.drawScatter();
-          break;
-        case 'timeline':
-          console.log(this.dataToDraw)
-          this.drawTimeline();
-          break;
-        default:
-          this.drawBars();
-          break;
-      }
-
-      this.chart.draw();
-
-      // Update position for axes only for timeline
-      if (this.chartConfig.chart === 'timeline') {
-        // Timeline
-        d3.selectAll('.x.axis .tick text').attr('dy', 20);
-        d3.selectAll('.y.axis .tick text').attr('dx', -10);
-
-        // Remove monthly ticks if variable is year-defined
-        if (this.selectedQuestion && this.selectedQuestion['minorFrequency'] === 'anual') {
-          d3.selectAll('.x.axis .tick text').each(() => {
-            if (Number.isNaN(+this['innerHTML'])) {
-              d3.select(this['parentNode']).remove();
-              return;
-            }
-          });
+        switch (this.chartConfig.chart) {
+          case 'bars':
+            drawAsync(this.drawBars)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
+          case 'heatmap':
+            drawAsync(this.drawHeatmap)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
+          case 'spineplot':
+            drawAsync(this.drawSpineplot)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
+          case 'scatter':
+            drawAsync(this.drawScatter)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
+          case 'timeline':
+            drawAsync(this.drawTimeline)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
+          default:
+            drawAsync(this.drawBars)
+              .then(() => {
+                this.chart.draw();
+                this.loadingChart = false
+                console.log(this.ayura, 'then')
+              });
+            break;
         }
-      }
+  
+       
+  
+        // Update position for axes only for timeline
+        if (this.chartConfig.chart === 'timeline') {
+          // Timeline
+          d3.selectAll('.x.axis .tick text').attr('dy', 20);
+          d3.selectAll('.y.axis .tick text').attr('dx', -10);
+  
+          // Remove monthly ticks if variable is year-defined
+          if (this.selectedQuestion && this.selectedQuestion['minorFrequency'] === 'anual') {
+            d3.selectAll('.x.axis .tick text').each(() => {
+              if (Number.isNaN(+this['innerHTML'])) {
+                d3.select(this['parentNode']).remove();
+                return;
+              }
+            });
+          }
+        }
     },
     /**
      * Configure a barchart using dboxjs
@@ -603,11 +648,11 @@ export default {
       const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
-        .parseDate('%Y-%m-%d')
+        .parseDate(vm.$store.getters['data/dateFormat'])
         .tip(function(d) {
           let html = '';
           html +=  d.name + '<br>';
-          let format = '%Y-%m-%d';
+          let format = vm.$store.getters['data/dateFormat'];
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
             if (typeof timeline.utils.format(d.y) === 'string') {
@@ -779,10 +824,10 @@ export default {
     if (
       this.data &&
       this.data.length > 0 &&
-      this.chartConfig.xAxis.slug &&
-      this.chartConfig.yAxis.slug
+      this.chartConfig.xAxis.slug !== '' &&
+      this.chartConfig.yAxis.slug !== ''
     ) {
-      this.configChart();
+      this.configChart()
     }
   }
 };

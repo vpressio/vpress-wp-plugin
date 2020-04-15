@@ -149,57 +149,56 @@ export default {
     }
   },
   methods: {
-    getUrlQueries() {
-      // if(this.$route)
-    },
-    getUrlParams() {
-      const self = this;
-      // OtwVQAlrZLwZBvN8jYT3
-      if( this.$route.params.chartid ) {
-        self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid )
-          .then(dataSet => {
-            this.dataSetDir = '/savedDatasets';
-            this.selectTestDataset(dataSet);
-          })
-          .catch(err => {
-            console.warn(err)
-          });
+    async getUrlParams() {
+      try {
+        const self = this;
+        if( this.$route.params.chartid ) {
+          const dataSet = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
+          this.dataSetDir = '/savedDatasets';
+          const dataSetData = await this.selectTestDataset(dataSet);
+          this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName:this.dataSetName })
+          this.$emit('update:tabChange', 1);
+        }
+      } catch (error) {
+        console.warn(error)
       }
     },
-    getStorageDatasets() {
-      this.dataSetDir = this.$route.query.datasets
-        ? `/${this.$route.query.datasets}`
-        : '/testDatasets';
+    async getStorageDatasets() {
+      try {
+        this.dataSetDir = this.$route.query.datasets
+          ? `/${this.$route.query.datasets}`
+          : '/savedDatasets';
+  
+        const files  = await storage
+          .ref()
+          .child(this.dataSetDir)
+          .listAll();
+        
+        if (files.items.length === 0) {
+          console.warn(`Sin coincidencias para ${this.dataSetDir}`);
+        }
+        this.testDatasets = files.items;
 
-      storage
-        .ref()
-        .child(this.dataSetDir)
-        .listAll()
-        .then(res => {
-          if (res.items.length === 0) {
-            console.warn(`Sin coincidencias para ${this.dataSetDir}`);
-          }
-          this.testDatasets = res.items;
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      } catch (error){
+        console.error(error);
+      }
     },
-    selectTestDataset(fileName) {
-      const self = this;
-      self.loading = true;
-      self.dataSetName = fileName;
-      storage
-        .ref()
-        .child(`${this.dataSetDir}/${fileName}`)
-        .getDownloadURL()
-        .then(DownloadURL => {
-          fetch(DownloadURL).then(file => {
-            file.blob().then(res => {
-              self.loadFile(res);
-            });
-          });
-        });
+    async selectTestDataset(fileName) {
+      try {
+        const self = this;
+        self.loading = true;
+        self.dataSetName = fileName;
+        const url = await storage
+          .ref()
+          .child(`${this.dataSetDir}/${fileName}`)
+          .getDownloadURL()
+        
+        const file = await fetch(url)
+        return self.loadFile(await file.blob())
+
+      } catch (error) {
+        console.warn(error)
+      }
     },
     ChangeUploadDataMethod(method) {
       this.uploadMethod = method;
@@ -208,55 +207,36 @@ export default {
       this.data = [];
       this.headers = [];
       this.files = [];
-      this.$store.dispatch('data/set', this.data);
+      this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '' });
     },
     /**
      * Read spreadsheets file, parsed into JSON data
      * Set headers and data for data-table
      */
-    loadFile(file) {
-      const self = this;
-      self.loading = true;
-      if (file.type === 'text/csv') {
-        FReader.readCSV(file)
-          .then(content => {
-            // eslint-disable-next-line
-            self.headers = Object.keys(content[0]).map(o => ({
-              text: o,
-              value: o,
-              sortable: true
-            }));
-            // eslint-disable-next-line
-            setTimeout(() => {
-              self.data = content;
-              self.loading = false;
-            }, 0);
-          })
-          .catch(error => {
-            // eslint-disable-next-line
+    async loadFile(file) {
+      try {
+        const self = this;
+        self.loading = true;
+        let content;
+        if (file.type === 'text/csv') {
+          content = await FReader.readCSV(file);
+        } else {
+          content = await FReader.readExcel(file);
+        }
+        self.headers = Object.keys(content[0]).map(o => ({
+            text: o,
+            value: o,
+            sortable: true
+          }));
+          // eslint-disable-next-line
+          setTimeout(() => {
+            self.data = content;
             self.loading = false;
-            console.error(error);
-          });
-      } else {
-        FReader.readExcel(file)
-          .then(content => {
-            // eslint-disable-next-line
-            self.headers = Object.keys(content[0]).map(o => ({
-              text: o,
-              value: o,
-              sortable: true
-            }));
-            // eslint-disable-next-line
-            setTimeout(() => {
-              self.data = content;
-              self.loading = false;
-            }, 0);
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            self.loading = false;
-            console.error(error);
-          });
+          }, 0);
+        return content
+      } catch (error) {
+        self.loading = false;
+        console.warn(error)
       }
     },
     /**
@@ -315,8 +295,8 @@ export default {
     },
     saveData() {
       this.$emit('update:tabChange', 1);
-      // this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
-      this.$store.dispatch('data/saveData', { data: this.data, dataSetName:this.dataSetName });
+      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('data/SAVE_DATA', { data: this.data, dataSetName:this.dataSetName });
     }
   }
 };

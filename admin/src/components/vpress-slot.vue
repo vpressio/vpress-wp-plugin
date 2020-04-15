@@ -103,7 +103,9 @@ export default {
         .then( () => {
           this.addVariableToSlot(columnDataToTransferInObject);
         })
-        .catch(error => console.warn(error))
+        .catch(error => {
+          console.warn(error.message)
+        })
 
       if (this.filter) {
         this.filterData(

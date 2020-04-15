@@ -1,58 +1,62 @@
 import * as _ from 'lodash';
 import * as d3 from 'd3';
+import VpressError from './vpressError';
 
 const merge = async (chartConfig, newChartValue) => {
   try {
-    const {
-      title,
-      type,
-      slug,
-      func
-    } = newChartValue.body;
-    
-    const payload = {
-      chartConfig,
-      newValueName: newChartValue.name,
-      newValue: {
-        title: title,
-        type: type,
-        slug: slug,
-        func: func
+      const {
+        title,
+        type,
+        slug,
+        func
+      } = newChartValue.body;
+      
+      const payload = {
+        chartConfig,
+        newValueName: newChartValue.name,
+        newValue: {
+          title: title,
+          type: type,
+          slug: slug,
+          func: func
+        }
+      }
+    try {
+      switch (payload.newValueName) {
+        case 'xAxis':
+          return await changeAxis(payload, payload.newValueName)
+        case 'yAxis':
+          return await changeAxis(payload,payload.newValueName)
+        case 'aggregation':
+          return await changeAggregate(payload)
+        case 'filter':
+          return await changeFilter(payload)
+        default:
+          throw new VpressError (
+            newChartValue.name,
+            'Slot id must be a valid chart value: [ xAxis, yAxis, aggregation, filter ]'
+          )
+      }
+    } catch (error) {
+
+      if (error instanceof VpressError) {
+        throw new VpressError (
+            error.value,
+            error.message
+        )
+      } else {
+        throw new VpressError (
+          newChartValue.name,
+          error.message
+        )
       }
     }
-
-    if (
-      payload.newValueName === 'yAxis' ||
-      payload.newValueName === 'xAxis'
-    ) {
-      return await changeAxis(payload)
-    }
-    if (payload.newValueName === 'aggregation') {
-      return await changeAggregate(payload)
-    }
-    if (payload.newValueName === 'filter') {
-      return await changeFilter(payload)
-    }
-
-    throw new Error('Slot id must be a valid chart value: [ xAxis, yAxis, aggregation, filter ]');
   } catch (error) {
-    console.warn({ error: error, message: 'From merge' })
-    return chartConfig;
+    throw new VpressError (
+      error.value,
+      error.message
+    )
   }
-};
-
-const validateDataType = (data) => {
-  const dateFormats = ['%d/%m/%Y', '%Y-%d-%m'];
-  const dataType = dateFormats.reduce(
-    (acc, dateFormat) => {
-      if (d3.timeParse(dateFormat)(data) !== null) {
-        acc = 'date'
-      }
-      return acc;
-    },
-    'ordinal'
-  )
-  return dataType;
 };
 
 const changeAxis = async (payload) => {
@@ -111,7 +115,6 @@ const changeAxis = async (payload) => {
           } else if (chartConfig.yAxis.type === 'date') {
             chartConfig.groupBy = chartConfig.yAxis
           }
-          console.log(chartConfig, newValueName)
         }
         break;
       case 'linear':
@@ -166,30 +169,29 @@ const changeAxis = async (payload) => {
           chartConfig.chart = 'timeline';
           chartConfig.collapseBy = chartConfig.xAxis
         }
-        console.log(chartConfig, chartConfig[newValueName], newValue)
         break
       case '':
-        console.warn('item removed')
         break
       default:
-        throw new Error('Invalid variable data type');
+        throw new VpressError(newValueName, 'Tipo de dato inválido.');
     }
     return chartConfig;
 
   } catch (error) {
-    console.warn({error: error, message: '"changeAxis" failed.'})
+    throw new VpressError(error.newValueName, error.message);
   }
 };
 
 const changeAggregate = async (payload) => {
   try {
     const {
-    chartConfig,
-    newValue
+      chartConfig,
+      newValueName,
+      newValue
   } = payload;
 
     if (newValue.slug === '') {
-    return removeAggregate(chartConfig, newValue);
+    return removeAggregate(payload);
   }
     
   switch (chartConfig.chart) {
@@ -197,21 +199,21 @@ const changeAggregate = async (payload) => {
       if (newValue.type === 'ordinal') {
         chartConfig.groupBy = newValue
       } else {
-        throw new Error({message:'Las gráficas de barra sólo pueden agruparse por una variable ordinal.', chartConfig})
+        throw new VpressError(newValueName,'Las gráficas de barra sólo pueden agruparse por una variable ordinal.')
       }
       break;
     case 'heatmap':
       if (newValue.type === 'linear') {
         chartConfig.collapseBy = newValue
       } else {
-        throw new Error({message: 'Los heatmap sólo pueden agruparse por una variable linear.', chartConfig: chartConfig})
+        throw new VpressError(newValueName, 'Los heatmap sólo pueden agruparse por una variable linear.')
       }
       break;
       case 'spineplot':
         if (newValue.type === 'linear') {
           chartConfig.collapseBy = newValue
         } else {
-          throw new Error({message: 'Los spineplot sólo pueden agruparse por una variable linear.', chartConfig: chartConfig})
+          throw new VpressError(newValueName, 'Los spineplot sólo pueden agruparse por una variable linear.')
         }
         break;
         case 'scatter':
@@ -225,16 +227,15 @@ const changeAggregate = async (payload) => {
       if (newValue.type === 'ordinal') {
         chartConfig.groupBy = newValue
       } else {
-        throw new Error({message:'Los timeline sólo pueden agruparse por una variable ordinal.', chartConfig: chartConfig})
+        throw new VpressError( newValueName, 'Los timeline sólo pueden agruparse por una variable ordinal.')
       }
       break;
     default:
-      throw new Error('Invalid chart type');
+      throw new VpressError( newValueName, 'Invalid chart type');
   }
     return chartConfig;
   } catch (error) {
-    console.warn(error)
-    return error.chartConfig
+    throw new VpressError(error.newValueName, error.message);
   }
 };
 
@@ -247,7 +248,6 @@ const changeFilter = async (payload) => {
     case 'date':
       break;
     case '':
-      console.warn('item removed')
       break
     default:
       throw new Error('Invalid variable data type');
@@ -255,7 +255,7 @@ const changeFilter = async (payload) => {
   return payload.chartConfig;
 };
 
-const removeAggregate = async (chartConfig, newValue) => {
+const removeAggregate = async ({chartConfig, newValue, newValueName}) => {
   try {
     switch (chartConfig.chart) {
       case 'bars':
@@ -276,15 +276,50 @@ const removeAggregate = async (chartConfig, newValue) => {
           chartConfig.groupBy = newValue
         break
       default:
-        throw new Error('Invalid chart type');
+        throw new VpressError(newValueName,'Invalid chart type');
     }
     return chartConfig;
   } catch (error) {
-    console.warn(error)
+    throw new VpressError(error.value, error.message)
   }
 }
 
+const extractDateFormat = (variables) => {
+  return variables.reduce(
+    (acc, variable) => {
+      if (variable.type.format) {
+        acc = variable.type.format
+      }
+      return acc
+    },
+    '%Y-%d-%m'
+  )
+};
+
+const sortByDataType = (dataSample) => {
+  const dateFormats = ['%Y/%m/%d','%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d'];
+  const dataSampleEntries = Object.entries(dataSample);
+  return dataSampleEntries
+    .map(variable => {
+      return {
+        title: variable[0],
+        slug: variable[0],
+        type: dateFormats.reduce((acc, dateFormat) => {
+          if (d3.timeParse(dateFormat)(variable[1]) !== null) {
+            acc.dataType = 'date';
+            acc.format = dateFormat;
+          }
+          if (isNaN(+variable[1]) && acc.format === undefined) {
+            acc.dataType = 'ordinal';
+          }
+          return acc;
+        }, { dataType: 'linear' })
+      }
+    })
+};
+
 export default {
   merge,
-  validateDataType
+  sortByDataType,
+  extractDateFormat
 };

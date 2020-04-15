@@ -55,6 +55,14 @@ export default {
     this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
+     if ( 
+       this.chartConfig.xAxis.slug !== '' &&
+       this.chartConfig.yAxis.slug !== ''
+    ) {
+      this.dataChart = this.$store.getters['data/dataFiltered']
+    } else {
+      this.dataChart = [];
+    }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
     });
   },

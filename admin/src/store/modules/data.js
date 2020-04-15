@@ -8,7 +8,9 @@ export default {
   state: {
     data: null,
     dataSetName:'',
-    filter: {}
+    filter: {},
+    dateFormat: '',
+    dataVariables : []
   },
   mutations: {
     SET_DATA(state, data) {
@@ -19,12 +21,31 @@ export default {
     },
     SET_DATASET_NAME(state, dataSetName) {
       state.dataSetName = dataSetName
-    }
+    },
+    SET_DATE_FORMAT(state, format) {
+      state.dateFormat = format
+    },
+    SET_VARIABLE_DATA(state, payload) {
+      state.dataVariables = payload
+    },
   },
   actions: {
-    saveData({ commit }, { data, dataSetName }) {
-      commit('SET_DATA', data);
-      commit('SET_DATASET_NAME', dataSetName)
+    async SAVE_DATA({ commit }, { data, dataSetName }) {
+      try {
+        if (data.length > 0) {
+          const variables = vpress.sortByDataType(data[0])
+          commit('SET_VARIABLE_DATA', variables)
+          commit('SET_DATE_FORMAT',vpress.extractDateFormat(variables));
+        } else {
+          commit('SET_VARIABLE_DATA', [])
+        }
+        commit('SET_DATA', data);
+        commit('SET_DATASET_NAME', dataSetName);
+        return { data: data, dataSetName: dataSetName }
+      } catch (error) {
+        console.warn(error)
+      }
+      
     },
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
@@ -52,25 +73,8 @@ export default {
   getters: {
     data: state => state.data,
     dataSetName: state => state.dataSetName,
-    dataType: state => {
-      const result = [];
-      if (state.data && state.data.length > 0) {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const [key, value] of Object.entries(state.data[0])) {
-          let typeOfValue = 'linear';
-          /** @todo Add a date type */
-          if (isNaN(+value)) {
-            typeOfValue = vpress.validateDataType(value);
-          }
-          result.push({
-            type: typeOfValue,
-            title: key,
-            slug: key
-          });
-        }
-      }
-      return result;
-    },
+    dataType: state => state.dataVariables.map(({ type, title, slug }) => ({ type: type.dataType, title: title, slug: slug })),
+    dateFormat: state => state.dateFormat,
     dataFiltered: state => {
       if (_.isEmpty(state.filter)) {
         return state.data

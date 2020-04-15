@@ -141,11 +141,11 @@ export default {
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      const { target } = event;
-      if(!target.parentNode.id.includes('cardStartContainer')) {
-        this.removeCard()
-        //  this.$store.dispatch('data/setFilter', {});
-      } 
+      // const { target } = event;
+      // if(!target.parentNode.id.includes('cardStartContainer')) {
+      //   this.removeCard()
+      //   //  this.$store.dispatch('data/setFilter', {});
+      // } 
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };

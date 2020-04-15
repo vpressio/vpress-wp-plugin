@@ -22,6 +22,7 @@ export default {
       theme: 'light',
       colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
     },
+    errorMessage: '',
     availableGraphs: [
       {
         chartType: 'bars',
@@ -106,7 +107,8 @@ export default {
         commit('SET_CHART_VALUES', newChartValues);
         return newChartValues;
       } catch (error) {
-        console.warn(error)
+        commit('SET_CHART_VALUE', { valueToUpdate: 'errorMessage', value: error.message })
+        throw new Error(error.message);
       }
     },
     async GET_CHART_BY_ID({ commit }, chartId) {
@@ -135,7 +137,7 @@ export default {
     },
     RESET_CHART_VALUES({ commit }) {
       const initialChartValues = {
-        chart: '',
+        chart: 'bars',
         xAxis: { title: '', type: '', slug: '' , func: ''},
         yAxis: { title: '', type: '', slug: '', func: ''},
         groupBy: { title: '', type: 'ordinal', slug: ''},
@@ -188,6 +190,7 @@ export default {
     },
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,
+    filter: state => state.chartValues.collapseBy,
     aggregation: state => {
       if (state.chartValues.chart === 'bars') {
         return state.chartValues.groupBy
