@@ -58,7 +58,7 @@ export default {
           slotId:"filter",
           icon:"mdi-tune",
           slotIcon: "",
-          label: "Filtros",
+          label: "collapseBy",
           maxStack: 3,
           filter: true
         }

@@ -48,13 +48,17 @@ export default {
     return {
       dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
-      availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
+      availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
+      loadingChart: false
     };
   },
   created() {
     this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
+      console.log(chartConfig, 'updated state')
+      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
+      console.log(this.availableCharts, 'charts')
      if ( 
        this.chartConfig.xAxis.slug !== '' &&
        this.chartConfig.yAxis.slug !== ''
@@ -63,19 +67,23 @@ export default {
     } else {
       this.dataChart = [];
     }
-      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
+      
     });
   },
   computed: {
-    displayChartConfig() {
-      return this.chartConfig;
-    },
     chartData() {
       return this.$store.getters['data/dataFiltered'];
+    },
+    showLoader() {
+      console.log(this.loadingChart)
+      return this.loadingChart
     }
-
   },
   methods: {
+    change() {
+      console.log('change')
+      this.loadingChart = !this.loadingChart
+    },
     /**
      * Appends an input to edit selected label
      */

@@ -1,13 +1,12 @@
 <template lang="pug">
   .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
-    div {{ayura}}
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
         h2.generated-title.mb-0 {{ generatedTitle }}
       .col-12.py-0
         h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
-    div#empty-chart.empty-chart
+    #empty-chart.empty-chart
       .vertical-align
         p.tiny.label-font Arrastra algún valor a filas, columnas o color
 </template>
@@ -42,7 +41,6 @@ export default {
   data() {
     return {
       windowWidth: window.innerWidth,
-      loadingChart: true,
       locale: d3.timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
         date: '%d.%m.%Y',
@@ -82,9 +80,6 @@ export default {
     };
   },
   computed: {
-    ayura() {
-      return this.loadingChart ? 'Está cargando' : 'No está cargando'
-    },
     generatedTitle() {
       return this.chartConfig ? this.chartConfig.title : 'Título';
     },
@@ -151,12 +146,10 @@ export default {
         this.chartConfig.xAxis.slug !== '' &&
         this.chartConfig.yAxis.slug !== ''
       ) {
-        this.loadingChart = true;
         this.configChart()
       }
     },
     chartConfig() {
-      this.loadingChart = true;
       if (
         !_.includes(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'], this.chartConfig.chart)
       ) {
@@ -170,7 +163,6 @@ export default {
         this.chartConfig.xAxis.slug !== '' &&
         this.chartConfig.yAxis.slug !== ''
       ) {
-        console.log(this.ayura)
         this.configChart()
       }
     }
@@ -482,68 +474,29 @@ export default {
           this.chart.legendTitle(vm.legendDisplay.title);
           this.chart.legendType('checkbox');
         }
-        const drawAsync = async (callback) => {
-          try {
-            return await new Promise(resolve => {
-              resolve(callback());
-            })
-          } catch (error) {
-            console.warn(error)
-          }
-        }
 
         switch (this.chartConfig.chart) {
           case 'bars':
-            drawAsync(this.drawBars)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawBars()
             break;
           case 'heatmap':
-            drawAsync(this.drawHeatmap)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawHeatmap()
             break;
           case 'spineplot':
-            drawAsync(this.drawSpineplot)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawSpineplot()
             break;
           case 'scatter':
-            drawAsync(this.drawScatter)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawScatter()
             break;
           case 'timeline':
-            drawAsync(this.drawTimeline)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawTimeline()
             break;
           default:
-            drawAsync(this.drawBars)
-              .then(() => {
-                this.chart.draw();
-                this.loadingChart = false
-                console.log(this.ayura, 'then')
-              });
+            this.drawBars()
             break;
         }
   
-       
+       this.chart.draw();
   
         // Update position for axes only for timeline
         if (this.chartConfig.chart === 'timeline') {

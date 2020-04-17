@@ -16,14 +16,15 @@
         <v-btn
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
-          :disable="graph.disabled"
+          :disabled="graph.disabled"
           text
-          @click="setChartType(graph.chartType)"
+          @click="setChartType(graph.type)"
           class="mx-1"
         >
           <v-img
-            :src="requireImg(graph.chartType)"
-            :alt="graph.chartType"
+            :class="graph.disabled ? 'disabled-graph-image' : ''"
+            :src="requireImg(graph.type)"
+            :alt="graph.type"
             width="30"
             height="30"
           />
@@ -62,9 +63,50 @@
           dark
           color="grey"
         >
-          <v-icon>
-            {{ orderIcon }}
-          </v-icon>
+          <v-img
+            :src="requireImg('totales')"
+            :alt="'Ordenar'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="orderByAlphabetical"
+          small
+          dark
+          color="grey"
+        >
+          <v-img
+            :src="requireImg('alfabeto')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="orderByNumerical"
+          small
+          dark
+          color="grey"
+        >
+          <v-img
+            :src="requireImg('numerico')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="invertAxis"
+          small
+          dark
+          color="grey"
+        >
+          <v-img
+            :src="requireImg('invertir')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
         </v-btn>
       </v-col>
     </v-row>
@@ -78,15 +120,12 @@ export default {
     return {
       labels: false,
       stackedBars: false,
-      order: '',
-      graphs: []
+      order: this.$store.getters['chartConfig/order'],
     };
   },
   created() {
-    console.log(this.availableCharts)
     this.labels = this.$store.getters['chartConfig/labels'];
     this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
-    this.order = this.$store.getters['chartConfig/order'];
   },
   computed: {
     chartIsBarsGrouped() {
@@ -94,16 +133,6 @@ export default {
         this.$store.getters['chartConfig/chart'].chart === 'bars' &&
         this.$store.getters['chartConfig/groupBy.slug'].length !== 0
       );
-    },
-    orderIcon() {
-      switch (this.order) {
-        case 'asc':
-          return 'mdi-format-vertical-align-top'
-        case 'desc':
-          return 'mdi-format-vertical-align-bottom'
-        default:
-          return 'mdi-fruit-watermelon'
-      }
     }
   },
   methods: {
@@ -130,6 +159,19 @@ export default {
         this.order = order[0]
       }
       this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
+    },
+    orderByAlphabetical() {
+
+      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
+
+    },
+    orderByNumerical() {
+
+      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
+
+    },
+    invertAxis() {
+      this.$store.dispatch('chartConfig/INVERT_AXIS')
     }
     
   }

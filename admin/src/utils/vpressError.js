@@ -1,11 +1,10 @@
 class VpressError extends Error {
-  constructor(value = '', ...params) {
+  constructor(valueName = 'unset', ...params) {
     super(...params)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, VpressError)
     }
-
-    this.value = value;
+    this.valueName = valueName;
   }
 }
 module.exports = VpressError;

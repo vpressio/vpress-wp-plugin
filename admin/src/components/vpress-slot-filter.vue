@@ -127,7 +127,7 @@ export default {
     setFilter() {
       const filter = { type: this.type, column: this.column };
       if (this.type == 'linear') {
-        this.$store.dispatch('data/setFilter', { ...filter, value: this.linearFilter });
+        this.$store.dispatch(' Filter', { ...filter, value: this.linearFilter });
       } else {
         this.$store.dispatch('data/setFilter', { ...filter, value: this.ordinalFilter });
       }

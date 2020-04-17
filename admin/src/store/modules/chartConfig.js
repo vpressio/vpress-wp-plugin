@@ -10,7 +10,7 @@ export default {
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: '', slug: '' },
+      orderBy: { order: 'desc', slug: 'total_count' },
       decimals: 1,
       preffix: '',
       suffix: '',
@@ -22,27 +22,22 @@ export default {
       theme: 'light',
       colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
     },
-    errorMessage: '',
+    error: {},
     availableGraphs: [
       {
-        chartType: 'bars',
-        chartCompatibleDataTypes: ['linear', 'ordinal'],
+        type: 'bars',
       },
       {
-        chartType: 'heatmap',
-        chartCompatibleDataTypes: ['ordinal']
+        type: 'heatmap',
       },
       {
-        chartType: 'spineplot',
-        chartCompatibleDataTypes: ['ordinal']
+        type: 'spineplot',
       },
       {
-        chartType: 'scatter',
-        chartCompatibleDataTypes: ['linear']
+        type: 'scatter',
       },
       {
-        chartType: 'timeline',
-        chartCompatibleDataTypes: ['date', 'linear']
+        type: 'timeline',
       }
     ],
     availableColors: [
@@ -77,8 +72,11 @@ export default {
     SET_STACK_BARS(state, payload) {
       state.chartValues.stackedBars = payload;
     },
-    SET_ORDER_BY(state, payload) {
+    SET_ORDER(state, payload) {
       state.chartValues.orderBy.order = payload;
+    },
+    SET_ORDER_BY(state, payload) {
+      state.chartValues.orderBy.slug = payload;
     },
     SET_SHOW_LABELS(state, payload) {
       state.chartValues.labels = payload;
@@ -98,16 +96,20 @@ export default {
     },
     SET_CHART_VALUE(state, { valueToUpdate, value }) {
       state.chartValues[valueToUpdate] = value;
+    },
+    SET_CHART_ERROR(state, payload) {
+      state.error = payload
     }
   },
   actions: {
     async MERGE_CHART_VALUE({ state, commit }, payload) {
       try {
-        const newChartValues = await vpress.merge(state.chartValues, payload);
+        const newChartValues = await vpress.merge(state.chartValues, { newValue: payload.value, mutationType: payload.slot });
         commit('SET_CHART_VALUES', newChartValues);
+        commit('SET_CHART_ERROR', null)
         return newChartValues;
       } catch (error) {
-        commit('SET_CHART_VALUE', { valueToUpdate: 'errorMessage', value: error.message })
+        commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);
       }
     },
@@ -142,7 +144,7 @@ export default {
         yAxis: { title: '', type: '', slug: '', func: ''},
         groupBy: { title: '', type: 'ordinal', slug: ''},
         collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-        orderBy: { order: '', slug: '' },
+        orderBy: { order: 'asc', slug: 'Estado' },
         decimals: 1,
         preffix: '',
         suffix: '',
@@ -156,6 +158,15 @@ export default {
       }
       commit('SET_CHART_VALUES', initialChartValues)
     },
+    async INVERT_AXIS({ state, commit }) {
+      try {
+        const newChartValues = await vpress.invertAxis({ chartValues: state.chartValues });
+        commit('SET_CHART_VALUE', { valueToUpdate: 'xAxis', value: newChartValues.xAxis })
+        commit('SET_CHART_VALUE', { valueToUpdate: 'yAxis', value: newChartValues.yAxis })
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
     UPDATE_CHART_TYPE({ commit }, payload) {
       commit('SET_CHART_TYPE', payload);
     },
@@ -163,7 +174,9 @@ export default {
       commit('SET_STACK_BARS', payload);
     },
     UPDATE_ORDER_BY({ commit }, payload) {
-
+      if (payload === 'asc' || payload === 'desc') {
+        commit('SET_ORDER', payload)
+      } 
       commit('SET_ORDER_BY', payload)
     },
     UPDATE_SHOW_LABELS({ commit }, payload) {
@@ -205,6 +218,7 @@ export default {
         return state.chartValues.groupBy
       }
     },
+    error: state => state.error,
     theme: state => state.chartValues.theme,
     chartType: state => state.chartValues.chart,
     labels: state => state.chartValues.labels,
@@ -214,22 +228,60 @@ export default {
     availableColors: state => state.availableColors,
     getAvailableCharts: state => {
       return state.availableGraphs.map(chart => {
-        if (
-          chart.chartCompatibleDataTypes.includes(state.chartValues.xAxis.type) &&
-          chart.chartCompatibleDataTypes.includes(state.chartValues.yAxis.type)
-        ) {
-          if (
-            chart.chartCompatibleDataTypes.length > 1 &&
-            state.chartValues.xAxis.type === state.chartValues.yAxis.type
-          ) {
+        switch (chart.type) {
+          case 'bars':
+            if (
+              (
+                state.chartValues.xAxis.type === 'linear' ||
+                state.chartValues.yAxis.type === 'linear'
+              ) &&
+              (
+                state.chartValues.xAxis === state.chartValues.collapseBy ||
+                state.chartValues.yAxis === state.chartValues.collapseBy
+              ) && 
+              (
+                state.chartValues.yAxis !== state.chartValues.xAxis
+              )
+            ) {
+              return { ...chart, disabled: false };
+            } 
             return { ...chart, disabled: true };
-          }
-          if (state.chartValues.chart === 'spineplot' && state.chartValues.collapseBy.slug === '') {
+          case 'heatmap':
+            if (state.chartValues.collapseBy.slug === '') {
+              return { ...chart, disabled: false };
+            }
+            return { ...chart, disabled: false };
+          case 'spineplot':
+            if (state.chartValues.collapseBy.slug !== '') {
+              return { ...chart, disabled: false };
+            }
             return { ...chart, disabled: true };
-          }
-          return { ...chart, disabled: false };
+          case 'scatter':
+            if (
+              state.chartValues.xAxis.slug === 'total_count' ||
+              state.chartValues.yAxis.slug === 'total_count'
+            ) {
+              return { ...chart, disabled: true };
+            }
+            return { ...chart, disabled: false };
+          case 'timeline':
+            if (
+              (
+              state.chartValues.xAxis === state.chartValues.collapseBy ||
+              state.chartValues.yAxis === state.chartValues.collapseBy
+              ) &&
+              (
+                state.chartValues.xAxis.type === 'date' &&
+                state.chartValues.yAxis.type !== 'date'
+              ) && 
+              (
+                state.chartValues.xAxis.type !== state.chartValues.yAxis.type
+              )
+            ) {
+              return { ...chart, disabled: false };
+            }
+            return { ...chart, disabled: true };
         }
-        return { ...chart, disabled: true };
       });
     }
   }

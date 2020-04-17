@@ -2,245 +2,255 @@ import * as _ from 'lodash';
 import * as d3 from 'd3';
 import VpressError from './vpressError';
 
-const merge = async (chartConfig, newChartValue) => {
+const merge = async (chartValues, { newValue, mutationType }) => {
   try {
-      const {
-        title,
-        type,
-        slug,
-        func
-      } = newChartValue.body;
-      
       const payload = {
-        chartConfig,
-        newValueName: newChartValue.name,
-        newValue: {
-          title: title,
-          type: type,
-          slug: slug,
-          func: func
-        }
+        chartValues,
+        mutationType: mutationType,
+        newValue: newValue
       }
-    try {
-      switch (payload.newValueName) {
+      switch (mutationType) {
         case 'xAxis':
-          return await changeAxis(payload, payload.newValueName)
+          return await setAxis(payload)
         case 'yAxis':
-          return await changeAxis(payload,payload.newValueName)
+          return await setAxis(payload)
         case 'aggregation':
-          return await changeAggregate(payload)
+          return await setAggregate(payload)
         case 'filter':
-          return await changeFilter(payload)
+          return await setFilter(payload)
         default:
           throw new VpressError (
-            newChartValue.name,
+            mutationType,
             'Slot id must be a valid chart value: [ xAxis, yAxis, aggregation, filter ]'
           )
       }
-    } catch (error) {
-
+  } catch (error) {
       if (error instanceof VpressError) {
         throw new VpressError (
-            error.value,
+            error.valueName,
             error.message
         )
       } else {
         throw new VpressError (
-          newChartValue.name,
+          mutationType,
           error.message
         )
       }
     }
-  } catch (error) {
-    throw new VpressError (
-      error.value,
-      error.message
-    )
-  }
 };
 
-const changeAxis = async (payload) => {
+const invertAxis = async ({ chartValues }) => {
   try {
-    const {
-      chartConfig,
-      newValueName,
-      newValue
-    } = payload;
+    const xAxis = { ...chartValues.xAxis };
+    const yAxis = { ...chartValues.yAxis };
 
-    chartConfig[newValueName] = newValue;
+    chartValues.xAxis = yAxis;
+    chartValues.yAxis = xAxis;
+    switch (chartValues.chart) {
+      case 'heatmap':
+        if (chartValues.xAxis === 'linear') {
+          chartValues.groupBy = yAxis
+        } else {
+          chartValues.groupBy = xAxis;
+        }
+        break
+      case 'scatter':
+        if (chartValues.yAxis === chartValues.groupBy) {
+          chartValues.groupBy = chartValues.yAxis
+        } else {
+          chartValues.groupBy = chartValues.xAxis
+        }
+        break
+        default:
+        break;
+    }
+
+    return chartValues
+
+  } catch (error) {
+    throw new VpressError( _ , error.message);
+  }
+}
+
+const setAxis = async ({ chartValues, newValue, mutationType }) => {
+  try {
+    chartValues[mutationType] = newValue;
 
     if (
         !_.includes(
-          [ chartConfig.xAxis.slug, chartConfig.yAxis.slug ],
-          chartConfig.collapseBy.slug
+          [ chartValues.xAxis.slug, chartValues.yAxis.slug ],
+          chartValues.collapseBy.slug
         )
       ) {
-        chartConfig.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
+        chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
       }
     switch (newValue.type) {
       case 'ordinal':
-        chartConfig.orderBy.slug = newValue.slug;
+        // chartValues.orderBy.slug = newValue.slug;
         if (
-          chartConfig.xAxis.type === chartConfig.yAxis.type
+          chartValues.xAxis.type === chartValues.yAxis.type
         ) {
-          chartConfig.chart =
-            chartConfig.collapseBy.slug === ''
+          chartValues.chart =
+            chartValues.collapseBy.slug === ''
             ? 'heatmap'
             : 'spineplot';
-          chartConfig.groupBy = chartConfig.yAxis;
+          chartValues.groupBy = chartValues.yAxis;
         } else if (
-          chartConfig.xAxis.type === 'linear' ||
-          chartConfig.yAxis.type === 'linear'
+          chartValues.xAxis.type === 'linear' ||
+          chartValues.yAxis.type === 'linear'
         ) {
-          chartConfig.chart = 'bars';
+          chartValues.chart = 'bars';
           
-          if (chartConfig.groupBy === chartConfig[newValueName]) {
-            chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
+          if (chartValues.groupBy === chartValues[mutationType]) {
+            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
           }
           
-          if (chartConfig.xAxis.type === 'linear') {
-            chartConfig.collapseBy = chartConfig.xAxis
-          } else if (chartConfig.yAxis.type === 'linear') {
-            chartConfig.collapseBy = chartConfig.yAxis
+          if (chartValues.xAxis.type === 'linear') {
+            chartValues.collapseBy = chartValues.xAxis
+          } else if (chartValues.yAxis.type === 'linear') {
+            chartValues.collapseBy = chartValues.yAxis
           }
         } else if (
-          chartConfig.xAxis.type === 'date' ||
-          chartConfig.yAxis.type === 'date'
+          chartValues.xAxis.type === 'date' ||
+          chartValues.yAxis.type === 'date'
           ) {
-            chartConfig.chart = chartConfig.collapseBy.slug === ''
+            chartValues.chart = chartValues.collapseBy.slug === ''
             ? 'heatmap'
             : 'spineplot';
-          if (chartConfig.xAxis.type === 'date') {
-            chartConfig.groupBy = chartConfig.yAxis
-          } else if (chartConfig.yAxis.type === 'date') {
-            chartConfig.groupBy = chartConfig.yAxis
+          if (chartValues.xAxis.type === 'date') {
+            chartValues.groupBy = chartValues.yAxis
+          } else if (chartValues.yAxis.type === 'date') {
+            chartValues.groupBy = chartValues.yAxis
           }
         }
         break;
       case 'linear':
-        chartConfig.orderBy.slug = newValue.slug;
+        // chartValues.orderBy.slug = newValue.slug;
         if (
-          chartConfig.xAxis.type === newValue.type &&
-          chartConfig.yAxis.type === newValue.type
+          chartValues.xAxis.type === newValue.type &&
+          chartValues.yAxis.type === newValue.type
         ) {
-          chartConfig.chart = 'scatter'
-          if (chartConfig.groupBy === chartConfig.xAxis) {
-            chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
-          } else if ( chartConfig.groupBy === chartConfig.yAxis) {
-            chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
-          }
+          chartValues.chart = 'scatter'
         } else if (
-          chartConfig.xAxis.type === 'ordinal' ||
-          chartConfig.yAxis.type === 'ordinal'
+          chartValues.xAxis.type === 'ordinal' ||
+          chartValues.yAxis.type === 'ordinal'
         ) {
-          chartConfig.chart = 'bars';
+          chartValues.chart = 'bars';
           
-          if (chartConfig.groupBy === chartConfig.xAxis) {
-            chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
-          } else if (chartConfig.groupBy === chartConfig.yAxis) {
-            chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
+          if (chartValues.groupBy === chartValues.xAxis) {
+            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
+          } else if (chartValues.groupBy === chartValues.yAxis) {
+            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
           }
 
-          chartConfig.collapseBy = newValue
+          chartValues.collapseBy = newValue
         } else if (
-          chartConfig.xAxis.type === 'date' ||
-          chartConfig.yAxis.type === 'date'
+          chartValues.xAxis.type === 'date' ||
+          chartValues.yAxis.type === 'date'
         ) {
-          chartConfig.chart = 'timeline';
-          chartConfig.collapseBy = newValue;
-          chartConfig.groupBy = { title: '', type: 'ordinal', slug: '' };
+          if (chartValues.yAxis.type === 'date') {
+            chartValues.chart = 'bars'
+          }
+          if (chartValues.xAxis.type === 'date') {
+            chartValues.chart = 'timeline';
+          }
+          chartValues.collapseBy = newValue;
+          chartValues.groupBy = { title: '', type: 'ordinal', slug: '' };
         }
         break;
       case 'date':
-        chartConfig.collapseBy = { title: 'Conteo de observaciones', type: 'linear', slug: 'total_count', func: '' }
-        chartConfig.groupBy = { title: '', type: 'ordinal', slug: ''}
+        // chartValues.collapseBy = { title: 'Conteo de observaciones', type: 'linear', slug: 'total_count', func: '' }
+        chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
         if (
-          chartConfig.xAxis.type === chartConfig.yAxis.type
+          chartValues.xAxis.type === chartValues.yAxis.type
         ) {
-          chartConfig.chart = 'heatmap'
-          chartConfig.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
-          chartConfig.groupBy = chartConfig.yAxis;
+          chartValues.chart = 'heatmap'
+          chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
+          chartValues.groupBy = chartValues.yAxis;
         }
-        if (chartConfig[newValueName] === chartConfig.xAxis && chartConfig.yAxis.type === 'linear') {
-          chartConfig.chart = 'timeline';
-          chartConfig.collapseBy = chartConfig.yAxis;
+        if (chartValues[mutationType] === chartValues.xAxis && chartValues.yAxis.type === 'linear') {
+          chartValues.chart = 'timeline';
+          chartValues.collapseBy = chartValues.yAxis;
         }
-        if (chartConfig[newValueName] === chartConfig.yAxis && chartConfig.xAxis.type === 'linear') {
-          chartConfig.chart = 'timeline';
-          chartConfig.collapseBy = chartConfig.xAxis
+        if (chartValues[mutationType] === chartValues.yAxis && chartValues.xAxis.type === 'linear') {
+          chartValues.chart = 'bars';
+          chartValues.collapseBy = chartValues.xAxis
         }
         break
       case '':
         break
       default:
-        throw new VpressError(newValueName, 'Tipo de dato inválido.');
+        throw new VpressError(newValue.title, 'Tipo de dato inválido.');
     }
-    return chartConfig;
+    return chartValues;
 
   } catch (error) {
-    throw new VpressError(error.newValueName, error.message);
+    throw new VpressError(error.valueName, error.message);
   }
 };
 
-const changeAggregate = async (payload) => {
+const setAggregate = async (payload) => {
   try {
     const {
-      chartConfig,
-      newValueName,
+      chartValues,
       newValue
   } = payload;
-
     if (newValue.slug === '') {
     return removeAggregate(payload);
   }
     
-  switch (chartConfig.chart) {
+  switch (chartValues.chart) {
     case 'bars':
-      if (newValue.type === 'ordinal') {
-        chartConfig.groupBy = newValue
+      if (newValue.type === 'ordinal' && (chartValues.xAxis.slug !== newValue.slug && chartValues.yAxis.slug !== newValue.slug)) {
+        chartValues.groupBy = newValue
       } else {
-        throw new VpressError(newValueName,'Las gráficas de barra sólo pueden agruparse por una variable ordinal.')
+        chartValues.groupBy.title = newValue.title
+        throw new VpressError(newValue.title,'Las gráficas de barra sólo pueden agruparse por una variable ordinal.')
       }
       break;
     case 'heatmap':
       if (newValue.type === 'linear') {
-        chartConfig.collapseBy = newValue
+        chartValues.collapseBy = newValue;
       } else {
-        throw new VpressError(newValueName, 'Los heatmap sólo pueden agruparse por una variable linear.')
+        chartValues.collapseBy.title = newValue.title
+        throw new VpressError(newValue.title, 'Los heatmap sólo pueden agruparse por una variable linear.')
       }
       break;
       case 'spineplot':
         if (newValue.type === 'linear') {
-          chartConfig.collapseBy = newValue
+          chartValues.collapseBy = newValue
         } else {
-          throw new VpressError(newValueName, 'Los spineplot sólo pueden agruparse por una variable linear.')
+          chartValues.collapseBy.title = newValue.title
+          throw new VpressError(newValue.title, 'Los spineplot sólo pueden agruparse por una variable linear.')
         }
         break;
-        case 'scatter':
-          if (newValue.type === 'linear') {
-            chartConfig.collapseBy = newValue
-          } else if (newValue.type === 'ordinal') {
-            chartConfig.groupBy = newValue
-          }
+      case 'scatter':
+        if (newValue.type === 'ordinal') {
+          chartValues.groupBy = newValue
+        } else {
+          chartValues.groupBy.title = newValue.title
+          throw new VpressError(newValue.title, 'Los scatter sólo pueden agruparse por una variable linear u ordinal.')
+        }
       break;
     case 'timeline':
       if (newValue.type === 'ordinal') {
-        chartConfig.groupBy = newValue
+        chartValues.groupBy = newValue
       } else {
-        throw new VpressError( newValueName, 'Los timeline sólo pueden agruparse por una variable ordinal.')
+        chartValues.groupBy.title = newValue.title
+        throw new VpressError( newValue.title, 'Los timeline sólo pueden agruparse por una variable ordinal.')
       }
       break;
     default:
-      throw new VpressError( newValueName, 'Invalid chart type');
+      throw new VpressError( newValue.title, 'Invalid chart type');
   }
-    return chartConfig;
+    return chartValues;
   } catch (error) {
-    throw new VpressError(error.newValueName, error.message);
+    throw new VpressError(error.valueName, error.message);
   }
 };
 
-const changeFilter = async (payload) => {
-  switch (payload.newValue.type) {
+const setFilter = async ({ chartValues, newValue }) => {
+  switch (newValue.type) {
     case 'ordinal':
       break;
     case 'linear':
@@ -250,35 +260,35 @@ const changeFilter = async (payload) => {
     case '':
       break
     default:
-      throw new Error('Invalid variable data type');
+      throw new VpressError(newValue.title,'Invalid variable data type');
   }
-  return payload.chartConfig;
+  return chartValues;
 };
 
-const removeAggregate = async ({chartConfig, newValue, newValueName}) => {
+const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   try {
-    switch (chartConfig.chart) {
+    switch (chartValues.chart) {
       case 'bars':
-        chartConfig.groupBy = newValue
+        chartValues.groupBy = newValue
         break
         case 'heatmap':
-          chartConfig.collapseBy = newValue
+          chartValues.collapseBy = newValue
           break
         case 'spineplot':
-          chartConfig.collapseBy = newValue
+          chartValues.collapseBy = newValue
           break
         case 'scatter':
-          chartConfig.collapseBy = newValue
-          chartConfig.groupBy = newValue
+          chartValues.collapseBy = newValue
+          chartValues.groupBy = newValue
           break
         case 'timeline':
-          chartConfig.collapseBy = newValue
-          chartConfig.groupBy = newValue
+          chartValues.collapseBy = newValue
+          chartValues.groupBy = newValue
         break
       default:
-        throw new VpressError(newValueName,'Invalid chart type');
+        throw new VpressError(mutationType,'Invalid chart type');
     }
-    return chartConfig;
+    return chartValues;
   } catch (error) {
     throw new VpressError(error.value, error.message)
   }
@@ -320,6 +330,7 @@ const sortByDataType = (dataSample) => {
 
 export default {
   merge,
+  invertAxis,
   sortByDataType,
   extractDateFormat
 };

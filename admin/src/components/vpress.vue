@@ -24,11 +24,11 @@
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
-            <div class="tributton-container" v-show="activeTab !== 0">
+            <!-- <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
               <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
               <v-btn class="right-button" outlined color="primary">Descargar</v-btn>
-            </div>
+            </div> -->
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
             <v-card class="pb-5">
