@@ -56,9 +56,9 @@ const invertAxis = async ({ chartValues }) => {
         break
       case 'scatter':
         if (chartValues.yAxis === chartValues.groupBy) {
-          chartValues.groupBy = chartValues.yAxis
-        } else {
           chartValues.groupBy = chartValues.xAxis
+        } else {
+          chartValues.groupBy = chartValues.yAxis
         }
         break
         default:

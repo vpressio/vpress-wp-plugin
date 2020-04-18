@@ -16,8 +16,13 @@
             <div
               v-for="(color, colorIndex) in scheme"
               :key="`color_${colorIndex}`"
-              :style="{ backgroundColor: color, width: schemeCardSize, height: schemeCardSize }"
-            ></div>
+            >
+              <div
+                v-if="colorIndex < 5"
+                :style="{ backgroundColor: color, width: schemeCardSize, height: schemeCardSize }"
+              >
+              </div>
+            </div>
           </v-card>
         </div>
       </v-card>

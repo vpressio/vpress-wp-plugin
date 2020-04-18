@@ -46,7 +46,8 @@ export default {
         schemes: [
           ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'],
           ['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'],
-          ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f']
+          ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f'],
+          ['#fcff9d', '#f6ca3', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e']
         ]
       },
       {
@@ -175,9 +176,10 @@ export default {
     },
     UPDATE_ORDER_BY({ commit }, payload) {
       if (payload === 'asc' || payload === 'desc') {
-        commit('SET_ORDER', payload)
-      } 
-      commit('SET_ORDER_BY', payload)
+        commit('SET_ORDER', payload);
+      } else {
+        commit('SET_ORDER_BY', payload);
+      }
     },
     UPDATE_SHOW_LABELS({ commit }, payload) {
       commit('SET_SHOW_LABELS', payload);

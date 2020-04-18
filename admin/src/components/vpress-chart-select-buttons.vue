@@ -38,7 +38,7 @@
           @click="toggleLabels"
           small
           dark
-          color="primary"
+          color="grey"
         >
           <v-icon>
             mdi-tag-outline
@@ -74,7 +74,7 @@
           @click="orderByAlphabetical"
           small
           dark
-          color="grey"
+          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'grey'"
         >
           <v-img
             :src="requireImg('alfabeto')"
@@ -87,7 +87,7 @@
           @click="orderByNumerical"
           small
           dark
-          color="grey"
+          :color="this.sortedBy === 'numerical' ? 'primary' : 'grey'"
         >
           <v-img
             :src="requireImg('numerico')"
@@ -121,6 +121,7 @@ export default {
       labels: false,
       stackedBars: false,
       order: this.$store.getters['chartConfig/order'],
+      sortedBy: ''
     };
   },
   created() {
@@ -161,14 +162,37 @@ export default {
       this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
     },
     orderByAlphabetical() {
-
-      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
-
+      const chartValues = this.$store.getters['chartConfig/chart'];
+      if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
+        if (chartValues.xAxis.type === 'ordinal' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        }
+        if (chartValues.yAxis.type === 'ordinal' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+        }
+        
+      } else if (chartValues.xAxis.type === 'ordinal') {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+      } else {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
+      }
+      this.sortedBy = 'alphabetical';
     },
     orderByNumerical() {
-
-      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
-
+      const chartValues = this.$store.getters['chartConfig/chart'];
+      if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
+        if (chartValues.xAxis.type === 'linear' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        }
+        if (chartValues.yAxis.type === 'linear' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+        }
+      } else if (chartValues.xAxis.type === 'linear') {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+      } else {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
+      }
+      this.sortedBy = 'numerical';
     },
     invertAxis() {
       this.$store.dispatch('chartConfig/INVERT_AXIS')
