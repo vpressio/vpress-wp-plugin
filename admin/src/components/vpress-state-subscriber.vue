@@ -56,9 +56,7 @@ export default {
     this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
-      console.log(chartConfig, 'updated state')
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
-      console.log(this.availableCharts, 'charts')
      if ( 
        this.chartConfig.xAxis.slug !== '' &&
        this.chartConfig.yAxis.slug !== ''
@@ -75,13 +73,11 @@ export default {
       return this.$store.getters['data/dataFiltered'];
     },
     showLoader() {
-      console.log(this.loadingChart)
       return this.loadingChart
     }
   },
   methods: {
     change() {
-      console.log('change')
       this.loadingChart = !this.loadingChart
     },
     /**

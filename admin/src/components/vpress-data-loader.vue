@@ -29,7 +29,8 @@
       </v-col>
       <v-col
         md="3"
-        lg="2"
+        lg="3"
+        xl="2"
         class="pt-1 pb-0"
         v-for="(dataSet, dataSetIndex) in testDatasets"
         :key="dataSetIndex"

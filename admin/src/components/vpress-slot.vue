@@ -110,7 +110,6 @@ export default {
         })
         .catch(error => {
           this.error = true
-          console.log(this.$store.getters['chartConfig/error'].valueName)
           console.warn(error.message)
         })
 

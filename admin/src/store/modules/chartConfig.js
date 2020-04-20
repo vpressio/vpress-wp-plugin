@@ -18,7 +18,7 @@ export default {
       title: 'Título',
       subtitle: 'Subtítulo',
       labels: false,
-      opacity: 0.8,
+      opacity: 1,
       theme: 'light',
       colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
     },
@@ -44,10 +44,10 @@ export default {
       {
         colorSchemeType: 'SECUENCIAL',
         schemes: [
-          ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'],
-          ['#ffffcc', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494'],
-          ['#f2f0f7', '#cbc9e2', '#9e9ac8', '#756bb1', '#54278f'],
-          ['#fcff9d', '#f6ca3', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e']
+          ['#7a0177', '#c51b8a', '#f768a1', '#fbb4b9', '#feebe2'],
+          ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
+          ['#54278f', '#756bb1', '#9e9ac8', '#cbc9e2', '#f2f0f7'],
+          ['#fcff9d', '#f6ca3b', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e']
         ]
       },
       {
@@ -153,7 +153,7 @@ export default {
         title: 'Título',
         subtitle: 'Subtítulo',
         labels: false,
-        opacity: 0.8,
+        opacity: 1,
         theme: 'light',
         colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
       }
