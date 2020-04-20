@@ -30,7 +30,9 @@
     <v-col cols="12" class="pt-0">
       <p
         v-show="linearVariables.length > 0"
-        class="ordinal-lineal">Linear
+        class="ordinal-lineal"
+      >
+        Lineal
       </p>
       <div class="card--container"
         :id="`${cardsContainerId}_auxiliar`"

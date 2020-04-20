@@ -238,8 +238,8 @@ export default {
                 state.chartValues.yAxis.type === 'linear'
               ) &&
               (
-                state.chartValues.xAxis === state.chartValues.collapseBy ||
-                state.chartValues.yAxis === state.chartValues.collapseBy
+                state.chartValues.xAxis.slug === state.chartValues.collapseBy.slug ||
+                state.chartValues.yAxis.slug === state.chartValues.collapseBy.slug
               ) && 
               (
                 state.chartValues.yAxis !== state.chartValues.xAxis
