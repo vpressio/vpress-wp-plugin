@@ -20,7 +20,7 @@ export default {
 .beta-banner-container {
   position: absolute;
   z-index: 3;
-  width: 100vw;
+  margin-left: calc(100vw - 100px);
   display: flex;
   justify-content: flex-end;
 }
