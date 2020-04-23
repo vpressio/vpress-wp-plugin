@@ -116,26 +116,23 @@ export default {
     },
     async GET_CHART_BY_ID({ commit }, chartId) {
       try {
-        const doc =
-          await firestore
-            .collection('charts')
-            .doc(chartId)
-            .get();
+        const document = await firestore
+          .collection('charts')
+          .doc(chartId)
+          .get();
         
-        if (!doc.exists) {
-          throw new Error('No matching documents.');
+        if (!document.exists) {
+          throw new Error('Lo sentimos, no se encontró la gráfica.');
         }
         commit(
           'SET_CHART_VALUES',
-          doc
+          document
             .data()
             .chartValues
         )
-        return doc
-          .data()
-          .dataSet
-      } catch (error) {
-        console.warn(error);
+        return document.data()
+        } catch (error) {
+        throw new Error(error.message)
       }
     },
     RESET_CHART_VALUES({ commit }) {

@@ -43,18 +43,18 @@ export default {
         commit('SET_DATASET_NAME', dataSetName);
         return { data: data, dataSetName: dataSetName }
       } catch (error) {
-        console.warn(error)
+        throw new Error(error.message)
       }
       
     },
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
     },
-    async GET_DATASET_BY_NAME(_context, payload) {
+    async GET_DATASET_BY_NAME(_context, { dataSetDir, file }) {
       try {
         const datasetUrl = await storage
         .ref()
-        .child(`savedDatasets/${payload}`)
+        .child(`${dataSetDir}/${file}`)
         .getDownloadURL()
         
         const dataset = await axios.get(
@@ -66,9 +66,19 @@ export default {
         );
         return dataset.data;
       } catch (error) {
-        console.warn(error);
+        throw new Error(error.message)
       }
-    }
+    },
+    async GET_DATASETS(_context, dataSetDir) {
+      try { 
+       return await storage
+          .ref()
+          .child(dataSetDir)
+          .listAll();
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
   },
   getters: {
     data: state => state.data,

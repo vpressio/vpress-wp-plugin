@@ -73,6 +73,7 @@
               mdi-arrow-right
             </v-icon>
           </v-btn>
+          <div>{{ this.errorMessage }}</div>
         </div>
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
@@ -113,7 +114,6 @@
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
 import { FReader } from '../plugins/fileReader';
-import { storage } from '../plugins/firebase';
 
 export default {
   name: 'VpressDataLoader',
@@ -124,7 +124,7 @@ export default {
   props: ['tabChange'],
   data() {
     return {
-      dataSetDir: '/testDatasets',
+      dataSetDir: '/savedDatasets',
       uploadMethod: 'upload',
       dataSetName: '',
       pastedData: '',
@@ -133,7 +133,8 @@ export default {
       headers: [],
       data: [],
       testDatasets: [],
-      files: []
+      files: [],
+      errorMessage: ''
     };
   },
   created() {
@@ -154,34 +155,28 @@ export default {
       try {
         const self = this;
         if( this.$route.params.chartid ) {
-          const dataSet = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
+          const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
           this.dataSetDir = '/savedDatasets';
-          const dataSetData = await this.selectTestDataset(dataSet);
-          this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName:this.dataSetName })
+          const dataSetData = await this.selectTestDataset(document.dataSet);
+          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName })
           this.$emit('update:tabChange', 1);
         }
       } catch (error) {
-        console.warn(error)
+        this.$router.push('/')
       }
     },
     async getStorageDatasets() {
       try {
-        this.dataSetDir = this.$route.query.datasets
-          ? `/${this.$route.query.datasets}`
-          : '/savedDatasets';
-  
-        const files  = await storage
-          .ref()
-          .child(this.dataSetDir)
-          .listAll();
-        
+        if (Object.keys(this.$route.query).includes('datasets')) {
+          this.dataSetDir = this.$route.query.datasets
+        }
+        const files  = await this.$store.dispatch('data/GET_DATASETS', this.dataSetDir);
         if (files.items.length === 0) {
-          console.warn(`Sin coincidencias para ${this.dataSetDir}`);
+          throw new Error(`Sin coincidencias para ${this.dataSetDir}`);
         }
         this.testDatasets = files.items;
-
       } catch (error){
-        console.error(error);
+        this.$router.push('/')
       }
     },
     async selectTestDataset(fileName) {
@@ -189,16 +184,10 @@ export default {
         const self = this;
         self.loading = true;
         self.dataSetName = fileName;
-        const url = await storage
-          .ref()
-          .child(`${this.dataSetDir}/${fileName}`)
-          .getDownloadURL()
-        
-        const file = await fetch(url)
-        return self.loadFile(await file.blob())
-
+        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.dataSetDir, file: this.dataSetName })
+        return await self.loadFile(file)
       } catch (error) {
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     ChangeUploadDataMethod(method) {
