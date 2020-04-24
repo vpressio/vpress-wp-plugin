@@ -1,5 +1,5 @@
 <template lang="pug">
-  .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
+  .chart-container.center-align.v-step-3(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
         h2.generated-title.mb-0 {{ generatedTitle }}

@@ -34,6 +34,7 @@
         class="pt-1 pb-0"
         v-for="(dataSet, dataSetIndex) in testDatasets"
         :key="dataSetIndex"
+        :class="{'v-step-1': dataSetIndex === 0}"
       >
         <v-card dark class color="primary" @click="selectTestDataset(dataSet.name)">
           <v-card-title
@@ -64,8 +65,8 @@
             :disabled="data.length === 0"
             height="43"
             color="primary"
-            class="btn-datos float-right ml-1 px-5"
-            @click="saveData()"
+            class="btn-datos float-right ml-1 px-5  v-step-2"
+            @click="nextTab"
             rounded
           >
             Siguiente
@@ -121,7 +122,7 @@ export default {
     VpressFilepond,
     VpressDataTable
   },
-  props: ['tabChange'],
+  props: ['tabChange', 'tourFile'],
   data() {
     return {
       dataSetDir: '/savedDatasets',
@@ -147,6 +148,13 @@ export default {
       if (newFiles.length >= 1){
         this.dataSetName = this.files[0].file.name
         this.loadFile(this.files[0].file);
+      } 
+    },
+    tourFile(newTourFile) {
+      if (!newTourFile.error){
+        this.dataSetName = newTourFile.fileDir
+        this.loadFile(newTourFile.file)
+        .then(() => this.saveData());
       } 
     }
   },
@@ -219,8 +227,8 @@ export default {
             sortable: true
           }));
           // eslint-disable-next-line
+          self.data = content;
           setTimeout(() => {
-            self.data = content;
             self.loading = false;
           }, 0);
         return content
@@ -284,9 +292,12 @@ export default {
       self.dataSetName = 'Dataset copiado'
     },
     saveData() {
-      this.$emit('update:tabChange', 1);
       this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
       this.$store.dispatch('data/SAVE_DATA', { data: this.data, dataSetName:this.dataSetName });
+    },
+    nextTab() {
+      this.$emit('update:tabChange', 1);
+      this.saveData();
     }
   }
 };

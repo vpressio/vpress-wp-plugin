@@ -197,9 +197,6 @@ export default {
   },
   getters: {
     chart: state => state.chartValues,
-    slotVariable: state => {
-      return value => state.chartValues[value]
-    },
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,
     filter: state => state.chartValues.collapseBy,

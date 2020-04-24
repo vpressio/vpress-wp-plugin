@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar dense flat class="gradient" max-height="40">
+  <v-app-bar dense flat class="gradient v-step-0" max-height="40">
     <v-img
       src="../assets/images/vpress.svg"
       class="ml-5 vpress-image logo-margin"

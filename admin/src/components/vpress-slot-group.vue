@@ -7,6 +7,7 @@
       class="py-2 px-1"
     >
       <VpressSlot
+        :class="{'v-step-4': slot.slotId === 'xAxis', 'v-step-5': slot.slotId === 'yAxis', 'v-step-6': slot.slotId === 'aggregation'}"
         :slotId="slot.slotId"
         :icon="slot.icon"
         :slotIcon="slot.slotIcon"

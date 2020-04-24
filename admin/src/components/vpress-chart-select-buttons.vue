@@ -46,7 +46,7 @@
         </v-btn>
         <v-btn
           v-show="chartIsBarsGrouped"
-          class="mr-2"
+          class="mr-2 v-step-7"
           @click="toggleBarsType"
           small
           dark
