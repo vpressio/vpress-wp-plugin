@@ -1,5 +1,5 @@
 <template>
-  <v-row class="ma-0">
+  <v-row class="ma-0 v-step-9">
     <v-col class="pa-0" v-for="schemeType in colorSchemes" :key="schemeType.colorSchemeType">
       <v-card flat class="ma-3">
         {{ schemeType.colorSchemeType }}
@@ -16,8 +16,13 @@
             <div
               v-for="(color, colorIndex) in scheme"
               :key="`color_${colorIndex}`"
-              :style="{ backgroundColor: color, width: schemeCardSize, height: schemeCardSize }"
-            ></div>
+            >
+              <div
+                v-if="colorIndex < 5"
+                :style="{ backgroundColor: color, width: schemeCardSize, height: schemeCardSize }"
+              >
+              </div>
+            </div>
           </v-card>
         </div>
       </v-card>

@@ -29,10 +29,12 @@
       </v-col>
       <v-col
         md="3"
-        lg="2"
+        lg="3"
+        xl="2"
         class="pt-1 pb-0"
         v-for="(dataSet, dataSetIndex) in testDatasets"
         :key="dataSetIndex"
+        :class="{'v-step-1': dataSetIndex === 0}"
       >
         <v-card dark class color="primary" @click="selectTestDataset(dataSet.name)">
           <v-card-title
@@ -63,8 +65,8 @@
             :disabled="data.length === 0"
             height="43"
             color="primary"
-            class="btn-datos float-right ml-1 px-5"
-            @click="saveData()"
+            class="btn-datos float-right ml-1 px-5  v-step-2"
+            @click="nextTab"
             rounded
           >
             Siguiente
@@ -72,6 +74,7 @@
               mdi-arrow-right
             </v-icon>
           </v-btn>
+          <div>{{ this.errorMessage }}</div>
         </div>
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
@@ -112,7 +115,6 @@
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
 import { FReader } from '../plugins/fileReader';
-import { storage } from '../plugins/firebase';
 
 export default {
   name: 'VpressDataLoader',
@@ -120,10 +122,10 @@ export default {
     VpressFilepond,
     VpressDataTable
   },
-  props: ['tabChange'],
+  props: ['tabChange', 'tourFile'],
   data() {
     return {
-      dataSetDir: '/testDatasets',
+      dataSetDir: '/savedDatasets',
       uploadMethod: 'upload',
       dataSetName: '',
       pastedData: '',
@@ -132,7 +134,8 @@ export default {
       headers: [],
       data: [],
       testDatasets: [],
-      files: []
+      files: [],
+      errorMessage: ''
     };
   },
   created() {
@@ -146,60 +149,54 @@ export default {
         this.dataSetName = this.files[0].file.name
         this.loadFile(this.files[0].file);
       } 
+    },
+    tourFile(newTourFile) {
+      if (!newTourFile.error){
+        this.dataSetName = newTourFile.fileDir
+        this.loadFile(newTourFile.file)
+        .then(() => this.saveData());
+      } 
     }
   },
   methods: {
-    getUrlQueries() {
-      // if(this.$route)
-    },
-    getUrlParams() {
-      const self = this;
-      // OtwVQAlrZLwZBvN8jYT3
-      if( this.$route.params.chartid ) {
-        self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid )
-          .then(dataSet => {
-            this.dataSetDir = '/savedDatasets';
-            this.selectTestDataset(dataSet);
-          })
-          .catch(err => {
-            console.warn(err)
-          });
+    async getUrlParams() {
+      try {
+        const self = this;
+        if( this.$route.params.chartid ) {
+          const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
+          this.dataSetDir = '/savedDatasets';
+          const dataSetData = await this.selectTestDataset(document.dataSet);
+          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName })
+          this.$emit('update:tabChange', 1);
+        }
+      } catch (error) {
+        this.$router.push('/')
       }
     },
-    getStorageDatasets() {
-      this.dataSetDir = this.$route.query.datasets
-        ? `/${this.$route.query.datasets}`
-        : '/testDatasets';
-
-      storage
-        .ref()
-        .child(this.dataSetDir)
-        .listAll()
-        .then(res => {
-          if (res.items.length === 0) {
-            console.warn(`Sin coincidencias para ${this.dataSetDir}`);
-          }
-          this.testDatasets = res.items;
-        })
-        .catch(err => {
-          console.error(err);
-        });
+    async getStorageDatasets() {
+      try {
+        if (Object.keys(this.$route.query).includes('datasets')) {
+          this.dataSetDir = this.$route.query.datasets
+        }
+        const files  = await this.$store.dispatch('data/GET_DATASETS', this.dataSetDir);
+        if (files.items.length === 0) {
+          throw new Error(`Sin coincidencias para ${this.dataSetDir}`);
+        }
+        this.testDatasets = files.items;
+      } catch (error){
+        this.$router.push('/')
+      }
     },
-    selectTestDataset(fileName) {
-      const self = this;
-      self.loading = true;
-      self.dataSetName = fileName;
-      storage
-        .ref()
-        .child(`${this.dataSetDir}/${fileName}`)
-        .getDownloadURL()
-        .then(DownloadURL => {
-          fetch(DownloadURL).then(file => {
-            file.blob().then(res => {
-              self.loadFile(res);
-            });
-          });
-        });
+    async selectTestDataset(fileName) {
+      try {
+        const self = this;
+        self.loading = true;
+        self.dataSetName = fileName;
+        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.dataSetDir, file: this.dataSetName })
+        return await self.loadFile(file)
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
     },
     ChangeUploadDataMethod(method) {
       this.uploadMethod = method;
@@ -208,55 +205,36 @@ export default {
       this.data = [];
       this.headers = [];
       this.files = [];
-      this.$store.dispatch('data/set', this.data);
+      this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '' });
     },
     /**
      * Read spreadsheets file, parsed into JSON data
      * Set headers and data for data-table
      */
-    loadFile(file) {
-      const self = this;
-      self.loading = true;
-      if (file.type === 'text/csv') {
-        FReader.readCSV(file)
-          .then(content => {
-            // eslint-disable-next-line
-            self.headers = Object.keys(content[0]).map(o => ({
-              text: o,
-              value: o,
-              sortable: true
-            }));
-            // eslint-disable-next-line
-            setTimeout(() => {
-              self.data = content;
-              self.loading = false;
-            }, 0);
-          })
-          .catch(error => {
-            // eslint-disable-next-line
+    async loadFile(file) {
+      try {
+        const self = this;
+        self.loading = true;
+        let content;
+        if (file.type === 'text/csv') {
+          content = await FReader.readCSV(file);
+        } else {
+          content = await FReader.readExcel(file);
+        }
+        self.headers = Object.keys(content[0]).map(o => ({
+            text: o,
+            value: o,
+            sortable: true
+          }));
+          // eslint-disable-next-line
+          self.data = content;
+          setTimeout(() => {
             self.loading = false;
-            console.error(error);
-          });
-      } else {
-        FReader.readExcel(file)
-          .then(content => {
-            // eslint-disable-next-line
-            self.headers = Object.keys(content[0]).map(o => ({
-              text: o,
-              value: o,
-              sortable: true
-            }));
-            // eslint-disable-next-line
-            setTimeout(() => {
-              self.data = content;
-              self.loading = false;
-            }, 0);
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            self.loading = false;
-            console.error(error);
-          });
+          }, 0);
+        return content
+      } catch (error) {
+        self.loading = false;
+        console.warn(error)
       }
     },
     /**
@@ -314,9 +292,12 @@ export default {
       self.dataSetName = 'Dataset copiado'
     },
     saveData() {
+      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('data/SAVE_DATA', { data: this.data, dataSetName:this.dataSetName });
+    },
+    nextTab() {
       this.$emit('update:tabChange', 1);
-      // this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
-      this.$store.dispatch('data/saveData', { data: this.data, dataSetName:this.dataSetName });
+      this.saveData();
     }
   }
 };

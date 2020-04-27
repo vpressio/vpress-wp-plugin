@@ -20,21 +20,21 @@
             >
               <v-tab>DATOS</v-tab>
               <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
-              <v-tab :disabled="variableData.length === 0">ESTILO</v-tab>
+              <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
-            <div class="tributton-container" v-show="activeTab !== 0">
+            <!-- <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
               <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
               <v-btn class="right-button" outlined color="primary">Descargar</v-btn>
-            </div>
+            </div> -->
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
             <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader :tabChange.sync="activeTab"/>
+                  <VpressDataLoader :tabChange.sync="activeTab" :tourFile="tourFile"/>
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
@@ -74,6 +74,7 @@
         </v-row>
       </div>
     </div>
+    <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
   </v-responsive>
 </template>
 <script>
@@ -102,8 +103,100 @@ export default {
       darkTheme: false,
       openDialog: false,
       sideBarWidth: 45,
-      dataSetFromUrl: {}
+      dataSetFromUrl: {},
+      tourOptions: {
+        useKeyboardNavigation: true,
+        labels: {
+          buttonSkip: 'Omitir tutorial',
+          buttonPrevious: 'Anterior',
+          buttonNext: 'Siguiente',
+          buttonStop: 'Terminar'
+        }      
+      },
+      tourFile: {
+        error: 'Hubo un problema con el tutorial.'
+      },
+      tourCallbacks: {
+        onNextStep: this.tourNext
+      },
+      tourSteps: [
+          {
+            target: '.v-step-0',
+            content: `Descubre lo que puedes hacer con Vpress`,
+            params: {
+              placement: 'right'
+            }
+          },
+          {
+            target: '.v-step-1',
+            content: 'Prueba con datos que hemos preparado para ti',
+            params: {
+              placement: 'top'
+            }
+          },
+          {
+            target: '.v-step-2',
+            content: 'Da click en siguiente para comenzar tu análisis',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-3',
+            content: 'Hagamos una gráfica juntos',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-4',
+            content: 'Arrastra la observación Estado a la selección de Filas',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-5',
+            content: 'Arrastra la observación Conteo de observaciones a la selección de Columnas',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-6',
+            content: 'Hagamos algo más, arrastra la observación de Sexo a la sección de Color',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-7',
+            content: 'Nos separó la gráfica por Sexo y nos agrega la opción de poder Apilar la gráfica',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-8',
+            content: 'Dale estilo a tu gráfica cambiando colores',
+            params: {
+              placement: 'bottom'
+            }
+          },
+          {
+            target: '.v-step-9',
+            content: 'Selecciona entre un color plano o una gama de color más amplia. ¡ Disfruta de Vpress !',
+            params: {
+              placement: 'right'
+            }
+          }
+        ]
     };
+  },
+  mounted() {
+    if(!this.$route.params.chartid) {
+      this.$tours['vpress-tour'].start();
+    }
   },
   computed: {
     numberOfColsIftabIsNotZero() {
@@ -124,6 +217,27 @@ export default {
         return this.$store.getters['data/dataSetName'].replace(/\.[^/.]+$/, "")
       }
       return 'Dataset'
+    }
+  },
+  methods: {
+    tourNext(currentStep) {
+      const tourFileName = 'COVID-19 en México, 18 de Abril.csv';
+      const tourFileDir = 'savedDatasets'
+      switch(currentStep) {
+        case 0:
+          this.$store.dispatch(
+            'data/GET_DATASET_BY_NAME',
+            { dataSetDir:tourFileDir, file: tourFileName}
+          )
+            .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
+          break
+        case 2:
+          this.activeTab = 1
+          break
+        case 8:
+          this.activeTab = 2
+          break
+      } 
     }
   }
 };

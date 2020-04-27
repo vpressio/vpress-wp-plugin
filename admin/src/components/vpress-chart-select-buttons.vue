@@ -16,15 +16,15 @@
         <v-btn
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
-          text
-          @click="setChartType(graph.chartType)"
           :disabled="graph.disabled"
+          text
+          @click="setChartType(graph.type)"
           class="mx-1"
         >
           <v-img
             :class="graph.disabled ? 'disabled-graph-image' : ''"
-            :src="requireImg(graph.chartType)"
-            :alt="graph.chartType"
+            :src="requireImg(graph.type)"
+            :alt="graph.type"
             width="30"
             height="30"
           />
@@ -32,11 +32,82 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col>
-        <v-btn @click="toggleLabels">ETIQUETAS</v-btn>
-        <v-btn v-show="chartIsBarsGrouped" @click="toggleBarsType">{{
-          stackedBars ? 'BARRAS AGRUPADAS' : 'BARRAS APILADAS'
-        }}</v-btn>
+      <v-col class="ml-5">
+        <v-btn
+          class="mr-2"
+          @click="toggleLabels"
+          small
+          dark
+          color="grey"
+        >
+          <v-icon>
+            mdi-tag-outline
+          </v-icon>
+        </v-btn>
+        <v-btn
+          v-show="chartIsBarsGrouped"
+          class="mr-2 v-step-7"
+          @click="toggleBarsType"
+          small
+          dark
+          color="grey"
+        >
+          <v-icon>
+            {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
+          </v-icon>
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="toggleOrder"
+          small
+          dark
+          color="grey"
+        >
+          <v-img
+            :src="requireImg('totales')"
+            :alt="'Ordenar'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="orderByAlphabetical"
+          small
+          dark
+          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'grey'"
+        >
+          <v-img
+            :src="requireImg('alfabeto')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="orderByNumerical"
+          small
+          dark
+          :color="this.sortedBy === 'numerical' ? 'primary' : 'grey'"
+        >
+          <v-img
+            :src="requireImg('numerico')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
+        </v-btn>
+        <v-btn
+          class="mr-2"
+          @click="invertAxis"
+          small
+          dark
+          color="grey"
+        >
+          <v-img
+            :src="requireImg('invertir')"
+            :alt="'Invertir ejes'"
+            width="10"
+          />
+        </v-btn>
       </v-col>
     </v-row>
   </v-card>
@@ -49,7 +120,8 @@ export default {
     return {
       labels: false,
       stackedBars: false,
-      graphs: []
+      order: this.$store.getters['chartConfig/order'],
+      sortedBy: ''
     };
   },
   created() {
@@ -59,8 +131,8 @@ export default {
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.getters['chartConfig/chart'] === 'bars' &&
-        this.$store.getters['chartConfig/groupBy.slug']
+        this.$store.getters['chartConfig/chart'].chart === 'bars' &&
+        this.$store.getters['chartConfig/groupBy.slug'].length !== 0
       );
     }
   },
@@ -78,7 +150,54 @@ export default {
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
       this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', this.stackedBars);
+    },
+    toggleOrder() {
+      const order = [ 'asc', 'desc' ];
+      const selectedOrderIndex = order.indexOf(this.order);
+      if ( (selectedOrderIndex + 1) < order.length) {
+        this.order = order[selectedOrderIndex + 1]
+      } else {
+        this.order = order[0]
+      }
+      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
+    },
+    orderByAlphabetical() {
+      const chartValues = this.$store.getters['chartConfig/chart'];
+      if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
+        if (chartValues.xAxis.type === 'ordinal' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        }
+        if (chartValues.yAxis.type === 'ordinal' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+        }
+        
+      } else if (chartValues.xAxis.type === 'ordinal') {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+      } else {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
+      }
+      this.sortedBy = 'alphabetical';
+    },
+    orderByNumerical() {
+      const chartValues = this.$store.getters['chartConfig/chart'];
+      if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
+        if (chartValues.xAxis.type === 'linear' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        }
+        if (chartValues.yAxis.type === 'linear' ) {
+          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+        }
+      } else if (chartValues.xAxis.type === 'linear') {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+      } else {
+        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
+      }
+      this.sortedBy = 'numerical';
+    },
+    invertAxis() {
+      this.$store.dispatch('chartConfig/INVERT_AXIS')
     }
+    
   }
 };
 </script>

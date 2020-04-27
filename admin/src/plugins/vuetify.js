@@ -11,6 +11,7 @@ export default new Vuetify({
       light: {
         primary: '#382E82',
         secondary: '#7972AC',
+        error: '#EF5350'
       },
     }
   }

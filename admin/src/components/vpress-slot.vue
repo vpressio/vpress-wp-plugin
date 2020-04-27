@@ -36,6 +36,7 @@
         @drop.stop.self="drop"
         inSlot
         :slotId="slotId"
+        :error="error"
       />
       <p
         v-if="variablesInSlot.length <= maxStack"
@@ -78,7 +79,8 @@ export default {
       openFilterDialog: false,
       addMargin: false,
       filterColumn: '',
-      filterType: '' 
+      filterType: '',
+      error: false 
     };
   },
   computed: {
@@ -92,8 +94,6 @@ export default {
   methods: {
     drop(event) {
       const { dataTransfer } = event;
-      
-
       const columnDataToTransferInString = dataTransfer.getData(
         'columnDataToTransferInString'
       );
@@ -101,15 +101,21 @@ export default {
         columnDataToTransferInString
       );
 
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { body: columnDataToTransferInObject, name: this.slotId})
-        .then( () =>{
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: columnDataToTransferInObject, slot: this.slotId})
+        .then( () => {
+          if (this.error) {
+            this.error = false;
+          }
           this.addVariableToSlot(columnDataToTransferInObject);
         })
-        .catch(error => console.warn(error))
+        .catch(error => {
+          this.error = true
+          console.warn(error.message)
+        })
 
       if (this.filter) {
         this.filterData(
-          columnDataToTransferInObject.title,
+          columnDataToTransferInObject.slug,
           columnDataToTransferInObject.type
         );
       }

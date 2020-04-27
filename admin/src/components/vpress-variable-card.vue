@@ -10,14 +10,14 @@
     @drop.stop.self="drop"
     tile
     :class="{ 'pr-5': inSlot }"
-    color="#9292A9"
+    :color="error ? 'error' : '#9292A9'"
     dark
     hover
   >
     <div>
       <div
         v-if="inSlot"
-        class="operationButtonContainer pr-2"
+        class="operationButtonContainer"
       >
         <v-menu
           close-on-click
@@ -56,7 +56,7 @@
                   {{ func.name }}
                 </v-list-item-title>
               </v-list-item>
-              <v-divider inset></v-divider>
+              <v-divider></v-divider>
               <v-list-item
                 class="px-5"
                 @click="removeCard()"
@@ -68,8 +68,7 @@
                 </v-list-item-title>
               </v-list-item>
             </v-list>
-            <v-list v-if="variableData.type === 'ordinal'">
-              <v-divider></v-divider>
+            <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
               <v-list-item
                 class="px-5"
                 @click="removeCard"
@@ -83,7 +82,7 @@
             </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-2 pl-3" :class="{ 'pr-5':inSlot }">
+      <div class="dataTypeTitle py-2 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
         <p class="mb-0"> {{ variableData.title }} </p>
         <p
           v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
@@ -104,6 +103,7 @@ export default {
     variableData: Object,
     inSlot: Boolean,
     variablesInSlot: Array,
+    error: Boolean
   },
   data() {
     return {
@@ -141,25 +141,26 @@ export default {
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
     },
     dragEnd() {
-      const { target } = event;
-      if(!target.parentNode.id.includes('cardStartContainer')) {
-        this.removeCard()
-        //  this.$store.dispatch('data/setFilter', {});
-      } 
+      // const { target } = event;
+      // if(!target.parentNode.id.includes('cardStartContainer')) {
+      //   this.removeCard()
+      //   //  this.$store.dispatch('data/setFilter', {});
+      // } 
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`,{body: variable, name: this.slotId});
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`,{ slot: variable, value: this.slotId });
     },
     removeCard() {
       this.$store.dispatch(
         `chartConfig/MERGE_CHART_VALUE`,
         {
-          name: this.slotId,
-          body: {
+          slot: this.slotId,
+          value: {
             title: '',
             type: '',
+            slug: '',
             func:''
           }
         }

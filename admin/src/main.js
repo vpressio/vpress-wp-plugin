@@ -1,17 +1,17 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-// import Vpress from 'vpress-vue';
 import App from './App.vue';
 import router from './router';
 import store from './store/store';
 import './registerServiceWorker';
+import VueTour from 'vue-tour';
 import vuetify from './plugins/vuetify';
-// import 'vpress-vue/dist/css/main.css';
-Vue.config.productionTip = false;
-Vue.use(Vuex);
-// Vue.use(Vpress);
+
+require('vue-tour/dist/vue-tour.css')
 
 Vue.config.productionTip = false;
+Vue.use(Vuex);
+Vue.use(VueTour)
 
 document.addEventListener('DOMContentLoaded', () => {
   new Vue({

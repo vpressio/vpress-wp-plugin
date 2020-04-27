@@ -48,7 +48,8 @@ export default {
     return {
       dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
-      availableCharts: this.$store.getters['chartConfig/getAvailableCharts']
+      availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
+      loadingChart: false
     };
   },
   created() {
@@ -56,18 +57,29 @@ export default {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
+     if ( 
+       this.chartConfig.xAxis.slug !== '' &&
+       this.chartConfig.yAxis.slug !== ''
+    ) {
+      this.dataChart = this.$store.getters['data/dataFiltered']
+    } else {
+      this.dataChart = [];
+    }
+      
     });
   },
   computed: {
-    displayChartConfig() {
-      return this.chartConfig;
-    },
     chartData() {
       return this.$store.getters['data/dataFiltered'];
+    },
+    showLoader() {
+      return this.loadingChart
     }
-
   },
   methods: {
+    change() {
+      this.loadingChart = !this.loadingChart
+    },
     /**
      * Appends an input to edit selected label
      */
@@ -112,25 +124,21 @@ export default {
     onChartIsLoaded($element) {
       const vm = this;
       this.createInputToEditLabel($element, '.generated-title', '.input-edit-title', value => {
-        /** @todo update state */
-        vm.chartConfig.title = value;
+        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'subtitle', value: value});
       });
       this.createInputToEditLabel(
         $element,
         '.generated-subtitle',
         '.input-edit-subtitle',
         value => {
-          /** @todo update state */
-          vm.chartConfig.subtitle = value;
+        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'title', value: value});
         }
       );
       this.createInputToEditLabel($element, '.x.axis .axis-title', '.input-edit-x-axis', value => {
-        /** @todo update state */
-        vm.chartConfig.xAxis = Object.assign(vm.chartConfig.xAxis, { title: value });
+        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
       });
       this.createInputToEditLabel($element, '.y.axis .axis-title', '.input-edit-y-axis', value => {
-        /** @todo update state */
-        vm.chartConfig.yAxis = Object.assign(vm.chartConfig.yAxis, { title: value });
+        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
       });
       this.createInputToEditLabel(
         $element,
@@ -139,19 +147,12 @@ export default {
         value => {
           /** Update current config with new value */
           if (vm.chartConfig.groupBy.slug) {
-            vm.chartConfig.groupBy = Object.assign(vm.chartConfig.groupBy, {
-              title: value
-            });
+            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'groupBy', value: value});
           } else if (vm.chartConfig.yAxis.type === 'ordinal') {
-            vm.chartConfig.yAxis = Object.assign(vm.chartConfig.yAxis, {
-              title: value
-            });
+            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
           } else if (vm.chartConfig.xAxis.type === 'ordinal') {
-            vm.chartConfig.xAxis = Object.assign(vm.chartConfig.xAxis, {
-              title: value
-            });
+            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
           }
-          /** @todo update state */
         }
       );
     }
