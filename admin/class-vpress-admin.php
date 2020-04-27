@@ -123,10 +123,11 @@ class Vpress_Admin {
 
 		//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-admin.js', array( 'jquery' ), $this->version, false );
 		if ( $this->is_develop_serve() ) {
-				wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
+			wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
+			wp_enqueue_script( $this->plugin_name  . '_chunks', 'http://localhost:8080/js/chunk-vendors.js', array( 'wp-api' ), $this->version, false );
 		} else {
-				wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'dist/js/chunk-vendors.js', [], $this->version, false );
-				wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'dist/js/app.js', array( 'wp-api' ), $this->version, false );
+			wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'admin/dist/js/chunk-vendors.js', [], $this->version, false );
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'admin/dist/js/app.js', array( 'wp-api' ), $this->version, false );
 		}
 	}
 
@@ -154,14 +155,14 @@ class Vpress_Admin {
 		
 		// wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/vpress-admin.css', array(), $this->version, 'all' );
 		if ( $this->is_develop_serve() ) {
-			//wp_enqueue_style( $this->plugin_name . '_dev', 'http://localhost:8080/css/app.css', [], $this->version, 'all' );
+			wp_enqueue_style( $this->plugin_name . '_dev', 'http://localhost:8080/css/app.css', [], $this->version, 'all' );
 		} else {		
-			foreach( glob( plugin_dir_path( __FILE__). '../dist/css/*.css' ) as $file ) {
+			foreach( glob( plugin_dir_path( __FILE__). '../admin/dist/css/*.css' ) as $file ) {
 				$filename = substr($file, strrpos($file, '/') + 1);
-				wp_enqueue_style( $filename, plugin_dir_url( __DIR__ ).'dist/css/'.$filename);
+				wp_enqueue_style( $filename, plugin_dir_url( __DIR__ ).'admin/dist/css/'.$filename);
 			} 
 
-			//wp_enqueue_style( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'dist/css/chunk-vendors.css', [], $this->version, 'all' );
+			//wp_enqueue_style( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'admin/dist/css/chunk-vendors.css', [], $this->version, 'all' );
 		}
 	}
 
