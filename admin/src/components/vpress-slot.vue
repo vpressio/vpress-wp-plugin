@@ -108,9 +108,8 @@ export default {
           }
           this.addVariableToSlot(columnDataToTransferInObject);
         })
-        .catch(error => {
+        .catch(() => {
           this.error = true
-          console.warn(error.message)
         })
 
       if (this.filter) {

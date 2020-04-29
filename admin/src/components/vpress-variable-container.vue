@@ -7,20 +7,20 @@
     </v-col>
     <v-col cols="12" class="pt-0">
       <p
-        v-show="oirdinalVariables.length > 0"
+        v-show="ordinalVariables.length > 0"
         class="ordinal-lineal"
       >
         Ordinal
       </p>
       <div
-        v-show="oirdinalVariables.length > 0"
+        v-show="ordinalVariables.length > 0"
         class="card--container"
         :id="`${cardsContainerId}_ordinal`"
         :ref="`${cardsContainerId}_ordinal`"
       >
         <VpressVariableCard
           class="mb-3"
-          v-for="(variable, variableIndex) in oirdinalVariables"
+          v-for="(variable, variableIndex) in ordinalVariables"
           :key="`cardId_${variableIndex}`"
           :id="`cardId_${variableIndex}`"
           :variableData="variable"
@@ -105,7 +105,7 @@ export default {
     linearVariables() {
       return this.variableData.filter(variable => variable.type === 'linear')
     },
-    oirdinalVariables() {
+    ordinalVariables() {
       return this.variableData.filter(variable => variable.type === 'ordinal')
     },
     dateVariables() {

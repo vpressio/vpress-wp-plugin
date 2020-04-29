@@ -24,11 +24,10 @@
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
-            <!-- <div class="tributton-container" v-show="activeTab !== 0">
+            <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
-              <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
-              <v-btn class="right-button" outlined color="primary">Descargar</v-btn>
-            </div> -->
+              <v-btn class="right-button" outlined color="primary">Compartir</v-btn>
+            </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
             <v-card class="pb-5">
@@ -124,7 +123,7 @@ export default {
             target: '.v-step-0',
             content: `Descubre lo que puedes hacer con Vpress`,
             params: {
-              placement: 'right'
+              placement: 'bottom'
             }
           },
           {
@@ -221,7 +220,7 @@ export default {
   },
   methods: {
     tourNext(currentStep) {
-      const tourFileName = 'COVID-19 en México, 18 de Abril.csv';
+      const tourFileName = 'COVID-19 en México, 26 de Abril.csv';
       const tourFileDir = 'savedDatasets'
       switch(currentStep) {
         case 0:
@@ -263,6 +262,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  padding: 0 5%
 }
 
 .left-button {

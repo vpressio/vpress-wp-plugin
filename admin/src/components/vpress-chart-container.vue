@@ -176,7 +176,6 @@ export default {
      */
     configChart() {
         const vm = this;
-        // const mobileWidth = 600; // Size in pixels
         const tabletWidth = 800; // Size in pixels
         /**
          * Draw dbox charts according with selected options
@@ -185,13 +184,11 @@ export default {
   
         /** Configure chart size */
         this.width =
-          // this.chartConfig.width ||
           d3
             .select(this.$el)
             .select('.empty-chart')
             .node().offsetWidth || 1200;
         this.height =
-          // this.chartConfig.height ||
           this.width * 0.6 || 300;
   
         /** Configure margins */

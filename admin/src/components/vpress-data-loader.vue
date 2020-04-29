@@ -74,7 +74,6 @@
               mdi-arrow-right
             </v-icon>
           </v-btn>
-          <div>{{ this.errorMessage }}</div>
         </div>
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
@@ -114,7 +113,6 @@
 <script>
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
-import { FReader } from '../plugins/fileReader';
 
 export default {
   name: 'VpressDataLoader',
@@ -215,12 +213,7 @@ export default {
       try {
         const self = this;
         self.loading = true;
-        let content;
-        if (file.type === 'text/csv') {
-          content = await FReader.readCSV(file);
-        } else {
-          content = await FReader.readExcel(file);
-        }
+        const content = await this.$store.dispatch('data/READ_FILE', file);
         self.headers = Object.keys(content[0]).map(o => ({
             text: o,
             value: o,
@@ -234,7 +227,7 @@ export default {
         return content
       } catch (error) {
         self.loading = false;
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     /**
