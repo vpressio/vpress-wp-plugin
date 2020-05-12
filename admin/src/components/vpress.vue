@@ -26,7 +26,7 @@
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
-              <v-btn class="right-button" outlined color="primary">Compartir</v-btn>
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn>
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -144,12 +144,12 @@ export default {
             target: '.v-step-3',
             content: 'Hagamos una gráfica juntos',
             params: {
-              placement: 'bottom'
+              placement: 'top'
             }
           },
           {
             target: '.v-step-4',
-            content: 'Arrastra la observación Estado a la selección de Filas',
+            content: 'Arrastra la observación "anillos" a la selección de Filas',
             params: {
               placement: 'bottom'
             }
@@ -163,14 +163,14 @@ export default {
           },
           {
             target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de Sexo a la sección de Color',
+            content: 'Hagamos algo más, arrastra la observación de planeta a la sección de Color',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-7',
-            content: 'Nos separó la gráfica por Sexo y nos agrega la opción de poder Apilar la gráfica',
+            content: 'Nos separó la gráfica por "planeta" y nos agrega la opción de poder Apilar la gráfica',
             params: {
               placement: 'bottom'
             }
@@ -219,21 +219,61 @@ export default {
     }
   },
   methods: {
+    clipboardCopy() {
+      const iframe = '<iframe src="http://localhost:8080/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>'
+      navigator.clipboard.writeText(iframe);
+    },
+    mergeValue(slot, dataToMerge) {
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
+    },
     tourNext(currentStep) {
-      const tourFileName = 'COVID-19 en México, 26 de Abril.csv';
-      const tourFileDir = 'savedDatasets'
+      const tourFileName = 'Planetas.csv';
+      const tourFileDir = 'testDatasets';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(
             'data/GET_DATASET_BY_NAME',
-            { dataSetDir:tourFileDir, file: tourFileName}
+            { dataSetDir:tourFileDir, file: tourFileName }
           )
             .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
           break
         case 2:
           this.activeTab = 1
           break
-        case 8:
+        case 3:
+          this.mergeValue(
+            'xAxis',
+            {
+              slug: "anillos",
+              title: "anillos",
+              type: "ordinal"
+            }
+          );
+          break
+        case 4:
+          this.mergeValue(
+            'yAxis',
+            {
+              slug: "total_count",
+              title: "Conteo de observaciones",
+              type: "linear"
+            }
+          );
+          break
+        case 5:
+          this.mergeValue(
+            'aggregation',
+            {
+              slug: "planeta",
+              title: "planeta",
+              type: "ordinal"
+            }
+          );
+          break
+        case 6:
+          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          break
+        case 7:
           this.activeTab = 2
           break
       } 

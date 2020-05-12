@@ -22,7 +22,6 @@
           class="mx-1"
         >
           <v-img
-            :class="graph.disabled ? 'disabled-graph-image' : ''"
             :src="requireImg(graph.type)"
             :alt="graph.type"
             width="30"

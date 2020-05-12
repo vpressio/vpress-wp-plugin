@@ -32,7 +32,7 @@
         lg="3"
         xl="2"
         class="pt-1 pb-0"
-        v-for="(dataSet, dataSetIndex) in testDatasets"
+        v-for="(dataSet, dataSetIndex) in dataSetsToRender"
         :key="dataSetIndex"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
@@ -131,15 +131,14 @@ export default {
       loading: false,
       headers: [],
       data: [],
-      testDatasets: [],
+      dataSets: [],
       files: [],
       errorMessage: ''
     };
   },
   created() {
     this.getStorageDatasets();
-    this.getUrlParams()   
-    
+    this.getUrlParams()
   },
   watch: {
     files(newFiles) {
@@ -150,10 +149,17 @@ export default {
     },
     tourFile(newTourFile) {
       if (!newTourFile.error){
-        this.dataSetName = newTourFile.fileDir
+        this.dataSetName = newTourFile.fileName;
+        this.dataSetDir = newTourFile.fileDir;
+        this.getStorageDatasets();
         this.loadFile(newTourFile.file)
         .then(() => this.saveData());
-      } 
+      }
+    }
+  },
+  computed: {
+    dataSetsToRender() {
+      return this.dataSets
     }
   },
   methods: {
@@ -164,7 +170,7 @@ export default {
           const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
           this.dataSetDir = '/savedDatasets';
           const dataSetData = await this.selectTestDataset(document.dataSet);
-          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName })
+          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName });
           this.$emit('update:tabChange', 1);
         }
       } catch (error) {
@@ -180,7 +186,7 @@ export default {
         if (files.items.length === 0) {
           throw new Error(`Sin coincidencias para ${this.dataSetDir}`);
         }
-        this.testDatasets = files.items;
+        this.dataSets = files.items;
       } catch (error){
         this.$router.push('/')
       }

@@ -100,7 +100,6 @@ export default {
       const columnDataToTransferInObject = JSON.parse(
         columnDataToTransferInString
       );
-
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: columnDataToTransferInObject, slot: this.slotId})
         .then( () => {
           if (this.error) {
