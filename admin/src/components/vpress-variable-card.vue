@@ -5,7 +5,7 @@
     :ref="id"
     :draggable="draggable"
     @dragstart="dragStart"
-    @dragend.prevent="dragEnd"
+    @dragend.prevent
     @dragover.stop
     @drop.stop.self="drop"
     tile
@@ -139,13 +139,6 @@ export default {
       this.columnDataToTransferInObject = { id: this.id, ...this.variableData, func: this.selectedFunc.type };
       const columnDataToTransferInString = JSON.stringify(this.columnDataToTransferInObject);
       dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
-    },
-    dragEnd() {
-      // const { target } = event;
-      // if(!target.parentNode.id.includes('cardStartContainer')) {
-      //   this.removeCard()
-      //   //  this.$store.dispatch('data/setFilter', {});
-      // } 
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
