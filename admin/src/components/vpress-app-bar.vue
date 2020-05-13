@@ -1,11 +1,11 @@
 <template>
-  <v-app-bar dense flat class="gradient v-step-0 v-step-3" :style="cssProps" max-height="40">
-      <v-img
-        :src="appBarLogo"
-        class="ml-5 vpress-image logo-margin"
-        :max-width="`${this.cssProps['--logo-width']}px`"
-        alt="Vpress logo"
-      />
+  <v-app-bar dense flat class="gradient v-step-0 v-step-3" :style="cssProps">
+    <v-img
+      :src="appBarLogo"
+      class="ml-5 vpress-image logo-margin"
+      :max-width="`${this.cssProps['--logo-width']}px`"
+      alt="Vpress logo"
+    />
   </v-app-bar>
 </template>
 <script>

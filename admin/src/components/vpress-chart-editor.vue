@@ -1,12 +1,6 @@
 <template>
   <v-responsive :style="cssProps">
-    <VpressAppBar/>
     <div class="config__container">
-      <v-card tile flat color="#222A32" :width="`${sideBarWidth}`" dark>
-        <v-card tile class="pa-1" color="#181D25" flat>
-          <v-img class="vpress-icon" src="../assets/images/logo.svg" />
-        </v-card>
-      </v-card>
       <div style="width:100%;" class="pb-5">
         <v-row class="ma-0">
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
@@ -77,7 +71,6 @@
   </v-responsive>
 </template>
 <script>
-import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
 import VpressExpansionPanel from './vpress-expansion-panel.vue';
@@ -88,7 +81,6 @@ import VpressColorSelection from './vpress-config-color-selection.vue';
 export default {
   name: 'Vpress',
   components: {
-    VpressAppBar,
     VpressDataLoader,
     VpressVariableContainer,
     VpressExpansionPanel,
@@ -287,12 +279,6 @@ export default {
 };
 </script>
 <style  scoped>
-.vpress-icon {
-  width: 32px;
-  height: 32px;
-  margin: 3px;
-}
-
 .config__container {
   display:flex;
 }

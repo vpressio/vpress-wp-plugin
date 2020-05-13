@@ -83,7 +83,7 @@
         </v-menu>
       </div>
       <div class="dataTypeTitle py-2 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
-        <p class="mb-0"> {{ variableData.title }} </p>
+        <p class="ma-0"> {{ variableData.title }} </p>
         <p
           v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
           class="variableCardDataType mb-0"
