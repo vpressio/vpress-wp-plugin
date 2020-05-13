@@ -10,7 +10,7 @@
     @drop.stop.self="drop"
     tile
     :class="{ 'pr-5': inSlot }"
-    :color="error ? 'error' : '#9292A9'"
+    :color="error ? 'error' : 'color2'"
     dark
     hover
   >

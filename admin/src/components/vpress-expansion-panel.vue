@@ -8,7 +8,7 @@
     :value="[0]"
   >
     <v-expansion-panel class="config-panels">
-      <v-expansion-panel-header color="secondary">
+      <v-expansion-panel-header color="color1">
         {{ panelTitle }}
       </v-expansion-panel-header>
       <v-expansion-panel-content>

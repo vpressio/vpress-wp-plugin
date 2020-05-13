@@ -37,7 +37,7 @@
           @click="toggleLabels"
           small
           dark
-          color="grey"
+          color="color2"
         >
           <v-icon>
             mdi-tag-outline
@@ -49,7 +49,7 @@
           @click="toggleBarsType"
           small
           dark
-          color="grey"
+          color="color2"
         >
           <v-icon>
             {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
@@ -60,7 +60,7 @@
           @click="toggleOrder"
           small
           dark
-          color="grey"
+          color="color2"
         >
           <v-img
             :src="requireImg('totales')"
@@ -73,7 +73,7 @@
           @click="orderByAlphabetical"
           small
           dark
-          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'grey'"
+          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'color2'"
         >
           <v-img
             :src="requireImg('alfabeto')"
@@ -86,7 +86,7 @@
           @click="orderByNumerical"
           small
           dark
-          :color="this.sortedBy === 'numerical' ? 'primary' : 'grey'"
+          :color="this.sortedBy === 'numerical' ? 'primary' : 'color2'"
         >
           <v-img
             :src="requireImg('numerico')"
@@ -99,7 +99,7 @@
           @click="invertAxis"
           small
           dark
-          color="grey"
+          color="color2"
         >
           <v-img
             :src="requireImg('invertir')"

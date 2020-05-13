@@ -1,0 +1,29 @@
+{
+  "themes": {
+    "light":{
+      "logo": {
+        "file_name": "logo-STCh.svg",
+        "width": "150"
+      },
+      "primary": "#C30E19",
+      "secondary": "#8B2B15",
+      "color1":"#2F353E",
+      "color2":"#939393",
+      "error": "EF5350",
+      "gradient": {
+        "bg": "linear-gradient(266deg, rgba(118,23,10,1) 0%, rgba(193,14,26,1) 68%, rgba(193,14,26,1) 100%)"
+      }
+    },
+    "dark": {
+      "logo": {
+        "file_name": "logo-STCh.svg",
+        "width": "100"
+      },
+      "primary":"",
+      "secondary":"",
+      "color1":"",
+      "color2":"",
+      "error": "EF5350"
+    }
+   }
+}

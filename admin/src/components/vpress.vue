@@ -1,5 +1,5 @@
 <template>
-  <v-responsive>
+  <v-responsive :style="cssProps">
     <VpressAppBar/>
     <div class="config__container">
       <v-card tile flat color="#222A32" :width="`${sideBarWidth}`" dark>
@@ -198,6 +198,11 @@ export default {
     }
   },
   computed: {
+    cssProps() {
+      return {
+        '--secondary': this.$vuetify.theme.themes.light.secondary
+      }
+    },
     numberOfColsIftabIsNotZero() {
       const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2;
       const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
@@ -338,7 +343,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972ac;
+  background-color: var(--secondary);
 }
 
 *

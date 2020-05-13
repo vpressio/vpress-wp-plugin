@@ -1,16 +1,16 @@
 <template>
-  <div class="data-loader--container">
+  <div class="data-loader--container" :style="cssProps">
     <v-row class="ma-0">
       <v-toolbar full-width flat>
         <v-btn
-          color="#b3aed1"
+          color="primary"
           :class="{selecteduploadMethod: uploadMethod === 'upload'}"
           class="uploadMethodButton"
           text
           @click="ChangeUploadDataMethod('upload')"
         >Sube tus datos</v-btn>
         <v-btn
-          color="#b3aed1"
+          color="primary"
           :class="
             {
               selecteduploadMethod: uploadMethod === 'paste'
@@ -158,6 +158,11 @@ export default {
     }
   },
   computed: {
+    cssProps() {
+      return {
+        '--primary': this.$vuetify.theme.themes.light.primary
+      }
+    },
     dataSetsToRender() {
       return this.dataSets
     }
@@ -312,9 +317,9 @@ export default {
 }
 
 .selecteduploadMethod {
-  border-bottom: solid 3px #382e82 !important;
+  border-bottom: solid 3px var(--primary) !important;
   border-radius: 0px;
-  color: #382e82 !important;
+  color: var(--primary) !important;
 }
 
 .uploadMethodButton {
@@ -336,7 +341,7 @@ export default {
 .btn-datos-2 {
   font-size: 1rem;
   text-transform: none;
-  color: #382e82 !important;
+  color: var(--primary) !important;
 }
 
 .icon-arrow {
