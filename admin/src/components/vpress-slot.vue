@@ -17,12 +17,16 @@
       {{ label }}
     </span>
     <v-card
+      class="pa-2"
+      :class="{'selectedSlot' : changeSlotStyle}"
       min-height="50"
       outlined
+      :raised="changeSlotStyle"
       @dragover.prevent
+      @dragenter="dragOver"
+      @dragleave="dragOver"
       @drop.stop.self="drop"
       light
-      class="pa-2"
     >
       <VpressVariableCard
         class="mb-1"
@@ -31,8 +35,6 @@
         :key="`variable_${variableIndex}`"
         :variablesInSlot.sync="variablesInSlot"
         :variableData="variable"
-        @dragenter="dragEnter"
-        @dragleave="dragLeave"
         @drop.stop.self="drop"
         inSlot
         :slotId="slotId"
@@ -80,7 +82,8 @@ export default {
       addMargin: false,
       filterColumn: '',
       filterType: '',
-      error: false 
+      error: false,
+      changeSlotStyle: false
     };
   },
   computed: {
@@ -90,9 +93,11 @@ export default {
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
     }
+
   },
   methods: {
     drop(event) {
+      this.changeSlotStyle = false;
       const { dataTransfer } = event;
       const columnDataToTransferInString = dataTransfer.getData(
         'columnDataToTransferInString'
@@ -118,9 +123,8 @@ export default {
         );
       }
     },
-    dragEnter() {
-    },
-    dragLeave() {
+    dragOver() {
+      this.changeSlotStyle = !this.changeSlotStyle
     },
     addVariableToSlot(variableData) {
         const variableArray = [...this.variablesInSlot];
@@ -156,4 +160,9 @@ export default {
   line-height: 1.2;
   font-size: 0.8rem;
 }
+
+.selectedSlot {
+  background-color: #f4f4f4;
+}
+
 </style>

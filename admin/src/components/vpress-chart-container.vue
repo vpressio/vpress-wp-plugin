@@ -420,6 +420,7 @@ export default {
               }
             },
             load: function(chart) {
+              console.log(chart._svg._groups[0][0])
               /** Remove labels that are not a number */
               if (vm.chartConfig.chart === 'timeline') {
                 chart._svg.selectAll('.x.axis .tick text').each(() => {

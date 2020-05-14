@@ -5,9 +5,6 @@
     :ref="id"
     :draggable="draggable"
     @dragstart="dragStart"
-    @dragend.prevent
-    @dragover.stop
-    @drop.stop.self="drop"
     tile
     :class="{ 'pr-5': inSlot }"
     :color="error ? 'error' : 'color2'"
@@ -15,81 +12,51 @@
     hover
   >
     <div>
-      <div
-        v-if="inSlot"
-        class="operationButtonContainer"
-      >
-        <v-menu
-          close-on-click
-          offset-x
-          right
-          nudge-right="15"
-        >
+      <div v-if="inSlot" class="operationButtonContainer">
+        <v-menu close-on-click offset-x right nudge-right="15">
           <template v-slot:activator="{ on }">
-            <v-btn
-              small
-              icon
-              dark
-              class="operationButton"
-              v-on="on"
-            >
-              <v-icon
-                dense
-              >
-                mdi-dots-vertical
-              </v-icon>
+            <v-btn small icon dark class="operationButton" v-on="on">
+              <v-icon dense>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
-            <v-list v-if="variableData.type === 'linear'">
-              <v-list-item
-                class="px-5"
-                v-for="(func, funcIndex) in funcs"
-                :key="`func_${funcIndex}`"
-                @click="selectFunc(func)"
+          <v-list v-if="variableData.type === 'linear'">
+            <v-list-item
+              class="px-5"
+              v-for="(func, funcIndex) in funcs"
+              :key="`func_${funcIndex}`"
+              @click="selectFunc(func)"
+              :class="{ 'selected-func': selectedFunc === func }"
+            >
+              <v-list-item-title
+                class="func-menu"
                 :class="{ 'selected-func': selectedFunc === func }"
-              >
-                <v-list-item-title
-                  class="func-menu"
-                  :class="{ 'selected-func': selectedFunc === func }"
-                  :dark="selectedFunc === func"
-                >
-                  {{ func.name }}
-                </v-list-item-title>
-              </v-list-item>
-              <v-divider></v-divider>
-              <v-list-item
-                class="px-5"
-                @click="removeCard()"
-              >
-                <v-list-item-title
-                  class="func-menu"
-                >
-                  Eliminar
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-            <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
-              <v-list-item
-                class="px-5"
-                @click="removeCard"
-              >
-                <v-list-item-title
-                  class="func-menu"
-                >
-                  Eliminar
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
+                :dark="selectedFunc === func"
+              >{{ func.name }}</v-list-item-title>
+            </v-list-item>
+            <v-divider></v-divider>
+            <v-list-item class="px-5" @click="removeCard()">
+              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+            </v-list-item>
+          </v-list>
+          <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
+            <v-list-item class="px-5" @click="removeCard">
+              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+            </v-list-item>
+          </v-list>
         </v-menu>
       </div>
       <div class="dataTypeTitle py-2 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
-        <p class="ma-0"> {{ variableData.title }} </p>
+        <p v-if="id !== 'cardId_total'" class="ma-0">{{ variableData.title }}</p>
+        <span
+          v-if="id === 'cardId_total'"
+          class="vpress-default-card"
+        >
+          • {{ variableData.title }}
+        </span>
         <p
           v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
           class="variableCardDataType mb-0"
-        >
-          {{ `(${selectedFunc.name})` }}
-        </p>
+        >{{ `(${selectedFunc.name})` }}</p>
       </div>
     </div>
   </v-card>
@@ -122,56 +89,64 @@ export default {
     selectedFunc() {
       if (this.inSlot) {
         const variable = this.$store.getters[`chartConfig/${this.slotId}`];
-        const funcInStore = this.funcs.reduce((acc, functionInArray) => {
-          if ( variable.func === functionInArray.type) {
-            return acc = functionInArray
-          }
-          return acc
-        } , { type: '', name: 'Sin mutar' })
-        return funcInStore
+        const funcInStore = this.funcs.reduce(
+          (acc, functionInArray) => {
+            if (variable.func === functionInArray.type) {
+              return (acc = functionInArray);
+            }
+            return acc;
+          },
+          { type: '', name: 'Sin mutar' }
+        );
+        return funcInStore;
       }
-      return { type: '', name: 'Sin mutar' }
+      return { type: '', name: 'Sin mutar' };
     }
   },
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      this.columnDataToTransferInObject = { id: this.id, ...this.variableData, func: this.selectedFunc.type };
-      const columnDataToTransferInString = JSON.stringify(this.columnDataToTransferInObject);
-      dataTransfer.setData('columnDataToTransferInString', columnDataToTransferInString);
+      this.columnDataToTransferInObject = {
+        id: this.id,
+        ...this.variableData,
+        func: this.selectedFunc.type
+      };
+      const columnDataToTransferInString = JSON.stringify(
+        this.columnDataToTransferInObject
+      );
+      dataTransfer.setData(
+        'columnDataToTransferInString',
+        columnDataToTransferInString
+      );
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`,{ slot: variable, value: this.slotId });
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
+        slot: variable,
+        value: this.slotId
+      });
     },
     removeCard() {
-      this.$store.dispatch(
-        `chartConfig/MERGE_CHART_VALUE`,
-        {
-          slot: this.slotId,
-          value: {
-            title: '',
-            type: '',
-            slug: '',
-            func:''
-          }
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
+        slot: this.slotId,
+        value: {
+          title: '',
+          type: '',
+          slug: '',
+          func: ''
         }
-      );
-    },
-    drop(event) {
-      console.log(event.target.id)
+      });
     }
-  },
+  }
 };
 </script>
 <style scoped>
-
 .dataTypeTitle {
   font-weight: 500;
   font-size: 0.9rem;
   text-overflow: ellipsis;
-  overflow: hidden; 
+  overflow: hidden;
   width: 100%;
   white-space: nowrap;
   height: 100%;
@@ -201,7 +176,7 @@ export default {
 }
 
 .operationButtonContainer {
-  position:absolute;
+  position: absolute;
   width: 100%;
   height: 100%;
   display: flex;
@@ -216,8 +191,8 @@ export default {
 }
 
 .selected-func {
-  background-color:#7972AC;
-  color:#FFF;
+  background-color: #7972ac;
+  color: #fff;
 }
 
 .removeIcon {
@@ -228,4 +203,7 @@ export default {
   background-color: transparent;
 }
 
+.vpress-default-card {
+  font-style: italic;
+}
 </style>
