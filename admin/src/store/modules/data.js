@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { storage } from '../../plugins/firebase';
+import { FReader } from '../../plugins/fileReader';
 import vpress from '../../utils/vpress.js';
 import axios from 'axios';
 
@@ -79,6 +80,19 @@ export default {
         throw new Error(error.message)
       }
     },
+    async READ_FILE(_context, file) {
+      try {
+        let content;
+        if (file.type === 'text/csv') {
+          content = await FReader.readCSV(file);
+        } else {
+          content = await FReader.readExcel(file);
+        }
+        return content
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    }
   },
   getters: {
     data: state => state.data,

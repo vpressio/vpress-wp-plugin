@@ -1,16 +1,16 @@
 <template>
-  <div class="data-loader--container">
+  <div class="data-loader--container" :style="cssProps">
     <v-row class="ma-0">
       <v-toolbar full-width flat>
         <v-btn
-          color="#b3aed1"
+          color="primary"
           :class="{selecteduploadMethod: uploadMethod === 'upload'}"
           class="uploadMethodButton"
           text
           @click="ChangeUploadDataMethod('upload')"
         >Sube tus datos</v-btn>
         <v-btn
-          color="#b3aed1"
+          color="primary"
           :class="
             {
               selecteduploadMethod: uploadMethod === 'paste'
@@ -32,7 +32,7 @@
         lg="3"
         xl="2"
         class="pt-1 pb-0"
-        v-for="(dataSet, dataSetIndex) in testDatasets"
+        v-for="(dataSet, dataSetIndex) in dataSetsToRender"
         :key="dataSetIndex"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
@@ -74,7 +74,6 @@
               mdi-arrow-right
             </v-icon>
           </v-btn>
-          <div>{{ this.errorMessage }}</div>
         </div>
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
@@ -114,7 +113,6 @@
 <script>
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
-import { FReader } from '../plugins/fileReader';
 
 export default {
   name: 'VpressDataLoader',
@@ -133,15 +131,14 @@ export default {
       loading: false,
       headers: [],
       data: [],
-      testDatasets: [],
+      dataSets: [],
       files: [],
       errorMessage: ''
     };
   },
   created() {
     this.getStorageDatasets();
-    this.getUrlParams()   
-    
+    this.getUrlParams()
   },
   watch: {
     files(newFiles) {
@@ -152,10 +149,22 @@ export default {
     },
     tourFile(newTourFile) {
       if (!newTourFile.error){
-        this.dataSetName = newTourFile.fileDir
+        this.dataSetName = newTourFile.fileName;
+        this.dataSetDir = newTourFile.fileDir;
+        this.getStorageDatasets();
         this.loadFile(newTourFile.file)
         .then(() => this.saveData());
-      } 
+      }
+    }
+  },
+  computed: {
+    cssProps() {
+      return {
+        '--primary': this.$vuetify.theme.themes.light.primary
+      }
+    },
+    dataSetsToRender() {
+      return this.dataSets
     }
   },
   methods: {
@@ -166,7 +175,7 @@ export default {
           const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
           this.dataSetDir = '/savedDatasets';
           const dataSetData = await this.selectTestDataset(document.dataSet);
-          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName })
+          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName });
           this.$emit('update:tabChange', 1);
         }
       } catch (error) {
@@ -182,7 +191,7 @@ export default {
         if (files.items.length === 0) {
           throw new Error(`Sin coincidencias para ${this.dataSetDir}`);
         }
-        this.testDatasets = files.items;
+        this.dataSets = files.items;
       } catch (error){
         this.$router.push('/')
       }
@@ -215,12 +224,7 @@ export default {
       try {
         const self = this;
         self.loading = true;
-        let content;
-        if (file.type === 'text/csv') {
-          content = await FReader.readCSV(file);
-        } else {
-          content = await FReader.readExcel(file);
-        }
+        const content = await this.$store.dispatch('data/READ_FILE', file);
         self.headers = Object.keys(content[0]).map(o => ({
             text: o,
             value: o,
@@ -234,7 +238,7 @@ export default {
         return content
       } catch (error) {
         self.loading = false;
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     /**
@@ -313,9 +317,9 @@ export default {
 }
 
 .selecteduploadMethod {
-  border-bottom: solid 3px #382e82 !important;
+  border-bottom: solid 3px var(--primary) !important;
   border-radius: 0px;
-  color: #382e82 !important;
+  color: var(--primary) !important;
 }
 
 .uploadMethodButton {
@@ -337,7 +341,7 @@ export default {
 .btn-datos-2 {
   font-size: 1rem;
   text-transform: none;
-  color: #382e82 !important;
+  color: var(--primary) !important;
 }
 
 .icon-arrow {

@@ -1,12 +1,6 @@
 <template>
-  <v-responsive>
-    <VpressAppBar/>
+  <v-responsive :style="cssProps">
     <div class="config__container">
-      <v-card tile flat color="#222A32" :width="`${sideBarWidth}`" dark>
-        <v-card tile class="pa-1" color="#181D25" flat>
-          <v-img class="vpress-icon" src="../assets/images/logo.svg" />
-        </v-card>
-      </v-card>
       <div style="width:100%;" class="pb-5">
         <v-row class="ma-0">
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
@@ -24,11 +18,11 @@
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
-            <!-- <div class="tributton-container" v-show="activeTab !== 0">
+            <div class="tributton-container" v-show="activeTab !== 0">
               <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
-              <v-btn class="middle-button" outlined color="primary">Compartir</v-btn>
-              <v-btn class="right-button" outlined color="primary">Descargar</v-btn>
-            </div> -->
+              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >Descargar</v-btn>
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn>
+            </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
             <v-card class="pb-5">
@@ -78,7 +72,6 @@
   </v-responsive>
 </template>
 <script>
-import VpressAppBar from './vpress-app-bar.vue';
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
 import VpressExpansionPanel from './vpress-expansion-panel.vue';
@@ -86,10 +79,11 @@ import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
 
+import downloadChart from '../utils/downloadChart.js';
+
 export default {
   name: 'Vpress',
   components: {
-    VpressAppBar,
     VpressDataLoader,
     VpressVariableContainer,
     VpressExpansionPanel,
@@ -124,7 +118,7 @@ export default {
             target: '.v-step-0',
             content: `Descubre lo que puedes hacer con Vpress`,
             params: {
-              placement: 'right'
+              placement: 'bottom'
             }
           },
           {
@@ -145,12 +139,12 @@ export default {
             target: '.v-step-3',
             content: 'Hagamos una gráfica juntos',
             params: {
-              placement: 'bottom'
+              placement: 'top'
             }
           },
           {
             target: '.v-step-4',
-            content: 'Arrastra la observación Estado a la selección de Filas',
+            content: 'Arrastra la observación "anillos" a la selección de Filas',
             params: {
               placement: 'bottom'
             }
@@ -164,14 +158,14 @@ export default {
           },
           {
             target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de Sexo a la sección de Color',
+            content: 'Hagamos algo más, arrastra la observación de planeta a la sección de Color',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-7',
-            content: 'Nos separó la gráfica por Sexo y nos agrega la opción de poder Apilar la gráfica',
+            content: 'Nos separó la gráfica por "planeta" y nos agrega la opción de poder Apilar la gráfica',
             params: {
               placement: 'bottom'
             }
@@ -199,6 +193,11 @@ export default {
     }
   },
   computed: {
+    cssProps() {
+      return {
+        '--secondary': this.$vuetify.theme.themes.light.secondary
+      }
+    },
     numberOfColsIftabIsNotZero() {
       const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2;
       const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
@@ -220,21 +219,64 @@ export default {
     }
   },
   methods: {
+    downloadChartImg() {
+      downloadChart('#empty-chart')
+    },
+    clipboardCopy() {
+      const iframe = '<iframe src="http://localhost:8080/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>'
+      navigator.clipboard.writeText(iframe);
+    },
+    mergeValue(slot, dataToMerge) {
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
+    },
     tourNext(currentStep) {
-      const tourFileName = 'COVID-19 en México, 18 de Abril.csv';
-      const tourFileDir = 'savedDatasets'
+      const tourFileName = 'Planetas.csv';
+      const tourFileDir = 'testDatasets';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(
             'data/GET_DATASET_BY_NAME',
-            { dataSetDir:tourFileDir, file: tourFileName}
+            { dataSetDir:tourFileDir, file: tourFileName }
           )
             .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
           break
         case 2:
           this.activeTab = 1
           break
-        case 8:
+        case 3:
+          this.mergeValue(
+            'xAxis',
+            {
+              slug: "anillos",
+              title: "anillos",
+              type: "ordinal"
+            }
+          );
+          break
+        case 4:
+          this.mergeValue(
+            'yAxis',
+            {
+              slug: "total_count",
+              title: "Conteo de observaciones",
+              type: "linear"
+            }
+          );
+          break
+        case 5:
+          this.mergeValue(
+            'aggregation',
+            {
+              slug: "planeta",
+              title: "planeta",
+              type: "ordinal"
+            }
+          );
+          break
+        case 6:
+          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          break
+        case 7:
           this.activeTab = 2
           break
       } 
@@ -243,12 +285,6 @@ export default {
 };
 </script>
 <style  scoped>
-.vpress-icon {
-  width: 32px;
-  height: 32px;
-  margin: 3px;
-}
-
 .config__container {
   display:flex;
 }
@@ -263,6 +299,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  padding: 0 5%
 }
 
 .left-button {
@@ -298,7 +335,7 @@ export default {
   > .v-slide-group__wrapper
   > .v-slide-group__content
   > .v-tab--active {
-  background-color: #7972ac;
+  background-color: var(--secondary);
 }
 
 *

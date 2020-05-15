@@ -110,14 +110,13 @@ export default {
     },
     dateVariables() {
       return this.variableData.filter(variable => variable.type === 'date')
-    }
+    },
   }
 }
 </script>
 <style lang="scss" scoped>
 .ordinal-lineal {
   font-size: 1rem;
-  color: #382e82;
   font-weight: 500;
   margin: 0 0 0 16px;
 }

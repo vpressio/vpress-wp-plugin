@@ -1,0 +1,29 @@
+{
+  "themes": {
+    "light":{
+      "logo": {
+        "file_name": "vpress.svg",
+        "width": "100"
+      },
+      "primary": "#382E82",
+      "secondary": "#7972AC",
+      "color1":"#7972AC",
+      "color2":"#9292A9",
+      "error": "EF5350",
+      "gradient": {
+        "bg": "linear-gradient(45deg,rgba(42, 49, 125, 1) 0%,rgba(155, 51, 229, 1) 100%)"
+      }
+    },
+    "dark": {
+      "logo": {
+        "file_name": "vpress.svg",
+        "width": "100"
+      },
+      "primary":"",
+      "secondary":"",
+      "color1":"",
+      "color2":"",
+      "error": "EF5350"
+    }
+   }
+}

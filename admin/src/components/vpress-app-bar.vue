@@ -1,25 +1,33 @@
 <template>
-  <v-app-bar dense flat class="gradient v-step-0" max-height="40">
+  <v-app-bar dense flat class="gradient v-step-0 v-step-3" :style="cssProps">
     <v-img
-      src="../assets/images/vpress.svg"
+      :src="appBarLogo"
       class="ml-5 vpress-image logo-margin"
-      max-width="100px"
+      :max-width="`${this.cssProps['--logo-width']}px`"
       alt="Vpress logo"
     />
   </v-app-bar>
 </template>
 <script>
 export default {
-  name: 'VpressAppBar'
+  name: 'VpressAppBar',
+  computed: {
+    cssProps() {
+      return {
+        '--logo':this.$vuetify.theme.themes.light.logo.file_name,
+        '--logo-width': this.$vuetify.theme.themes.light.logo.width,
+        '--bg-linear-gradient': this.$vuetify.theme.themes.light.gradient.bg
+      }
+    },
+    appBarLogo(){
+      return require(`../assets/images/${this.cssProps['--logo']}`)
+    }
+  }
 };
 </script>
 <style lang="scss">
 .gradient {
-  background: linear-gradient(
-    45deg,
-    rgba(42, 49, 125, 1) 0%,
-    rgba(155, 51, 229, 1) 100%
-  );
+  background: var(--bg-linear-gradient);
 }
 .logo-margin {
   margin: 0 0 10px 30px !important;
