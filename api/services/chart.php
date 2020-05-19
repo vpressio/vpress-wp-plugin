@@ -20,7 +20,6 @@ function get_chart_data($request){
   
   $response = array(
     'data' => $data,
-    'query' => $query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
 
