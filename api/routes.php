@@ -1,5 +1,12 @@
 <?php
-
+//NAMESPACE
 define('BASE_URL','vpress/v1');
+//EDITABLE: POST, PUT, PATCH
+//READABLE: GET
 
-define('GET_COVID19_ROUTE','/list');
+//---- CHART ROUTES
+//EDITABLE
+define('GET_CHART_DATA_ROUTE','/chart/columns');
+//---- DATASET ROUTES
+//READABLE
+define('GET_DATASET_LIST_ROUTE','/dataset/list');
