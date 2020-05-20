@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "vpress-def8f"
+  },
+  "targets": {
+    "vpress-def8f": {
+      "hosting": {
+        "demo": [
+          "vpress-def8f"
+        ],
+        "stc": [
+          "save-the-children"
+        ]
+      }
+    }
   }
 }
