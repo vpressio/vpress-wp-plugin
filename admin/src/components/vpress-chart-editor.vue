@@ -1,6 +1,5 @@
 <template>
-  <v-responsive :style="cssProps">
-    <div class="config__container">
+    <div class="config__container" :style="cssProps">
       <div style="width:100%;" class="pb-5">
         <v-row class="ma-0">
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
@@ -19,9 +18,9 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary">Guardar</v-btn>
+              <!-- <v-btn class="left-button" outlined color="primary">Guardar</v-btn> -->
               <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >Descargar</v-btn>
-              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn>
+              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn> -->
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -67,9 +66,8 @@
           </v-col>
         </v-row>
       </div>
-    </div>
     <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
-  </v-responsive>
+    </div>
 </template>
 <script>
 import VpressDataLoader from './vpress-data-loader.vue';
