@@ -10,3 +10,4 @@ define('GET_CHART_DATA_ROUTE','/chart/columns');
 //---- DATASET ROUTES
 //READABLE
 define('GET_DATASET_LIST_ROUTE','/dataset/list');
+define('GET_DATASET_DATA','/dataset/(?P<dataset>(.|%20)+)');

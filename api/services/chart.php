@@ -6,10 +6,12 @@ function get_chart_data($request){
   $column_3 = $body['column_3'];
   $dataset = $body['dataset'];
   $query3col = 
-  "SELECT $column_1 , $column_2 , $column_3 FROM $dataset ";
+  "SELECT $column_1 , $column_2 , $column_3 FROM vpress_$dataset";
 
-  $query2col ="SELECT $column_1 , $column_2 FROM $dataset ";
-  if($body['column3'] != '') {
+  $query2col =
+  "SELECT $column_1 , $column_2 FROM $dataset ";
+
+  if($column_3 != '') {
     $query = $query3col;
   } else {
     $query = $query2col;
