@@ -7,7 +7,7 @@
     <VpressAppBar/>
   </div>
   <v-card class="vpress-sidebar" tile flat color="#222A32">
-    <v-card class="pa-1" tile height="45" color="#181D25" flat>
+    <v-card class="pa-2" tile height="50" color="#181D25" flat>
       <v-img src="../assets/images/logo.svg" />
     </v-card>
   </v-card>

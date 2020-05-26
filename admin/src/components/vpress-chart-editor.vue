@@ -1,8 +1,8 @@
 <template>
     <div class="config__container" :style="cssProps">
       <div style="width:100%;" class="pb-5">
-        <v-row class="ma-0">
-          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
+        <v-row class="ma-0" no-gutters>
+          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
             <v-tabs
               dark
               class="config-tabs"
@@ -16,7 +16,7 @@
               <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
+          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
               <!-- <v-btn class="left-button" outlined color="primary">Guardar</v-btn> -->
               <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >Descargar</v-btn>
@@ -56,11 +56,13 @@
               </v-tabs-items>
             </v-card>
           </v-col>
+          <v-col lg="2" v-show="activeTab === 1" class="pa-0 pl-2">
+            <VpressSlotGroup/>
+          </v-col>
           <v-col
-            class="pa-0"
+            class="py-0 px-2"
             v-show="numberOfColsIftabIsNotZero !== '12'"
-            lg="9"
-            xl="10"
+            :md="activeTab === 1 ? 8 : 10"
           >
             <VpressStateSubscriber v-if="variableData.length !== 0"/>
           </v-col>
@@ -76,6 +78,7 @@ import VpressExpansionPanel from './vpress-expansion-panel.vue';
 import VpressStateSubscriber from './vpress-state-subscriber.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
+import VpressSlotGroup from './vpress-slot-group.vue';
 
 import downloadChart from '../utils/downloadChart.js';
 
@@ -87,7 +90,8 @@ export default {
     VpressExpansionPanel,
     VpressStateSubscriber,
     VpressInputControl,
-    VpressColorSelection
+    VpressColorSelection,
+    VpressSlotGroup
   },
   data() {
     return {
@@ -197,7 +201,7 @@ export default {
       }
     },
     numberOfColsIftabIsNotZero() {
-      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2;
+      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 2 : 2;
       const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
 
       return numberOfCols;
@@ -317,7 +321,7 @@ export default {
 }
 
 * >>> .config-tabs > .v-tabs-bar {
-  height: 46px;
+  height: 50px;
 }
 *
   >>> .config-tabs
@@ -354,7 +358,7 @@ export default {
   > .v-tab {
   min-width: 0px;
   font-size: 0.8rem;
-  padding: 0;
+  padding: 3px 0;
 }
 
 * >>> .config-text-field > .v-input__control > .v-input__slot {

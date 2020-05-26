@@ -45,7 +45,7 @@
           </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-2 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
+      <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
         <p v-if="id !== 'cardId_total'" class="ma-0">{{ variableData.title }}</p>
         <span
           v-if="id === 'cardId_total'"
@@ -143,8 +143,8 @@ export default {
 </script>
 <style scoped>
 .dataTypeTitle {
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   overflow: hidden;
   width: 100%;

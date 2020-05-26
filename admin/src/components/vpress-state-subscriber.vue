@@ -1,48 +1,24 @@
 <template>
-  <v-row class="ma-0">
-    <v-col
-      class="pa-0"
-      xl="2"
-      lg="3"
-      md="3"
-    >
-      <v-card class="mx-2">
-        <VpressSlotGroup
-          :chartConfig="chartConfig"
-          :availableCharts='availableCharts'
-        />
-      </v-card>
-    </v-col>
-    <v-col
-      class="pa-0"
-      xl="10"
-      lg="9"
-      md="9"
-    >
-      <v-card class="mr-2">
-        <VpressChartSelectButtons :availableCharts="availableCharts" />
-        <VpressChartContainer
-          :data="chartData"
-          :chartConfig="chartConfig"
-          @chart_loaded="onChartIsLoaded"
-        />
-      </v-card>
-    </v-col>
-  </v-row>
+  <v-card>
+    <VpressChartSelectButtons :availableCharts="availableCharts" />
+    <VpressChartContainer
+      :data="chartData"
+      :chartConfig="chartConfig"
+      @chart_loaded="onChartIsLoaded"
+    />
+  </v-card>
 </template>
 <script>
 import * as _ from 'lodash';
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
-import VpressSlotGroup from '../components/vpress-slot-group.vue';
 
 export default {
   name: 'vpress-state-subscriber',
   components: {
     VpressChartContainer,
-    VpressChartSelectButtons,
-    VpressSlotGroup
+    VpressChartSelectButtons
   },
   data() {
     return {
