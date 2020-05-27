@@ -18,9 +18,18 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <!-- <v-btn class="left-button" outlined color="primary">Guardar</v-btn> -->
-              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >Descargar</v-btn>
-              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn> -->
+              <v-btn class="left-button" outlined color="primary">
+                <v-icon left color="primary">mdi-content-save</v-icon>
+                Guardar
+              </v-btn>
+              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
+                <v-icon left color="primary">mdi-download</v-icon>
+                Descargar
+              </v-btn>
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+                <v-icon left color="primary">mdi-share-variant</v-icon>
+                Compartir
+              </v-btn>
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -64,18 +73,18 @@
             v-show="numberOfColsIftabIsNotZero !== '12'"
             :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressStateSubscriber v-if="variableData.length !== 0"/>
+            <VpressChartGroup v-if="variableData.length !== 0"/>
           </v-col>
         </v-row>
       </div>
     <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
-    </div>
+  </div>
 </template>
 <script>
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
 import VpressExpansionPanel from './vpress-expansion-panel.vue';
-import VpressStateSubscriber from './vpress-state-subscriber.vue';
+import VpressChartGroup from './vpress-chart-group.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
 import VpressSlotGroup from './vpress-slot-group.vue';
@@ -88,7 +97,7 @@ export default {
     VpressDataLoader,
     VpressVariableContainer,
     VpressExpansionPanel,
-    VpressStateSubscriber,
+    VpressChartGroup,
     VpressInputControl,
     VpressColorSelection,
     VpressSlotGroup

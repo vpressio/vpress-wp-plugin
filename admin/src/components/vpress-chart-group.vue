@@ -6,6 +6,15 @@
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
     />
+    <v-btn tile depressed>
+      <v-icon color="grey">mdi-plus-thick</v-icon>
+    </v-btn>
+    <v-btn :color="true ? 'primary' : ''" :text="true" tile depressed>
+      Gráfica 01
+    </v-btn>
+    <v-btn :color="false ? 'primary' : ''" :text="false" tile depressed>
+      Gráfica 02
+    </v-btn>
   </v-card>
 </template>
 <script>
@@ -15,7 +24,7 @@ import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
 
 export default {
-  name: 'vpress-state-subscriber',
+  name: 'VpressChartGroup',
   components: {
     VpressChartContainer,
     VpressChartSelectButtons
