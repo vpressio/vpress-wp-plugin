@@ -13,5 +13,13 @@ function register_chart_routes() {
         'callback' => 'get_chart_data'
       )
     );
+  register_rest_route(
+      BASE_URL,
+      GET_CHART_DATA_ROUTE_TEST,
+      array(
+        'methods' => WP_REST_SERVER::EDITABLE,
+        'callback' => 'get_data'
+      )
+    );
 
 }

@@ -18,18 +18,18 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary">
-                <v-icon left color="primary">mdi-content-save</v-icon>
+              <!-- <v-btn class="left-button" outlined color="primary"> -->
+                <!-- <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
-              </v-btn>
+              </v-btn> -->
               <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
-              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
                 <v-icon left color="primary">mdi-share-variant</v-icon>
                 Compartir
-              </v-btn>
+              </v-btn> -->
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -155,28 +155,28 @@ export default {
           },
           {
             target: '.v-step-4',
-            content: 'Arrastra la observación "anillos" a la selección de Filas',
+            content: 'Arrastra la observación "Fecha" a la selección de Filas',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-5',
-            content: 'Arrastra la observación Conteo de observaciones a la selección de Columnas',
+            content: 'Arrastra la observación "Conteo de observaciones" a la selección de Columnas',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de planeta a la sección de Color',
+            content: 'Hagamos algo más, arrastra la observación de "Sexo segundo hijo/a" a la sección de Color',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-7',
-            content: 'Nos separó la gráfica por "planeta" y nos agrega la opción de poder Apilar la gráfica',
+            content: 'Nos separó la gráfica por "Sexo segundo hijo/a"',
             params: {
               placement: 'bottom'
             }
@@ -241,8 +241,8 @@ export default {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
     },
     tourNext(currentStep) {
-      const tourFileName = 'Planetas.csv';
-      const tourFileDir = 'testDatasets';
+      const tourFileName = 'Monitoreo de despensas.csv';
+      const tourFileDir = 'stc';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(
@@ -250,6 +250,7 @@ export default {
             { dataSetDir:tourFileDir, file: tourFileName }
           )
             .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
+            .catch(err => this.tourFile = { error: err })
           break
         case 2:
           this.activeTab = 1
@@ -258,9 +259,9 @@ export default {
           this.mergeValue(
             'xAxis',
             {
-              slug: "anillos",
-              title: "anillos",
-              type: "ordinal"
+              slug: "Fecha",
+              title: "Fecha",
+              type: "date"
             }
           );
           break
@@ -278,14 +279,14 @@ export default {
           this.mergeValue(
             'aggregation',
             {
-              slug: "planeta",
-              title: "planeta",
+              slug: "Sexo segundo hijo/a",
+              title: "Sexo segundo hijo/a",
               type: "ordinal"
             }
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          // this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
           break
         case 7:
           this.activeTab = 2
@@ -366,7 +367,7 @@ export default {
   > .v-slide-group__content
   > .v-tab {
   min-width: 0px;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   padding: 3px 0;
 }
 

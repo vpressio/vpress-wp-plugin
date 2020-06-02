@@ -1,9 +1,11 @@
 import vpress from '../../utils/vpress.js';
+import vpressChart from '../../utils/chartModel.js';
 import { firestore } from '../../plugins/firebase';
 
 export default {
   namespaced: true,
   state: {
+    charts: [],
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
@@ -67,6 +69,9 @@ export default {
     ]
   },
   mutations: {
+    SET_CHARTS(state, payload) {
+      state.charts = payload
+    },
     SET_CHART_TYPE(state, payload) {
       state.chartValues.chart = payload;
     },
@@ -142,7 +147,7 @@ export default {
         yAxis: { title: '', type: '', slug: '', func: ''},
         groupBy: { title: '', type: 'ordinal', slug: ''},
         collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-        orderBy: { order: 'asc', slug: 'Estado' },
+        orderBy: { order: '', slug: '' },
         decimals: 1,
         preffix: '',
         suffix: '',
@@ -152,7 +157,7 @@ export default {
         labels: false,
         opacity: 1,
         theme: 'light',
-        colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
+        colors: ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
       }
       commit('SET_CHART_VALUES', initialChartValues)
     },
@@ -193,9 +198,15 @@ export default {
       } else {
         commit('SET_CHART_VALUE', { valueToUpdate, value })
       }
+    },
+    async CREATE_CHART({ commit, state }, payload) {
+      const chartValues = new vpressChart('0', payload).chartValues;
+      const activeCharts = [...state.charts, chartValues]
+      commit('SET_CHARTS', activeCharts)
     }
   },
   getters: {
+    UPDATE_CHART_COLORS: state => state.charts,
     chart: state => state.chartValues,
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,
@@ -217,8 +228,9 @@ export default {
     filter: state => state.chartValues.collapseBy,
     currentColumns: state => {
       const columns = {
+        chart_type: state.chartValues.chart,
         column_1: state.chartValues.xAxis.slug,
-        column_2: state.chartValues.yAxis.slug,
+        column_2: state.chartValues.yAxis.slug, 
       }
       if (
         state.chartValues.groupBy.slug !== '' ||
@@ -239,6 +251,10 @@ export default {
         }
       }
 
+      if (state.chartValues.xAxis.slug === 'total_count' || state.chartValues.yAxis.slug === 'total_count') {
+        columns.aggregate = 'COUNT',
+        columns.column_2 = '*'
+      }
       return columns
     },
     error: state => state.error,

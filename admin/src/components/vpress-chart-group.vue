@@ -6,15 +6,12 @@
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
     />
-    <v-btn tile depressed>
+    <!-- <v-btn tile depressed @click="addChart">
       <v-icon color="grey">mdi-plus-thick</v-icon>
     </v-btn>
-    <v-btn :color="true ? 'primary' : ''" :text="true" tile depressed>
-      Gráfica 01
-    </v-btn>
-    <v-btn :color="false ? 'primary' : ''" :text="false" tile depressed>
-      Gráfica 02
-    </v-btn>
+    <v-btn v-for="(chart, chartIndex) in charts" :key="`chart_tab_${chartIndex}`" :color="true ? 'primary' : ''" :text="true" tile depressed>
+      Gráfica 
+    </v-btn> -->
   </v-card>
 </template>
 <script>
@@ -34,14 +31,17 @@ export default {
       dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
-      loadingChart: false
+      loadingChart: false,
+      charts: this.$store.getters['chartConfig/activeCharts'],
+      activeChartIndex:0
     };
   },
   created() {
-    this.$store.subscribe((mutation, state) => {
+    this.unsubscribe = this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
+      this.charts = this.$store.getters['chartConfig/charts'];
      if ( 
        this.chartConfig.xAxis.slug !== '' &&
        this.chartConfig.yAxis.slug !== ''
@@ -53,6 +53,9 @@ export default {
       
     });
   },
+  beforeDestroy() {
+    this.unsubscribe();
+  },
   computed: {
     chartData() {
       return this.$store.getters['data/dataFiltered'];
@@ -62,6 +65,9 @@ export default {
     }
   },
   methods: {
+    addChart() {
+      this.$store.dispatch('chartConfig/CREATE_CHART');
+    },
     change() {
       this.loadingChart = !this.loadingChart
     },

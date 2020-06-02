@@ -153,7 +153,7 @@ export default {
       pastedData: '',
       showTable: true,
       storageDataSets: [],
-      storageDataSetsDir: '/savedDatasets',
+      storageDataSetsDir: '/stc',
       uploadMethod: 'upload',
       WPDataSets: []
     };
@@ -176,7 +176,7 @@ export default {
         this.storageDataSetsDir = newTourFile.fileDir;
         this.getStorageDatasets();
         this.loadFile(newTourFile.file)
-        .then(() => this.saveData());
+        .then(() => this.saveData(this.data, this.dataSetName, this.dataOrigin));
       }
     }
   },
@@ -229,12 +229,10 @@ export default {
     },
     async getWPDatasets() {
       try {
-        this.$store.dispatch('data/GET_WP_DATASETS')
-          .then(dataSets => {
-          this.WPDataSets = dataSets;
-          })
+        const dataSets = await this.$store.dispatch('data/GET_WP_DATASETS')
+        this.WPDataSets = dataSets;
       } catch(error) {
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     async selectWPDataset(dataSetName) {
@@ -242,14 +240,12 @@ export default {
         this.loading = true;
         this.dataOrigin = 'api'
         this.dataSetName = dataSetName;
-        this.$store.dispatch('data/GET_WP_DATASET_DATA', dataSetName)
-          .then(data => {
-            this.data = data;
-            this.headers = this.extractSampleHeaders(data[0]);
-            this.loading = false;
-          })
+        const data = await this.$store.dispatch('data/GET_WP_DATASET_DATA', dataSetName);
+        this.data = data;
+        this.headers = this.extractSampleHeaders(data[0]);
+        this.loading = false;
       } catch(error) {
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     async loadFile(file) {

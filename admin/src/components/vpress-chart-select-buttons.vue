@@ -31,7 +31,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col class="ml-5">
+      <v-col class="ml-5 v-step-7">
         <v-btn
           class="mr-2"
           @click="toggleLabels"
@@ -45,7 +45,7 @@
         </v-btn>
         <v-btn
           v-show="chartIsBarsGrouped"
-          class="mr-2 v-step-7"
+          class="mr-2"
           @click="toggleBarsType"
           small
           dark

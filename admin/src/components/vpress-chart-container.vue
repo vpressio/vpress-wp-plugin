@@ -22,10 +22,26 @@ export default {
     data: Array,
     chartConfig: {
       chart: String,
-      xAxis: { title: String, type: String, slug: String },
-      yAxis: { title: String, type: String, slug: String },
-      groupBy: { title: String, type: String, slug: String },
-      collapseBy: { title: String, type: String, slug: String },
+      xAxis: {
+        title: String,
+        type: String,
+        slug: String
+      },
+      yAxis: {
+        title: String,
+        type: String,
+        slug: String
+      },
+      groupBy: {
+        title: String,
+        type: String,
+        slug: String
+      },
+      collapseBy: {
+        title: String,
+        type: String,
+        slug: String
+      },
       unitsName: String,
       orderBy: String,
       decimals: Number,
@@ -315,7 +331,7 @@ export default {
         const vm = this;
         const tabletWidth = 800;
         this.filteredData = this.filterData(this.sortedData);
-        this.dataToDraw = this.parseData(this.filteredData);
+        this.dataToDraw = this.$store.getters['data/origin'] === 'api' ? this.filteredData : this.parseData(this.filteredData);
         this.groupByOptions = this.chartConfig.groupBy.slug
           ? _.uniq(
               this.filteredData.map(
@@ -638,6 +654,13 @@ export default {
     },
     filterData(data) {
       const vm = this;
+      console.log(data.filter(d => {
+        return vm.legendOptions
+          .filter(o => o.active)
+          .map(o => o.name)
+          .includes(d[vm.legendDisplay.slug])
+      }))
+
       return data.filter(d => {
         return vm.legendOptions
           .filter(o => o.active)
@@ -771,6 +794,10 @@ export default {
         return data;
       }
     }
+  },
+  created() {
+    console.log(this.chartConfig)
+
   },
   mounted() {
     if (

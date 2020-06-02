@@ -38,14 +38,15 @@ export default {
     async GET_COLUMNS_DATA({  commit, state }, payload) {
       try {
         const body = {
+          dataset: state.dataSetName,
+          chart_type: payload.chart_type,
           column_1: payload.column_1,
           column_2: payload.column_2,
-          dataset: `vpress_${state.dataSetName}`
+          column_3: payload.column_3,
+          aggregate: payload.aggregate
         }
-        console.log(body)
         if (body.column_2 !== '') {
-          const response = await axios.post(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/chart/columns`, body);
-          console.log(response)
+          const response = await axios.post(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/test/columns`, body);
           commit('SET_DATA', response.data.data);
         }
       } catch (error) {
@@ -70,6 +71,7 @@ export default {
     },
     async SAVE_DATA({ commit }, { data, dataSetName, dataOrigin }) {
       try {
+        console.log(data)
         if (data.length > 0) {
           const variables = vpress.sortByDataType(data[0])
           commit('SET_VARIABLE_DATA', variables)
