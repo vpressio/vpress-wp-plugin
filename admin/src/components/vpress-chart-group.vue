@@ -1,12 +1,13 @@
 <template>
   <v-card>
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <!-- <VpressChartContainer
+    <VpressChartContainer
       :data="dataChart"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
-    /> -->
-    <div
+      :id="`empty_chart_${activeChartIndex}`"
+    />
+    <!-- <div
       v-for="(chart, chartIndex) in charts"
       :key="`empty_chart_${chartIndex}`"
     >
@@ -36,7 +37,7 @@
       depressed
     >
       Gráfica {{ chartIndex + 1 }}
-    </v-btn>
+    </v-btn> -->
   </v-card>
 </template>
 <script>
