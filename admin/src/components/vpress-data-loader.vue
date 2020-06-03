@@ -153,7 +153,7 @@ export default {
       pastedData: '',
       showTable: true,
       storageDataSets: [],
-      storageDataSetsDir: '/stc',
+      storageDataSetsDir: '/savedDatasets',
       uploadMethod: 'upload',
       WPDataSets: []
     };

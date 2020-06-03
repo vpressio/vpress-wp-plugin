@@ -1,15 +1,14 @@
 export default class vpressChart {
-  constructor(dataset_id, chartValues) {
-    this.dataSet_id = dataset_id
+  constructor(chartValues) {
     if (chartValues) {
       this.chartValues = chartValues
     } else {
       this.chartValues = {
         chart: 'bars',
-        xAxis: { title: '', type: '', slug: '' },
-        yAxis: { title: '', type: '', slug: '' },
+        xAxis: { title: 'Estado', type: 'ordinal', slug: 'Estado' },
+        yAxis: { title: 'total_count', type: 'linear', slug: 'total_count' },
         groupBy: { title: '', type: 'ordinal', slug: '' },
-        collapseBy: { title: '', type: 'linear', slug: '' },
+        collapseBy: { title: 'total_count', type: 'linear', slug: 'total_count' },
         unitsName: '',
         orderBy: '',
         decimals: 0,
@@ -24,5 +23,9 @@ export default class vpressChart {
         labels: false
       }
     }
+  }
+
+  getChartValues() {
+    return this.chartValues;
   }
 }

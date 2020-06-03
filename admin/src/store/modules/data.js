@@ -71,7 +71,6 @@ export default {
     },
     async SAVE_DATA({ commit }, { data, dataSetName, dataOrigin }) {
       try {
-        console.log(data)
         if (data.length > 0) {
           const variables = vpress.sortByDataType(data[0])
           commit('SET_VARIABLE_DATA', variables)

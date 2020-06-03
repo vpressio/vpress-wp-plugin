@@ -6,7 +6,7 @@
       .col-12.py-0
         h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
-    #empty-chart.empty-chart
+    .empty-chart( :class="this.id" )
       .vertical-align
         p.tiny.label-font Arrastra algún valor a filas, columnas o color
 </template>
@@ -19,6 +19,7 @@ import * as dbox from '@dboxjs/core';
 export default {
   name: 'VpressChartContainer',
   props: {
+    id: String,
     data: Array,
     chartConfig: {
       chart: String,
@@ -204,7 +205,7 @@ export default {
         this.width =
           d3
             .select(this.$el)
-            .select('.empty-chart')
+            .select(`.${this.id}`)
             .node().offsetWidth || 1200;
         this.height =
           this.width * 0.6 || 300;
@@ -231,7 +232,7 @@ export default {
           this.margin.right = 15;
         }
         d3.select(this.$el)
-          .select('.empty-chart')
+          .select(`.${this.id}`)
           .selectAll('*')
           .remove();
         d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
@@ -474,7 +475,7 @@ export default {
         };
         this.chart = dbox
           .chart(config)
-          .bindTo('.empty-chart')
+          .bindTo(`.${this.id}`)
           .data({
             raw: this.dataToDraw // Modified data by chartConfig.chart (parse dates or fill NAs)
           });
@@ -654,12 +655,6 @@ export default {
     },
     filterData(data) {
       const vm = this;
-      console.log(data.filter(d => {
-        return vm.legendOptions
-          .filter(o => o.active)
-          .map(o => o.name)
-          .includes(d[vm.legendDisplay.slug])
-      }))
 
       return data.filter(d => {
         return vm.legendOptions

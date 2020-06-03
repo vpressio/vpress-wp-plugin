@@ -155,7 +155,7 @@ export default {
           },
           {
             target: '.v-step-4',
-            content: 'Arrastra la observación "Fecha" a la selección de Filas',
+            content: 'Arrastra la observación "anillos" a la selección de Filas',
             params: {
               placement: 'bottom'
             }
@@ -169,14 +169,14 @@ export default {
           },
           {
             target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de "Sexo segundo hijo/a" a la sección de Color',
+            content: 'Hagamos algo más, arrastra la observación de "planeta" a la sección de Color',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-7',
-            content: 'Nos separó la gráfica por "Sexo segundo hijo/a"',
+            content: 'Nos separó la gráfica por "planeta" y nos agrega la opción de poder Apilar la gráfica',
             params: {
               placement: 'bottom'
             }
@@ -259,9 +259,9 @@ export default {
           this.mergeValue(
             'xAxis',
             {
-              slug: "Fecha",
-              title: "Fecha",
-              type: "date"
+              slug: "anillos",
+              title: "anillos",
+              type: "ordinal"
             }
           );
           break
@@ -279,14 +279,14 @@ export default {
           this.mergeValue(
             'aggregation',
             {
-              slug: "Sexo segundo hijo/a",
-              title: "Sexo segundo hijo/a",
+              slug: "planeta",
+              title: "planeta",
               type: "ordinal"
             }
           );
           break
         case 6:
-          // this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
           break
         case 7:
           this.activeTab = 2

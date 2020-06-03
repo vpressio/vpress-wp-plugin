@@ -119,7 +119,7 @@ export default {
         throw new Error(error.message);
       }
     },
-    async GET_CHART_BY_ID({ commit }, chartId) {
+    async GET_CHART_BY_ID({ state, commit }, chartId) {
       try {
         const document = await firestore
           .collection('charts')
@@ -129,6 +129,12 @@ export default {
         if (!document.exists) {
           throw new Error('Lo sentimos, no se encontró la gráfica.');
         }
+        const chartValues = document
+        .data()
+        .chartValues
+        const chart = new vpressChart(chartValues).chartValues;
+        const activeCharts = [...state.charts, chart]
+        commit('SET_CHARTS', activeCharts)
         commit(
           'SET_CHART_VALUES',
           document
@@ -200,13 +206,15 @@ export default {
       }
     },
     async CREATE_CHART({ commit, state }, payload) {
-      const chartValues = new vpressChart('0', payload).chartValues;
+      const chartValues = new vpressChart(payload).chartValues;
       const activeCharts = [...state.charts, chartValues]
       commit('SET_CHARTS', activeCharts)
     }
   },
   getters: {
-    UPDATE_CHART_COLORS: state => state.charts,
+    charts: state => {
+      return state.charts
+    },
     chart: state => state.chartValues,
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,

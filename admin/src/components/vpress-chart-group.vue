@@ -1,17 +1,42 @@
 <template>
   <v-card>
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <VpressChartContainer
-      :data="chartData"
+    <!-- <VpressChartContainer
+      :data="dataChart"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
-    />
-    <!-- <v-btn tile depressed @click="addChart">
+    /> -->
+    <div
+      v-for="(chart, chartIndex) in charts"
+      :key="`empty_chart_${chartIndex}`"
+    >
+      <VpressChartContainer
+        v-show="activeChartIndex === chartIndex"
+        :id="`empty_chart_${chartIndex}`"
+        :data="dataChart"
+        :chartConfig="chart"
+        @chart_loaded="onChartIsLoaded"
+      />
+    </div>
+    <v-btn
+      tile
+      depressed
+      @click="addChart"
+      :disabled="charts.length > 5"
+    >
       <v-icon color="grey">mdi-plus-thick</v-icon>
     </v-btn>
-    <v-btn v-for="(chart, chartIndex) in charts" :key="`chart_tab_${chartIndex}`" :color="true ? 'primary' : ''" :text="true" tile depressed>
-      Gráfica 
-    </v-btn> -->
+    <v-btn
+      v-for="(chart, chartIndex) in charts"
+      :key="`chart_tab_${chartIndex}`"
+      :color="activeChartIndex === chartIndex ? 'primary' : ''"
+      :text="activeChartIndex === chartIndex"
+      @click="setActiveChart(chartIndex)"
+      tile
+      depressed
+    >
+      Gráfica {{ chartIndex + 1 }}
+    </v-btn>
   </v-card>
 </template>
 <script>
@@ -31,8 +56,8 @@ export default {
       dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
+      charts: this.$store.getters['chartConfig/charts'],
       loadingChart: false,
-      charts: this.$store.getters['chartConfig/activeCharts'],
       activeChartIndex:0
     };
   },
@@ -57,14 +82,15 @@ export default {
     this.unsubscribe();
   },
   computed: {
-    chartData() {
-      return this.$store.getters['data/dataFiltered'];
-    },
     showLoader() {
       return this.loadingChart
-    }
+    },
+
   },
   methods: {
+    setActiveChart(chartIndex) {
+      this.activeChartIndex = chartIndex;
+    },
     addChart() {
       this.$store.dispatch('chartConfig/CREATE_CHART');
     },
