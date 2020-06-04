@@ -5,6 +5,7 @@ import { firestore } from '../../plugins/firebase';
 export default {
   namespaced: true,
   state: {
+    activeChartIndex: 0,
     charts: [],
     chartValues: {
       chart: 'bars',
@@ -69,8 +70,14 @@ export default {
     ]
   },
   mutations: {
-    SET_CHARTS(state, payload) {
-      state.charts = payload
+    SET_ACTIVE_CHART_INDEX(state, payload) {
+      state.activeChartIndex = payload
+    },
+    ADD_CHART(state, payload) {
+      state.charts = [...state.charts, payload]
+    },
+    SET_CHART(state, payload) {
+      state.charts[state.activeChartIndex] = payload
     },
     SET_CHART_TYPE(state, payload) {
       state.chartValues.chart = payload;
@@ -108,18 +115,24 @@ export default {
     }
   },
   actions: {
+    UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
+      commit('SET_ACTIVE_CHART_INDEX', payload)
+    },
     async MERGE_CHART_VALUE({ state, commit }, payload) {
       try {
         const newChartValues = await vpress.merge(state.chartValues, { newValue: payload.value, mutationType: payload.slot });
         commit('SET_CHART_VALUES', newChartValues);
+        // const newChartValues = await vpress.merge(state.charts[state.activeChartIndex], { newValue: payload.value, mutationType: payload.slot })
+        // commit('SET_CHART', newChartValues)
         commit('SET_CHART_ERROR', null)
-        return newChartValues;
+        // return newChartValues;
+        return newChartValues
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);
       }
     },
-    async GET_CHART_BY_ID({ state, commit }, chartId) {
+    async GET_CHART_BY_ID({ commit }, chartId) {
       try {
         const document = await firestore
           .collection('charts')
@@ -132,9 +145,8 @@ export default {
         const chartValues = document
         .data()
         .chartValues
-        const chart = new vpressChart(chartValues).chartValues;
-        const activeCharts = [...state.charts, chart]
-        commit('SET_CHARTS', activeCharts)
+        const chart = new vpressChart(chartValues).values();
+        commit('ADD_CHART', chart)
         commit(
           'SET_CHART_VALUES',
           document
@@ -147,25 +159,8 @@ export default {
       }
     },
     RESET_CHART_VALUES({ commit }) {
-      const initialChartValues = {
-        chart: 'bars',
-        xAxis: { title: '', type: '', slug: '' , func: ''},
-        yAxis: { title: '', type: '', slug: '', func: ''},
-        groupBy: { title: '', type: 'ordinal', slug: ''},
-        collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-        orderBy: { order: '', slug: '' },
-        decimals: 1,
-        preffix: '',
-        suffix: '',
-        stackedBars: false,
-        title: 'Título',
-        subtitle: 'Subtítulo',
-        labels: false,
-        opacity: 1,
-        theme: 'light',
-        colors: ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
-      }
-      commit('SET_CHART_VALUES', initialChartValues)
+      commit('ADD_CHART', new vpressChart().values())
+      commit('SET_CHART_VALUES', new vpressChart().values())
     },
     async INVERT_AXIS({ state, commit }) {
       try {
@@ -205,10 +200,9 @@ export default {
         commit('SET_CHART_VALUE', { valueToUpdate, value })
       }
     },
-    async CREATE_CHART({ commit, state }, payload) {
-      const chartValues = new vpressChart(payload).chartValues;
-      const activeCharts = [...state.charts, chartValues]
-      commit('SET_CHARTS', activeCharts)
+    async CREATE_CHART({ commit }, payload) {
+      const chartValues = new vpressChart(payload).values();
+      commit('ADD_CHART', chartValues)
     }
   },
   getters: {

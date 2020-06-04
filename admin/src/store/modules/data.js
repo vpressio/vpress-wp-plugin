@@ -46,7 +46,7 @@ export default {
           aggregate: payload.aggregate
         }
         if (body.column_2 !== '') {
-          const response = await axios.post(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/test/columns`, body);
+          const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`, body);
           commit('SET_DATA', response.data.data);
         }
       } catch (error) {
@@ -55,7 +55,7 @@ export default {
       },
     async GET_WP_DATASETS() {
       try {
-        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/list`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
         return response.data.data
       } catch (error) {
         throw new Error(error.message)
@@ -63,7 +63,7 @@ export default {
     },
     async GET_WP_DATASET_DATA( _, dataSetName) {
       try {
-        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/${dataSetName}`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/${dataSetName}`);
         return response.data.data
       } catch (error) {
         throw new Error(error.message)

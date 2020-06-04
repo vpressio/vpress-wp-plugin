@@ -1,23 +1,23 @@
 export default class vpressChart {
   constructor(chartValues) {
     if (chartValues) {
-      this.chartValues = chartValues
+      this.chartValues = chartValues;
     } else {
       this.chartValues = {
         chart: 'bars',
-        xAxis: { title: 'Estado', type: 'ordinal', slug: 'Estado' },
-        yAxis: { title: 'total_count', type: 'linear', slug: 'total_count' },
+        xAxis: { title: '', type: '', slug: '' },
+        yAxis: { title: '', type: '', slug: '' },
         groupBy: { title: '', type: 'ordinal', slug: '' },
-        collapseBy: { title: 'total_count', type: 'linear', slug: 'total_count' },
+        collapseBy: { title: '', type: 'linear', slug: '' },
         unitsName: '',
-        orderBy: '',
+        orderBy: { order: '', slug: '' },
         decimals: 0,
         preffix: '',
         suffix: '',
         stackedBars: false,
         title: '',
         subtitle: '',
-        colors: ['blue'],
+        colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
         opacity: 1,
         theme: '',
         labels: false
@@ -25,7 +25,7 @@ export default class vpressChart {
     }
   }
 
-  getChartValues() {
+  values() {
     return this.chartValues;
   }
 }

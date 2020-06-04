@@ -795,10 +795,6 @@ export default {
       }
     }
   },
-  created() {
-    console.log(this.chartConfig)
-
-  },
   mounted() {
     if (
       this.data &&

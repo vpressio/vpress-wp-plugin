@@ -12,10 +12,10 @@
       :key="`empty_chart_${chartIndex}`"
     >
       <VpressChartContainer
-        v-show="activeChartIndex === chartIndex"
+        v-if="activeChartIndex === chartIndex"
         :id="`empty_chart_${chartIndex}`"
         :data="dataChart"
-        :chartConfig="chart"
+        :chartConfig="charts[chartIndex]"
         @chart_loaded="onChartIsLoaded"
       />
     </div>
@@ -66,8 +66,8 @@ export default {
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
       this.chartConfig = chartConfig;
-      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
-      this.charts = this.$store.getters['chartConfig/charts'];
+      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
+      // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
      if ( 
        this.chartConfig.xAxis.slug !== '' &&
        this.chartConfig.yAxis.slug !== ''
@@ -85,11 +85,11 @@ export default {
   computed: {
     showLoader() {
       return this.loadingChart
-    },
-
+    }
   },
   methods: {
     setActiveChart(chartIndex) {
+      this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX', chartIndex);
       this.activeChartIndex = chartIndex;
     },
     addChart() {
