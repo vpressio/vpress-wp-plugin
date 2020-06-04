@@ -6,7 +6,7 @@
       .col-12.py-0
         h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
 
-    .empty-chart( :class="this.id" )
+    .empty-chart( :id="this.id" )
       .vertical-align
         p.tiny.label-font Arrastra algún valor a filas, columnas o color
 </template>
@@ -205,7 +205,7 @@ export default {
         this.width =
           d3
             .select(this.$el)
-            .select(`.${this.id}`)
+            .select(`#${this.id}`)
             .node().offsetWidth || 1200;
         this.height =
           this.width * 0.6 || 300;
@@ -232,7 +232,7 @@ export default {
           this.margin.right = 15;
         }
         d3.select(this.$el)
-          .select(`.${this.id}`)
+          .select(`#${this.id}`)
           .selectAll('*')
           .remove();
         d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
@@ -271,7 +271,7 @@ export default {
           )
         ).sort();
   
-        this.groupByOptions = this.chartConfig.groupBy.slug
+        this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.sortedData.map(
                 function(d) {
@@ -332,8 +332,13 @@ export default {
         const vm = this;
         const tabletWidth = 800;
         this.filteredData = this.filterData(this.sortedData);
+
+
+
+
         this.dataToDraw = this.$store.getters['data/origin'] === 'api' ? this.filteredData : this.parseData(this.filteredData);
-        this.groupByOptions = this.chartConfig.groupBy.slug
+        console.log(this.dataToDraw)
+        this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.filteredData.map(
                 function(d) {
@@ -475,7 +480,7 @@ export default {
         };
         this.chart = dbox
           .chart(config)
-          .bindTo(`.${this.id}`)
+          .bindTo(`#${this.id}`)
           .data({
             raw: this.dataToDraw // Modified data by chartConfig.chart (parse dates or fill NAs)
           });
@@ -714,7 +719,7 @@ export default {
           .entries(data)
           .map(obj => obj.value)
           .sort((a, b) => {
-            if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
+            if (vm.chartConfig.orderBy !== '' && vm.chartConfig.orderBy.order === 'asc') {
               if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
                 return -1;
               } else {
@@ -722,14 +727,14 @@ export default {
               }
             } else {
               //desc
-              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
                 return 1;
               } else {
                 return -1;
               }
             }
           });
-        if (vm.chartConfig.chart !== 'heatmap' && vm.chartConfig.groupBy.slug) {
+        if (vm.chartConfig.chart !== 'heatmap' && vm.chartConfig.groupBy.slug !== '') {
           collapsedData = d3
             .nest()
             .key(d => d[vm.ordinalAxis.slug])
