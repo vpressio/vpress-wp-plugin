@@ -61,10 +61,14 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASET_DATA( _, dataSetName) {
+    async GET_WP_DATASET_DATA(_, payload) {
+      let { dataset, page, perPage } = payload
+      if (!page) page = 1
+      if (!perPage) perPage = 10
+      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/${dataset}/?page=${page}&perPage=${perPage}`
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/${dataSetName}`);
-        return response.data.data
+        const response = await axios.get(url);
+        return response.data
       } catch (error) {
         throw new Error(error.message)
       }
@@ -85,7 +89,7 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      
+
     },
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
@@ -96,7 +100,7 @@ export default {
         .ref()
         .child(`${dataSetDir}/${file}`)
         .getDownloadURL()
-        
+
         const dataset = await axios.get(
           datasetUrl,
           {
@@ -110,7 +114,7 @@ export default {
       }
     },
     async GET_DATASETS(_context, dataSetDir) {
-      try { 
+      try {
        return await storage
           .ref()
           .child(dataSetDir)
