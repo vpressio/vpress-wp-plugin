@@ -107,9 +107,6 @@ export default {
       );
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: columnDataToTransferInObject, slot: this.slotId})
         .then( () => {
-          if(this.$store.getters['data/origin'] === 'api') {
-            // this.$store.dispatch('data/GET_COLUMNS_DATA', this.$store.getters['chartConfig/currentColumns']);
-          }
           if (this.error) {
             this.error = false;
           }

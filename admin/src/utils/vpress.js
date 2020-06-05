@@ -328,9 +328,17 @@ const sortByDataType = (dataSample) => {
     })
 };
 
+
+const sanitizeSpaces = (columnName) => {
+  return /\s/g.test(columnName)
+    ? '`'+columnName+'`'
+    : columnName
+}
+
 export default {
   merge,
   invertAxis,
   sortByDataType,
-  extractDateFormat
+  extractDateFormat,
+  sanitizeSpaces
 };

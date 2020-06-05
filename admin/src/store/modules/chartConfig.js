@@ -118,14 +118,20 @@ export default {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
-    async MERGE_CHART_VALUE({ state, commit }, payload) {
+    async MERGE_CHART_VALUE({ rootGetters, dispatch, state, commit }, payload) {
       try {
-        const newChartValues = await vpress.merge(state.chartValues, { newValue: payload.value, mutationType: payload.slot });
-        commit('SET_CHART_VALUES', newChartValues);
         // const newChartValues = await vpress.merge(state.charts[state.activeChartIndex], { newValue: payload.value, mutationType: payload.slot })
         // commit('SET_CHART', newChartValues)
+        const newChartValues = await vpress.merge(
+          state.chartValues,
+          { newValue: payload.value, mutationType: payload.slot }
+        );
+        if (rootGetters['data/origin'] === 'api') {
+          dispatch('data/GET_CHART_DATA', newChartValues, { root: true });
+        } else {
+          commit('SET_CHART_VALUES', newChartValues)
+        }
         commit('SET_CHART_ERROR', null)
-        // return newChartValues;
         return newChartValues
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })

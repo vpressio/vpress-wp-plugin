@@ -165,7 +165,7 @@ export default {
         this.chartConfig.xAxis.slug !== '' &&
         this.chartConfig.yAxis.slug !== ''
       ) {
-        this.configChart()
+        // this.configChart()
       }
     },
     chartConfig() {
@@ -183,7 +183,7 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart()
-      }
+        }
     }
   },
   methods: {
@@ -337,7 +337,7 @@ export default {
 
 
         this.dataToDraw = this.$store.getters['data/origin'] === 'api' ? this.filteredData : this.parseData(this.filteredData);
-        console.log(this.dataToDraw)
+        console.log(this.data)
         this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.filteredData.map(

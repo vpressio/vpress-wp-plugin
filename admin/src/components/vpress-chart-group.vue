@@ -64,18 +64,21 @@ export default {
   },
   created() {
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
-      const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
-      this.chartConfig = chartConfig;
+      if(mutation.type === 'chartConfig/SET_CHART_VALUES') {
+        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
+        this.chartConfig = chartConfig;
+      if ( 
+      state.chartConfig.chartValues.xAxis.slug !== '' &&
+      state.chartConfig.chartValues.yAxis.slug !== ''
+      ) {
+        this.dataChart = this.$store.getters['data/dataFiltered']
+      } else {
+        this.dataChart = [];
+      }
+    }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
       // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
-     if ( 
-       this.chartConfig.xAxis.slug !== '' &&
-       this.chartConfig.yAxis.slug !== ''
-    ) {
-      this.dataChart = this.$store.getters['data/dataFiltered']
-    } else {
-      this.dataChart = [];
-    }
+     
       
     });
   },

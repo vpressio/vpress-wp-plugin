@@ -35,24 +35,43 @@ export default {
     }
   },
   actions: {
-    async GET_COLUMNS_DATA({  commit, state }, payload) {
+    async GET_CHART_DATA({ state, commit } , payload) {
       try {
         const body = {
-          dataset: state.dataSetName,
-          chart_type: payload.chart_type,
-          column_1: payload.column_1,
-          column_2: payload.column_2,
-          column_3: payload.column_3,
-          aggregate: payload.aggregate
+          dataset: `vpress_${state.dataSetName}`,
+          chart_type: payload.chart,
+          column_1: payload.xAxis.slug === 'total_count' ? null : vpress.sanitizeSpaces(payload.xAxis.slug),
+          column_2: payload.yAxis.slug === 'total_count' ? null : vpress.sanitizeSpaces(payload.yAxis.slug),
+          order_by: payload.orderBy.order !== '' ? payload.orderBy.order.toUpperCase() : null,
+          limit: ''
+        };
+        if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
+          body['aggregate'] = 'COUNT'
+          body['aggregate_column'] = '*'
+        } else  if ((payload.xAxis.slug !== 'linear' && payload.yAxis.type !== 'linear') && (payload.xAxis.type !== '' && payload.yAxis.type !== '')) {
+          body['group_by'] = `${vpress.sanitizeSpaces(payload.xAxis.slug)}, ${vpress.sanitizeSpaces(payload.yAxis.slug)}`
+        } else if (payload.yAxis.type !== 'linear') {
+          body['group_by'] = vpress.sanitizeSpaces(payload.yAxis.slug)
+          body['subquery_column'] = vpress.sanitizeSpaces(payload.xAxis.slug)
+          body['subquery_aggregate'] = 'COUNT'
+        } else if (payload.xAxis.type !== 'linear') {
+          body['group_by'] = vpress.sanitizeSpaces(payload.xAxis.slug)
+          body['subquery_column'] = vpress.sanitizeSpaces(payload.yAxis.slug)
+          body['subquery_aggregate'] = 'COUNT'
         }
-        if (body.column_2 !== '') {
-          const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`, body);
-          commit('SET_DATA', response.data.data);
-        }
+
+        console.log(body);
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
+          body
+        );
+        console.log(response.data)
+        commit('SET_DATA', response.data.data);
+        commit('chartConfig/SET_CHART_VALUES', payload, { root: true });
       } catch (error) {
         throw new Error(error.message)
       }
-      },
+    },
     async GET_WP_DATASETS() {
       try {
         const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
