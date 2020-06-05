@@ -19,36 +19,42 @@ function get_data($request) {
   $chart_type = $body['chart_type'];
   $column_1 = $body['column_1'];
   $column_2 = $body['column_2'];
-  $order_by = $body['order_by'];
-  $limit = $body['limit'];
   $aggregate = $body['aggregate'];
   $aggregate_column = $body['aggregate_column'];
   $subquery_aggregate = $body['subquery_aggregate'];
   $subquery_column = $body['subquery_column'];
-
+  $group_by = $body['group_by'];
+  $order_by = $body['order_by'];
+  $limit = $body['limit'];
+  
   $select = "SELECT f1." . trim($column_1);
   $from = " FROM " . trim($dataset) . " as f1";
   $where = "";
-  $group_by = "";
+  $group_by = (empty($group_by) ? "" : "GROUP BY ". $group_by);
   $order_by = "";
-  $limit = "";
+  $limit = (empty($limit) ? "" : "LIMIT ".$limit);
 
-  if ( !empty($column_2) ) {
+  if ( !empty($column_2) && empty($subquery_aggregate)) {
     $select .= ", f1.$column_2";
   }
 
   if ( !empty($aggregate) && !empty($aggregate_column) ) {
-    $select .= ", $aggregate(f1.$aggregate_column) AS total";
-    $group_by .= " GROUP BY f1.$column_1";
+    $select .= ", $aggregate($aggregate_column) AS total_count";
+    $group_by = (!empty($group_by) ? "" : "GROUP BY f1.$column_1");
     if ( !empty($column_2) ) {
       $group_by .= ", f1.$column_2";
     }
   }
 
   if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
-    $from .= ", (SELECT $subquery_column, $subquery_aggregate(*) AS total_subquery FROM $dataset GROUP BY $subquery_column) AS f2";
-    $where .= "WHERE f1.$column_1 = f2.$subquery_column";
-    $select .= ", f2.total_subquery";
+    $from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate(*) AS '$subquery_column' FROM $dataset GROUP BY $subquery_column) AS f2";
+    $where .= "WHERE f1.$column_1 = f2.union_column";
+    $select .= ", f2.$subquery_column";
+  }
+
+  if ( empty($aggregate) && empty($aggregate_column) && empty($subquery_aggregate) && empty($subquery_column) && empty($column_2) ) {
+    // Todo: Validate if both axis are selected
+    $limit = " LIMIT 10";
   }
 
   $query = sprintf("%s %s %s %s %s %s", $select, $from, $where, $group_by, $order_by, $limit);
