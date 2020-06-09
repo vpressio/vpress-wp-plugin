@@ -48,7 +48,7 @@ export default {
         if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
           body['aggregate'] = 'COUNT'
           body['aggregate_column'] = '*'
-        } else  if ((payload.xAxis.slug !== 'linear' && payload.yAxis.type !== 'linear') && (payload.xAxis.type !== '' && payload.yAxis.type !== '')) {
+        } else if ((payload.xAxis.slug !== 'linear' && payload.yAxis.type !== 'linear') && (payload.xAxis.type !== '' && payload.yAxis.type !== '')) {
           body['group_by'] = `${vpress.sanitizeSpaces(payload.xAxis.slug)}, ${vpress.sanitizeSpaces(payload.yAxis.slug)}`
         } else if (payload.yAxis.type !== 'linear') {
           body['group_by'] = vpress.sanitizeSpaces(payload.yAxis.slug)

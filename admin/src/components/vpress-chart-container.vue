@@ -337,7 +337,7 @@ export default {
 
 
         this.dataToDraw = this.$store.getters['data/origin'] === 'api' ? this.filteredData : this.parseData(this.filteredData);
-        console.log(this.data)
+        console.log(this.dataToDraw)
         this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.filteredData.map(

@@ -64,16 +64,27 @@ export default {
   },
   created() {
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
-      if(mutation.type === 'chartConfig/SET_CHART_VALUES') {
+      if(mutation.type === 'chartConfig/SET_CHART_VALUES' && this.$store.getters['data/origin'] === 'api') {
         const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
         this.chartConfig = chartConfig;
-      if ( 
-      state.chartConfig.chartValues.xAxis.slug !== '' &&
-      state.chartConfig.chartValues.yAxis.slug !== ''
-      ) {
-        this.dataChart = this.$store.getters['data/dataFiltered']
-      } else {
-        this.dataChart = [];
+        if ( 
+        state.chartConfig.chartValues.xAxis.slug !== '' &&
+        state.chartConfig.chartValues.yAxis.slug !== ''
+        ) {
+          this.dataChart = this.$store.getters['data/dataFiltered']
+        } else {
+          this.dataChart = [];
+      }
+    } else if (this.$store.getters['data/origin'] !== 'api') {
+      const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
+        this.chartConfig = chartConfig;
+        if ( 
+        state.chartConfig.chartValues.xAxis.slug !== '' &&
+        state.chartConfig.chartValues.yAxis.slug !== ''
+        ) {
+          this.dataChart = this.$store.getters['data/dataFiltered']
+        } else {
+          this.dataChart = [];
       }
     }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']

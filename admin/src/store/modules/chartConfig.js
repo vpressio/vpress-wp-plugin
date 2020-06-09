@@ -132,7 +132,7 @@ export default {
           commit('SET_CHART_VALUES', newChartValues)
         }
         commit('SET_CHART_ERROR', null)
-        return newChartValues
+        return payload
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);

@@ -96,7 +96,7 @@ export default {
 
   },
   methods: {
-    drop(event) {
+    async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
       const columnDataToTransferInString = dataTransfer.getData(
@@ -105,22 +105,22 @@ export default {
       const columnDataToTransferInObject = JSON.parse(
         columnDataToTransferInString
       );
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: columnDataToTransferInObject, slot: this.slotId})
-        .then( () => {
-          if (this.error) {
-            this.error = false;
-          }
-          this.addVariableToSlot(columnDataToTransferInObject);
-        })
-        .catch(() => {
-          this.error = true
-        })
-
       if (this.filter) {
         this.filterData(
           columnDataToTransferInObject.slug,
           columnDataToTransferInObject.type
         );
+      }
+      try {
+        console.log(columnDataToTransferInObject)
+        const result = await this.$store.dispatch(
+          `chartConfig/MERGE_CHART_VALUE`,
+          { value: columnDataToTransferInObject, slot: this.slotId}
+        )
+        this.addVariableToSlot(result);
+        this.error = false
+      } catch (error) {
+        this.error = true
       }
     },
     dragOver() {
