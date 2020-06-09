@@ -52,7 +52,14 @@ function get_data($request) {
     $select .= ", f2.$subquery_column";
   }
 
-  if ( empty($aggregate) && empty($aggregate_column) && empty($subquery_aggregate) && empty($subquery_column) && empty($column_2) ) {
+  if ( 
+    empty($aggregate) &&
+    empty($aggregate_column) &&
+    empty($subquery_aggregate) &&
+    empty($subquery_column) &&
+    empty($column_2) &&
+    empty($group_by)
+  ) {
     // Todo: Validate if both axis are selected
     $limit = " LIMIT 10";
   }
