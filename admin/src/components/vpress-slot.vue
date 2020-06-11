@@ -93,29 +93,30 @@ export default {
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
     }
-
   },
   methods: {
     async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const columnDataToTransferInString = dataTransfer.getData(
-        'columnDataToTransferInString'
+      const transferedString = dataTransfer.getData(
+        'transferedString'
       );
-      const columnDataToTransferInObject = JSON.parse(
-        columnDataToTransferInString
+      const variable = JSON.parse(
+        transferedString
       );
       if (this.filter) {
-        this.filterData(
-          columnDataToTransferInObject.slug,
-          columnDataToTransferInObject.type
-        );
+        this.filterData(variable.slug,variable.type);
       }
       try {
-        console.log(columnDataToTransferInObject)
         const result = await this.$store.dispatch(
           `chartConfig/MERGE_CHART_VALUE`,
-          { value: columnDataToTransferInObject, slot: this.slotId}
+          { value: {
+              slug: variable.slug,
+              title: variable.title,
+              type: variable.type
+            },
+            slot: this.slotId
+          }
         )
         this.addVariableToSlot(result);
         this.error = false

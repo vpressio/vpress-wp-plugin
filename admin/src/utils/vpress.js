@@ -43,30 +43,23 @@ const invertAxis = async ({ chartValues }) => {
   try {
     const xAxis = { ...chartValues.xAxis };
     const yAxis = { ...chartValues.yAxis };
-
     chartValues.xAxis = yAxis;
     chartValues.yAxis = xAxis;
     switch (chartValues.chart) {
       case 'heatmap':
-        if (chartValues.xAxis === 'linear') {
-          chartValues.groupBy = yAxis
-        } else {
-          chartValues.groupBy = xAxis;
-        }
+        chartValues.xAxis === 'linear'
+          ? chartValues.groupBy = yAxis
+          : chartValues.groupBy = xAxis
         break
       case 'scatter':
-        if (chartValues.yAxis === chartValues.groupBy) {
-          chartValues.groupBy = chartValues.xAxis
-        } else {
-          chartValues.groupBy = chartValues.yAxis
-        }
+        chartValues.yAxis === chartValues.groupBy
+          ? chartValues.groupBy = chartValues.xAxis
+          : chartValues.groupBy = chartValues.yAxis
         break
-        default:
+      default:
         break;
     }
-
     return chartValues
-
   } catch (error) {
     throw new VpressError( _ , error.message);
   }
@@ -75,7 +68,6 @@ const invertAxis = async ({ chartValues }) => {
 const setAxis = async ({ chartValues, newValue, mutationType }) => {
   try {
     chartValues[mutationType] = newValue;
-
     if (
         !_.includes(
           [ chartValues.xAxis.slug, chartValues.yAxis.slug ],
@@ -183,7 +175,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         throw new VpressError(newValue.title, 'Tipo de dato inválido.');
     }
     return chartValues;
-
   } catch (error) {
     throw new VpressError(error.valueName, error.message);
   }
@@ -328,6 +319,63 @@ const sortByDataType = (dataSample) => {
     })
 };
 
+const prepareQuery = (payload, dataSetName) => {
+  console.log(payload.xAxis.slug, payload.xAxis.type)
+  console.log(payload.yAxis.slug, payload.yAxis.type)
+  console.log(payload.groupBy.slug)
+  console.log(payload.collapseBy.slug)
+  const body = {};
+  body['dataset'] = `vpress_${dataSetName}`
+  body['chart_type'] = payload.chart
+  if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
+    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+    body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
+    body['group_by'] = `${sanitizeSpaces(payload.xAxis.slug)}, ${sanitizeSpaces(payload.yAxis.slug)}`
+    if (payload.collapseBy.slug === 'total_count') {
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+    } else if (payload.collapseBy.slug !== '') {
+      body['aggregate'] = selectAggregateFunction(payload.collapseBy.func)
+      body['aggregate_column'] = sanitizeSpaces(payload.collapseBy.slug)
+    }
+  }
+  if (payload.chart === 'bars' || payload.chart === 'timeline') {
+
+    const column_1 = payload.xAxis.slug !== payload.collapseBy.slug
+      ? payload.xAxis.slug
+      : payload.yAxis.slug
+
+    body['column_1'] = sanitizeSpaces(column_1)
+    body['group_by'] = sanitizeSpaces(column_1)
+    if (payload.collapseBy.slug === 'total_count') {
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+    } else if (payload.collapseBy.slug !== '') {
+      body['subquery_aggregate'] = selectAggregateFunction(payload.collapseBy.func)
+      body['subquery_column'] = sanitizeSpaces(payload.collapseBy.slug)
+    }
+    if (payload.groupBy.slug !== '') {
+      body['column_2'] = sanitizeSpaces(payload.groupBy.slug)
+      body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+  }
+  return body
+}
+
+const selectAggregateFunction = (func) => {
+  switch (func) {
+    case 'sum':
+      return 'SUM'
+    case 'mean':
+    return 'AVG'
+    case 'min':
+      return 'MIN'
+    case 'max':
+      return 'MAX'
+    default:
+      return 'SUM'
+  }
+}
 
 const sanitizeSpaces = (columnName) => {
   return /\s/g.test(columnName)
@@ -340,5 +388,5 @@ export default {
   invertAxis,
   sortByDataType,
   extractDateFormat,
-  sanitizeSpaces
+  prepareQuery
 };

@@ -111,12 +111,12 @@ export default {
         ...this.variableData,
         func: this.selectedFunc.type
       };
-      const columnDataToTransferInString = JSON.stringify(
+      const transferedString = JSON.stringify(
         this.columnDataToTransferInObject
       );
       dataTransfer.setData(
-        'columnDataToTransferInString',
-        columnDataToTransferInString
+        'transferedString',
+        transferedString
       );
     },
     selectFunc(func) {

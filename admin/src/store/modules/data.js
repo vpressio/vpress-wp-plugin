@@ -35,39 +35,22 @@ export default {
     }
   },
   actions: {
-    async GET_CHART_DATA({ state, commit } , payload) {
+    async GET_CHART_DATA({ state, commit } , chartValues) {
       try {
-        const body = {
-          dataset: `vpress_${state.dataSetName}`,
-          chart_type: payload.chart,
-          column_1: payload.xAxis.slug === 'total_count' ? null : vpress.sanitizeSpaces(payload.xAxis.slug),
-          column_2: payload.yAxis.slug === 'total_count' ? null : vpress.sanitizeSpaces(payload.yAxis.slug),
-          order_by: payload.orderBy.order !== '' ? payload.orderBy.order.toUpperCase() : null,
-          limit: ''
-        };
-        if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
-          body['aggregate'] = 'COUNT'
-          body['aggregate_column'] = '*'
-        } else if ((payload.xAxis.slug !== 'linear' && payload.yAxis.type !== 'linear') && (payload.xAxis.type !== '' && payload.yAxis.type !== '')) {
-          body['group_by'] = `${vpress.sanitizeSpaces(payload.xAxis.slug)}, ${vpress.sanitizeSpaces(payload.yAxis.slug)}`
-        } else if (payload.yAxis.type !== 'linear') {
-          body['group_by'] = vpress.sanitizeSpaces(payload.yAxis.slug)
-          body['subquery_column'] = vpress.sanitizeSpaces(payload.xAxis.slug)
-          body['subquery_aggregate'] = 'COUNT'
-        } else if (payload.xAxis.type !== 'linear') {
-          body['group_by'] = vpress.sanitizeSpaces(payload.xAxis.slug)
-          body['subquery_column'] = vpress.sanitizeSpaces(payload.yAxis.slug)
-          body['subquery_aggregate'] = 'COUNT'
-        }
-
+        const body = await vpress.prepareQuery(chartValues, state.dataSetName)
         console.log(body);
         const response = await axios.post(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           body
         );
+        console.log(response.data.query)
         console.log(response.data)
-        commit('SET_DATA', response.data.data);
-        commit('chartConfig/SET_CHART_VALUES', payload, { root: true });
+        if ( response.data.error ) {
+          throw new Error(response.data.error);
+        } else {
+          commit('SET_DATA', response.data.data)
+          return chartValues
+        }
       } catch (error) {
         throw new Error(error.message)
       }

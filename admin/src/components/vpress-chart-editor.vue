@@ -26,10 +26,10 @@
               <v-icon left color="primary">mdi-download</v-icon>
               Descargar
             </v-btn>
-            <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+            <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
               <v-icon left color="primary">mdi-share-variant</v-icon>
               Compartir
-            </v-btn> -->
+            </v-btn>
           </div>
         </v-col>
         <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -241,8 +241,8 @@ export default {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
     },
     tourNext(currentStep) {
-      const tourFileName = 'Monitoreo de despensas.csv';
-      const tourFileDir = 'stc';
+      const tourFileName = 'Planetas.csv';
+      const tourFileDir = 'testDatasets';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(

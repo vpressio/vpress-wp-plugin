@@ -668,6 +668,14 @@ export default {
           .includes(d[vm.legendDisplay.slug]);
       });
     },
+    // parseApiData(data) {
+    //   const vm = this;
+    //   if (!_.includes(['scatter'], vm.chartConfig.chart)) {
+    //     let collapseData = d3
+    //     .nest()
+
+    //   }
+    // },
     parseData(data) {
       const vm = this;
       if (!_.includes(['scatter'], vm.chartConfig.chart)) {

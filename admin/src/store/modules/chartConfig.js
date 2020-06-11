@@ -124,10 +124,14 @@ export default {
         // commit('SET_CHART', newChartValues)
         const newChartValues = await vpress.merge(
           state.chartValues,
-          { newValue: payload.value, mutationType: payload.slot }
+          {
+            newValue: payload.value,
+            mutationType: payload.slot
+          }
         );
-        if (rootGetters['data/origin'] === 'api') {
-          dispatch('data/GET_CHART_DATA', newChartValues, { root: true });
+        if (rootGetters['data/origin'] === 'api' && (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '')) {
+          const chartValues = await dispatch('data/GET_CHART_DATA', newChartValues, { root: true })
+          commit('SET_CHART_VALUES', chartValues)
         } else {
           commit('SET_CHART_VALUES', newChartValues)
         }
@@ -313,17 +317,17 @@ export default {
             return { ...chart, disabled: false };
           case 'timeline':
             if (
-              (
-              state.chartValues.xAxis === state.chartValues.collapseBy ||
-              state.chartValues.yAxis === state.chartValues.collapseBy
-              ) &&
-              (
-                state.chartValues.xAxis.type === 'date' &&
-                state.chartValues.yAxis.type !== 'date'
-              ) && 
-              (
-                state.chartValues.xAxis.type !== state.chartValues.yAxis.type
-              )
+                (
+                state.chartValues.xAxis === state.chartValues.collapseBy ||
+                state.chartValues.yAxis === state.chartValues.collapseBy
+                ) &&
+                (
+                  state.chartValues.xAxis.type === 'date' &&
+                  state.chartValues.yAxis.type !== 'date'
+                ) && 
+                (
+                  state.chartValues.xAxis.type !== state.chartValues.yAxis.type
+                )
             ) {
               return { ...chart, disabled: false };
             }
