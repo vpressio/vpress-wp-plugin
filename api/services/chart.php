@@ -34,20 +34,20 @@ function get_data($request) {
   $order_by = "";
   $limit = (empty($limit) ? "" : "LIMIT ".$limit);
 
-  if ( !empty($column_2) && empty($subquery_aggregate)) {
+  if ( !empty($column_2)) {
     $select .= ", f1.$column_2";
   }
 
   if ( !empty($aggregate) && !empty($aggregate_column) ) {
     $select .= ", $aggregate($aggregate_column) AS total_count";
-    $group_by = (!empty($group_by) ? "" : "GROUP BY f1.$column_1");
+    $group_by =  "GROUP BY f1.$column_1";
     if ( !empty($column_2) ) {
       $group_by .= ", f1.$column_2";
     }
   }
 
   if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
-    $from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate(*) AS '$subquery_column' FROM $dataset GROUP BY $subquery_column) AS f2";
+    $from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY $subquery_column) AS f2";
     $where .= "WHERE f1.$column_1 = f2.union_column";
     $select .= ", f2.$subquery_column";
   }
