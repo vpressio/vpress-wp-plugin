@@ -13,7 +13,7 @@ export default {
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: 'desc', slug: 'total_count' },
+      orderBy: { order: 'asc', slug: '' },
       decimals: 1,
       preffix: '',
       suffix: '',

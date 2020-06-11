@@ -19,7 +19,7 @@
               <v-icon dense>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
-          <v-list v-if="variableData.type === 'linear'">
+          <v-list v-if="variableData.type === 'linear' && variableData.slug !== 'total_count'">
             <v-list-item
               class="px-5"
               v-for="(func, funcIndex) in funcs"
@@ -38,7 +38,7 @@
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>
           </v-list>
-          <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
+          <v-list v-if="variableData.type !== 'linear' || variableData.slug === 'total_count'">
             <v-list-item class="px-5" @click="removeCard">
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>

@@ -79,10 +79,10 @@
             rounded
             outlined
             @click="cleanComponentData"
-            :disabled="data.length === 0"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
           >Limpiar</v-btn>
           <v-btn
-            :disabled="data.length === 0 && dataOrigin != 'api'"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -323,6 +323,7 @@ export default {
     cleanComponentData() {
       this.data = [];
       this.headers = [];
+      this.dataOrigin = 'file'
       this.files = [];
       this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '', dataOrigin:'' });
     },

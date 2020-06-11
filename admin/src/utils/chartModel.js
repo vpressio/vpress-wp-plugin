@@ -10,7 +10,7 @@ export default class vpressChart {
         groupBy: { title: '', type: 'ordinal', slug: '' },
         collapseBy: { title: '', type: 'linear', slug: '' },
         unitsName: '',
-        orderBy: { order: '', slug: '' },
+        orderBy: { order: 'asc', slug: '' },
         decimals: 0,
         preffix: '',
         suffix: '',

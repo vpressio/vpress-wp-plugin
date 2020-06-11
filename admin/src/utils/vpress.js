@@ -329,6 +329,7 @@ const prepareQuery = (payload, dataSetName) => {
   body['chart_type'] = payload.chart
   if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
     body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+    body['order_by'] = `${body['column_1']} ${payload.orderBy.order.toUpperCase()}`
     body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
     body['group_by'] = `${sanitizeSpaces(payload.xAxis.slug)}, ${sanitizeSpaces(payload.yAxis.slug)}`
     if (payload.collapseBy.slug === 'total_count') {

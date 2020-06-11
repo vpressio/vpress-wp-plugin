@@ -23,33 +23,49 @@ function get_data($request) {
   $aggregate_column = $body['aggregate_column'];
   $subquery_aggregate = $body['subquery_aggregate'];
   $subquery_column = $body['subquery_column'];
+  $where = $body['where'];
   $group_by = $body['group_by'];
   $order_by = $body['order_by'];
   $limit = $body['limit'];
   
-  $select = "SELECT f1." . trim($column_1);
-  $from = " FROM " . trim($dataset) . " as f1";
-  $where = "";
-  $group_by = (empty($group_by) ? "" : "GROUP BY ". $group_by);
-  $order_by = "";
-  $limit = (empty($limit) ? "" : "LIMIT ".$limit);
+  $query_select = "SELECT f1." . trim($column_1);
+  $query_from = " FROM " . trim($dataset) . " as f1";
+  $query_where = "";
+  $query_group_by = (empty($group_by) ? "" : "GROUP BY ". $group_by);
+  $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
+  $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
 
-  if ( !empty($column_2)) {
-    $select .= ", f1.$column_2";
+  if (!empty($column_2)) {
+    $query_select .= ", f1.$column_2";
   }
 
   if ( !empty($aggregate) && !empty($aggregate_column) ) {
-    $select .= ", $aggregate($aggregate_column) AS total_count";
-    $group_by =  "GROUP BY f1.$column_1";
+    $columnAlias = ($aggregate_column == '*' ? 'total_count' : $aggregate_column);
+    $query_select .= ", $aggregate($aggregate_column) AS $columnAlias";
+    $query_group_by = (empty($query_group_by) ? "" : "GROUP BY f1.$column_1");
     if ( !empty($column_2) ) {
-      $group_by .= ", f1.$column_2";
+      $query_group_by .= ", f1.$column_2";
     }
   }
 
-  if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
-    $from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY $subquery_column) AS f2";
-    $where .= "WHERE f1.$column_1 = f2.union_column";
-    $select .= ", f2.$subquery_column";
+if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
+  $query_from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
+  $query_where .= "WHERE f1.$column_1 = f2.union_column";
+  $query_select .= ", f2.$subquery_column";
+  }
+  
+  if ( !empty($where) ) {
+    $where_array = [];
+    foreach ($where as &$value) {
+      if ( $value['op'] == 'IN' ) {
+        array_push($where_array, $value["column"] . " IN (" . "'" . implode ( "', '", $value["value"] ) . "'" . ")");
+      } elseif ( $value['op'] == 'EQ' ) {
+        array_push($where_array, $value['column'] . " = '" . $value["value"] . "'");
+      } elseif ( $value['op'] == 'BETWEEN' ) {
+        array_push($where_array, $value['column'] . " BETWEEN '" . $value["value"][0] . "' AND '" . $value["value"][1] . "'");
+      }
+    }
+    $query_where = "WHERE " . implode(" AND ", $where_array);
   }
 
   if ( 
@@ -58,13 +74,13 @@ function get_data($request) {
     empty($subquery_aggregate) &&
     empty($subquery_column) &&
     empty($column_2) &&
-    empty($group_by)
+    empty($query_group_by)
   ) {
     // Todo: Validate if both axis are selected
-    $limit = " LIMIT 10";
+    $query_limit = " LIMIT 10";
   }
 
-  $query = sprintf("%s %s %s %s %s %s", $select, $from, $where, $group_by, $order_by, $limit);
+  $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
 
   global $wpdb;
   $data =$wpdb->get_results($wpdb->prepare($query));

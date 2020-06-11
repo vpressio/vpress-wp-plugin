@@ -1,82 +1,82 @@
 <template>
-  <div class="config__container" :style="cssProps">
-    <div style="width:100%;" class="pb-5">
-      <v-row class="ma-0" no-gutters>
-        <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
-          <v-tabs
-            dark
-            class="config-tabs"
-            v-model="activeTab"
-            background-color="primary"
-            color="white"
-            grow
-          >
-            <v-tab>DATOS</v-tab>
-            <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
-            <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
-           </v-tabs>
-        </v-col>
-        <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
-          <div class="tributton-container" v-show="activeTab !== 0">
-            <!-- <v-btn class="left-button" outlined color="primary"> -->
-              <!-- <v-icon left color="primary">mdi-content-save</v-icon>
-              Guardar
-            </v-btn> -->
-            <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
-              <v-icon left color="primary">mdi-download</v-icon>
-              Descargar
-            </v-btn>
-            <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
-              <v-icon left color="primary">mdi-share-variant</v-icon>
-              Compartir
-            </v-btn>
-          </div>
-        </v-col>
-        <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
-          <v-card class="pb-5">
-            <v-tabs-items v-model="activeTab">
-              <v-tab-item>
-                 <VpressDataLoader :tabChange.sync="activeTab" :tourFile="tourFile"/>
-              </v-tab-item>
-              <v-tab-item>
-                <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                  <VpressVariableContainer
-                    :variableData="variableData"
-                    :dataSetName="dataSetName"
-                  />
-                </VpressExpansionPanel>
-              </v-tab-item>
-              <v-tab-item>
-                <VpressExpansionPanel panelTitle="TEMA">
-                  <VpressInputControl inputName="Tema">
-                    <v-switch
-                      dense
-                      inset
-                      v-model="darkTheme"
-                      :color="isDarkThemeActivated"
-                      class="config-switch"
+    <div class="config__container" :style="cssProps">
+      <div style="width:100%;" class="pb-5">
+        <v-row class="ma-0" no-gutters>
+          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
+            <v-tabs
+              dark
+              class="config-tabs"
+              v-model="activeTab"
+              background-color="primary"
+              color="white"
+              grow
+            >
+              <v-tab>DATOS</v-tab>
+              <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
+              <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
+            </v-tabs>
+          </v-col>
+          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
+            <div class="tributton-container" v-show="activeTab !== 0">
+              <!-- <v-btn class="left-button" outlined color="primary"> -->
+                <!-- <v-icon left color="primary">mdi-content-save</v-icon>
+                Guardar
+              </v-btn> -->
+              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
+                <v-icon left color="primary">mdi-download</v-icon>
+                Descargar
+              </v-btn>
+              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+                <v-icon left color="primary">mdi-share-variant</v-icon>
+                Compartir
+              </v-btn> -->
+            </div>
+          </v-col>
+          <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
+            <v-card class="pb-5">
+              <v-tabs-items v-model="activeTab">
+                <v-tab-item>
+                  <VpressDataLoader :tabChange.sync="activeTab" :tourFile="tourFile"/>
+                </v-tab-item>
+                <v-tab-item>
+                  <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                    <VpressVariableContainer
+                      :variableData="variableData"
+                      :dataSetName="dataSetName"
                     />
-                  </VpressInputControl>
-                </VpressExpansionPanel>
-                <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                  <VpressColorSelection />
-                </VpressExpansionPanel>
-              </v-tab-item>
-            </v-tabs-items>
-          </v-card>
-        </v-col>
-        <v-col lg="2" v-show="activeTab === 1" class="pa-0 pl-2">
-          <VpressSlotGroup/>
-        </v-col>
-        <v-col
-          class="py-0 px-2"
-          v-show="numberOfColsIftabIsNotZero !== '12'"
-          :md="activeTab === 1 ? 8 : 10"
-        >
-          <VpressChartGroup v-if="variableData.length !== 0"/>
-        </v-col>
-      </v-row>
-    </div>
+                  </VpressExpansionPanel>
+                </v-tab-item>
+                <v-tab-item>
+                  <VpressExpansionPanel panelTitle="TEMA">
+                    <VpressInputControl inputName="Tema">
+                      <v-switch
+                        dense
+                        inset
+                        v-model="darkTheme"
+                        :color="isDarkThemeActivated"
+                        class="config-switch"
+                      />
+                    </VpressInputControl>
+                  </VpressExpansionPanel>
+                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                    <VpressColorSelection />
+                  </VpressExpansionPanel>
+                </v-tab-item>
+              </v-tabs-items>
+            </v-card>
+          </v-col>
+          <v-col lg="2" v-show="activeTab === 1" class="pa-0 pl-2">
+            <VpressSlotGroup/>
+          </v-col>
+          <v-col
+            class="py-0 px-2"
+            v-show="numberOfColsIftabIsNotZero !== '12'"
+            :md="activeTab === 1 ? 8 : 10"
+          >
+            <VpressChartGroup v-if="variableData.length !== 0"/>
+          </v-col>
+        </v-row>
+      </div>
     <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
   </div>
 </template>
@@ -241,8 +241,8 @@ export default {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
     },
     tourNext(currentStep) {
-      const tourFileName = 'Planetas.csv';
-      const tourFileDir = 'testDatasets';
+      const tourFileName = 'Monitoreo de despensas.csv';
+      const tourFileDir = 'stc';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(

@@ -1,12 +1,24 @@
 <template>
-  <v-card>
+  <v-card
+    min-height='600'
+  >
     <VpressChartSelectButtons :availableCharts="availableCharts" />
     <VpressChartContainer
+      v-show="!loadingChart"
       :data="dataChart"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
       :id="`empty_chart_${activeChartIndex}`"
     />
+    <div v-show="loadingChart" class="progress--layer" style="width:100%;height:600px;display:flex;justify-content:center;align-items:center">
+      <v-progress-circular
+        :size="70"
+        :width="7"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
+    </div>
+
     <!-- <div
       v-for="(chart, chartIndex) in charts"
       :key="`empty_chart_${chartIndex}`"
@@ -65,6 +77,7 @@ export default {
   created() {
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
       if(mutation.type === 'chartConfig/SET_CHART_VALUES' && this.$store.getters['data/origin'] === 'api') {
+        this.loadingChart = false
         const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
         this.chartConfig = chartConfig;
         if ( 
@@ -76,6 +89,7 @@ export default {
           this.dataChart = [];
       }
     } else if (this.$store.getters['data/origin'] !== 'api') {
+      this.loadingChart = false
       const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
         this.chartConfig = chartConfig;
         if ( 
@@ -89,12 +103,14 @@ export default {
     }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
       // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
-     
-      
     });
+    this.unsubscribeAction = this.$store.subscribeAction( action => {
+      if(action.type === 'chartConfig/MERGE_CHART_VALUE') this.loadingChart = true;
+    })
   },
   beforeDestroy() {
     this.unsubscribe();
+    this.unsubscribeAction();
   },
   computed: {
     showLoader() {
@@ -191,3 +207,4 @@ export default {
   }
 };
 </script>
+
