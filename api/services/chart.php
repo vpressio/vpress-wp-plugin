@@ -49,8 +49,10 @@ function get_data($request) {
   }
 
 if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
-  $query_from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
-  $query_where .= "WHERE f1.$column_1 = f2.union_column";
+  $union_column = (empty($column_2) ? $column_1 : $column_2);
+
+  $query_from .= ", (SELECT $union_column AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
+  $query_where .= "WHERE f1.$union_column = f2.union_column";
   $query_select .= ", f2.$subquery_column";
   }
   
