@@ -37,17 +37,15 @@ export default {
   actions: {
     async GET_CHART_DATA({ state, commit } , chartValues) {
       try {
-        const body = await vpress.prepareQuery(chartValues, state.dataSetName)
-        console.log(body);
+        const body = await vpress.prepareQuery(chartValues, state.dataSetName);
         const response = await axios.post(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           body
         );
-        console.log(response.data.query)
-        console.log(response.data)
         if ( response.data.error ) {
           throw new Error(response.data.error);
         } else {
+          console.log(response.data.query)
           commit('SET_DATA', response.data.data)
           return chartValues
         }

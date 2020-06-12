@@ -166,6 +166,7 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         // this.configChart()
+        console.log('data watch')
       }
     },
     chartConfig() {
@@ -183,7 +184,8 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart()
-        }
+        console.log('chartConfig watch')
+      }
     }
   },
   methods: {
@@ -332,11 +334,9 @@ export default {
         const vm = this;
         const tabletWidth = 800;
         this.filteredData = this.filterData(this.sortedData);
-
-
-
-
-        this.dataToDraw = this.$store.getters['data/origin'] === 'api' ? this.filteredData : this.parseData(this.filteredData);
+        this.dataToDraw = this.$store.getters['data/origin'] === 'api'
+          ? this.parseApiData(this.filteredData)
+          : this.parseData(this.filteredData);
         console.log(this.dataToDraw)
         this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -668,14 +668,51 @@ export default {
           .includes(d[vm.legendDisplay.slug]);
       });
     },
-    // parseApiData(data) {
-    //   const vm = this;
-    //   if (!_.includes(['scatter'], vm.chartConfig.chart)) {
-    //     let collapseData = d3
-    //     .nest()
-
-    //   }
-    // },
+    parseApiData(data) {
+      const vm = this;
+      if (!_.includes(['scatter', 'heatmap', 'spineplot'], vm.chartConfig.chart)) {
+         const parsedData =  d3
+          .nest()
+          .key(d => d[vm.ordinalAxis.slug])
+          .rollup(leaves => {
+            let obj = {};
+            obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
+              obj[vm.chartConfig.collapseBy.slug] = +leaves[0][vm.chartConfig.collapseBy.slug]
+            if (vm.chartConfig.collapseBy.slug === 'total_count') {
+              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+            }
+            if (vm.chartConfig.groupBy.slug !== '') {
+              leaves.forEach(leaf => {
+                const prop = leaf[vm.chartConfig.groupBy.slug];
+                const value = leaf[vm.chartConfig.collapseBy.slug];
+                obj[prop] = +value;
+              });
+            }
+            return obj
+          })
+          .entries(data)
+          .map(obj => obj.value)
+          .sort((a, b) => {
+            if (vm.chartConfig.orderBy !== '' && vm.chartConfig.orderBy.order === 'asc') {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
+                return -1;
+              } else {
+                return 1;
+              }
+            } else {
+              //desc
+              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
+                return 1;
+              } else {
+                return -1;
+              }
+            }
+          })
+        return parsedData;
+      } else {
+        return data;
+      }
+    },
     parseData(data) {
       const vm = this;
       if (!_.includes(['scatter'], vm.chartConfig.chart)) {
@@ -811,6 +848,7 @@ export default {
       this.chartConfig.yAxis.slug !== ''
     ) {
       this.configChart()
+      console.log('mounted')
     }
   }
 };

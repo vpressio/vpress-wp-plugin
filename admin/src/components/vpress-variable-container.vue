@@ -28,10 +28,7 @@
       </div>
     </v-col>
     <v-col cols="12" class="pt-0">
-      <p
-        v-show="linearVariables.length > 0"
-        class="ordinal-lineal"
-      >
+      <p class="ordinal-lineal">
         Lineal
       </p>
       <div class="card--container"

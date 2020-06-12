@@ -123,13 +123,13 @@ export default {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: this.slotId,
+        mutationType: this.slotId,
         value: variable
       });
     },
     removeCard() {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: this.slotId,
+        mutationType: this.slotId,
         value: {
           title: '',
           type: '',

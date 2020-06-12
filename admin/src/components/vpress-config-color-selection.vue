@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     selectColorScheme(scheme) {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_COLORS', scheme);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'colors', value: scheme });
     }
   }
 };

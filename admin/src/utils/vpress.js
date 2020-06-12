@@ -9,21 +9,18 @@ const merge = async (chartValues, { newValue, mutationType }) => {
         mutationType: mutationType,
         newValue: newValue
       }
-      switch (mutationType) {
-        case 'xAxis':
-          return await setAxis(payload)
-        case 'yAxis':
-          return await setAxis(payload)
-        case 'aggregation':
-          return await setAggregate(payload)
-        case 'filter':
-          return await setFilter(payload)
-        default:
-          throw new VpressError (
-            mutationType,
-            'Slot id must be a valid chart value: [ xAxis, yAxis, aggregation, filter ]'
-          )
-      }
+    if (mutationType === 'xAxis' || mutationType === 'yAxis') {
+      return await setAxis(payload)
+    }
+    if (mutationType === 'aggregation') {
+      return await setAggregate(payload)
+    }
+    if (mutationType === 'orderBy') {
+      return await setOrder(payload)
+    }
+
+    return await setValue(payload)
+    
   } catch (error) {
       if (error instanceof VpressError) {
         throw new VpressError (
@@ -38,6 +35,30 @@ const merge = async (chartValues, { newValue, mutationType }) => {
       }
     }
 };
+
+const setValue = async ({ chartValues, newValue, mutationType }) => {
+  try {
+    chartValues[mutationType] = newValue
+    return chartValues
+  } catch (error) {
+    throw new VpressError( _ , error.message);
+  }
+}
+
+const setOrder = async ({ chartValues, newValue }) => {
+  try {
+    const order = newValue === 'asc' || newValue === 'desc'
+      ? newValue
+      : chartValues.orderBy.order;
+    const slug = newValue !== 'asc' && newValue !== 'desc'
+      ? newValue
+      : chartValues.orderBy.slug;
+    chartValues.orderBy = { order: order, slug: slug }
+    return chartValues
+  } catch (error) {
+    throw new VpressError( _ , error.message);
+  }
+}
 
 const invertAxis = async ({ chartValues }) => {
   try {
@@ -78,12 +99,10 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
       }
     switch (newValue.type) {
       case 'ordinal':
-        // chartValues.orderBy.slug = newValue.slug;
         if (
           chartValues.xAxis.type === chartValues.yAxis.type
         ) {
-          chartValues.chart =
-            chartValues.collapseBy.slug === ''
+          chartValues.chart = chartValues.collapseBy.slug === ''
             ? 'heatmap'
             : 'spineplot';
           chartValues.groupBy = chartValues.yAxis;
@@ -117,7 +136,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         }
         break;
       case 'linear':
-        // chartValues.orderBy.slug = newValue.slug;
         if (
           chartValues.xAxis.type === newValue.type &&
           chartValues.yAxis.type === newValue.type
@@ -151,7 +169,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         }
         break;
       case 'date':
-        // chartValues.collapseBy = { title: 'Conteo de observaciones', type: 'linear', slug: 'total_count', func: '' }
         chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
         if (
           chartValues.xAxis.type === chartValues.yAxis.type
@@ -240,22 +257,6 @@ const setAggregate = async (payload) => {
   }
 };
 
-const setFilter = async ({ chartValues, newValue }) => {
-  switch (newValue.type) {
-    case 'ordinal':
-      break;
-    case 'linear':
-      break;
-    case 'date':
-      break;
-    case '':
-      break
-    default:
-      throw new VpressError(newValue.title,'Invalid variable data type');
-  }
-  return chartValues;
-};
-
 const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   try {
     switch (chartValues.chart) {
@@ -320,16 +321,31 @@ const sortByDataType = (dataSample) => {
 };
 
 const prepareQuery = (payload, dataSetName) => {
-  console.log(payload.xAxis.slug, payload.xAxis.type)
-  console.log(payload.yAxis.slug, payload.yAxis.type)
-  console.log(payload.groupBy.slug)
-  console.log(payload.collapseBy.slug)
   const body = {};
   body['dataset'] = `vpress_${dataSetName}`
   body['chart_type'] = payload.chart
+  if  (payload.chart === 'scatter') {
+    if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
+      body['column_1'] = payload.xAxis.slug !== 'total_count'
+        ? sanitizeSpaces(payload.xAxis.slug)
+        : sanitizeSpaces(payload.yAxis.slug)
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+      body['group_by'] = body['column_1']
+    } else {
+      body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+      body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
+      body['group_by'] = `${body['column_1']}, ${body['column_2']}`
+    }
+    if (payload.groupBy.slug !== '') {
+      body['column_1'] += `, ${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+      
+
+    // selectAggregateFunction
+  }
   if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
     body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
-    body['order_by'] = `${body['column_1']} ${payload.orderBy.order.toUpperCase()}`
     body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
     body['group_by'] = `${sanitizeSpaces(payload.xAxis.slug)}, ${sanitizeSpaces(payload.yAxis.slug)}`
     if (payload.collapseBy.slug === 'total_count') {
@@ -360,6 +376,7 @@ const prepareQuery = (payload, dataSetName) => {
       body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
     }
   }
+  body['order_by'] = `${payload.orderBy.slug === '' ? body['column_1'] : payload.orderBy.slug } ${payload.orderBy.order.toUpperCase()}`
   return body
 }
 

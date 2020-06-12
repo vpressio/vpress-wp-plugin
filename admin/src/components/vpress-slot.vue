@@ -115,12 +115,13 @@ export default {
               title: variable.title,
               type: variable.type
             },
-            slot: this.slotId
+            mutationType: this.slotId
           }
         )
         this.addVariableToSlot(result);
         this.error = false
       } catch (error) {
+        console.log(error)
         this.error = true
       }
     },

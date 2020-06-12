@@ -79,36 +79,11 @@ export default {
     SET_CHART(state, payload) {
       state.charts[state.activeChartIndex] = payload
     },
-    SET_CHART_TYPE(state, payload) {
-      state.chartValues.chart = payload;
-    },
-    SET_STACK_BARS(state, payload) {
-      state.chartValues.stackedBars = payload;
-    },
-    SET_ORDER(state, payload) {
-      state.chartValues.orderBy.order = payload;
-    },
-    SET_ORDER_BY(state, payload) {
-      state.chartValues.orderBy.slug = payload;
-    },
-    SET_SHOW_LABELS(state, payload) {
-      state.chartValues.labels = payload;
-    },
-    SET_CHART_THEME(state, payload) {
-      const isDarkThemeActivated = payload;
-      isDarkThemeActivated ? (state.chartValues.theme = 'dark') : (state.chartValues.theme = 'light');
-    },
-    SET_CHART_COLORS(state, payload) {
-      state.chartValues.colors = payload;
-    },
     SET_CHART_VALUES(state, payload) {
       state.chartValues = payload;
     },
     SET_AXIS_TITLE(state, { valueToUpdate, value }) {
       state.chartValues[valueToUpdate].title = value;
-    },
-    SET_CHART_VALUE(state, { valueToUpdate, value }) {
-      state.chartValues[valueToUpdate] = value;
     },
     SET_CHART_ERROR(state, payload) {
       state.error = payload
@@ -126,15 +101,21 @@ export default {
           state.chartValues,
           {
             newValue: payload.value,
-            mutationType: payload.slot
+            mutationType: payload.mutationType
           }
         );
-        if (rootGetters['data/origin'] === 'api' && (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '')) {
-          const chartValues = await dispatch('data/GET_CHART_DATA', newChartValues, { root: true })
-          commit('SET_CHART_VALUES', chartValues)
-        } else {
-          commit('SET_CHART_VALUES', newChartValues)
+        if (
+          rootGetters['data/origin'] === 'api' &&
+          (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') &&
+          (
+            payload.mutationType === 'xAxis' ||
+            payload.mutationType === 'yAxis' ||
+            payload.mutationType === 'aggregation'
+          )
+        ) {
+          await dispatch('data/GET_CHART_DATA', newChartValues, { root: true })
         }
+          commit('SET_CHART_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
         return payload
       } catch (error) {
@@ -175,33 +156,10 @@ export default {
     async INVERT_AXIS({ state, commit }) {
       try {
         const newChartValues = await vpress.invertAxis({ chartValues: state.chartValues });
-        commit('SET_CHART_VALUE', { valueToUpdate: 'xAxis', value: newChartValues.xAxis })
-        commit('SET_CHART_VALUE', { valueToUpdate: 'yAxis', value: newChartValues.yAxis })
+        commit('SET_CHART_VALUES', newChartValues)
       } catch (error) {
         throw new Error(error.message)
       }
-    },
-    UPDATE_CHART_TYPE({ commit }, payload) {
-      commit('SET_CHART_TYPE', payload);
-    },
-    UPDATE_STACK_BARS({ commit }, payload) {
-      commit('SET_STACK_BARS', payload);
-    },
-    UPDATE_ORDER_BY({ commit }, payload) {
-      if (payload === 'asc' || payload === 'desc') {
-        commit('SET_ORDER', payload);
-      } else {
-        commit('SET_ORDER_BY', payload);
-      }
-    },
-    UPDATE_SHOW_LABELS({ commit }, payload) {
-      commit('SET_SHOW_LABELS', payload);
-    },
-    UPDATE_CHART_THEME({ commit }, payload) {
-      commit('SET_CHART_THEME', payload);
-    },
-    UPDATE_CHART_COLORS({ commit }, payload) {
-      commit('SET_CHART_COLORS', payload);
     },
     UPDATE_CHART_TITLES({ commit }, {valueToUpdate, value}) {
       if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {

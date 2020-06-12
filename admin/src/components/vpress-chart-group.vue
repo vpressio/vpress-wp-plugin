@@ -76,31 +76,34 @@ export default {
   },
   created() {
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
-      if(mutation.type === 'chartConfig/SET_CHART_VALUES' && this.$store.getters['data/origin'] === 'api') {
+      if(
+        mutation.type === 'chartConfig/SET_CHART_VALUES' &&
+        this.$store.getters['data/origin'] === 'api'
+      ) {
         this.loadingChart = false
         const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
         this.chartConfig = chartConfig;
         if ( 
-        state.chartConfig.chartValues.xAxis.slug !== '' &&
-        state.chartConfig.chartValues.yAxis.slug !== ''
+          state.chartConfig.chartValues.xAxis.slug !== '' &&
+          state.chartConfig.chartValues.yAxis.slug !== ''
         ) {
           this.dataChart = this.$store.getters['data/dataFiltered']
         } else {
           this.dataChart = [];
+        }
+      } else if (this.$store.getters['data/origin'] !== 'api') {
+        this.loadingChart = false
+        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
+          this.chartConfig = chartConfig;
+          if ( 
+            state.chartConfig.chartValues.xAxis.slug !== '' &&
+            state.chartConfig.chartValues.yAxis.slug !== ''
+          ) {
+            this.dataChart = this.$store.getters['data/dataFiltered']
+          } else {
+            this.dataChart = [];
+        }
       }
-    } else if (this.$store.getters['data/origin'] !== 'api') {
-      this.loadingChart = false
-      const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
-        this.chartConfig = chartConfig;
-        if ( 
-        state.chartConfig.chartValues.xAxis.slug !== '' &&
-        state.chartConfig.chartValues.yAxis.slug !== ''
-        ) {
-          this.dataChart = this.$store.getters['data/dataFiltered']
-        } else {
-          this.dataChart = [];
-      }
-    }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
       // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
     });

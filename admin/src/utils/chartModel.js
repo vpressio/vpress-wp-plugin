@@ -17,7 +17,7 @@ export default class vpressChart {
         stackedBars: false,
         title: '',
         subtitle: '',
-        colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
+        colors: ['#fcff9d', '#f6ca3b', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e'],
         opacity: 1,
         theme: '',
         labels: false

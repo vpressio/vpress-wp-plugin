@@ -216,7 +216,7 @@ export default {
       return numberOfCols;
     },
     isDarkThemeActivated() {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     variableData() {
@@ -238,7 +238,7 @@ export default {
       navigator.clipboard.writeText(iframe);
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';
@@ -286,7 +286,7 @@ export default {
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'stackedBars', value: true });
           break
         case 7:
           this.activeTab = 2
