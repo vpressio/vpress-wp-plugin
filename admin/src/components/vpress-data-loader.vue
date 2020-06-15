@@ -7,7 +7,7 @@
           :class="{selecteduploadMethod: uploadMethod === 'upload'}"
           class="uploadMethodButton"
           text
-          @click="ChangeUploadDataMethod('upload')"
+          @click="switchUploadMethod('upload')"
         >Sube tus datos</v-btn>
         <v-btn
           color="primary"
@@ -18,7 +18,7 @@
           "
           class="uploadMethodButton"
           text
-          @click="ChangeUploadDataMethod('paste')"
+          @click="switchUploadMethod('paste')"
         >Pega tus datos</v-btn>
         <v-spacer />
       </v-toolbar>
@@ -32,11 +32,11 @@
         lg="3"
         xl="2"
         class="pt-1 pb-0"
-        v-for="(dataSet, dataSetIndex) in dataSetsToRender"
-        :key="dataSetIndex"
+        v-for="(dataSet, dataSetIndex) in storageDataSets"
+        :key="`STORAGE_${dataSetIndex}`"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
-        <v-card dark class color="primary" @click="selectTestDataset(dataSet.name)">
+        <v-card dark class color="primary" @click="selectStorageDataset(dataSet.name)">
           <v-card-title
             class="px-3 pt-3 pb-5"
             style="font-size:1rem;line-height:1"
@@ -45,6 +45,26 @@
             class="px-3 pb-3"
             style="line-height:1"
           >{{ `.${dataSet.name.split('.').pop()}` }}</v-card-subtitle>
+        </v-card>
+      </v-col>
+      <v-col
+        md="3"
+        lg="3"
+        xl="2"
+        class="pt-1 pb-0"
+        v-for="(dataSet, dataSetIndex) in WPDataSets"
+        :key="`WP_${dataSetIndex}`"
+        :class="{'v-step-1': dataSetIndex === 0}"
+      >
+        <v-card dark class color="primary" @click="selectWPDataset(dataSet.name)">
+          <v-card-title
+            class="px-3 pt-3 pb-5"
+            style="font-size:1rem;line-height:1"
+          >{{ dataSet.name }}</v-card-title>
+          <v-card-subtitle
+            class="px-3 pb-3"
+            style="line-height:1"
+          >{{ dataSet.size }}</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -123,22 +143,25 @@ export default {
   props: ['tabChange', 'tourFile'],
   data() {
     return {
-      dataSetDir: '/savedDatasets',
-      uploadMethod: 'upload',
+      data: [],
+      dataOrigin: '',
       dataSetName: '',
+      errorMessage: '',
+      files: [],
+      headers: [],
+      loading: false,
       pastedData: '',
       showTable: true,
-      loading: false,
-      headers: [],
-      data: [],
-      dataSets: [],
-      files: [],
-      errorMessage: ''
+      storageDataSets: [],
+      storageDataSetsDir: '/savedDatasets',
+      uploadMethod: 'upload',
+      WPDataSets: []
     };
   },
   created() {
     this.getStorageDatasets();
-    this.getUrlParams()
+    this.getWPDatasets();
+    this.getUrlParams();
   },
   watch: {
     files(newFiles) {
@@ -150,7 +173,7 @@ export default {
     tourFile(newTourFile) {
       if (!newTourFile.error){
         this.dataSetName = newTourFile.fileName;
-        this.dataSetDir = newTourFile.fileDir;
+        this.storageDataSetsDir = newTourFile.fileDir;
         this.getStorageDatasets();
         this.loadFile(newTourFile.file)
         .then(() => this.saveData());
@@ -162,9 +185,6 @@ export default {
       return {
         '--primary': this.$vuetify.theme.themes.light.primary
       }
-    },
-    dataSetsToRender() {
-      return this.dataSets
     }
   },
   methods: {
@@ -173,8 +193,8 @@ export default {
         const self = this;
         if( this.$route.params.chartid ) {
           const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
-          this.dataSetDir = '/savedDatasets';
-          const dataSetData = await this.selectTestDataset(document.dataSet);
+          this.storageDataSetsDir = '/savedDatasets';
+          const dataSetData = await this.selectStorageDataset(document.dataSet);
           await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName });
           this.$emit('update:tabChange', 1);
         }
@@ -185,51 +205,60 @@ export default {
     async getStorageDatasets() {
       try {
         if (Object.keys(this.$route.query).includes('datasets')) {
-          this.dataSetDir = this.$route.query.datasets
+          this.storageDataSetsDir = this.$route.query.datasets
         }
-        const files  = await this.$store.dispatch('data/GET_DATASETS', this.dataSetDir);
+        const files  = await this.$store.dispatch('data/GET_DATASETS', this.storageDataSetsDir);
         if (files.items.length === 0) {
-          throw new Error(`Sin coincidencias para ${this.dataSetDir}`);
+          throw new Error(`Sin coincidencias para ${this.storageDataSetsDir}`);
         }
-        this.dataSets = files.items;
+        this.storageDataSets = files.items;
       } catch (error){
         this.$router.push('/')
       }
     },
-    async selectTestDataset(fileName) {
+    async selectStorageDataset(fileName) {
       try {
         const self = this;
         self.loading = true;
         self.dataSetName = fileName;
-        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.dataSetDir, file: this.dataSetName })
+        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.storageDataSetsDir, file: this.dataSetName })
         return await self.loadFile(file)
       } catch (error) {
         this.errorMessage = error.message;
       }
     },
-    ChangeUploadDataMethod(method) {
-      this.uploadMethod = method;
+    async getWPDatasets() {
+      try {
+        this.$store.dispatch('data/GET_WP_DATASETS')
+          .then(dataSets => {
+          this.WPDataSets = dataSets;
+          })
+      } catch(error) {
+        console.warn(error)
+      }
     },
-    cleanComponentData() {
-      this.data = [];
-      this.headers = [];
-      this.files = [];
-      this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '' });
+    async selectWPDataset(dataSetName) {
+      try {
+        this.loading = true;
+        this.dataOrigin = 'api'
+        this.dataSetName = dataSetName;
+        this.$store.dispatch('data/GET_WP_DATASET_DATA', dataSetName)
+          .then(data => {
+            this.data = data;
+            this.headers = this.extractSampleHeaders(data[0]);
+            this.loading = false;
+          })
+      } catch(error) {
+        console.warn(error)
+      }
     },
-    /**
-     * Read spreadsheets file, parsed into JSON data
-     * Set headers and data for data-table
-     */
     async loadFile(file) {
       try {
         const self = this;
+        self.dataOrigin = 'file'
         self.loading = true;
         const content = await this.$store.dispatch('data/READ_FILE', file);
-        self.headers = Object.keys(content[0]).map(o => ({
-            text: o,
-            value: o,
-            sortable: true
-          }));
+        self.headers = self.extractSampleHeaders(content[0]);
           // eslint-disable-next-line
           self.data = content;
           setTimeout(() => {
@@ -241,10 +270,6 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    /**
-     * Parse pasted data into JSON object array
-     * Set headers and data for data-tables
-     */
     parsePastedData() {
       const self = this;
       self.loading = true;
@@ -293,15 +318,31 @@ export default {
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
-      self.dataSetName = 'Dataset copiado'
+      self.dataSetName = 'Dataset copiado';
     },
-    saveData() {
-      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
-      this.$store.dispatch('data/SAVE_DATA', { data: this.data, dataSetName:this.dataSetName });
+    extractSampleHeaders(dataSample) {
+      return Object.keys(dataSample).map(o => ({
+        text: o,
+        value: o,
+        sortable: true
+      }));
+    },
+    cleanComponentData() {
+      this.data = [];
+      this.headers = [];
+      this.files = [];
+      this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '', dataOrigin:'' });
     },
     nextTab() {
       this.$emit('update:tabChange', 1);
-      this.saveData();
+      this.saveData(this.data, this.dataSetName, this.dataOrigin);
+    },
+    saveData(data, dataSetName, dataOrigin) {
+      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('data/SAVE_DATA', { data: data, dataSetName: dataSetName, dataOrigin: dataOrigin});
+    },
+    switchUploadMethod(method) {
+      this.uploadMethod = method;
     }
   }
 };

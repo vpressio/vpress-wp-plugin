@@ -199,20 +199,47 @@ export default {
     chart: state => state.chartValues,
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,
-    filter: state => state.chartValues.collapseBy,
     aggregation: state => {
-      if (state.chartValues.chart === 'bars') {
+      if (
+        state.chartValues.chart === 'bars' ||
+        state.chartValues.chart === 'scatter' ||
+        state.chartValues.chart === 'timeline'
+      ) {
         return state.chartValues.groupBy
       }
-      if (state.chartValues.chart === 'heatmap' || state.chartValues.chart === 'spineplot') {
+      if (
+        state.chartValues.chart === 'heatmap' ||
+        state.chartValues.chart === 'spineplot'
+      ) {
         return state.chartValues.collapseBy
       }
-      if (state.chartValues.chart === 'scatter') {
-        return state.chartValues.groupBy
+    },
+    filter: state => state.chartValues.collapseBy,
+    currentColumns: state => {
+      const columns = {
+        column_1: state.chartValues.xAxis.slug,
+        column_2: state.chartValues.yAxis.slug,
       }
-      if (state.chartValues.chart === 'timeline') {
-        return state.chartValues.groupBy
+      if (
+        state.chartValues.groupBy.slug !== '' ||
+        state.chartValues.collapseBy.slug !== ''
+      ) {
+        if (
+          state.chartValues.chart === 'bars' ||
+          state.chartValues.chart === 'scatter' ||
+          state.chartValues.chart === 'timeline'
+        ) {
+          columns.column_3 = state.chartValues.groupBy.slug
+        }
+        if (
+          state.chartValues.chart === 'heatmap' ||
+          state.chartValues.chart === 'spineplot'
+        ) {
+          columns.column_3 = state.chartValues.collapseBy.slug
+        }
       }
+
+      return columns
     },
     error: state => state.error,
     theme: state => state.chartValues.theme,

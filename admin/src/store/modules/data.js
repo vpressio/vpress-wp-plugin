@@ -9,16 +9,14 @@ export default {
   state: {
     data: null,
     dataSetName:'',
-    filter: {},
+    dataVariables : [],
     dateFormat: '',
-    dataVariables : []
+    filter: {},
+    origin: ''
   },
   mutations: {
     SET_DATA(state, data) {
       state.data = data;
-    },
-    SET_FILTER(state, data) {
-      state.filter = data
     },
     SET_DATASET_NAME(state, dataSetName) {
       state.dataSetName = dataSetName
@@ -26,12 +24,51 @@ export default {
     SET_DATE_FORMAT(state, format) {
       state.dateFormat = format
     },
+    SET_FILTER(state, data) {
+      state.filter = data
+    },
+    SET_ORIGIN(state, payload) {
+      state.origin = payload
+    },
     SET_VARIABLE_DATA(state, payload) {
       state.dataVariables = payload
-    },
+    }
   },
   actions: {
-    async SAVE_DATA({ commit }, { data, dataSetName }) {
+    async GET_COLUMNS_DATA({  commit, state }, payload) {
+      try {
+        const body = {
+          column_1: payload.column_1,
+          column_2: payload.column_2,
+          dataset: `vpress_${state.dataSetName}`
+        }
+        console.log(body)
+        if (body.column_2 !== '') {
+          const response = await axios.post(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/chart/columns`, body);
+          console.log(response)
+          commit('SET_DATA', response.data.data);
+        }
+      } catch (error) {
+        throw new Error(error.message)
+      }
+      },
+    async GET_WP_DATASETS() {
+      try {
+        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/list`);
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_WP_DATASET_DATA( _, dataSetName) {
+      try {
+        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/${dataSetName}`);
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async SAVE_DATA({ commit }, { data, dataSetName, dataOrigin }) {
       try {
         if (data.length > 0) {
           const variables = vpress.sortByDataType(data[0])
@@ -42,6 +79,7 @@ export default {
         }
         commit('SET_DATA', data);
         commit('SET_DATASET_NAME', dataSetName);
+        commit('SET_ORIGIN', dataOrigin)
         return { data: data, dataSetName: dataSetName }
       } catch (error) {
         throw new Error(error.message)
@@ -113,6 +151,7 @@ export default {
       } else {
         return state.data
       }
-    }
+    },
+    origin: state => state.origin
   }
 };
