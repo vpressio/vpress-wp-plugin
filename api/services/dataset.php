@@ -33,15 +33,19 @@ function get_demo_datasets(){
 function get_dataset_data($request) {
   global $wpdb;
   $table_name = $request['dataset'];
-  $query = 
-  "SELECT * 
-  FROM vpress_$table_name
-  LIMIT 1000";
+  $page = (int)$request->get_param('page');
+  $per_page = (int)$request->get_param('perPage');
+  $start_at = $per_page * ($page - 1);
+  $query_total = "SELECT COUNT(*) AS total FROM vpress_$table_name";
+  $query = "SELECT * FROM vpress_$table_name LIMIT $start_at, $per_page";
 
-  $data =$wpdb->get_results($wpdb->prepare($query));
+  $data = $wpdb->get_results($wpdb->prepare($query));
+  $total = $wpdb->get_results($wpdb->prepare($query_total));
 
   $response = array(
     'data' => $data,
+    'query' => $query,
+    'total' => (int)$total[0]->total,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
   return $response;

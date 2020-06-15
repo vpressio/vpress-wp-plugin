@@ -31,7 +31,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col class="ml-5">
+      <v-col class="ml-5 v-step-7">
         <v-btn
           class="mr-2"
           @click="toggleLabels"
@@ -45,7 +45,7 @@
         </v-btn>
         <v-btn
           v-show="chartIsBarsGrouped"
-          class="mr-2 v-step-7"
+          class="mr-2"
           @click="toggleBarsType"
           small
           dark
@@ -137,18 +137,18 @@ export default {
   },
   methods: {
     setChartType(chartType) {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_TYPE', chartType);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'chart' , value: chartType});
     },
     requireImg(chartType) {
       return require(`../assets/images/${chartType}.svg`);
     },
     toggleLabels() {
       this.labels = !this.labels;
-      this.$store.dispatch('chartConfig/UPDATE_SHOW_LABELS', this.labels);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'labels' ,value: this.labels });
     },
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
-      this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', this.stackedBars);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'stackedBars' ,value: this.stackedBars });
     },
     toggleOrder() {
       const order = [ 'asc', 'desc' ];
@@ -158,22 +158,22 @@ export default {
       } else {
         this.order = order[0]
       }
-      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: this.order });
     },
     orderByAlphabetical() {
       const chartValues = this.$store.getters['chartConfig/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
         }
         if (chartValues.yAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
         
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: '' });
       }
       this.sortedBy = 'alphabetical';
     },
@@ -181,15 +181,15 @@ export default {
       const chartValues = this.$store.getters['chartConfig/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'linear' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
         }
         if (chartValues.yAxis.type === 'linear' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
       } else if (chartValues.xAxis.type === 'linear') {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: 'total_count' });
       }
       this.sortedBy = 'numerical';
     },

@@ -1,7 +1,7 @@
 <template>
   <v-row class="ma-0 v-step-9">
     <v-col class="pa-0" v-for="schemeType in colorSchemes" :key="schemeType.colorSchemeType">
-      <v-card flat class="ma-3">
+      <div flat class="ma-3" style="font-size: 0.8rem">
         {{ schemeType.colorSchemeType }}
         <div style="display:flex">
           <v-card
@@ -25,7 +25,7 @@
             </div>
           </v-card>
         </div>
-      </v-card>
+      </div>
     </v-col>
   </v-row>
 </template>
@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     selectColorScheme(scheme) {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_COLORS', scheme);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'colors', value: scheme });
     }
   }
 };

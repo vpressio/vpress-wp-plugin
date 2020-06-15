@@ -93,38 +93,36 @@ export default {
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
     }
-
   },
   methods: {
-    drop(event) {
+    async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const columnDataToTransferInString = dataTransfer.getData(
-        'columnDataToTransferInString'
+      const transferedString = dataTransfer.getData(
+        'transferedString'
       );
-      const columnDataToTransferInObject = JSON.parse(
-        columnDataToTransferInString
+      const variable = JSON.parse(
+        transferedString
       );
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: columnDataToTransferInObject, slot: this.slotId})
-        .then( () => {
-          if(this.$store.getters['data/origin'] === 'api') {
-            console.log(this.$store.getters['chartConfig/currentColumns'])
-            this.$store.dispatch('data/GET_COLUMNS_DATA', this.$store.getters['chartConfig/currentColumns']);
-          }
-          if (this.error) {
-            this.error = false;
-          }
-          this.addVariableToSlot(columnDataToTransferInObject);
-        })
-        .catch(() => {
-          this.error = true
-        })
-
       if (this.filter) {
-        this.filterData(
-          columnDataToTransferInObject.slug,
-          columnDataToTransferInObject.type
-        );
+        this.filterData(variable.slug,variable.type);
+      }
+      try {
+        const result = await this.$store.dispatch(
+          `chartConfig/MERGE_CHART_VALUE`,
+          { value: {
+              slug: variable.slug,
+              title: variable.title,
+              type: variable.type
+            },
+            mutationType: this.slotId
+          }
+        )
+        this.addVariableToSlot(result);
+        this.error = false
+      } catch (error) {
+        console.log(error)
+        this.error = true
       }
     },
     dragOver() {

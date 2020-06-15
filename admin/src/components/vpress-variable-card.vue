@@ -19,7 +19,7 @@
               <v-icon dense>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
-          <v-list v-if="variableData.type === 'linear'">
+          <v-list v-if="variableData.type === 'linear' && variableData.slug !== 'total_count'">
             <v-list-item
               class="px-5"
               v-for="(func, funcIndex) in funcs"
@@ -38,14 +38,14 @@
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>
           </v-list>
-          <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
+          <v-list v-if="variableData.type !== 'linear' || variableData.slug === 'total_count'">
             <v-list-item class="px-5" @click="removeCard">
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-2 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
+      <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
         <p v-if="id !== 'cardId_total'" class="ma-0">{{ variableData.title }}</p>
         <span
           v-if="id === 'cardId_total'"
@@ -111,25 +111,25 @@ export default {
         ...this.variableData,
         func: this.selectedFunc.type
       };
-      const columnDataToTransferInString = JSON.stringify(
+      const transferedString = JSON.stringify(
         this.columnDataToTransferInObject
       );
       dataTransfer.setData(
-        'columnDataToTransferInString',
-        columnDataToTransferInString
+        'transferedString',
+        transferedString
       );
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: variable,
-        value: this.slotId
+        mutationType: this.slotId,
+        value: variable
       });
     },
     removeCard() {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: this.slotId,
+        mutationType: this.slotId,
         value: {
           title: '',
           type: '',
@@ -143,8 +143,8 @@ export default {
 </script>
 <style scoped>
 .dataTypeTitle {
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   overflow: hidden;
   width: 100%;

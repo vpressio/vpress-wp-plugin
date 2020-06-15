@@ -1,16 +1,19 @@
 import vpress from '../../utils/vpress.js';
+import vpressChart from '../../utils/chartModel.js';
 import { firestore } from '../../plugins/firebase';
 
 export default {
   namespaced: true,
   state: {
+    activeChartIndex: 0,
+    charts: [],
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: 'desc', slug: 'total_count' },
+      orderBy: { order: 'asc', slug: '' },
       decimals: 1,
       preffix: '',
       suffix: '',
@@ -67,27 +70,14 @@ export default {
     ]
   },
   mutations: {
-    SET_CHART_TYPE(state, payload) {
-      state.chartValues.chart = payload;
+    SET_ACTIVE_CHART_INDEX(state, payload) {
+      state.activeChartIndex = payload
     },
-    SET_STACK_BARS(state, payload) {
-      state.chartValues.stackedBars = payload;
+    ADD_CHART(state, payload) {
+      state.charts = [...state.charts, payload]
     },
-    SET_ORDER(state, payload) {
-      state.chartValues.orderBy.order = payload;
-    },
-    SET_ORDER_BY(state, payload) {
-      state.chartValues.orderBy.slug = payload;
-    },
-    SET_SHOW_LABELS(state, payload) {
-      state.chartValues.labels = payload;
-    },
-    SET_CHART_THEME(state, payload) {
-      const isDarkThemeActivated = payload;
-      isDarkThemeActivated ? (state.chartValues.theme = 'dark') : (state.chartValues.theme = 'light');
-    },
-    SET_CHART_COLORS(state, payload) {
-      state.chartValues.colors = payload;
+    SET_CHART(state, payload) {
+      state.charts[state.activeChartIndex] = payload
     },
     SET_CHART_VALUES(state, payload) {
       state.chartValues = payload;
@@ -95,20 +85,39 @@ export default {
     SET_AXIS_TITLE(state, { valueToUpdate, value }) {
       state.chartValues[valueToUpdate].title = value;
     },
-    SET_CHART_VALUE(state, { valueToUpdate, value }) {
-      state.chartValues[valueToUpdate] = value;
-    },
     SET_CHART_ERROR(state, payload) {
       state.error = payload
     }
   },
   actions: {
-    async MERGE_CHART_VALUE({ state, commit }, payload) {
+    UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
+      commit('SET_ACTIVE_CHART_INDEX', payload)
+    },
+    async MERGE_CHART_VALUE({ rootGetters, dispatch, state, commit }, payload) {
       try {
-        const newChartValues = await vpress.merge(state.chartValues, { newValue: payload.value, mutationType: payload.slot });
-        commit('SET_CHART_VALUES', newChartValues);
+        // const newChartValues = await vpress.merge(state.charts[state.activeChartIndex], { newValue: payload.value, mutationType: payload.slot })
+        // commit('SET_CHART', newChartValues)
+        const newChartValues = await vpress.merge(
+          state.chartValues,
+          {
+            newValue: payload.value,
+            mutationType: payload.mutationType
+          }
+        );
+        if (
+          rootGetters['data/origin'] === 'api' &&
+          (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') &&
+          (
+            payload.mutationType === 'xAxis' ||
+            payload.mutationType === 'yAxis' ||
+            payload.mutationType === 'aggregation'
+          )
+        ) {
+          await dispatch('data/GET_CHART_DATA', newChartValues, { root: true })
+        }
+          commit('SET_CHART_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
-        return newChartValues;
+        return payload
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);
@@ -124,6 +133,11 @@ export default {
         if (!document.exists) {
           throw new Error('Lo sentimos, no se encontró la gráfica.');
         }
+        const chartValues = document
+        .data()
+        .chartValues
+        const chart = new vpressChart(chartValues).values();
+        commit('ADD_CHART', chart)
         commit(
           'SET_CHART_VALUES',
           document
@@ -136,56 +150,16 @@ export default {
       }
     },
     RESET_CHART_VALUES({ commit }) {
-      const initialChartValues = {
-        chart: 'bars',
-        xAxis: { title: '', type: '', slug: '' , func: ''},
-        yAxis: { title: '', type: '', slug: '', func: ''},
-        groupBy: { title: '', type: 'ordinal', slug: ''},
-        collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-        orderBy: { order: 'asc', slug: 'Estado' },
-        decimals: 1,
-        preffix: '',
-        suffix: '',
-        stackedBars: false,
-        title: 'Título',
-        subtitle: 'Subtítulo',
-        labels: false,
-        opacity: 1,
-        theme: 'light',
-        colors: ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
-      }
-      commit('SET_CHART_VALUES', initialChartValues)
+      commit('ADD_CHART', new vpressChart().values())
+      commit('SET_CHART_VALUES', new vpressChart().values())
     },
     async INVERT_AXIS({ state, commit }) {
       try {
         const newChartValues = await vpress.invertAxis({ chartValues: state.chartValues });
-        commit('SET_CHART_VALUE', { valueToUpdate: 'xAxis', value: newChartValues.xAxis })
-        commit('SET_CHART_VALUE', { valueToUpdate: 'yAxis', value: newChartValues.yAxis })
+        commit('SET_CHART_VALUES', newChartValues)
       } catch (error) {
         throw new Error(error.message)
       }
-    },
-    UPDATE_CHART_TYPE({ commit }, payload) {
-      commit('SET_CHART_TYPE', payload);
-    },
-    UPDATE_STACK_BARS({ commit }, payload) {
-      commit('SET_STACK_BARS', payload);
-    },
-    UPDATE_ORDER_BY({ commit }, payload) {
-      if (payload === 'asc' || payload === 'desc') {
-        commit('SET_ORDER', payload);
-      } else {
-        commit('SET_ORDER_BY', payload);
-      }
-    },
-    UPDATE_SHOW_LABELS({ commit }, payload) {
-      commit('SET_SHOW_LABELS', payload);
-    },
-    UPDATE_CHART_THEME({ commit }, payload) {
-      commit('SET_CHART_THEME', payload);
-    },
-    UPDATE_CHART_COLORS({ commit }, payload) {
-      commit('SET_CHART_COLORS', payload);
     },
     UPDATE_CHART_TITLES({ commit }, {valueToUpdate, value}) {
       if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
@@ -193,9 +167,16 @@ export default {
       } else {
         commit('SET_CHART_VALUE', { valueToUpdate, value })
       }
+    },
+    async CREATE_CHART({ commit }, payload) {
+      const chartValues = new vpressChart(payload).values();
+      commit('ADD_CHART', chartValues)
     }
   },
   getters: {
+    charts: state => {
+      return state.charts
+    },
     chart: state => state.chartValues,
     xAxis: state => state.chartValues.xAxis,
     yAxis: state => state.chartValues.yAxis,
@@ -217,8 +198,9 @@ export default {
     filter: state => state.chartValues.collapseBy,
     currentColumns: state => {
       const columns = {
+        chart_type: state.chartValues.chart,
         column_1: state.chartValues.xAxis.slug,
-        column_2: state.chartValues.yAxis.slug,
+        column_2: state.chartValues.yAxis.slug, 
       }
       if (
         state.chartValues.groupBy.slug !== '' ||
@@ -239,6 +221,10 @@ export default {
         }
       }
 
+      if (state.chartValues.xAxis.slug === 'total_count' || state.chartValues.yAxis.slug === 'total_count') {
+        columns.aggregate = 'COUNT',
+        columns.column_2 = '*'
+      }
       return columns
     },
     error: state => state.error,
@@ -289,17 +275,17 @@ export default {
             return { ...chart, disabled: false };
           case 'timeline':
             if (
-              (
-              state.chartValues.xAxis === state.chartValues.collapseBy ||
-              state.chartValues.yAxis === state.chartValues.collapseBy
-              ) &&
-              (
-                state.chartValues.xAxis.type === 'date' &&
-                state.chartValues.yAxis.type !== 'date'
-              ) && 
-              (
-                state.chartValues.xAxis.type !== state.chartValues.yAxis.type
-              )
+                (
+                state.chartValues.xAxis === state.chartValues.collapseBy ||
+                state.chartValues.yAxis === state.chartValues.collapseBy
+                ) &&
+                (
+                  state.chartValues.xAxis.type === 'date' &&
+                  state.chartValues.yAxis.type !== 'date'
+                ) && 
+                (
+                  state.chartValues.xAxis.type !== state.chartValues.yAxis.type
+                )
             ) {
               return { ...chart, disabled: false };
             }

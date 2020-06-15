@@ -1,82 +1,133 @@
 <template>
-  <v-row class="ma-0">
-    <v-col
-      class="pa-0"
-      xl="2"
-      lg="3"
-      md="3"
+  <v-card
+    min-height='600'
+  >
+    <VpressChartSelectButtons :availableCharts="availableCharts" />
+    <VpressChartContainer
+      v-show="!loadingChart"
+      :data="dataChart"
+      :chartConfig="chartConfig"
+      @chart_loaded="onChartIsLoaded"
+      :id="`empty_chart_${activeChartIndex}`"
+    />
+    <div v-show="loadingChart" class="progress--layer" style="width:100%;height:600px;display:flex;justify-content:center;align-items:center">
+      <v-progress-circular
+        :size="70"
+        :width="7"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
+    </div>
+
+    <!-- <div
+      v-for="(chart, chartIndex) in charts"
+      :key="`empty_chart_${chartIndex}`"
     >
-      <v-card class="mx-2">
-        <VpressSlotGroup
-          :chartConfig="chartConfig"
-          :availableCharts='availableCharts'
-        />
-      </v-card>
-    </v-col>
-    <v-col
-      class="pa-0"
-      xl="10"
-      lg="9"
-      md="9"
+      <VpressChartContainer
+        v-if="activeChartIndex === chartIndex"
+        :id="`empty_chart_${chartIndex}`"
+        :data="dataChart"
+        :chartConfig="charts[chartIndex]"
+        @chart_loaded="onChartIsLoaded"
+      />
+    </div>
+    <v-btn
+      tile
+      depressed
+      @click="addChart"
+      :disabled="charts.length > 5"
     >
-      <v-card class="mr-2">
-        <VpressChartSelectButtons :availableCharts="availableCharts" />
-        <VpressChartContainer
-          :data="chartData"
-          :chartConfig="chartConfig"
-          @chart_loaded="onChartIsLoaded"
-        />
-      </v-card>
-    </v-col>
-  </v-row>
+      <v-icon color="grey">mdi-plus-thick</v-icon>
+    </v-btn>
+    <v-btn
+      v-for="(chart, chartIndex) in charts"
+      :key="`chart_tab_${chartIndex}`"
+      :color="activeChartIndex === chartIndex ? 'primary' : ''"
+      :text="activeChartIndex === chartIndex"
+      @click="setActiveChart(chartIndex)"
+      tile
+      depressed
+    >
+      Gráfica {{ chartIndex + 1 }}
+    </v-btn> -->
+  </v-card>
 </template>
 <script>
 import * as _ from 'lodash';
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
-import VpressSlotGroup from '../components/vpress-slot-group.vue';
 
 export default {
-  name: 'vpress-state-subscriber',
+  name: 'VpressChartGroup',
   components: {
     VpressChartContainer,
-    VpressChartSelectButtons,
-    VpressSlotGroup
+    VpressChartSelectButtons
   },
   data() {
     return {
       dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
-      loadingChart: false
+      charts: this.$store.getters['chartConfig/charts'],
+      loadingChart: false,
+      activeChartIndex:0
     };
   },
   created() {
-    this.$store.subscribe((mutation, state) => {
-      const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
-      this.chartConfig = chartConfig;
-      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts'];
-     if ( 
-       this.chartConfig.xAxis.slug !== '' &&
-       this.chartConfig.yAxis.slug !== ''
-    ) {
-      this.dataChart = this.$store.getters['data/dataFiltered']
-    } else {
-      this.dataChart = [];
-    }
-      
+    this.unsubscribe = this.$store.subscribe((mutation, state) => {
+      if(
+        mutation.type === 'chartConfig/SET_CHART_VALUES' &&
+        this.$store.getters['data/origin'] === 'api'
+      ) {
+        this.loadingChart = false
+        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
+        this.chartConfig = chartConfig;
+        if ( 
+          state.chartConfig.chartValues.xAxis.slug !== '' &&
+          state.chartConfig.chartValues.yAxis.slug !== ''
+        ) {
+          this.dataChart = this.$store.getters['data/dataFiltered']
+        } else {
+          this.dataChart = [];
+        }
+      } else if (this.$store.getters['data/origin'] !== 'api') {
+        this.loadingChart = false
+        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
+          this.chartConfig = chartConfig;
+          if ( 
+            state.chartConfig.chartValues.xAxis.slug !== '' &&
+            state.chartConfig.chartValues.yAxis.slug !== ''
+          ) {
+            this.dataChart = this.$store.getters['data/dataFiltered']
+          } else {
+            this.dataChart = [];
+        }
+      }
+      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
+      // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
     });
+    this.unsubscribeAction = this.$store.subscribeAction( action => {
+      if(action.type === 'chartConfig/MERGE_CHART_VALUE') this.loadingChart = true;
+    })
+  },
+  beforeDestroy() {
+    this.unsubscribe();
+    this.unsubscribeAction();
   },
   computed: {
-    chartData() {
-      return this.$store.getters['data/dataFiltered'];
-    },
     showLoader() {
       return this.loadingChart
     }
   },
   methods: {
+    setActiveChart(chartIndex) {
+      this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX', chartIndex);
+      this.activeChartIndex = chartIndex;
+    },
+    addChart() {
+      this.$store.dispatch('chartConfig/CREATE_CHART');
+    },
     change() {
       this.loadingChart = !this.loadingChart
     },
@@ -159,3 +210,4 @@ export default {
   }
 };
 </script>
+

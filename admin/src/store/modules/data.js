@@ -35,35 +35,40 @@ export default {
     }
   },
   actions: {
-    async GET_COLUMNS_DATA({  commit, state }, payload) {
+    async GET_CHART_DATA({ state, commit } , chartValues) {
       try {
-        const body = {
-          column_1: payload.column_1,
-          column_2: payload.column_2,
-          dataset: `vpress_${state.dataSetName}`
-        }
-        console.log(body)
-        if (body.column_2 !== '') {
-          const response = await axios.post(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/chart/columns`, body);
-          console.log(response)
-          commit('SET_DATA', response.data.data);
+        const body = await vpress.prepareQuery(chartValues, state.dataSetName);
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
+          body
+        );
+        if ( response.data.error ) {
+          throw new Error(response.data.error);
+        } else {
+          console.log(response.data.query)
+          commit('SET_DATA', response.data.data)
+          return chartValues
         }
       } catch (error) {
         throw new Error(error.message)
       }
-      },
+    },
     async GET_WP_DATASETS() {
       try {
-        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/list`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
         return response.data.data
       } catch (error) {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASET_DATA( _, dataSetName) {
+    async GET_WP_DATASET_DATA(_, payload) {
+      let { dataset, page, perPage } = payload
+      if (!page) page = 1
+      if (!perPage) perPage = 10
+      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/${dataset}/?page=${page}&perPage=${perPage}`
       try {
-        const response = await axios.get(`${'http://localhost:8888/wordpress'}/wp-json/vpress/v1/dataset/${dataSetName}`);
-        return response.data.data
+        const response = await axios.get(url);
+        return response.data
       } catch (error) {
         throw new Error(error.message)
       }
@@ -84,7 +89,7 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      
+
     },
     setFilter({ commit }, data) {
       commit('SET_FILTER', data);
@@ -95,7 +100,7 @@ export default {
         .ref()
         .child(`${dataSetDir}/${file}`)
         .getDownloadURL()
-        
+
         const dataset = await axios.get(
           datasetUrl,
           {
@@ -109,7 +114,7 @@ export default {
       }
     },
     async GET_DATASETS(_context, dataSetDir) {
-      try { 
+      try {
        return await storage
           .ref()
           .child(dataSetDir)

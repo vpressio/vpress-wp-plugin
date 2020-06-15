@@ -1,8 +1,8 @@
 <template>
     <div class="config__container" :style="cssProps">
       <div style="width:100%;" class="pb-5">
-        <v-row class="ma-0">
-          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 3 : 2">
+        <v-row class="ma-0" no-gutters>
+          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
             <v-tabs
               dark
               class="config-tabs"
@@ -16,11 +16,20 @@
               <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 9 : 10">
+          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <!-- <v-btn class="left-button" outlined color="primary">Guardar</v-btn> -->
-              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >Descargar</v-btn>
-              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">Compartir</v-btn> -->
+              <!-- <v-btn class="left-button" outlined color="primary"> -->
+                <!-- <v-icon left color="primary">mdi-content-save</v-icon>
+                Guardar
+              </v-btn> -->
+              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
+                <v-icon left color="primary">mdi-download</v-icon>
+                Descargar
+              </v-btn>
+              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+                <v-icon left color="primary">mdi-share-variant</v-icon>
+                Compartir
+              </v-btn> -->
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -56,26 +65,29 @@
               </v-tabs-items>
             </v-card>
           </v-col>
+          <v-col lg="2" v-show="activeTab === 1" class="pa-0 pl-2">
+            <VpressSlotGroup/>
+          </v-col>
           <v-col
-            class="pa-0"
+            class="py-0 px-2"
             v-show="numberOfColsIftabIsNotZero !== '12'"
-            lg="9"
-            xl="10"
+            :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressStateSubscriber v-if="variableData.length !== 0"/>
+            <VpressChartGroup v-if="variableData.length !== 0"/>
           </v-col>
         </v-row>
       </div>
     <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
-    </div>
+  </div>
 </template>
 <script>
 import VpressDataLoader from './vpress-data-loader.vue';
 import VpressVariableContainer from './vpress-variable-container.vue';
 import VpressExpansionPanel from './vpress-expansion-panel.vue';
-import VpressStateSubscriber from './vpress-state-subscriber.vue';
+import VpressChartGroup from './vpress-chart-group.vue';
 import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
+import VpressSlotGroup from './vpress-slot-group.vue';
 
 import downloadChart from '../utils/downloadChart.js';
 
@@ -85,9 +97,10 @@ export default {
     VpressDataLoader,
     VpressVariableContainer,
     VpressExpansionPanel,
-    VpressStateSubscriber,
+    VpressChartGroup,
     VpressInputControl,
-    VpressColorSelection
+    VpressColorSelection,
+    VpressSlotGroup
   },
   data() {
     return {
@@ -149,14 +162,14 @@ export default {
           },
           {
             target: '.v-step-5',
-            content: 'Arrastra la observación Conteo de observaciones a la selección de Columnas',
+            content: 'Arrastra la observación "Conteo de observaciones" a la selección de Columnas',
             params: {
               placement: 'bottom'
             }
           },
           {
             target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de planeta a la sección de Color',
+            content: 'Hagamos algo más, arrastra la observación de "planeta" a la sección de Color',
             params: {
               placement: 'bottom'
             }
@@ -197,13 +210,13 @@ export default {
       }
     },
     numberOfColsIftabIsNotZero() {
-      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 3 : 2;
+      const colsOnlg = this.$vuetify.breakpoint.lgAndDown ? 2 : 2;
       const numberOfCols = this.activeTab !== 0 ? colsOnlg : '12';
 
       return numberOfCols;
     },
     isDarkThemeActivated() {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     variableData() {
@@ -225,11 +238,11 @@ export default {
       navigator.clipboard.writeText(iframe);
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
     },
     tourNext(currentStep) {
-      const tourFileName = 'Planetas.csv';
-      const tourFileDir = 'testDatasets';
+      const tourFileName = 'Monitoreo de despensas.csv';
+      const tourFileDir = 'stc';
       switch(currentStep) {
         case 0:
           this.$store.dispatch(
@@ -237,6 +250,7 @@ export default {
             { dataSetDir:tourFileDir, file: tourFileName }
           )
             .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
+            .catch(err => this.tourFile = { error: err })
           break
         case 2:
           this.activeTab = 1
@@ -272,7 +286,7 @@ export default {
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'stackedBars', value: true });
           break
         case 7:
           this.activeTab = 2
@@ -317,7 +331,7 @@ export default {
 }
 
 * >>> .config-tabs > .v-tabs-bar {
-  height: 46px;
+  height: 50px;
 }
 *
   >>> .config-tabs
@@ -353,8 +367,8 @@ export default {
   > .v-slide-group__content
   > .v-tab {
   min-width: 0px;
-  font-size: 0.8rem;
-  padding: 0;
+  font-size: 0.7rem;
+  padding: 3px 0;
 }
 
 * >>> .config-text-field > .v-input__control > .v-input__slot {

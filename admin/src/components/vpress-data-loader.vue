@@ -79,10 +79,10 @@
             rounded
             outlined
             @click="cleanComponentData"
-            :disabled="data.length === 0"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
           >Limpiar</v-btn>
           <v-btn
-            :disabled="data.length === 0"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -98,12 +98,12 @@
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
     </v-row>
-    <v-row v-if="data.length === 0 && uploadMethod === 'upload'" class="ma-0">
+    <v-row v-if="uploadMethod === 'upload' && !dataSetName" class="ma-0">
       <v-col>
         <VpressFilepond :file.sync="files" />
       </v-col>
     </v-row>
-    <v-row v-show="uploadMethod === 'paste' && data.length === 0" class="ma-0">
+    <v-row v-if="uploadMethod === 'paste' && !dataSetName" class="ma-0">
       <v-col v-show="data.length === 0">
         <v-textarea
           class="pl-4 pt-4"
@@ -123,9 +123,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-show="data.length !== 0" class="ma-0">
+    <v-row v-if="dataSetName" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable :headers="headers" :data="data" />
+        <VpressDataTable :dataset="dataSetName" :dataOrigin="dataOrigin" :data="data"/>
       </v-col>
     </v-row>
   </div>
@@ -168,7 +168,7 @@ export default {
       if (newFiles.length >= 1){
         this.dataSetName = this.files[0].file.name
         this.loadFile(this.files[0].file);
-      } 
+      }
     },
     tourFile(newTourFile) {
       if (!newTourFile.error){
@@ -176,7 +176,7 @@ export default {
         this.storageDataSetsDir = newTourFile.fileDir;
         this.getStorageDatasets();
         this.loadFile(newTourFile.file)
-        .then(() => this.saveData());
+        .then(() => this.saveData(this.data, this.dataSetName, this.dataOrigin));
       }
     }
   },
@@ -222,6 +222,7 @@ export default {
         self.loading = true;
         self.dataSetName = fileName;
         const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.storageDataSetsDir, file: this.dataSetName })
+        self.loading = false;
         return await self.loadFile(file)
       } catch (error) {
         this.errorMessage = error.message;
@@ -229,27 +230,19 @@ export default {
     },
     async getWPDatasets() {
       try {
-        this.$store.dispatch('data/GET_WP_DATASETS')
-          .then(dataSets => {
-          this.WPDataSets = dataSets;
-          })
+        const dataSets = await this.$store.dispatch('data/GET_WP_DATASETS')
+        this.WPDataSets = dataSets;
       } catch(error) {
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     async selectWPDataset(dataSetName) {
       try {
-        this.loading = true;
+        this.data = []
         this.dataOrigin = 'api'
         this.dataSetName = dataSetName;
-        this.$store.dispatch('data/GET_WP_DATASET_DATA', dataSetName)
-          .then(data => {
-            this.data = data;
-            this.headers = this.extractSampleHeaders(data[0]);
-            this.loading = false;
-          })
       } catch(error) {
-        console.warn(error)
+        this.errorMessage = error.message;
       }
     },
     async loadFile(file) {
@@ -330,12 +323,13 @@ export default {
     cleanComponentData() {
       this.data = [];
       this.headers = [];
+      this.dataOrigin = 'file'
       this.files = [];
       this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '', dataOrigin:'' });
     },
     nextTab() {
       this.$emit('update:tabChange', 1);
-      this.saveData(this.data, this.dataSetName, this.dataOrigin);
+      if (this.dataOrigin !== 'api') this.saveData(this.data, this.dataSetName, this.dataOrigin);
     },
     saveData(data, dataSetName, dataOrigin) {
       this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
