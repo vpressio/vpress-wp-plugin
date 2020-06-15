@@ -22,7 +22,7 @@ export default new Router({
       props: true,
       children: [
         { path: '/', component: VpressChartEditor },
-        { path: '/chart/:chartid', component: VpressChartEditor },
+        { path: '/chart/:chartid', component: VpressChartEditor }
       ]
     }
   ]

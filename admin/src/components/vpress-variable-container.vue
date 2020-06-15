@@ -19,7 +19,7 @@
         :ref="`${cardsContainerId}_ordinal`"
       >
         <VpressVariableCard
-          class="mb-3"
+          class="mb-2"
           v-for="(variable, variableIndex) in ordinalVariables"
           :key="`cardId_${variableIndex}`"
           :id="`cardId_${variableIndex}`"
@@ -28,10 +28,7 @@
       </div>
     </v-col>
     <v-col cols="12" class="pt-0">
-      <p
-        v-show="linearVariables.length > 0"
-        class="ordinal-lineal"
-      >
+      <p class="ordinal-lineal">
         Lineal
       </p>
       <div class="card--container"
@@ -39,7 +36,7 @@
         :ref="`${cardsContainerId}_auxiliar`"
       >
         <VpressVariableCard
-          class="mb-3"
+          class="mb-2"
           :id="`cardId_total`"
           :variableData="{
             title: 'Conteo de observaciones',
@@ -53,7 +50,7 @@
           :ref="`${cardsContainerId}_linear`"
           >
           <VpressVariableCard
-            class="mb-3"
+            class="mb-2"
             v-for="(variable, variableIndex) in linearVariables"
             :key="`cardId_${variableIndex}`"
             :id="`cardId_${variableIndex}`"
@@ -76,7 +73,7 @@
         :ref="`${cardsContainerId}_ordinal`"
       >
         <VpressVariableCard
-          class="mb-3"
+          class="mb-2"
           v-for="(variable, variableIndex) in dateVariables"
           :key="`cardId_${variableIndex}`"
           :id="`cardId_${variableIndex}`"
@@ -129,14 +126,14 @@ export default {
 
 .db-icon {
   width: 17px;
-  margin: 4px 10px 13px 16px;
+  margin: 4px 10px 4px 0;
   display: inline-flex;
   padding-bottom: 1px;
 }
 
 .db-titulo {
   color: #737373;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-family: Roboto;
 }
 

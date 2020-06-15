@@ -31,8 +31,8 @@ export default {
   min-height: 0% !important;
   padding: 14px 24px;
   color:#FFFF !important;
-  font-weight: 500;
-  font-size:  0.8rem !important;
+  font-weight: 800;
+  font-size:  0.65rem !important;
   border-top-left-radius: 0%;
   border-top-right-radius: 0%;
 }

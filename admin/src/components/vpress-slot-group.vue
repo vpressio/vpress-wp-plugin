@@ -1,27 +1,23 @@
 <template>
-  <v-row class="ma-0">
-    <v-col  
-      cols="12"
+  <v-card class="py-3">
+    <VpressSlot
       v-for="(slot, slotIndex) in slots"
       :key="`slot_${slotIndex}`"
-      class="py-2 px-1"
-    >
-      <VpressSlot
-        :class="{
-          'v-step-4': slot.slotId === 'xAxis',
-          'v-step-5': slot.slotId === 'yAxis',
-          'v-step-6': slot.slotId === 'aggregation'
-        }"
-        :slotId="slot.slotId"
-        :icon="slot.icon"
-        :slotIcon="slot.slotIcon"
-        :label="slot.label"
-        :maxStack="slot.maxStack"
-        :dataType="['linear','ordinal']"
-        :filter="slot.filter"
-      />
-    </v-col>
-  </v-row>
+      class="mb-2"
+      :class="{
+        'v-step-4': slot.slotId === 'xAxis',
+        'v-step-5': slot.slotId === 'yAxis',
+        'v-step-6': slot.slotId === 'aggregation'
+      }"
+      :slotId="slot.slotId"
+      :icon="slot.icon"
+      :slotIcon="slot.slotIcon"
+      :label="slot.label"
+      :maxStack="slot.maxStack"
+      :dataType="['linear','ordinal']"
+      :filter="slot.filter"
+    />
+  </v-card>
 </template>
 <script>
 import VpressSlot from './vpress-slot';
@@ -31,7 +27,6 @@ export default {
   components: {
     VpressSlot
   },
-  props: ['id', 'slotLabel', 'chartConfig','availableCharts'],
   data() {
     return {
       slots: [
