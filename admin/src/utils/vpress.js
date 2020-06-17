@@ -324,11 +324,13 @@ const prepareQuery = (payload, dataSetName) => {
   const body = {};
   body['dataset'] = `vpress_${dataSetName}`
   body['chart_type'] = payload.chart
-  if  (payload.chart === 'scatter') {
+  body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
+  if (payload.chart === 'scatter') {
     if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
       body['column_1'] = payload.xAxis.slug !== 'total_count'
         ? sanitizeSpaces(payload.xAxis.slug)
         : sanitizeSpaces(payload.yAxis.slug)
+      body['order_by'] = body['column_1']
       body['aggregate'] = 'COUNT'
       body['aggregate_column'] = '*'
       body['group_by'] = body['column_1']
@@ -337,12 +339,43 @@ const prepareQuery = (payload, dataSetName) => {
       body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
       body['group_by'] = `${body['column_1']}, ${body['column_2']}`
     }
-    if (payload.groupBy.slug !== '') {
+    if (payload.xAxis.func && payload.xAxis.func && (payload.xAxis.func !== '' && payload.yAxis.func !== '')) {
+      body['column_1'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
+      body['group_by'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
+      body['column_2'] = null
+      body['subquery_aggregate'] = selectAggregateFunction(payload.xAxis.func)
+      body['subquery_column'] = sanitizeSpaces(payload.xAxis.slug)
+      body['subquery_aggregate_2'] = selectAggregateFunction(payload.yAxis.func)
+      body['subquery_column_2'] = sanitizeSpaces(payload.yAxis.slug)
+      body['order_by'] = `${body['subquery_column']}, ${body['subquery_column_2']}`
+
+    } else {
+      let aggregate
+      let aggregate_column
+      let column
+      if (payload.xAxis.func && payload.xAxis.func !== '' ) {
+        aggregate = selectAggregateFunction(payload.xAxis.func);
+        aggregate_column = sanitizeSpaces(payload.xAxis.slug)
+        column = sanitizeSpaces(payload.yAxis.slug)
+        body['column_1'] = column
+        body['column_2'] = null
+        body['subquery_aggregate'] = aggregate
+        body['subquery_column'] = aggregate_column
+        body['group_by'] = column
+      } else if (payload.yAxis.func && payload.yAxis.func !== '') {
+        aggregate = selectAggregateFunction(payload.yAxis.func);
+        aggregate_column = sanitizeSpaces(payload.yAxis.slug)
+        column = sanitizeSpaces(payload.xAxis.slug)
+        body['column_1'] = column
+        body['column_2'] = null
+        body['subquery_aggregate'] = aggregate
+        body['subquery_column'] = aggregate_column
+        body['group_by'] = column
+      }
+    }
+    if (payload.groupBy.slug !== '' &&  !(payload.xAxis.func && payload.xAxis.func)) {
       body['column_1'] += `, ${sanitizeSpaces(payload.groupBy.slug)}`
     }
-      
-
-    // selectAggregateFunction
   }
   if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
     body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
@@ -376,7 +409,8 @@ const prepareQuery = (payload, dataSetName) => {
       body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
     }
   }
-  body['order_by'] = `${payload.orderBy.slug === '' ? body['column_1'] : payload.orderBy.slug } ${payload.orderBy.order.toUpperCase()}`
+  body['order_by'] = `${payload.orderBy.slug === '' ? body['order_by'] : payload.orderBy.slug} ${payload.orderBy.order.toUpperCase()}`
+  console.log(body)
   return body
 }
 

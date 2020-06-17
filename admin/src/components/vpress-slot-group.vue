@@ -35,7 +35,7 @@ export default {
           icon:"mdi-view-sequential",
           slotIcon: "eje-x",
           label:"Filas",
-          maxStack: 1,
+          maxStack: 3,
           filter: false
         },
         {

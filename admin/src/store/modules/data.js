@@ -42,10 +42,11 @@ export default {
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           body
         );
-        if ( response.data.error ) {
+        console.log(response.data.query)
+        if (response.data.error) {
+          
           throw new Error(response.data.error);
         } else {
-          console.log(response.data.query)
           commit('SET_DATA', response.data.data)
           return chartValues
         }

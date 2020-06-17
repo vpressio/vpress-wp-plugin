@@ -64,7 +64,7 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.size }}</v-card-subtitle>
+          >{{ dataSet.rows }} filas</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>

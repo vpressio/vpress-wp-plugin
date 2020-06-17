@@ -670,7 +670,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes(['scatter', 'heatmap', 'spineplot'], vm.chartConfig.chart)) {
+      if (!_.includes(['scatter', 'heatmap'], vm.chartConfig.chart)) {
          const parsedData =  d3
           .nest()
           .key(d => d[vm.ordinalAxis.slug])

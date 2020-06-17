@@ -17,6 +17,7 @@
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
           :disabled="graph.disabled"
+          :class="graph.disabled ? 'grey lighten-1' : ''"
           text
           @click="setChartType(graph.type)"
           class="mx-1"
