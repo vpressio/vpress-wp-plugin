@@ -266,12 +266,6 @@ export default {
             }
             return { ...chart, disabled: true };
           case 'scatter':
-            if (
-              state.chartValues.xAxis.slug === 'total_count' ||
-              state.chartValues.yAxis.slug === 'total_count'
-            ) {
-              return { ...chart, disabled: true };
-            }
             return { ...chart, disabled: false };
           case 'timeline':
             if (

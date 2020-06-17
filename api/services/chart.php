@@ -1,7 +1,7 @@
 <?php
 function get_data($request) {
   $body = $request->get_json_params();
-  if ( empty($body['dataset']) || empty($body['chart_type']) || empty($body['column_1']) ) {
+  if ( empty($body['dataset']) || empty($body['chart_type']) ) {
     return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
   } else if (
     ( !empty($body['aggregate']) && empty($body['aggregate_column']) ) || 
@@ -23,6 +23,8 @@ function get_data($request) {
   $aggregate_column = $body['aggregate_column'];
   $subquery_aggregate = $body['subquery_aggregate'];
   $subquery_column = $body['subquery_column'];
+  $subquery_aggregate_2 = $body['subquery_aggregate_2'];
+  $subquery_column_2 = $body['subquery_column_2'];
   $where = $body['where'];
   $group_by = $body['group_by'];
   $order_by = $body['order_by'];
@@ -50,11 +52,38 @@ function get_data($request) {
 
 if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
   $union_column = (empty($column_2) ? $column_1 : $column_2);
-
   $query_from .= ", (SELECT $union_column AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
   $query_where .= "WHERE f1.$union_column = f2.union_column";
   $query_select .= ", f2.$subquery_column";
   }
+
+if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
+  if(!empty($column_1)) {
+    $query_select = "SELECT f1.$column_1 ,f2.$subquery_column, f3.$subquery_column_2";
+    $query_from = "FROM $dataset AS f1,
+    (SELECT
+      $column_1,
+      $subquery_aggregate($subquery_column) AS $subquery_column
+    FROM $dataset
+    GROUP BY $column_1) AS f2, 
+    (SELECT
+      $column_1,
+      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+    FROM $dataset
+    GROUP BY $column_1) AS f3";
+    $query_where = "WHERE f1.$column_1 = f2.$column_1 AND f1.$column_1 = f3.$column_1";
+  } else {
+    $query_select = "SELECT f1.$subquery_column, f2.$subquery_column_2";
+    $query_from = "FROM
+    (SELECT
+      $subquery_aggregate($subquery_column) AS $subquery_column
+    FROM $dataset) AS f1, 
+    (SELECT
+      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+    FROM $dataset) AS f2";
+    $query_where = null;
+  }
+}
   
   if ( !empty($where) ) {
     $where_array = [];

@@ -166,7 +166,6 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         // this.configChart()
-        console.log('data watch')
       }
     },
     chartConfig() {
@@ -184,7 +183,6 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart()
-        console.log('chartConfig watch')
       }
     }
   },
@@ -248,7 +246,6 @@ export default {
               return 1;
             }
           } else {
-            //desc
             if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
               return 1;
             } else {
@@ -264,7 +261,7 @@ export default {
             }.bind(this)
           )
         ).sort();
-  
+
         this.yAxisValues = _.uniq(
           this.sortedData.map(
             function(d) {
@@ -337,7 +334,6 @@ export default {
         this.dataToDraw = this.$store.getters['data/origin'] === 'api'
           ? this.parseApiData(this.filteredData)
           : this.parseData(this.filteredData);
-        console.log(this.dataToDraw)
         this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.filteredData.map(
@@ -670,7 +666,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes(['scatter', 'heatmap', 'spineplot'], vm.chartConfig.chart)) {
+      if (!_.includes(['scatter', 'heatmap'], vm.chartConfig.chart)) {
          const parsedData =  d3
           .nest()
           .key(d => d[vm.ordinalAxis.slug])
@@ -701,7 +697,7 @@ export default {
               }
             } else {
               //desc
-              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
                 return 1;
               } else {
                 return -1;
@@ -772,7 +768,7 @@ export default {
               }
             } else {
               //desc
-              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
                 return 1;
               } else {
                 return -1;
@@ -848,7 +844,6 @@ export default {
       this.chartConfig.yAxis.slug !== ''
     ) {
       this.configChart()
-      console.log('mounted')
     }
   }
 };

@@ -17,6 +17,7 @@
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
           :disabled="graph.disabled"
+          :class="graph.disabled ? 'grey lighten-1' : ''"
           text
           @click="setChartType(graph.type)"
           class="mx-1"
@@ -158,22 +159,22 @@ export default {
       } else {
         this.order = order[0]
       }
-      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: this.order });
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: this.order });
     },
     orderByAlphabetical() {
       const chartValues = this.$store.getters['chartConfig/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
         }
         if (chartValues.yAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
         
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
-        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', {mutationType: 'orderBy' ,value: '' });
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: '' });
       }
       this.sortedBy = 'alphabetical';
     },
