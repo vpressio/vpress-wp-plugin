@@ -183,7 +183,6 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart()
-        console.log('chartConfig watch')
       }
     }
   },
@@ -332,7 +331,6 @@ export default {
         const vm = this;
         const tabletWidth = 800;
         this.filteredData = this.filterData(this.sortedData);
-        console.log(this.sortedData)
         this.dataToDraw = this.$store.getters['data/origin'] === 'api'
           ? this.parseApiData(this.filteredData)
           : this.parseData(this.filteredData);
@@ -846,7 +844,6 @@ export default {
       this.chartConfig.yAxis.slug !== ''
     ) {
       this.configChart()
-      console.log('mounted')
     }
   }
 };

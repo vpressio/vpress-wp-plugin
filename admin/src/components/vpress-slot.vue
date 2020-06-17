@@ -121,7 +121,7 @@ export default {
         this.addVariableToSlot(result);
         this.error = false
       } catch (error) {
-        console.log(error)
+        console.error(error)
         this.error = true
       }
     },
