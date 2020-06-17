@@ -54,7 +54,6 @@ const setOrder = async ({ chartValues, newValue }) => {
       ? newValue
       : chartValues.orderBy.slug;
       chartValues.orderBy = { order: order, slug: slug }
-      console.log(chartValues.orderBy)
     return chartValues
   } catch (error) {
     throw new VpressError( _ , error.message);
@@ -411,7 +410,6 @@ const prepareQuery = (payload, dataSetName) => {
     }
   }
   body['order_by'] = `${payload.orderBy.slug === '' ? body['order_by'] : payload.orderBy.slug} ${payload.orderBy.order.toUpperCase()}`
-  console.log(body)
   return body
 }
 
