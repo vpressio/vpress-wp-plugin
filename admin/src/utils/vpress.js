@@ -53,7 +53,8 @@ const setOrder = async ({ chartValues, newValue }) => {
     const slug = newValue !== 'asc' && newValue !== 'desc'
       ? newValue
       : chartValues.orderBy.slug;
-    chartValues.orderBy = { order: order, slug: slug }
+      chartValues.orderBy = { order: order, slug: slug }
+      console.log(chartValues.orderBy)
     return chartValues
   } catch (error) {
     throw new VpressError( _ , error.message);

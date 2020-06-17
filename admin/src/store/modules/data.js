@@ -42,7 +42,7 @@ export default {
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           body
         );
-        console.log(response.data.query)
+        console.info(response.data.query)
         if (response.data.error) {
           
           throw new Error(response.data.error);

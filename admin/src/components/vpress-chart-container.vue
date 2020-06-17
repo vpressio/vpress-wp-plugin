@@ -166,7 +166,6 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         // this.configChart()
-        console.log('data watch')
       }
     },
     chartConfig() {
@@ -248,7 +247,6 @@ export default {
               return 1;
             }
           } else {
-            //desc
             if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
               return 1;
             } else {
@@ -264,7 +262,7 @@ export default {
             }.bind(this)
           )
         ).sort();
-  
+
         this.yAxisValues = _.uniq(
           this.sortedData.map(
             function(d) {
@@ -334,10 +332,10 @@ export default {
         const vm = this;
         const tabletWidth = 800;
         this.filteredData = this.filterData(this.sortedData);
+        console.log(this.sortedData)
         this.dataToDraw = this.$store.getters['data/origin'] === 'api'
           ? this.parseApiData(this.filteredData)
           : this.parseData(this.filteredData);
-        console.log(this.dataToDraw)
         this.groupByOptions = this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
               this.filteredData.map(
@@ -701,7 +699,7 @@ export default {
               }
             } else {
               //desc
-              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
                 return 1;
               } else {
                 return -1;
@@ -772,7 +770,7 @@ export default {
               }
             } else {
               //desc
-              if (a[vm.chartConfig.orderBy.slug !== ''] < b[vm.chartConfig.orderBy.slug]) {
+              if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
                 return 1;
               } else {
                 return -1;
