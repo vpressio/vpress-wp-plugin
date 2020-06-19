@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import Chart from './views/Chart.vue';
 import Vpress from './views/Vpress.vue';
 import VpressChartEditor from './components/vpress-chart-editor.vue';
+import VpressChartList from './components/vpress-chart-list.vue';
 
 Vue.use(Router);
 
@@ -22,7 +23,8 @@ export default new Router({
       props: true,
       children: [
         { path: '/', component: VpressChartEditor },
-        { path: '/chart/:chartid', component: VpressChartEditor },
+        { path: '/chart/list', component: VpressChartList },
+        { path: '/chart/:chartid', component: VpressChartEditor }
       ]
     }
   ]

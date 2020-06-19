@@ -19,7 +19,7 @@
               <v-icon dense>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
-          <v-list v-if="variableData.type === 'linear'">
+          <v-list v-if="variableData.type === 'linear' && variableData.slug !== 'total_count'">
             <v-list-item
               class="px-5"
               v-for="(func, funcIndex) in funcs"
@@ -38,7 +38,7 @@
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>
           </v-list>
-          <v-list v-if="variableData.type === 'ordinal' || variableData.type === 'date'">
+          <v-list v-if="variableData.type !== 'linear' || variableData.slug === 'total_count'">
             <v-list-item class="px-5" @click="removeCard">
               <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
             </v-list-item>
@@ -69,7 +69,6 @@ export default {
     slotId: String,
     variableData: Object,
     inSlot: Boolean,
-    variablesInSlot: Array,
     error: Boolean
   },
   data() {
@@ -111,25 +110,25 @@ export default {
         ...this.variableData,
         func: this.selectedFunc.type
       };
-      const columnDataToTransferInString = JSON.stringify(
+      const transferedString = JSON.stringify(
         this.columnDataToTransferInObject
       );
       dataTransfer.setData(
-        'columnDataToTransferInString',
-        columnDataToTransferInString
+        'transferedString',
+        transferedString
       );
     },
     selectFunc(func) {
       const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
       variable.func = func.type;
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: variable,
-        value: this.slotId
+        mutationType: this.slotId,
+        value: variable
       });
     },
     removeCard() {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        slot: this.slotId,
+        mutationType: this.slotId,
         value: {
           title: '',
           type: '',

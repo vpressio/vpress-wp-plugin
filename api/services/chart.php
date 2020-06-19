@@ -1,7 +1,7 @@
 <?php
 function get_data( $request ) {
   $body = $request->get_json_params();
-  if ( empty($body['dataset']) || empty($body['chart_type']) || empty($body['column_1']) ) {
+  if ( empty($body['dataset']) || empty($body['chart_type']) ) {
     return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
   } else if (
     ( !empty($body['aggregate']) && empty($body['aggregate_column']) ) || 
@@ -23,6 +23,8 @@ function get_data( $request ) {
   $aggregate_column = $body['aggregate_column'];
   $subquery_aggregate = $body['subquery_aggregate'];
   $subquery_column = $body['subquery_column'];
+  $subquery_aggregate_2 = $body['subquery_aggregate_2'];
+  $subquery_column_2 = $body['subquery_column_2'];
   $where = $body['where'];
   $group_by = $body['group_by'];
   $order_by = $body['order_by'];
@@ -32,26 +34,56 @@ function get_data( $request ) {
   $query_from = " FROM " . trim($dataset) . " as f1";
   $query_where = "";
   $query_group_by = (empty($group_by) ? "" : "GROUP BY ". $group_by);
-  $query_order_by = (empty($order_by) ? "" : "GROUP BY ". $order_by);
+  $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
   $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
 
-  if ( !empty($column_2) && empty($subquery_aggregate) ) {
+  if (!empty($column_2)) {
     $query_select .= ", f1.$column_2";
   }
 
   if ( !empty($aggregate) && !empty($aggregate_column) ) {
-    $query_select .= ", $aggregate($aggregate_column) AS total_count";
-    $query_group_by = (!empty($query_group_by) ? "" : "GROUP BY f1.$column_1");
+    $columnAlias = ($aggregate_column == '*' ? 'total_count' : $aggregate_column);
+    $query_select .= ", $aggregate($aggregate_column) AS $columnAlias";
+    $query_group_by = (empty($query_group_by) ? "" : "GROUP BY f1.$column_1");
     if ( !empty($column_2) ) {
       $query_group_by .= ", f1.$column_2";
     }
   }
 
-  if ( !empty($subquery_aggregate) && !empty($subquery_column) && empty($where) ) {
-    $query_from .= ", (SELECT $column_1 AS union_column, $subquery_aggregate(*) AS '$subquery_column' FROM $dataset GROUP BY $subquery_column) AS f2";
-    $query_where .= "WHERE f1.$column_1 = f2.union_column";
-    $query_select .= ", f2.$subquery_column";
+if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
+  $union_column = (empty($column_2) ? $column_1 : $column_2);
+  $query_from .= ", (SELECT $union_column AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
+  $query_where .= "WHERE f1.$union_column = f2.union_column";
+  $query_select .= ", f2.$subquery_column";
   }
+
+if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
+  if(!empty($column_1)) {
+    $query_select = "SELECT f1.$column_1 ,f2.$subquery_column, f3.$subquery_column_2";
+    $query_from = "FROM $dataset AS f1,
+    (SELECT
+      $column_1,
+      $subquery_aggregate($subquery_column) AS $subquery_column
+    FROM $dataset
+    GROUP BY $column_1) AS f2, 
+    (SELECT
+      $column_1,
+      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+    FROM $dataset
+    GROUP BY $column_1) AS f3";
+    $query_where = "WHERE f1.$column_1 = f2.$column_1 AND f1.$column_1 = f3.$column_1";
+  } else {
+    $query_select = "SELECT f1.$subquery_column, f2.$subquery_column_2";
+    $query_from = "FROM
+    (SELECT
+      $subquery_aggregate($subquery_column) AS $subquery_column
+    FROM $dataset) AS f1, 
+    (SELECT
+      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+    FROM $dataset) AS f2";
+    $query_where = null;
+  }
+}
   
   if ( !empty($where) ) {
     $where_array = [];

@@ -9,21 +9,20 @@ const merge = async (chartValues, { newValue, mutationType }) => {
         mutationType: mutationType,
         newValue: newValue
       }
-      switch (mutationType) {
-        case 'xAxis':
-          return await setAxis(payload)
-        case 'yAxis':
-          return await setAxis(payload)
-        case 'aggregation':
-          return await setAggregate(payload)
-        case 'filter':
-          return await setFilter(payload)
-        default:
-          throw new VpressError (
-            mutationType,
-            'Slot id must be a valid chart value: [ xAxis, yAxis, aggregation, filter ]'
-          )
-      }
+    if (mutationType === 'xAxis' || mutationType === 'yAxis') {
+      return await setAxis(payload)
+    }
+    if (mutationType === 'aggregation') {
+      return await setAggregate(payload)
+    }
+    if (mutationType === 'orderBy') {
+      return await setOrder(payload)
+    }
+    if (mutationType === 'filter') {
+      return await setFilters(payload)
+    }
+    return await setValue(payload)
+    
   } catch (error) {
       if (error instanceof VpressError) {
         throw new VpressError (
@@ -39,34 +38,51 @@ const merge = async (chartValues, { newValue, mutationType }) => {
     }
 };
 
+const setValue = async ({ chartValues, newValue, mutationType }) => {
+  try {
+    chartValues[mutationType] = newValue
+    return chartValues
+  } catch (error) {
+    throw new VpressError( _ , error.message);
+  }
+}
+
+const setOrder = async ({ chartValues, newValue }) => {
+  try {
+    const order = newValue === 'asc' || newValue === 'desc'
+      ? newValue
+      : chartValues.orderBy.order;
+    const slug = newValue !== 'asc' && newValue !== 'desc'
+      ? newValue
+      : chartValues.orderBy.slug;
+      chartValues.orderBy = { order: order, slug: slug }
+    return chartValues
+  } catch (error) {
+    throw new VpressError( _ , error.message);
+  }
+}
+
 const invertAxis = async ({ chartValues }) => {
   try {
     const xAxis = { ...chartValues.xAxis };
     const yAxis = { ...chartValues.yAxis };
-
     chartValues.xAxis = yAxis;
     chartValues.yAxis = xAxis;
     switch (chartValues.chart) {
       case 'heatmap':
-        if (chartValues.xAxis === 'linear') {
-          chartValues.groupBy = yAxis
-        } else {
-          chartValues.groupBy = xAxis;
-        }
+        chartValues.xAxis === 'linear'
+          ? chartValues.groupBy = yAxis
+          : chartValues.groupBy = xAxis
         break
       case 'scatter':
-        if (chartValues.yAxis === chartValues.groupBy) {
-          chartValues.groupBy = chartValues.xAxis
-        } else {
-          chartValues.groupBy = chartValues.yAxis
-        }
+        chartValues.yAxis === chartValues.groupBy
+          ? chartValues.groupBy = chartValues.xAxis
+          : chartValues.groupBy = chartValues.yAxis
         break
-        default:
+      default:
         break;
     }
-
     return chartValues
-
   } catch (error) {
     throw new VpressError( _ , error.message);
   }
@@ -75,7 +91,6 @@ const invertAxis = async ({ chartValues }) => {
 const setAxis = async ({ chartValues, newValue, mutationType }) => {
   try {
     chartValues[mutationType] = newValue;
-
     if (
         !_.includes(
           [ chartValues.xAxis.slug, chartValues.yAxis.slug ],
@@ -86,12 +101,10 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
       }
     switch (newValue.type) {
       case 'ordinal':
-        // chartValues.orderBy.slug = newValue.slug;
         if (
           chartValues.xAxis.type === chartValues.yAxis.type
         ) {
-          chartValues.chart =
-            chartValues.collapseBy.slug === ''
+          chartValues.chart = chartValues.collapseBy.slug === ''
             ? 'heatmap'
             : 'spineplot';
           chartValues.groupBy = chartValues.yAxis;
@@ -125,7 +138,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         }
         break;
       case 'linear':
-        // chartValues.orderBy.slug = newValue.slug;
         if (
           chartValues.xAxis.type === newValue.type &&
           chartValues.yAxis.type === newValue.type
@@ -159,7 +171,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         }
         break;
       case 'date':
-        // chartValues.collapseBy = { title: 'Conteo de observaciones', type: 'linear', slug: 'total_count', func: '' }
         chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
         if (
           chartValues.xAxis.type === chartValues.yAxis.type
@@ -183,7 +194,6 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         throw new VpressError(newValue.title, 'Tipo de dato inválido.');
     }
     return chartValues;
-
   } catch (error) {
     throw new VpressError(error.valueName, error.message);
   }
@@ -249,22 +259,6 @@ const setAggregate = async (payload) => {
   }
 };
 
-const setFilter = async ({ chartValues, newValue }) => {
-  switch (newValue.type) {
-    case 'ordinal':
-      break;
-    case 'linear':
-      break;
-    case 'date':
-      break;
-    case '':
-      break
-    default:
-      throw new VpressError(newValue.title,'Invalid variable data type');
-  }
-  return chartValues;
-};
-
 const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   try {
     switch (chartValues.chart) {
@@ -293,6 +287,10 @@ const removeAggregate = async ({chartValues, newValue, mutationType}) => {
     throw new VpressError(error.value, error.message)
   }
 }
+
+const setFilters = async ({ chartValues, newValue }) => {
+  chartValues.filter =  newValue 
+};
 
 const extractDateFormat = (variables) => {
   return variables.reduce(
@@ -328,6 +326,115 @@ const sortByDataType = (dataSample) => {
     })
 };
 
+const prepareQuery = (payload, dataSetName) => {
+  const body = {};
+  body['dataset'] = `vpress_${dataSetName}`
+  body['chart_type'] = payload.chart
+  body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
+  if (payload.chart === 'scatter') {
+    if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
+      body['column_1'] = payload.xAxis.slug !== 'total_count'
+        ? sanitizeSpaces(payload.xAxis.slug)
+        : sanitizeSpaces(payload.yAxis.slug)
+      body['order_by'] = sanitizeSpaces(body['column_1'])
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+      body['group_by'] = body['column_1']
+    } else {
+      body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+      body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
+      body['group_by'] = `${body['column_1']}, ${body['column_2']}`
+    }
+    if (payload.xAxis.func && payload.xAxis.func && (payload.xAxis.func !== '' && payload.yAxis.func !== '')) {
+      body['column_1'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
+      body['group_by'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
+      body['column_2'] = null
+      body['subquery_aggregate'] = selectAggregateFunction(payload.xAxis.func)
+      body['subquery_column'] = sanitizeSpaces(payload.xAxis.slug)
+      body['subquery_aggregate_2'] = selectAggregateFunction(payload.yAxis.func)
+      body['subquery_column_2'] = sanitizeSpaces(payload.yAxis.slug)
+      body['order_by'] = `${sanitizeSpaces(body['subquery_column'])}, ${sanitizeSpaces(body['subquery_column_2'])}`
+
+    } else {
+      let aggregate
+      let aggregate_column
+      let column
+      if (payload.xAxis.func && payload.xAxis.func !== '' ) {
+        aggregate = selectAggregateFunction(payload.xAxis.func);
+        aggregate_column = sanitizeSpaces(payload.xAxis.slug)
+        column = sanitizeSpaces(payload.yAxis.slug)
+        body['column_1'] = column
+        body['column_2'] = null
+        body['subquery_aggregate'] = aggregate
+        body['subquery_column'] = aggregate_column
+        body['group_by'] = column
+      } else if (payload.yAxis.func && payload.yAxis.func !== '') {
+        aggregate = selectAggregateFunction(payload.yAxis.func);
+        aggregate_column = sanitizeSpaces(payload.yAxis.slug)
+        column = sanitizeSpaces(payload.xAxis.slug)
+        body['column_1'] = column
+        body['column_2'] = null
+        body['subquery_aggregate'] = aggregate
+        body['subquery_column'] = aggregate_column
+        body['group_by'] = column
+      }
+    }
+    if (payload.groupBy.slug !== '' &&  !(payload.xAxis.func && payload.xAxis.func)) {
+      body['column_1'] += `, ${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+  }
+  if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
+    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+    body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
+    body['group_by'] = `${sanitizeSpaces(payload.xAxis.slug)}, ${sanitizeSpaces(payload.yAxis.slug)}`
+    if (payload.collapseBy.slug === 'total_count') {
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+    } else if (payload.collapseBy.slug !== '') {
+      body['aggregate'] = selectAggregateFunction(payload.collapseBy.func)
+      body['aggregate_column'] = sanitizeSpaces(payload.collapseBy.slug)
+    }
+  }
+  if (payload.chart === 'bars' || payload.chart === 'timeline') {
+
+    const column_1 = payload.xAxis.slug !== payload.collapseBy.slug
+      ? payload.xAxis.slug
+      : payload.yAxis.slug
+
+    body['column_1'] = sanitizeSpaces(column_1)
+    body['group_by'] = sanitizeSpaces(column_1)
+    if (payload.collapseBy.slug === 'total_count') {
+      body['aggregate'] = 'COUNT'
+      body['aggregate_column'] = '*'
+    } else if (payload.collapseBy.slug !== '') {
+      body['subquery_aggregate'] = selectAggregateFunction(payload.collapseBy.func)
+      body['subquery_column'] = sanitizeSpaces(payload.collapseBy.slug)
+    }
+    if (payload.groupBy.slug !== '') {
+      body['column_2'] = sanitizeSpaces(payload.groupBy.slug)
+      body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+  }
+  body['order_by'] = `${payload.orderBy.slug === '' ? body['order_by'] : sanitizeSpaces(payload.orderBy.slug)} ${payload.orderBy.order.toUpperCase()}`
+
+  console.log(body)
+  return body
+}
+
+const selectAggregateFunction = (func) => {
+  switch (func) {
+    case 'sum':
+      return 'SUM'
+    case 'mean':
+    return 'AVG'
+    case 'min':
+      return 'MIN'
+    case 'max':
+      return 'MAX'
+    default:
+      return 'SUM'
+  }
+}
 
 const sanitizeSpaces = (columnName) => {
   return /\s/g.test(columnName)
@@ -340,5 +447,5 @@ export default {
   invertAxis,
   sortByDataType,
   extractDateFormat,
-  sanitizeSpaces
+  prepareQuery
 };

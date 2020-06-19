@@ -64,7 +64,7 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.size }}</v-card-subtitle>
+          >{{ dataSet.size }} - {{ pimpMyInt(dataSet.rows) }} filas</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -79,10 +79,10 @@
             rounded
             outlined
             @click="cleanComponentData"
-            :disabled="data.length === 0"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
           >Limpiar</v-btn>
           <v-btn
-            :disabled="data.length === 0 && dataOrigin != 'api'"
+            :disabled="data.length === 0 && dataOrigin !== 'api'"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -221,7 +221,10 @@ export default {
         const self = this;
         self.loading = true;
         self.dataSetName = fileName;
-        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.storageDataSetsDir, file: this.dataSetName })
+        const file = await this.$store.dispatch(
+          'data/GET_DATASET_BY_NAME',
+          { dataSetDir: this.storageDataSetsDir, file: this.dataSetName }
+        )
         self.loading = false;
         return await self.loadFile(file)
       } catch (error) {
@@ -323,6 +326,7 @@ export default {
     cleanComponentData() {
       this.data = [];
       this.headers = [];
+      this.dataOrigin = 'file'
       this.files = [];
       this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '', dataOrigin:'' });
     },
@@ -336,6 +340,9 @@ export default {
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;
+    },
+    pimpMyInt(num) {
+      return num.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
     }
   }
 };

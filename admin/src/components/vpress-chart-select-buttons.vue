@@ -17,6 +17,7 @@
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
           :disabled="graph.disabled"
+          :class="graph.disabled ? 'grey lighten-1' : ''"
           text
           @click="setChartType(graph.type)"
           class="mx-1"
@@ -73,7 +74,7 @@
           @click="orderByAlphabetical"
           small
           dark
-          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'color2'"
+          color="color2"
         >
           <v-img
             :src="requireImg('alfabeto')"
@@ -86,7 +87,7 @@
           @click="orderByNumerical"
           small
           dark
-          :color="this.sortedBy === 'numerical' ? 'primary' : 'color2'"
+          color="color2"
         >
           <v-img
             :src="requireImg('numerico')"
@@ -120,7 +121,6 @@ export default {
       labels: false,
       stackedBars: false,
       order: this.$store.getters['chartConfig/order'],
-      sortedBy: ''
     };
   },
   created() {
@@ -137,18 +137,18 @@ export default {
   },
   methods: {
     setChartType(chartType) {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_TYPE', chartType);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'chart' , value: chartType});
     },
     requireImg(chartType) {
       return require(`../assets/images/${chartType}.svg`);
     },
     toggleLabels() {
       this.labels = !this.labels;
-      this.$store.dispatch('chartConfig/UPDATE_SHOW_LABELS', this.labels);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'labels' ,value: this.labels });
     },
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
-      this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', this.stackedBars);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'stackedBars' ,value: this.stackedBars });
     },
     toggleOrder() {
       const order = [ 'asc', 'desc' ];
@@ -158,40 +158,38 @@ export default {
       } else {
         this.order = order[0]
       }
-      this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', this.order);
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: this.order });
     },
     orderByAlphabetical() {
       const chartValues = this.$store.getters['chartConfig/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
         }
         if (chartValues.yAxis.type === 'ordinal' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
         
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', '');
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: '' });
       }
-      this.sortedBy = 'alphabetical';
     },
     orderByNumerical() {
       const chartValues = this.$store.getters['chartConfig/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'linear' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
         }
         if (chartValues.yAxis.type === 'linear' ) {
-          this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.yAxis.slug);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
       } else if (chartValues.xAxis.type === 'linear') {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', chartValues.xAxis.slug);
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
-        this.$store.dispatch('chartConfig/UPDATE_ORDER_BY', 'total_count');
+        this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: 'total_count' });
       }
-      this.sortedBy = 'numerical';
     },
     invertAxis() {
       this.$store.dispatch('chartConfig/INVERT_AXIS')

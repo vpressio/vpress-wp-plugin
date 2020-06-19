@@ -22,16 +22,13 @@
           class="mb-2"
           v-for="(variable, variableIndex) in ordinalVariables"
           :key="`cardId_${variableIndex}`"
-          :id="`cardId_${variableIndex}`"
+          :id="`cardId_${variable.slug}`"
           :variableData="variable"
         />
       </div>
     </v-col>
     <v-col cols="12" class="pt-0">
-      <p
-        v-show="linearVariables.length > 0"
-        class="ordinal-lineal"
-      >
+      <p class="ordinal-lineal">
         Lineal
       </p>
       <div class="card--container"

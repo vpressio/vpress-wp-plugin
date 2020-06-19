@@ -60,7 +60,6 @@
     </v-dialog>
   </div>
 </template>
-
 <script>
 import _ from 'lodash';
 import * as d3 from 'd3';
@@ -88,6 +87,7 @@ export default {
   },
   computed: {
     dataFiltered() {
+      
       const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
       return _.map(uniq, this.column);
     },
@@ -98,22 +98,28 @@ export default {
         return null;
       }
     },
-    min() {
-      if (this.type == 'linear') {
-        return _.min(this.dataFiltered);
-      } else {
-        return null;
-      }
-    },
-    max() {
-      if (this.type == 'linear') {
-        return _.max(this.dataFiltered);
-      } else {
-        return null;
-      }
-    }
   },
   methods: {
+    async applyFilter() {
+      try {
+         this.$store.dispatch(
+           'chartConfig/MERGE_CHART_VALUE',
+           {
+              newValue: {
+                "op": this.type === 'linear'
+                  ? 'BEETWEEN'
+                  : 'IN',
+                column: this.column,
+                value: []
+              }, 
+              mutationType: 'filter'
+           }
+           
+         )
+      } catch (error) {
+        console.error(error)
+      }
+    },
     closeDialog() {
       this.$emit('update:openFilterDialog', false);
       this.dialog = false;

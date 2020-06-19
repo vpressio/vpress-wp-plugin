@@ -6,14 +6,14 @@ export default {
   namespaced: true,
   state: {
     activeChartIndex: 0,
-    charts: [],
+    charts: [new vpressChart().values()],
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
       yAxis: { title: '', type: '', slug: '', func: ''},
       groupBy: { title: '', type: 'ordinal', slug: ''},
       collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: 'desc', slug: 'total_count' },
+      orderBy: { order: 'asc', slug: '' },
       decimals: 1,
       preffix: '',
       suffix: '',
@@ -79,36 +79,11 @@ export default {
     SET_CHART(state, payload) {
       state.charts[state.activeChartIndex] = payload
     },
-    SET_CHART_TYPE(state, payload) {
-      state.chartValues.chart = payload;
-    },
-    SET_STACK_BARS(state, payload) {
-      state.chartValues.stackedBars = payload;
-    },
-    SET_ORDER(state, payload) {
-      state.chartValues.orderBy.order = payload;
-    },
-    SET_ORDER_BY(state, payload) {
-      state.chartValues.orderBy.slug = payload;
-    },
-    SET_SHOW_LABELS(state, payload) {
-      state.chartValues.labels = payload;
-    },
-    SET_CHART_THEME(state, payload) {
-      const isDarkThemeActivated = payload;
-      isDarkThemeActivated ? (state.chartValues.theme = 'dark') : (state.chartValues.theme = 'light');
-    },
-    SET_CHART_COLORS(state, payload) {
-      state.chartValues.colors = payload;
-    },
     SET_CHART_VALUES(state, payload) {
       state.chartValues = payload;
     },
     SET_AXIS_TITLE(state, { valueToUpdate, value }) {
       state.chartValues[valueToUpdate].title = value;
-    },
-    SET_CHART_VALUE(state, { valueToUpdate, value }) {
-      state.chartValues[valueToUpdate] = value;
     },
     SET_CHART_ERROR(state, payload) {
       state.error = payload
@@ -120,19 +95,38 @@ export default {
     },
     async MERGE_CHART_VALUE({ rootGetters, dispatch, state, commit }, payload) {
       try {
-        // const newChartValues = await vpress.merge(state.charts[state.activeChartIndex], { newValue: payload.value, mutationType: payload.slot })
-        // commit('SET_CHART', newChartValues)
+        const newValue = payload
         const newChartValues = await vpress.merge(
-          state.chartValues,
-          { newValue: payload.value, mutationType: payload.slot }
-        );
-        if (rootGetters['data/origin'] === 'api') {
-          dispatch('data/GET_CHART_DATA', newChartValues, { root: true });
-        } else {
-          commit('SET_CHART_VALUES', newChartValues)
+          state.charts[state.activeChartIndex],
+          {
+            newValue: newValue.value,
+            mutationType: newValue.mutationType
+          }
+        )
+        if (
+          rootGetters['data/origin'] === 'api' &&
+          (
+            newChartValues.xAxis.slug !== '' &&
+            newChartValues.yAxis.slug !== ''
+          ) &&
+          (
+            newValue.mutationType === 'xAxis' ||
+            newValue.mutationType === 'yAxis' ||
+            newValue.mutationType === 'aggregation' ||
+            newValue.mutationType === 'filter'
+          )
+        ) {
+          await dispatch(
+            'data/GET_CHART_DATA',
+            { chartValues: newChartValues, chartIndex: state.activeChartIndex },
+            { root: true }
+          )
         }
+        commit('SET_CHART', newChartValues)
+
+        commit('SET_CHART_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
-        return newChartValues
+        return newValue
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);
@@ -170,34 +164,11 @@ export default {
     },
     async INVERT_AXIS({ state, commit }) {
       try {
-        const newChartValues = await vpress.invertAxis({ chartValues: state.chartValues });
-        commit('SET_CHART_VALUE', { valueToUpdate: 'xAxis', value: newChartValues.xAxis })
-        commit('SET_CHART_VALUE', { valueToUpdate: 'yAxis', value: newChartValues.yAxis })
+        const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeChartIndex] });
+        commit('SET_CHART_VALUES', newChartValues)
       } catch (error) {
         throw new Error(error.message)
       }
-    },
-    UPDATE_CHART_TYPE({ commit }, payload) {
-      commit('SET_CHART_TYPE', payload);
-    },
-    UPDATE_STACK_BARS({ commit }, payload) {
-      commit('SET_STACK_BARS', payload);
-    },
-    UPDATE_ORDER_BY({ commit }, payload) {
-      if (payload === 'asc' || payload === 'desc') {
-        commit('SET_ORDER', payload);
-      } else {
-        commit('SET_ORDER_BY', payload);
-      }
-    },
-    UPDATE_SHOW_LABELS({ commit }, payload) {
-      commit('SET_SHOW_LABELS', payload);
-    },
-    UPDATE_CHART_THEME({ commit }, payload) {
-      commit('SET_CHART_THEME', payload);
-    },
-    UPDATE_CHART_COLORS({ commit }, payload) {
-      commit('SET_CHART_COLORS', payload);
     },
     UPDATE_CHART_TITLES({ commit }, {valueToUpdate, value}) {
       if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
@@ -212,124 +183,73 @@ export default {
     }
   },
   getters: {
-    charts: state => {
-      return state.charts
+    charts: state => state.charts,
+    chart: state => state.charts[state.activeChartIndex],
+    activeChartIndex: state => state.activeChartIndex,
+    xAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      return [activeChart.xAxis]
+      // if (
+      //   (activeChart.chart === 'bars' || activeChart.chart === 'timeline') &&
+      //   (activeChart.xAxis.type === 'ordinal')
+      // ) {
+      //   return activeChart.groupBy.slug !== ''
+      //     ? [ activeChart.xAxis, activeChart.groupBy ]
+      //     : [ activeChart.xAxis ]
+      // } else {
+      //   return [ activeChart.xAxis ]
+      // }
     },
-    chart: state => state.chartValues,
-    xAxis: state => state.chartValues.xAxis,
-    yAxis: state => state.chartValues.yAxis,
+    yAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      return [activeChart.yAxis]
+      // if (
+      //   (activeChart.chart === 'bars' || activeChart.chart === 'timeline') &&
+      //   (activeChart.yAxis.type === 'ordinal')
+      // ) {
+      //   return activeChart.groupBy.slug !== ''
+      //     ? [ activeChart.yAxis, activeChart.groupBy ]
+      //     : [ activeChart.yAxis ]
+      // } else {
+      //   return [ activeChart.yAxis ]
+      // }
+    },
+    ordinalAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      if (
+        activeChart.chart === 'bars' ||
+        activeChart.chart === 'timeline'
+      ) {
+        return activeChart.xAxis.type === 'ordinal'
+          ? 'xAxis'
+          : 'yAxis'
+      }
+      return null
+    },
     aggregation: state => {
       if (
-        state.chartValues.chart === 'bars' ||
-        state.chartValues.chart === 'scatter' ||
-        state.chartValues.chart === 'timeline'
+        state.charts[state.activeChartIndex].chart === 'bars' ||
+        state.charts[state.activeChartIndex].chart === 'scatter' ||
+        state.charts[state.activeChartIndex].chart === 'timeline'
       ) {
-        return state.chartValues.groupBy
+        return [state.charts[state.activeChartIndex].groupBy]
       }
       if (
-        state.chartValues.chart === 'heatmap' ||
-        state.chartValues.chart === 'spineplot'
+        state.charts[state.activeChartIndex].chart === 'heatmap' ||
+        state.charts[state.activeChartIndex].chart === 'spineplot'
       ) {
-        return state.chartValues.collapseBy
+        return [state.charts[state.activeChartIndex].collapseBy]
       }
     },
-    filter: state => state.chartValues.collapseBy,
-    currentColumns: state => {
-      const columns = {
-        chart_type: state.chartValues.chart,
-        column_1: state.chartValues.xAxis.slug,
-        column_2: state.chartValues.yAxis.slug, 
-      }
-      if (
-        state.chartValues.groupBy.slug !== '' ||
-        state.chartValues.collapseBy.slug !== ''
-      ) {
-        if (
-          state.chartValues.chart === 'bars' ||
-          state.chartValues.chart === 'scatter' ||
-          state.chartValues.chart === 'timeline'
-        ) {
-          columns.column_3 = state.chartValues.groupBy.slug
-        }
-        if (
-          state.chartValues.chart === 'heatmap' ||
-          state.chartValues.chart === 'spineplot'
-        ) {
-          columns.column_3 = state.chartValues.collapseBy.slug
-        }
-      }
-
-      if (state.chartValues.xAxis.slug === 'total_count' || state.chartValues.yAxis.slug === 'total_count') {
-        columns.aggregate = 'COUNT',
-        columns.column_2 = '*'
-      }
-      return columns
-    },
+    filter: state => state.charts[state.activeChartIndex].filters,
     error: state => state.error,
-    theme: state => state.chartValues.theme,
-    chartType: state => state.chartValues.chart,
-    labels: state => state.chartValues.labels,
-    'groupBy.slug': state => state.chartValues.groupBy.slug,
-    stackedBars: state => state.chartValues.stackedBars,
-    order: state => state.chartValues.orderBy.order,
+    theme: state => state.charts[state.activeChartIndex].theme,
+    chartType: state => state.charts[state.activeChartIndex].chart,
+    labels: state => state.charts[state.activeChartIndex].labels,
+    'groupBy.slug': state => state.charts[state.activeChartIndex].groupBy.slug,
+    stackedBars: state => state.charts[state.activeChartIndex].stackedBars,
+    order: state => state.charts[state.activeChartIndex].orderBy.order,
     availableColors: state => state.availableColors,
-    getAvailableCharts: state => {
-      return state.availableGraphs.map(chart => {
-        switch (chart.type) {
-          case 'bars':
-            if (
-              (
-                state.chartValues.xAxis.type === 'linear' ||
-                state.chartValues.yAxis.type === 'linear'
-              ) &&
-              (
-                state.chartValues.xAxis.slug === state.chartValues.collapseBy.slug ||
-                state.chartValues.yAxis.slug === state.chartValues.collapseBy.slug
-              ) && 
-              (
-                state.chartValues.yAxis !== state.chartValues.xAxis
-              )
-            ) {
-              return { ...chart, disabled: false };
-            } 
-            return { ...chart, disabled: true };
-          case 'heatmap':
-            if (state.chartValues.collapseBy.slug === '') {
-              return { ...chart, disabled: false };
-            }
-            return { ...chart, disabled: false };
-          case 'spineplot':
-            if (state.chartValues.collapseBy.slug !== '') {
-              return { ...chart, disabled: false };
-            }
-            return { ...chart, disabled: true };
-          case 'scatter':
-            if (
-              state.chartValues.xAxis.slug === 'total_count' ||
-              state.chartValues.yAxis.slug === 'total_count'
-            ) {
-              return { ...chart, disabled: true };
-            }
-            return { ...chart, disabled: false };
-          case 'timeline':
-            if (
-              (
-              state.chartValues.xAxis === state.chartValues.collapseBy ||
-              state.chartValues.yAxis === state.chartValues.collapseBy
-              ) &&
-              (
-                state.chartValues.xAxis.type === 'date' &&
-                state.chartValues.yAxis.type !== 'date'
-              ) && 
-              (
-                state.chartValues.xAxis.type !== state.chartValues.yAxis.type
-              )
-            ) {
-              return { ...chart, disabled: false };
-            }
-            return { ...chart, disabled: true };
-        }
-      });
-    }
+    getAvailableCharts: state => state.availableGraphs.map(chart => ({ ...chart, disabled: false }))
   }
 };

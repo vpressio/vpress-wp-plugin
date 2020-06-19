@@ -216,7 +216,7 @@ export default {
       return numberOfCols;
     },
     isDarkThemeActivated() {
-      this.$store.dispatch('chartConfig/UPDATE_CHART_THEME', this.darkTheme);
+      // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     variableData() {
@@ -231,14 +231,14 @@ export default {
   },
   methods: {
     downloadChartImg() {
-      downloadChart('#empty-chart')
+      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeChartIndex']}`)
     },
     clipboardCopy() {
-      const iframe = '<iframe src="http://localhost:8080/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>'
+      const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
       navigator.clipboard.writeText(iframe);
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, slot: slot})
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';
@@ -286,7 +286,7 @@ export default {
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/UPDATE_STACK_BARS', true);
+          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'stackedBars', value: true });
           break
         case 7:
           this.activeTab = 2
