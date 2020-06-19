@@ -53,6 +53,7 @@ export default class vpressChart {
         yAxis: { title: '', type: '', slug: '' },
         groupBy: { title: '', type: 'ordinal', slug: '' },
         collapseBy: { title: '', type: 'linear', slug: '' },
+        filters: [],
         unitsName: '',
         orderBy: { order: 'asc', slug: '' },
         decimals: 0,

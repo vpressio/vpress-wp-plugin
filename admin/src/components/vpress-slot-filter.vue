@@ -87,6 +87,7 @@ export default {
   },
   computed: {
     dataFiltered() {
+      
       const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
       return _.map(uniq, this.column);
     },
@@ -99,6 +100,26 @@ export default {
     },
   },
   methods: {
+    async applyFilter() {
+      try {
+         this.$store.dispatch(
+           'chartConfig/MERGE_CHART_VALUE',
+           {
+              newValue: {
+                "op": this.type === 'linear'
+                  ? 'BEETWEEN'
+                  : 'IN',
+                column: this.column,
+                value: []
+              }, 
+              mutationType: 'filter'
+           }
+           
+         )
+      } catch (error) {
+        console.error(error)
+      }
+    },
     closeDialog() {
       this.$emit('update:openFilterDialog', false);
       this.dialog = false;

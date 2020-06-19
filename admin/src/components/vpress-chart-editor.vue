@@ -234,7 +234,7 @@ export default {
       downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeChartIndex']}`)
     },
     clipboardCopy() {
-      const iframe = `<iframe src="http://localhost:8080/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
+      const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
       navigator.clipboard.writeText(iframe);
     },
     mergeValue(slot, dataToMerge) {

@@ -3,13 +3,6 @@
     min-height='600'
   >
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <!-- <VpressChartContainer
-      v-show="!loadingChart"
-      :data="dataChart"
-      :chartConfig="chartConfig"
-      @chart_loaded="onChartIsLoaded"
-      :id="`empty_chart_${activeChartIndex}`"
-    /> -->
     <div v-show="loadingChart" class="progress--layer" style="width:100%;height:600px;display:flex;justify-content:center;align-items:center">
       <v-progress-circular
         :size="70"
@@ -82,8 +75,7 @@ export default {
       ) {
         this.loadingChart = false
         this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
-        }
-      
+      }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
     });
     this.unsubscribeAction = this.$store.subscribeAction( action => {

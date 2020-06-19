@@ -103,13 +103,6 @@ export default {
             mutationType: newValue.mutationType
           }
         )
-        // const newChartValues = await vpress.merge(
-        //   state.chartValues,
-        //   {
-        //     newValue: newValue.value,
-        //     mutationType: newValue.mutationType
-        //   }
-        // );
         if (
           rootGetters['data/origin'] === 'api' &&
           (
@@ -193,24 +186,62 @@ export default {
     charts: state => state.charts,
     chart: state => state.charts[state.activeChartIndex],
     activeChartIndex: state => state.activeChartIndex,
-    xAxis: state => state.charts[state.activeChartIndex].xAxis,
-    yAxis: state => state.charts[state.activeChartIndex].yAxis,
+    xAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      return [activeChart.xAxis]
+      // if (
+      //   (activeChart.chart === 'bars' || activeChart.chart === 'timeline') &&
+      //   (activeChart.xAxis.type === 'ordinal')
+      // ) {
+      //   return activeChart.groupBy.slug !== ''
+      //     ? [ activeChart.xAxis, activeChart.groupBy ]
+      //     : [ activeChart.xAxis ]
+      // } else {
+      //   return [ activeChart.xAxis ]
+      // }
+    },
+    yAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      return [activeChart.yAxis]
+      // if (
+      //   (activeChart.chart === 'bars' || activeChart.chart === 'timeline') &&
+      //   (activeChart.yAxis.type === 'ordinal')
+      // ) {
+      //   return activeChart.groupBy.slug !== ''
+      //     ? [ activeChart.yAxis, activeChart.groupBy ]
+      //     : [ activeChart.yAxis ]
+      // } else {
+      //   return [ activeChart.yAxis ]
+      // }
+    },
+    ordinalAxis: ({ charts, activeChartIndex }) => {
+      const activeChart = charts[activeChartIndex];
+      if (
+        activeChart.chart === 'bars' ||
+        activeChart.chart === 'timeline'
+      ) {
+        return activeChart.xAxis.type === 'ordinal'
+          ? 'xAxis'
+          : 'yAxis'
+      }
+      return null
+    },
     aggregation: state => {
       if (
         state.charts[state.activeChartIndex].chart === 'bars' ||
         state.charts[state.activeChartIndex].chart === 'scatter' ||
         state.charts[state.activeChartIndex].chart === 'timeline'
       ) {
-        return state.charts[state.activeChartIndex].groupBy
+        return [state.charts[state.activeChartIndex].groupBy]
       }
       if (
         state.charts[state.activeChartIndex].chart === 'heatmap' ||
         state.charts[state.activeChartIndex].chart === 'spineplot'
       ) {
-        return state.charts[state.activeChartIndex].collapseBy
+        return [state.charts[state.activeChartIndex].collapseBy]
       }
     },
-    filter: state => state.charts[state.activeChartIndex].collapseBy,
+    filter: state => state.charts[state.activeChartIndex].filters,
     error: state => state.error,
     theme: state => state.charts[state.activeChartIndex].theme,
     chartType: state => state.charts[state.activeChartIndex].chart,
