@@ -1,22 +1,22 @@
 <template>
   <v-card class="py-3">
-    <VpressSlot
+    <div
       v-for="(slot, slotIndex) in slots"
       :key="`slot_${slotIndex}`"
-      class="mb-2"
-      :class="{
-        'v-step-4': slot.slotId === 'xAxis',
-        'v-step-5': slot.slotId === 'yAxis',
-        'v-step-6': slot.slotId === 'aggregation'
-      }"
-      :slotId="slot.slotId"
-      :icon="slot.icon"
-      :slotIcon="slot.slotIcon"
-      :label="slot.label"
-      :maxStack="slot.maxStack"
-      :dataType="['linear','ordinal']"
-      :filter="slot.filter"
-    />
+    >
+      <VpressSlot
+        class="mb-2"
+        :class="{
+          'v-step-4': slot.slotId === 'xAxis',
+          'v-step-5': slot.slotId === 'yAxis',
+          'v-step-6': slot.slotId === 'aggregation'
+        }"
+        :slotId="slot.slotId"
+        :icon="slot.icon"
+        :slotIcon="slot.slotIcon"
+        :label="slot.label"
+      />
+    </div>
   </v-card>
 </template>
 <script>
@@ -34,36 +34,44 @@ export default {
           slotId:"xAxis",
           icon:"mdi-view-sequential",
           slotIcon: "eje-x",
-          label:"Filas",
-          maxStack: 3,
-          filter: false
+          label:"Filas"
         },
         {
           slotId:"yAxis",
           icon:"mdi-view-parallel",
           slotIcon: "eje-y",
-          label:"Columnas",
-          maxStack: 1,
-          filter: false
+          label:"Columnas"
         },
         {
           slotId:"aggregation",
           icon:" mdi-palette-outline",
           slotIcon: "color",
-          label:"Color",
-          maxStack: 1,
-          filter: false
+          label:"Color"
         },
-        // {
-        //   slotId:"filter",
-        //   icon:"mdi-tune",
-        //   slotIcon: "",
-        //   label: "collapseBy",
-        //   maxStack: 3,
-        //   filter: true
-        // }
+        {
+          slotId:"filter",
+          icon:"mdi-tune",
+          slotIcon: "",
+          label: "Filtros"
+        }
       ]
     };
+  },
+  computed: {
+    slotsToRender() {
+      const test = this.slots.filter(slot => {
+        const activeChartValues = this.$store.getters['chartConfig/chart']
+        if(
+          activeChartValues.chart === 'bars' ||
+          activeChartValues.chart === 'timeline'
+        ) {
+          return slot.slotId !== 'aggregation'
+        } else {
+          return slot
+        }
+      })
+      return test
+    }
   }
 };
 </script>

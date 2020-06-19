@@ -64,7 +64,7 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.rows }} filas</v-card-subtitle>
+          >{{ dataSet.size }} - {{ pimpMyInt(dataSet.rows) }} filas</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -221,7 +221,10 @@ export default {
         const self = this;
         self.loading = true;
         self.dataSetName = fileName;
-        const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: this.storageDataSetsDir, file: this.dataSetName })
+        const file = await this.$store.dispatch(
+          'data/GET_DATASET_BY_NAME',
+          { dataSetDir: this.storageDataSetsDir, file: this.dataSetName }
+        )
         self.loading = false;
         return await self.loadFile(file)
       } catch (error) {
@@ -337,6 +340,9 @@ export default {
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;
+    },
+    pimpMyInt(num) {
+      return num.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
     }
   }
 };

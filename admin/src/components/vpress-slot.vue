@@ -30,10 +30,9 @@
     >
       <VpressVariableCard
         class="mb-1"
-        v-for="(variable, variableIndex) in variablesToRender"
+        v-for="(variable, variableIndex) in storeVariables"
         :id="variable.id"
         :key="`variable_${variableIndex}`"
-        :variablesInSlot.sync="variablesInSlot"
         :variableData="variable"
         @drop.stop.self="drop"
         inSlot
@@ -41,7 +40,6 @@
         :error="error"
       />
       <p
-        v-if="variablesInSlot.length <= maxStack"
         class="slot_placeholder my-2"
         @drop.stop.self="drop"
       >
@@ -71,9 +69,6 @@ export default {
     icon: String,
     slotIcon: String,
     label: String,
-    maxStack: Number,
-    dataType: Array,
-    filter: Boolean
   },
   data() {
     return {
@@ -87,8 +82,8 @@ export default {
     };
   },
   computed: {
-    variablesToRender() {
-      return [this.$store.getters[`chartConfig/${this.slotId}`]];
+    storeVariables() {
+      return this.$store.getters[`chartConfig/${this.slotId}`];
     },
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
@@ -98,26 +93,21 @@ export default {
     async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const transferedString = dataTransfer.getData(
-        'transferedString'
-      );
-      const variable = JSON.parse(
-        transferedString
-      );
-      if (this.filter) {
-        this.filterData(variable.slug,variable.type);
-      }
+      const transferedString = dataTransfer.getData('transferedString');
+      const variable = JSON.parse(transferedString);
+      if (this.slotId === 'filter') this.filterData(variable.slug,variable.type);
       try {
         const result = await this.$store.dispatch(
           `chartConfig/MERGE_CHART_VALUE`,
-          { value: {
+          { 
+            value: {
               slug: variable.slug,
               title: variable.title,
               type: variable.type
             },
             mutationType: this.slotId
           }
-        )
+        );
         this.addVariableToSlot(result);
         this.error = false
       } catch (error) {
@@ -128,24 +118,9 @@ export default {
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
     },
-    addVariableToSlot(variableData) {
-        const variableArray = [...this.variablesInSlot];
-        const dataInSlot = variableArray.reduce(
-            (data, variable, variableIndex) => {
-              if (variable.id === variableData.id) {
-                data.includesId = true;
-                data.indexIncludedId = variableIndex;
-              }
-              return data
-            },
-            { includesId: false, indexIncludedId: -1 }
-          );
-        if (dataInSlot.includesId){
-          variableArray.splice(dataInSlot.indexIncludedId, 1, variableData);
-        } else if (this.variablesInSlot.length <= this.maxStack) {
-          variableArray.splice(0, 1, variableData); 
-        }
-      this.variablesInSlot = variableArray;
+    addVariableToSlot() {
+       const variable = this.$store.getters[`chartConfig/${this.slotId}`]
+       this.variablesInSlot = [ ...this.variablesInSlot, variable ]
     },
     filterData(column, type) {
       this.filterType = type;

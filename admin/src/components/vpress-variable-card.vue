@@ -69,7 +69,6 @@ export default {
     slotId: String,
     variableData: Object,
     inSlot: Boolean,
-    variablesInSlot: Array,
     error: Boolean
   },
   data() {

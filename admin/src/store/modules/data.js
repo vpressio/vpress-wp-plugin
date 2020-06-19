@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { storage } from '../../plugins/firebase';
 import { FReader } from '../../plugins/fileReader';
 import vpress from '../../utils/vpress.js';
@@ -7,7 +6,7 @@ import axios from 'axios';
 export default {
   namespaced: true,
   state: {
-    data: null,
+    data: [],
     dataSetName:'',
     dataVariables : [],
     dateFormat: '',
@@ -15,8 +14,8 @@ export default {
     origin: ''
   },
   mutations: {
-    SET_DATA(state, data) {
-      state.data = data;
+    SET_DATA(state, { index ,data }) {
+      state.data[`${index}`] = data;
     },
     SET_DATASET_NAME(state, dataSetName) {
       state.dataSetName = dataSetName
@@ -35,7 +34,7 @@ export default {
     }
   },
   actions: {
-    async GET_CHART_DATA({ state, commit } , chartValues) {
+    async GET_CHART_DATA({ state, commit } , { chartValues, chartIndex }) {
       try {
         const body = await vpress.prepareQuery(chartValues, state.dataSetName);
         const response = await axios.post(
@@ -47,7 +46,7 @@ export default {
           
           throw new Error(response.data.error);
         } else {
-          commit('SET_DATA', response.data.data)
+          commit('SET_DATA',{ index: chartIndex, data: response.data.data})
           return chartValues
         }
       } catch (error) {
@@ -74,7 +73,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    async SAVE_DATA({ commit }, { data, dataSetName, dataOrigin }) {
+    async SAVE_DATA({ state, commit }, { data, dataSetName, dataOrigin }) {
       try {
         if (data.length > 0) {
           const variables = vpress.sortByDataType(data[0])
@@ -83,9 +82,9 @@ export default {
         } else {
           commit('SET_VARIABLE_DATA', [])
         }
-        commit('SET_DATA', data);
-        commit('SET_DATASET_NAME', dataSetName);
         commit('SET_ORIGIN', dataOrigin)
+        commit('SET_DATASET_NAME', dataSetName);
+        if(state.origin !== 'api') commit('SET_DATA', { index: 0, data: data });
         return { data: data, dataSetName: dataSetName }
       } catch (error) {
         throw new Error(error.message)
@@ -143,20 +142,10 @@ export default {
     dataSetName: state => state.dataSetName,
     dataType: state => state.dataVariables.map(({ type, title, slug }) => ({ type: type.dataType, title: title, slug: slug })),
     dateFormat: state => state.dateFormat,
-    dataFiltered: state => {
-      if (_.isEmpty(state.filter)) {
-        return state.data
-      } else if (state.filter.type && state.filter.type == 'ordinal') {
-        return _.filter(state.data, function (o) {
-          return _.includes(o[state.filter.column], state.filter.value);
-        });
-      } else if (state.filter.type && state.filter.type == 'linear') {
-        return _.filter(state.data, function (o) {
-          return o[state.filter.column] >= state.filter.value[0] && o[state.filter.column] <= state.filter.value[1]
-        });
-      } else {
-        return state.data
-      }
+    activeChartData: state => {
+      return state.origin !== 'api'
+        ? () => state.data[0]
+        : index => state.data[index]
     },
     origin: state => state.origin
   }
