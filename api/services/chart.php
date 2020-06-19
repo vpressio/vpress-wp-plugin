@@ -1,5 +1,5 @@
 <?php
-function get_data($request) {
+function get_data( $request ) {
   $body = $request->get_json_params();
   if ( empty($body['dataset']) || empty($body['chart_type']) ) {
     return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
@@ -123,7 +123,7 @@ if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
   return $response;
 }
 
-function get_chart_data($request){
+function get_chart_data( $request ) {
   $body = $request->get_json_params();
   $column_1 = $body['column_1'];
   $column_2 = $body['column_2'];
@@ -151,4 +151,93 @@ function get_chart_data($request){
   );
 
  return $response;
-};
+}
+
+function get_chart( $request ) {
+  global $wpdb;
+  $id = (int)$request->get_param('id');
+  $query = "SELECT * FROM vpresscore_chart WHERE id = $id";
+
+  $data = $wpdb->get_results($wpdb->prepare($query));
+
+  $response = array(
+    'data' => $data,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function list_charts( $request ) {
+  global $wpdb;
+  $page = (int)$request->get_param('page');
+  $per_page = (int)$request->get_param('perPage');
+  $start_at = $per_page * ($page - 1);
+  $query_total = "SELECT COUNT(*) AS total FROM vpresscore_chart";
+  $query = "SELECT * FROM vpresscore_chart LIMIT $start_at, $per_page";
+
+  $data = $wpdb->get_results($wpdb->prepare($query));
+  $total = $wpdb->get_results($wpdb->prepare($query_total));
+
+  $response = array(
+    'data' => $data,
+    'query' => $query,
+    'total' => (int)$total[0]->total,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function create_chart( $request ) {
+  global $wpdb;
+  $table_name = $wpdb->prefix.'vpresscore_charts';
+  $dataset_id = (int)$request->get_param('dataset_id');
+  $value = "\"" . $request->get_param('value') . "\"";
+  $owner_id = (int)$request->get_param('owner_id');
+  $description = "\"" . $request->get_param('description') . "\"";
+  $permissions = "\"" . $request->get_param('permissions') . "\"";
+  $img_url = "\"" . $request->get_param('img_url') . "\"";
+  $query = "INSERT INTO $table_name (dataset_id, value, owner_id, description, permissions, img_url) VALUES($dataset_id, $value, $owner_id, $description, $permissions, $img_url)";
+  $data = $wpdb->get_results($wpdb->prepare($query));
+
+  $response = array(
+    'data' => $data,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function update_chart( $request ) {
+  global $wpdb;
+  $value = $request->get_param('value');
+  $description = $request->get_param('description');
+  $permissions = $request->get_param('permissions');
+  $img_url = $request->get_param('img_url');
+  $query = "UPDATE vpresscore_chart SET \
+  value = $value, description = $description, permissions = $permissions, img_url = $img_url";
+
+  $data = $wpdb->get_results($wpdb->prepare($query));
+
+  $response = array(
+    'data' => $data,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function delete_chart( $request ) {
+  global $wpdb;
+  $id = (int)$request->get_param('id');
+  $query = "DELETE FROM vpresscore_chart WHERE id = $id";
+
+  $data = $wpdb->get_results($wpdb->prepare($query));
+
+  $response = array(
+    'data' => $data,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
