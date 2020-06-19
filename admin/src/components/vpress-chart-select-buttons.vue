@@ -74,7 +74,7 @@
           @click="orderByAlphabetical"
           small
           dark
-          :color="this.sortedBy === 'alphabetical' ? 'primary' : 'color2'"
+          color="color2"
         >
           <v-img
             :src="requireImg('alfabeto')"
@@ -87,7 +87,7 @@
           @click="orderByNumerical"
           small
           dark
-          :color="this.sortedBy === 'numerical' ? 'primary' : 'color2'"
+          color="color2"
         >
           <v-img
             :src="requireImg('numerico')"
@@ -121,7 +121,6 @@ export default {
       labels: false,
       stackedBars: false,
       order: this.$store.getters['chartConfig/order'],
-      sortedBy: ''
     };
   },
   created() {
@@ -176,7 +175,6 @@ export default {
       } else {
         this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: '' });
       }
-      this.sortedBy = 'alphabetical';
     },
     orderByNumerical() {
       const chartValues = this.$store.getters['chartConfig/chart'];
@@ -192,7 +190,6 @@ export default {
       } else {
         this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: 'total_count' });
       }
-      this.sortedBy = 'numerical';
     },
     invertAxis() {
       this.$store.dispatch('chartConfig/INVERT_AXIS')

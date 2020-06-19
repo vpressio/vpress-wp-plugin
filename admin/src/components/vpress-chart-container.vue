@@ -158,16 +158,6 @@ export default {
     }
   },
   watch: {
-    data() {
-      if (
-        this.data &&
-        this.data.length > 0 &&
-        this.chartConfig.xAxis.slug !== '' &&
-        this.chartConfig.yAxis.slug !== ''
-      ) {
-        // this.configChart()
-      }
-    },
     chartConfig() {
       if (
         !_.includes(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'], this.chartConfig.chart)

@@ -98,26 +98,21 @@ export default {
     async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const transferedString = dataTransfer.getData(
-        'transferedString'
-      );
-      const variable = JSON.parse(
-        transferedString
-      );
-      if (this.filter) {
-        this.filterData(variable.slug,variable.type);
-      }
+      const transferedString = dataTransfer.getData('transferedString');
+      const variable = JSON.parse(transferedString);
+      if (this.filter) this.filterData(variable.slug,variable.type);
       try {
         const result = await this.$store.dispatch(
           `chartConfig/MERGE_CHART_VALUE`,
-          { value: {
+          { 
+            value: {
               slug: variable.slug,
               title: variable.title,
               type: variable.type
             },
             mutationType: this.slotId
           }
-        )
+        );
         this.addVariableToSlot(result);
         this.error = false
       } catch (error) {
@@ -129,7 +124,7 @@ export default {
       this.changeSlotStyle = !this.changeSlotStyle
     },
     addVariableToSlot(variableData) {
-        const variableArray = [...this.variablesInSlot];
+        const variableArray = [ ...this.variablesInSlot ];
         const dataInSlot = variableArray.reduce(
             (data, variable, variableIndex) => {
               if (variable.id === variableData.id) {

@@ -60,7 +60,6 @@
     </v-dialog>
   </div>
 </template>
-
 <script>
 import _ from 'lodash';
 import * as d3 from 'd3';
@@ -98,20 +97,6 @@ export default {
         return null;
       }
     },
-    min() {
-      if (this.type == 'linear') {
-        return _.min(this.dataFiltered);
-      } else {
-        return null;
-      }
-    },
-    max() {
-      if (this.type == 'linear') {
-        return _.max(this.dataFiltered);
-      } else {
-        return null;
-      }
-    }
   },
   methods: {
     closeDialog() {

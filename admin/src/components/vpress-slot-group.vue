@@ -54,14 +54,14 @@ export default {
           maxStack: 1,
           filter: false
         },
-        // {
-        //   slotId:"filter",
-        //   icon:"mdi-tune",
-        //   slotIcon: "",
-        //   label: "collapseBy",
-        //   maxStack: 3,
-        //   filter: true
-        // }
+        {
+          slotId:"filter",
+          icon:"mdi-tune",
+          slotIcon: "",
+          label: "collapseBy",
+          maxStack: 3,
+          filter: true
+        }
       ]
     };
   }

@@ -3,13 +3,13 @@
     min-height='600'
   >
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <VpressChartContainer
+    <!-- <VpressChartContainer
       v-show="!loadingChart"
       :data="dataChart"
       :chartConfig="chartConfig"
       @chart_loaded="onChartIsLoaded"
       :id="`empty_chart_${activeChartIndex}`"
-    />
+    /> -->
     <div v-show="loadingChart" class="progress--layer" style="width:100%;height:600px;display:flex;justify-content:center;align-items:center">
       <v-progress-circular
         :size="70"
@@ -18,15 +18,14 @@
         indeterminate
       ></v-progress-circular>
     </div>
-
-    <!-- <div
+    <div
       v-for="(chart, chartIndex) in charts"
       :key="`empty_chart_${chartIndex}`"
     >
       <VpressChartContainer
-        v-if="activeChartIndex === chartIndex"
+        v-show="activeChartIndex === chartIndex && !loadingChart"
         :id="`empty_chart_${chartIndex}`"
-        :data="dataChart"
+        :data="dataChart(chartIndex)"
         :chartConfig="charts[chartIndex]"
         @chart_loaded="onChartIsLoaded"
       />
@@ -49,7 +48,7 @@
       depressed
     >
       Gráfica {{ chartIndex + 1 }}
-    </v-btn> -->
+    </v-btn>
   </v-card>
 </template>
 <script>
@@ -66,7 +65,6 @@ export default {
   },
   data() {
     return {
-      dataChart: this.$store.getters['data/dataFiltered'],
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
       charts: this.$store.getters['chartConfig/charts'],
@@ -75,37 +73,18 @@ export default {
     };
   },
   created() {
-    this.unsubscribe = this.$store.subscribe((mutation, state) => {
+    this.unsubscribe = this.$store.subscribe((mutation) => {
       if(
-        mutation.type === 'chartConfig/SET_CHART_VALUES' &&
-        this.$store.getters['data/origin'] === 'api'
+        (
+          mutation.type === 'chartConfig/SET_CHART_VALUES' ||
+          mutation.type === 'chartConfig/ADD_CHART'
+        )
       ) {
         this.loadingChart = false
-        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
-        this.chartConfig = chartConfig;
-        if ( 
-          state.chartConfig.chartValues.xAxis.slug !== '' &&
-          state.chartConfig.chartValues.yAxis.slug !== ''
-        ) {
-          this.dataChart = this.$store.getters['data/dataFiltered']
-        } else {
-          this.dataChart = [];
+        this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
         }
-      } else if (this.$store.getters['data/origin'] !== 'api') {
-        this.loadingChart = false
-        const chartConfig = _.cloneDeep(state.chartConfig.chartValues);
-          this.chartConfig = chartConfig;
-          if ( 
-            state.chartConfig.chartValues.xAxis.slug !== '' &&
-            state.chartConfig.chartValues.yAxis.slug !== ''
-          ) {
-            this.dataChart = this.$store.getters['data/dataFiltered']
-          } else {
-            this.dataChart = [];
-        }
-      }
+      
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
-      // this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
     });
     this.unsubscribeAction = this.$store.subscribeAction( action => {
       if(action.type === 'chartConfig/MERGE_CHART_VALUE') this.loadingChart = true;
@@ -116,9 +95,12 @@ export default {
     this.unsubscribeAction();
   },
   computed: {
+    dataChart() {
+      return this.$store.getters['data/activeChartData']
+    },
     showLoader() {
       return this.loadingChart
-    }
+    },
   },
   methods: {
     setActiveChart(chartIndex) {
