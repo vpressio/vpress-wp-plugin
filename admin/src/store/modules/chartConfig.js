@@ -1,6 +1,7 @@
 import vpress from '../../utils/vpress.js';
 import vpressChart from '../../utils/chartModel.js';
 import { firestore } from '../../plugins/firebase';
+import axios from 'axios';
 
 export default {
   namespaced: true,
@@ -180,6 +181,39 @@ export default {
     async CREATE_CHART({ commit }, payload) {
       const chartValues = new vpressChart(payload).values();
       commit('ADD_CHART', chartValues)
+    },
+    async SAVE_CHART({ state }) {
+      try {
+        console.log(
+          {
+              dataset_id: 1,
+              value: JSON.stringify(state.charts[state.activeChartIndex]),
+              owner_id: 1,
+              description: "Lorem ipsum",
+              permissions: "Public",
+              img_url: "http://google.com"
+          }
+        )
+        // const response = await axios.post(
+        //   `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,
+        //   {
+        //     dataset_id: 1,
+        //     value: JSON.stringify(state.charts[state.activeChartIndex]),
+        //     owner_id: 1,
+        //     description: "Lorem ipsum",
+        //     permissions: "Public",
+        //     img_url: "http://google.com"
+        //   }
+        // )
+        // console.log(response.data.query)
+        // if (response.data.error) {
+        //   throw new Error(response.data.error)
+        // } else {
+        //   return response.data
+        // }
+      } catch (error) {
+        throw new Error(error.message)
+      } 
     }
   },
   getters: {

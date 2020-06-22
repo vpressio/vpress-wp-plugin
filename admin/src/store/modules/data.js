@@ -43,10 +43,9 @@ export default {
         );
         console.info(response.data.query)
         if (response.data.error) {
-          
           throw new Error(response.data.error);
         } else {
-          commit('SET_DATA',{ index: chartIndex, data: response.data.data})
+          commit('SET_DATA',{ index: chartIndex, data: response.data.data })
           return chartValues
         }
       } catch (error) {
