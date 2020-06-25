@@ -1,7 +1,7 @@
 <template>
   <v-card class="py-3">
     <div
-      v-for="(slot, slotIndex) in slots"
+      v-for="(slot, slotIndex) in slotsToRender"
       :key="`slot_${slotIndex}`"
     >
       <VpressSlot

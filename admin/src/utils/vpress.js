@@ -98,7 +98,7 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         )
       ) {
         chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
-      }
+    }
     switch (newValue.type) {
       case 'ordinal':
         if (
