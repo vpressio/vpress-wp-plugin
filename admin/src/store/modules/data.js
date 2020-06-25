@@ -43,7 +43,7 @@ export default {
         );
         console.info(response.data.query)
         if (response.data.error) {
-          
+
           throw new Error(response.data.error);
         } else {
           commit('SET_DATA',{ index: chartIndex, data: response.data.data})
@@ -132,6 +132,19 @@ export default {
           content = await FReader.readExcel(file);
         }
         return content
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_CHART_LIST(_, payload) {
+      let { page, itemsPerPage, q } = payload
+      if (!page) page = 1
+      if (!itemsPerPage) itemsPerPage = 10
+      if (!q) q = ''
+      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
+      try {
+        const response = await axios.get(url);
+        return response.data
       } catch (error) {
         throw new Error(error.message)
       }

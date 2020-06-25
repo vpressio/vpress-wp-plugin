@@ -57,7 +57,8 @@ export default {
   props: {
     image_url: {
       type: String,
-      required: true
+      required: true,
+      default: 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
     },
     title: {
       type: String,

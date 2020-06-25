@@ -1,26 +1,40 @@
 <template>
   <v-container>
-    <v-row justify="space-between">
-      <v-col>
-        <v-text-field
-          name="search"
-          label="Buscar"
-          solo
-          hide-details
-          prepend-inner-icon="mdi-magnify"
-        ></v-text-field>
-      </v-col>
-      <v-col class="text-right">
-        <v-btn color="primary">
-          Nueva gráfica
-        </v-btn>
-      </v-col>
-    </v-row>
+    <v-form
+      ref="form"
+      @submit.prevent="getCharts"
+      lazy-validation
+    >
+      <v-row justify="space-between">
+        <v-col>
+          <v-text-field
+            name="search"
+            label="Buscar por título, descripción o etiqueta"
+            solo
+            clearable
+            v-model="q"
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+          ></v-text-field>
+        </v-col>
+        <v-col class="shrink">
+          <v-btn
+            large
+            color="primary"
+            class="mr-4"
+            type="submit"
+          >
+            Buscar
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-form>
     <v-divider class="my-6"></v-divider>
     <v-data-iterator
       :items="items"
-      :items-per-page.sync="itemsPerPage"
-      hide-default-footer
+      :options.sync="options"
+      :server-items-length="total"
+      :loading="loading"
     >
       <template v-slot:default="props">
         <v-row>
@@ -54,6 +68,10 @@ export default {
     VpressChartCard,
   },
   data: () => ({
+    q: null,
+    total: 0,
+    options: {},
+    loading: true,
     items: [
       {
         id: "1",
@@ -83,6 +101,34 @@ export default {
         updated: 'Hoy 13:20'
       }
     ]
-  })
+  }),
+  watch: {
+    options: {
+      async handler () {
+        await this.getCharts()
+      },
+      deep: true,
+    },
+  },
+  methods: {
+    async getCharts() {
+      this.loading = true
+      const { page, itemsPerPage } = this.options
+      const obj = {
+        page,
+        itemsPerPage,
+        q: this.q
+      }
+      const data = await this.$store.dispatch('data/GET_CHART_LIST', obj);
+      data.data.forEach(element => {
+        if (element.tags) {
+          element.tags = element.tags.split(', ')
+        }
+      });
+      this.items = data.data
+      this.total = data.total
+      this.loading = false
+    }
+  }
 }
 </script>
