@@ -361,9 +361,43 @@ export default {
     chart: ({ charts, activeChartIndex }) => charts[activeChartIndex],
     activeChartIndex: state => state.activeChartIndex,
     xAxis: (_, { chart }) => {
+      // if (
+      //   chart.chart === 'bars' ||
+      //   chart.chart === 'timeline'
+      //   ) {
+      //   if (chart.xAxis.type !== 'linear') {
+      //     return [chart.xAxis, chart.groupBy].filter(value => value.slug !== '')
+      //   } else {
+      //     return [chart.xAxis]
+      //   }
+      // }
+      // if (
+      //   chart.chart === 'scatter' ||
+      //   chart.chart === 'heatmap' ||
+      //   chart.chart === 'spineplot'
+      // ) {
+      //   return [chart.xAxis]
+      // }
       return [chart.xAxis]
     },
     yAxis: (_, { chart }) => {
+      // if (
+      //   chart.chart === 'bars' ||
+      //   chart.chart === 'timeline'
+      //   ) {
+      //   if (chart.yAxis.type !== 'linear') {
+      //     return [chart.yAxis, chart.groupBy].filter(value => value.slug !== '')
+      //   } else {
+      //     return [chart.yAxis]
+      //   }
+      // }
+      // if (
+      //   chart.chart === 'scatter' ||
+      //   chart.chart === 'heatmap' ||
+      //   chart.chart === 'spineplot'
+      // ) {
+      //   return [chart.yAxis]
+      // }
       return [chart.yAxis]
     },
     ordinalAxis: (_, { chart }) => {

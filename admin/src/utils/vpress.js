@@ -325,6 +325,21 @@ const sortByDataType = (dataSample) => {
       }
     })
 };
+const filterOrdinalParamsQuery = (body, column) => {
+  body['order_by'] = `${sanitizeSpaces(column)} ASC`
+  body['column_1'] = sanitizeSpaces(column)
+  body['group_by'] = sanitizeSpaces(column)
+  return body
+}
+
+const filterLinearParamsQuery = (body, column) => {
+  body['subquery_aggregate'] = selectAggregateFunction('min')
+  body['subquery_column'] = sanitizeSpaces(column)
+  body['subquery_aggregate_2'] = selectAggregateFunction('max')
+  body['subquery_column_2'] = sanitizeSpaces(column)
+  return body
+}
+
 
 const prepareQuery = (payload, dataSetName) => {
   const body = {};
@@ -447,5 +462,7 @@ export default {
   invertAxis,
   sortByDataType,
   extractDateFormat,
+  filterOrdinalParamsQuery,
+  filterLinearParamsQuery,
   prepareQuery
 };

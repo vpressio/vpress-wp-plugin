@@ -34,7 +34,6 @@
         :id="variable.id"
         :key="`variable_${variableIndex}`"
         :variableData="variable"
-        @drop.stop.self="drop"
         inSlot
         :slotId="slotId"
         :error="error"
@@ -72,6 +71,8 @@ export default {
   },
   data() {
     return {
+      variablesStack: [],
+      stackMaxLength: 0,
       variablesInSlot: [],
       openFilterDialog: false,
       addMargin: false,
@@ -95,7 +96,13 @@ export default {
       const { dataTransfer } = event;
       const transferedString = dataTransfer.getData('transferedString');
       const variable = JSON.parse(transferedString);
-      if (this.slotId === 'filter') this.filterData(variable.slug,variable.type);
+      if (this.slotId === 'filter') {
+        this.filterData(variable.slug,variable.type);
+      } else {
+        this.mergeVariable(variable, this.slotId)
+      }
+    },
+    async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
           `chartConfig/MERGE_CHART_VALUE`,
@@ -105,22 +112,33 @@ export default {
               title: variable.title,
               type: variable.type
             },
-            mutationType: this.slotId
+            mutationType: mutationType
           }
         );
-        this.addVariableToSlot(result);
         this.error = false
+        return result;
       } catch (error) {
         console.error(error)
         this.error = true
       }
     },
+    addToStack(variable) {
+      console.log(variable)
+    //   const stack = [...this.variablesStack]
+    //   if(stack.length < 2) {
+    //     switch(stack.push(variable)){
+    //       case 0:
+    //         this.mergeVariable(variable, this.slotId)
+    //         break;
+    //       case 1:
+    //         this.mergeVariable(variable, 'aggregation')
+    //         break;
+    //     }
+    //   }
+    //  this.variablesStack = stack
+    },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
-    },
-    addVariableToSlot() {
-       const variable = this.$store.getters[`chartConfig/${this.slotId}`]
-       this.variablesInSlot = [ ...this.variablesInSlot, variable ]
     },
     filterData(column, type) {
       this.filterType = type;

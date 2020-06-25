@@ -1,6 +1,6 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" width="500">
+    <v-dialog v-model="dialog" persistent width="500">
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -85,9 +85,12 @@ export default {
       ordinalFilter: []
     };
   },
+  created() {
+    console.log('filtros')
+    this.getFilterParams()
+  },
   computed: {
     dataFiltered() {
-      
       const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
       return _.map(uniq, this.column);
     },
@@ -100,6 +103,16 @@ export default {
     },
   },
   methods: {
+    async getFilterParams() {
+      try {
+        //Todo: Get linear columns too, and fill them in their respective array,
+        // when applyFilter(), renders new chartValues and new filtered data
+        const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
+        console.log(filterParams)
+      } catch (error) {
+        console.error(error.message)
+      }
+    },
     async applyFilter() {
       try {
          this.$store.dispatch(
