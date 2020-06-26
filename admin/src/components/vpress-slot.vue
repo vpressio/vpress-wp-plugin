@@ -84,6 +84,9 @@ export default {
   },
   computed: {
     storeVariables() {
+      if(this.slotId === 'filter') {
+        console.log(this.$store.getters[`chartConfig/charts`])
+      }
       return this.$store.getters[`chartConfig/${this.slotId}`];
     },
     iconSrc() {

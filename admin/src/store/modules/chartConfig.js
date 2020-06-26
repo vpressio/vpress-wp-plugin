@@ -1,7 +1,7 @@
 import vpress from '../../utils/vpress.js';
 import { VpressChart } from '../../utils/vpressChart.js';
 import { firestore } from '../../plugins/firebase';
-// import axios from 'axios';
+import axios from 'axios';
 
 export default {
   namespaced: true,
@@ -341,16 +341,18 @@ export default {
     },
     async SAVE_CHART({ state }) {
       try {
-        console.log(
-          {
-              dataset_id: 1,
-              value: JSON.stringify(state.charts[state.activeChartIndex]),
-              owner_id: 1,
-              description: "Lorem ipsum",
-              permissions: "Public",
-              img_url: "http://google.com"
-          }
-        )
+        const body = {
+          dataset_id: 1,
+          title: "Covid19",
+          tags: "covid19, vpress",
+          value: JSON.stringify(state.charts[state.activeChartIndex]),
+          owner_id: 1,
+          description: "Gráfica creada desde Vpress",
+          permissions: "Public",
+          img_url: "http://google.com"
+      }
+        const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`, body)
+        console.log(response)
       } catch (error) {
         throw new Error(error.message)
       } 
@@ -436,9 +438,6 @@ export default {
     order: (_, { chart }) => chart.orderBy.order,
     error: state => state.error,
     availableColors: state => state.colorsEnum,
-    getAvailableCharts: ({ availableGraphs }) => {
-      return availableGraphs
-        .map(chart =>({ ...chart, disabled: false }))
-    }
+    getAvailableCharts: ({ availableGraphs }) => availableGraphs.map(chart =>({ ...chart, disabled: false }))
   }
 };

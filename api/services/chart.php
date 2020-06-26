@@ -23,8 +23,11 @@ function get_data( $request ) {
   $aggregate_column = $body['aggregate_column'];
   $subquery_aggregate = $body['subquery_aggregate'];
   $subquery_column = $body['subquery_column'];
+  $subquery_column = $body['subquery_column'];
+  $subquery_column_alias = $body['subquery_column_alias'];
   $subquery_aggregate_2 = $body['subquery_aggregate_2'];
   $subquery_column_2 = $body['subquery_column_2'];
+  $subquery_column_alias_2 = $body['subquery_column_alias_2'];
   $where = $body['where'];
   $group_by = $body['group_by'];
   $order_by = $body['order_by'];
@@ -73,7 +76,13 @@ if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
     GROUP BY $column_1) AS f3";
     $query_where = "WHERE f1.$column_1 = f2.$column_1 AND f1.$column_1 = f3.$column_1";
   } else {
-    $query_select = "SELECT f1.$subquery_column, f2.$subquery_column_2";
+    $alias = "";
+    $alias_2 = "";
+    if(!empty($subquery_column_alias) && !empty($subquery_column_alias_2)) {
+      $alias = "AS $subquery_column_alias";
+      $alias_2 = "AS $subquery_column_alias_2";
+    }
+    $query_select = "SELECT f1.$subquery_column $alias, f2.$subquery_column_2 $alias_2";
     $query_from = "FROM
     (SELECT
       $subquery_aggregate($subquery_column) AS $subquery_column

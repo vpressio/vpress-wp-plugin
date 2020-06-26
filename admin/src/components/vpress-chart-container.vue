@@ -645,7 +645,6 @@ export default {
     },
     filterData(data) {
       const vm = this;
-
       return data.filter(d => {
         return vm.legendOptions
           .filter(o => o.active)

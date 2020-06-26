@@ -10,7 +10,6 @@ export default {
     dataSetName:'',
     dataVariables : [],
     dateFormat: '',
-    filter: {},
     origin: ''
   },
   mutations: {
@@ -22,9 +21,6 @@ export default {
     },
     SET_DATE_FORMAT(state, format) {
       state.dateFormat = format
-    },
-    SET_FILTER(state, data) {
-      state.filter = data
     },
     SET_ORIGIN(state, payload) {
       state.origin = payload
@@ -44,7 +40,7 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        return response
+        return response.data.data
       } catch (error) {
         throw new Error(error.message)
       }
@@ -114,9 +110,6 @@ export default {
       }
 
     },
-    setFilter({ commit }, data) {
-      commit('SET_FILTER', data);
-    },
     async GET_DATASET_BY_NAME(_context, { dataSetDir, file }) {
       try {
         const datasetUrl = await storage
@@ -165,11 +158,7 @@ export default {
     dataSetName: state => state.dataSetName,
     dataType: state => state.dataVariables.map(({ type, title, slug }) => ({ type: type.dataType, title: title, slug: slug })),
     dateFormat: state => state.dateFormat,
-    activeChartData: state => {
-      return state.origin !== 'api'
-        ? () => state.data[0]
-        : index => state.data[index]
-    },
+    activeChartData: state =>  state.origin !== 'api' ? () => state.data[0] : index => state.data[index],
     origin: state => state.origin
   }
 };
