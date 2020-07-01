@@ -30,7 +30,7 @@ export default {
           const file = await this.$store.dispatch('data/GET_DATASET_BY_NAME', { dataSetDir: '/savedDatasets', file: document.dataSet })
           const data = await this.$store.dispatch('data/READ_FILE', file);
           await this.$store.dispatch('data/SAVE_DATA', { data: data, dataSetName: document.dataSet });
-          this.chartData = this.$store.getters['data/dataFiltered'];
+          this.chartData = this.$store.getters['data/activeChartData'](this.$store.getters['chartConfig/activeChartIndex']);
         }
       } catch (error) {
         console.warn(error);

@@ -1,7 +1,7 @@
 <?php
 function get_demo_datasets(){
   global $wpdb;
-  $db_name =  $wpdb->dbname;
+  $db_name = $wpdb->dbname;
 
   $queryDatasets = 
   "SELECT
@@ -19,12 +19,14 @@ function get_demo_datasets(){
     UPDATE_TIME AS updated
   FROM information_schema.tables
   WHERE TABLE_SCHEMA = %s
-    AND TABLE_NAME LIKE '%vpress_%'
-  LIMIT 4";
-  $data =$wpdb->get_results($wpdb->prepare($queryDatasets, $db_name));
+    AND TABLE_NAME LIKE '%vpress\_%'
+  LIMIT 8";
+  $query = $wpdb->prepare($queryDatasets, $db_name);
+  $data = $wpdb->get_results($query);
   
   $response = array(
     'data' => $data,
+    'query' => $query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
   return $response;

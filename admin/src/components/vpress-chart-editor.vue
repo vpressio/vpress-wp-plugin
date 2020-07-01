@@ -18,8 +18,8 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <!-- <v-btn class="left-button" outlined color="primary"> -->
-                <!-- <v-icon left color="primary">mdi-content-save</v-icon>
+              <!-- <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+                 <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn> -->
               <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
@@ -216,7 +216,7 @@ export default {
       return numberOfCols;
     },
     isDarkThemeActivated() {
-      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
+      // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     variableData() {
@@ -230,11 +230,18 @@ export default {
     }
   },
   methods: {
+    async saveChart() {
+      try {
+        await this.$store.dispatch('chartConfig/SAVE_CHART')
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
     downloadChartImg() {
-      downloadChart('#empty-chart')
+      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeChartIndex']}`)
     },
     clipboardCopy() {
-      const iframe = '<iframe src="http://localhost:8080/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>'
+      const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
       navigator.clipboard.writeText(iframe);
     },
     mergeValue(slot, dataToMerge) {

@@ -6,20 +6,63 @@ add_action( 'rest_api_init', 'register_chart_routes');
 
 function register_chart_routes() {
   register_rest_route(
-      BASE_URL,
-      GET_CHART_DATA_ROUTE,
-      array(
-        'methods' => WP_REST_SERVER::EDITABLE,
-        'callback' => 'get_chart_data'
-      )
-    );
+    BASE_URL,
+    GET_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::READABLE,
+      'callback' => 'get_chart'
+    )
+  );
   register_rest_route(
-      BASE_URL,
-      GET_CHART_DATA_ROUTE_TEST,
-      array(
-        'methods' => WP_REST_SERVER::EDITABLE,
-        'callback' => 'get_data'
-      )
-    );
+    BASE_URL,
+    LIST_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'list_charts'
+    )
+  );
+  register_rest_route(
+    BASE_URL,
+    CREATE_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'create_chart'
+    )
+  );
+  register_rest_route(
+    BASE_URL,
+    UPDATE_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::EDITABLE,
+      'callback' => 'update_chart'
+    )
+  );
+  register_rest_route(
+    BASE_URL,
+    DELETE_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::DELETABLE,
+      'callback' => 'delete_chart'
+    )
+  );
+
+
+
+  register_rest_route(
+    BASE_URL,
+    GET_CHART_DATA_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::EDITABLE,
+      'callback' => 'get_chart_data'
+    )
+  );
+  register_rest_route(
+    BASE_URL,
+    GET_CHART_DATA_ROUTE_TEST,
+    array(
+      'methods' => WP_REST_SERVER::EDITABLE,
+      'callback' => 'get_data'
+    )
+  );
 
 }

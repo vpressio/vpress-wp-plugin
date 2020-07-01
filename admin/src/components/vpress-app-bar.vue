@@ -6,11 +6,55 @@
       :max-width="`${this.cssProps['--logo-width']}px`"
       alt="Vpress logo"
     />
+    <!-- <span class="ml-10 grey--text">
+      Selecciona
+    </span>
+    <v-menu>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          color="white"
+          dark
+          v-bind="attrs"
+          v-on="on"
+          text
+
+        >
+          {{ currentRoute }}
+          <v-icon right dark>mdi-menu-down</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="(item, index) in items"
+          :key="index"
+          :to="item.to"
+          link
+        >
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu> -->
   </v-app-bar>
 </template>
 <script>
 export default {
   name: 'VpressAppBar',
+  data: () => ({
+    items: [
+      {
+        title: 'Análisis',
+        to: '/'
+      },
+      {
+        title: 'Gráficas',
+        to: '/chart/list'
+      },
+      {
+        title: 'Bases de datos',
+        to: '/dataset/list'
+      },
+    ],
+  }),
   computed: {
     cssProps() {
       return {
@@ -19,9 +63,23 @@ export default {
         '--bg-linear-gradient': this.$vuetify.theme.themes.light.gradient.bg
       }
     },
-    appBarLogo(){
+    appBarLogo() {
       return require(`../assets/images/${this.cssProps['--logo']}`)
+    },
+    currentRoute() {
+      let name = '';
+      if (this.$route.path === '/') {
+        name = 'Análisis';
+      } else if (this.$route.path === '/chart/list') {
+        name = 'Gráficas';
+      } else if (this.$route.path === '/dataset/list') {
+        name = 'Bases de datos';
+      }
+      return name;
     }
+  },
+  mounted() {
+    console.log(this.$route);
   }
 };
 </script>

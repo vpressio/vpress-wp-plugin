@@ -22,7 +22,7 @@
           class="mb-2"
           v-for="(variable, variableIndex) in ordinalVariables"
           :key="`cardId_${variableIndex}`"
-          :id="`cardId_${variableIndex}`"
+          :id="`cardId_${variable.slug}`"
           :variableData="variable"
         />
       </div>

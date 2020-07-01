@@ -32,8 +32,8 @@ class Vpress_Activator {
 	public static function activate() {
 		global $wpdb;
 
-		$table_datasets = $wpdb->prefix . 'vpress_datasets';
-		$table_charts = $wpdb->prefix . 'vpress_charts';
+		$table_datasets = $wpdb->prefix . 'vpresscore_datasets';
+		$table_charts = $wpdb->prefix . 'vpresscore_charts';
 		
 		$charset_collate = $wpdb->get_charset_collate();
 
@@ -58,13 +58,14 @@ class Vpress_Activator {
 			dataset_id MEDIUMINT(9) NOT NULL,
 			value JSON NOT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
+			tags TEXT NOT NULL,
+			title TEXT NOT NULL,
 			description TEXT NOT NULL,
 			permissions TINYTEXT NOT NULL,
 			img_url TINYTEXT NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (id),
-			FOREIGN KEY (dataset_id) REFERENCES $table_datasets(id) ON DELETE CASCADE
+			PRIMARY KEY (id)
 		) $charset_collate;";
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );

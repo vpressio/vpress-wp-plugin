@@ -1,22 +1,22 @@
 <template>
   <v-card class="py-3">
-    <VpressSlot
-      v-for="(slot, slotIndex) in slots"
+    <div
+      v-for="(slot, slotIndex) in slotsToRender"
       :key="`slot_${slotIndex}`"
-      class="mb-2"
-      :class="{
-        'v-step-4': slot.slotId === 'xAxis',
-        'v-step-5': slot.slotId === 'yAxis',
-        'v-step-6': slot.slotId === 'aggregation'
-      }"
-      :slotId="slot.slotId"
-      :icon="slot.icon"
-      :slotIcon="slot.slotIcon"
-      :label="slot.label"
-      :maxStack="slot.maxStack"
-      :dataType="['linear','ordinal']"
-      :filter="slot.filter"
-    />
+    >
+      <VpressSlot
+        class="mb-2"
+        :class="{
+          'v-step-4': slot.slotId === 'xAxis',
+          'v-step-5': slot.slotId === 'yAxis',
+          'v-step-6': slot.slotId === 'aggregation'
+        }"
+        :slotId="slot.slotId"
+        :icon="slot.icon"
+        :slotIcon="slot.slotIcon"
+        :label="slot.label"
+      />
+    </div>
   </v-card>
 </template>
 <script>
@@ -34,36 +34,60 @@ export default {
           slotId:"xAxis",
           icon:"mdi-view-sequential",
           slotIcon: "eje-x",
-          label:"Filas",
-          maxStack: 3,
-          filter: false
+          label:"Filas"
         },
         {
           slotId:"yAxis",
           icon:"mdi-view-parallel",
           slotIcon: "eje-y",
-          label:"Columnas",
-          maxStack: 1,
-          filter: false
+          label:"Columnas"
         },
         {
           slotId:"aggregation",
           icon:" mdi-palette-outline",
           slotIcon: "color",
-          label:"Color",
-          maxStack: 1,
-          filter: false
+          label:"Color"
         },
-        // {
-        //   slotId:"filter",
-        //   icon:"mdi-tune",
-        //   slotIcon: "",
-        //   label: "collapseBy",
-        //   maxStack: 3,
-        //   filter: true
-        // }
+        {
+          slotId:"filter",
+          icon:"mdi-tune",
+          slotIcon: "",
+          label: "Filtros"
+        }
       ]
     };
+  },
+  computed: {
+    slotsToRender() {
+      const activeChartValues = this.$store.getters['chartConfig/chart']
+      return this.slots.reduce(
+        (acc, slot) => {
+            switch (slot.slotId) {
+              case 'aggregation':
+                if(
+                  activeChartValues.chart === 'bars' ||
+                  activeChartValues.chart === 'timeline'
+                ) {
+                  slot.label = 'Grupo'
+                } else {
+                  slot.label = 'Color'
+                }
+                  acc.push(slot)
+                break;
+              case 'filter':
+                if (this.$store.getters['data/origin'] === 'api') {
+                  acc.push(slot)
+                }
+                break
+              default:
+                acc.push(slot)
+                break;
+            }
+          return acc
+        },
+        []
+      )
+    }
   }
 };
 </script>

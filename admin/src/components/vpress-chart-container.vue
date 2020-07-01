@@ -158,16 +158,6 @@ export default {
     }
   },
   watch: {
-    data() {
-      if (
-        this.data &&
-        this.data.length > 0 &&
-        this.chartConfig.xAxis.slug !== '' &&
-        this.chartConfig.yAxis.slug !== ''
-      ) {
-        // this.configChart()
-      }
-    },
     chartConfig() {
       if (
         !_.includes(
@@ -565,7 +555,6 @@ export default {
         }
         bars.x(this.chartConfig.xAxis.slug).y(this.chartConfig.yAxis.slug);
       }
-
       bars.sortBy().colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawHeatmap() {
@@ -801,7 +790,6 @@ export default {
     },
     filterData(data) {
       const vm = this;
-
       return data.filter(d => {
         return vm.legendOptions
           .filter(o => o.active)

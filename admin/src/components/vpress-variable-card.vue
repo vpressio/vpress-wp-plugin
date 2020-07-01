@@ -69,7 +69,6 @@ export default {
     slotId: String,
     variableData: Object,
     inSlot: Boolean,
-    variablesInSlot: Array,
     error: Boolean
   },
   data() {
@@ -128,14 +127,22 @@ export default {
       });
     },
     removeCard() {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        mutationType: this.slotId,
-        value: {
+      const payload = this.slotId === 'filter'
+      ? {
+          title: this.variableData.title,
+          type: this.variableData.type,
+          slug: this.variableData.slug,
+          value: 'remove'
+        } 
+      : {
           title: '',
           type: '',
           slug: '',
           func: ''
         }
+      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
+        mutationType: this.slotId,
+        value: payload
       });
     }
   }
