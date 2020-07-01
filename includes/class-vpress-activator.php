@@ -58,6 +58,8 @@ class Vpress_Activator {
 			dataset_id MEDIUMINT(9) NOT NULL,
 			value JSON NOT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
+			tags TEXT NOT NULL,
+			title TEXT NOT NULL,
 			description TEXT NOT NULL,
 			permissions TINYTEXT NOT NULL,
 			img_url TINYTEXT NOT NULL,

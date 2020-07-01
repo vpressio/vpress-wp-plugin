@@ -1,7 +1,7 @@
 <template>
   <v-card class="py-3">
     <div
-      v-for="(slot, slotIndex) in slots"
+      v-for="(slot, slotIndex) in slotsToRender"
       :key="`slot_${slotIndex}`"
     >
       <VpressSlot
@@ -59,18 +59,34 @@ export default {
   },
   computed: {
     slotsToRender() {
-      const test = this.slots.filter(slot => {
-        const activeChartValues = this.$store.getters['chartConfig/chart']
-        if(
-          activeChartValues.chart === 'bars' ||
-          activeChartValues.chart === 'timeline'
-        ) {
-          return slot.slotId !== 'aggregation'
-        } else {
-          return slot
-        }
-      })
-      return test
+      const activeChartValues = this.$store.getters['chartConfig/chart']
+      return this.slots.reduce(
+        (acc, slot) => {
+            switch (slot.slotId) {
+              case 'aggregation':
+                if(
+                  activeChartValues.chart === 'bars' ||
+                  activeChartValues.chart === 'timeline'
+                ) {
+                  slot.label = 'Grupo'
+                } else {
+                  slot.label = 'Color'
+                }
+                  acc.push(slot)
+                break;
+              case 'filter':
+                if (this.$store.getters['data/origin'] === 'api') {
+                  acc.push(slot)
+                }
+                break
+              default:
+                acc.push(slot)
+                break;
+            }
+          return acc
+        },
+        []
+      )
     }
   }
 };

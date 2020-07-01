@@ -547,7 +547,6 @@ export default {
         }
         bars.x(this.chartConfig.xAxis.slug).y(this.chartConfig.yAxis.slug);
       }
-
       bars.sortBy().colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawHeatmap() {
@@ -646,7 +645,6 @@ export default {
     },
     filterData(data) {
       const vm = this;
-
       return data.filter(d => {
         return vm.legendOptions
           .filter(o => o.active)

@@ -17,7 +17,7 @@ function register_chart_routes() {
     BASE_URL,
     LIST_CHART_ROUTE,
     array(
-      'methods' => WP_REST_SERVER::READABLE,
+      'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'list_charts'
     )
   );

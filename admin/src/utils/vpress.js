@@ -98,7 +98,7 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         )
       ) {
         chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
-      }
+    }
     switch (newValue.type) {
       case 'ordinal':
         if (
@@ -288,8 +288,19 @@ const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   }
 }
 
-const setFilters = async ({ chartValues, newValue }) => {
-  chartValues.filter =  newValue 
+const setFilters = ({ chartValues, newValue }) => {
+  try {
+    if (newValue.value === 'remove') {
+      chartValues.filters = chartValues.filters.filter(filter => {
+        return filter.slug !== newValue.slug
+      });
+    } else {
+      chartValues.filters.push(newValue)
+    }
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
+  }
 };
 
 const extractDateFormat = (variables) => {
@@ -325,6 +336,23 @@ const sortByDataType = (dataSample) => {
       }
     })
 };
+const filterOrdinalParamsQuery = (body, column) => {
+  body['order_by'] = `${sanitizeSpaces(column)} ASC`
+  body['column_1'] = sanitizeSpaces(column)
+  body['group_by'] = sanitizeSpaces(column)
+  return body
+}
+
+const filterLinearParamsQuery = (body, column) => {
+  body['subquery_aggregate'] = selectAggregateFunction('min')
+  body['subquery_column'] = sanitizeSpaces(column)
+  body['subquery_column_alias'] = `min`
+  body['subquery_aggregate_2'] = selectAggregateFunction('max')
+  body['subquery_column_2'] = sanitizeSpaces(column)
+  body['subquery_column_alias_2'] = `max`
+  return body
+}
+
 
 const prepareQuery = (payload, dataSetName) => {
   const body = {};
@@ -415,9 +443,24 @@ const prepareQuery = (payload, dataSetName) => {
       body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
     }
   }
-  body['order_by'] = `${payload.orderBy.slug === '' ? body['order_by'] : sanitizeSpaces(payload.orderBy.slug)} ${payload.orderBy.order.toUpperCase()}`
 
-  console.log(body)
+  if (payload.filters.length > 0) {
+    body['where'] = payload.filters.map(clause => {
+      return {
+        op: clause.type !== 'ordinal' && clause.value.length === 2
+          ? 'BETWEEN'
+          : 'IN',
+        column: sanitizeSpaces(clause.slug),
+        value: clause.value
+      }
+    })
+  }
+
+  body['order_by'] = `${
+    payload.orderBy.slug === ''
+      ? body['order_by']
+      : sanitizeSpaces(payload.orderBy.slug)
+    } ${payload.orderBy.order.toUpperCase()}`
   return body
 }
 
@@ -432,7 +475,7 @@ const selectAggregateFunction = (func) => {
     case 'max':
       return 'MAX'
     default:
-      return 'SUM'
+      return 'AVG'
   }
 }
 
@@ -447,5 +490,7 @@ export default {
   invertAxis,
   sortByDataType,
   extractDateFormat,
+  filterOrdinalParamsQuery,
+  filterLinearParamsQuery,
   prepareQuery
 };
