@@ -288,9 +288,19 @@ const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   }
 }
 
-const setFilters = async ({ chartValues, newValue }) => {
-  chartValues.filters.push(newValue)
-  return chartValues
+const setFilters = ({ chartValues, newValue }) => {
+  try {
+    if (newValue.value === 'remove') {
+      chartValues.filters = chartValues.filters.filter(filter => {
+        return filter.slug !== newValue.slug
+      });
+    } else {
+      chartValues.filters.push(newValue)
+    }
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
+  }
 };
 
 const extractDateFormat = (variables) => {

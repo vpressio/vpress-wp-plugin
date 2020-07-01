@@ -7,7 +7,7 @@ export default {
   namespaced: true,
   state: {
     activeChartIndex: 0,
-    charts: [new VpressChart().values()],
+    charts: [ new VpressChart().values() ],
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
@@ -246,6 +246,9 @@ export default {
     },
     SET_CHART_ERROR(state, payload) {
       state.error = payload
+    },
+    RESET_CHART_VALUES(state, newValues) {
+      state.charts = [ newValues ? newValues : new VpressChart().values() ]
     }
   },
   actions: {
@@ -304,12 +307,11 @@ export default {
         .data()
         .chartValues
         const chart = new VpressChart(chartValues).values();
-        commit('ADD_CHART', chart)
+        
+        commit('RESET_CHART_VALUES', chart)
         commit(
           'SET_CHART_VALUES',
-          document
-            .data()
-            .chartValues
+          chart
         )
         return document.data()
         } catch (error) {
@@ -317,7 +319,7 @@ export default {
       }
     },
     RESET_CHART_VALUES({ commit }) {
-      commit('ADD_CHART', new VpressChart().values())
+      commit('RESET_CHART_VALUES')
       commit('SET_CHART_VALUES', new VpressChart().values())
     },
     async INVERT_AXIS({ state, commit }) {

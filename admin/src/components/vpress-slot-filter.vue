@@ -16,7 +16,18 @@
           <a class="underline" @click="deselectAll">Limpiar selección</a>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-text class="py-4">
+        <div
+          style="width:100%;display:flex;justify-content:center;padding-top:10px"
+          v-if="loading"
+        >
+          <v-progress-circular
+            :size="70"
+            :width="7"
+            color="primary"
+            indeterminate
+          />
+        </div>
+        <v-card-text else class="py-4">
           <template v-if="type === 'linear'">
             <v-range-slider
               class="mt-5"
@@ -84,6 +95,7 @@ export default {
   },
   data() {
     return {
+      loading: true,
       dialog: true,
       linearFilter: [0,100],
       min: 100,
@@ -118,6 +130,7 @@ export default {
           this.min = +filterParams[0].min
           this.max = +filterParams[0].max
         }
+        this.loading = false;
       } catch (error) {
         this.closeDialog()
         console.error(error.message)
