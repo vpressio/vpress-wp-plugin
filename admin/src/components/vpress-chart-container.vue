@@ -287,7 +287,6 @@ export default {
         };
       });
       //eslint-disable-next-line
-      debugger
       const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
       const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
 
@@ -330,8 +329,6 @@ export default {
         this.$store.getters['data/origin'] === 'api'
           ? this.parseApiData(this.filteredData)
           : this.parseData(this.filteredData);
-      // eslint-disable-next-line
-      debugger
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
