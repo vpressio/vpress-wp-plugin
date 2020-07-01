@@ -36,6 +36,7 @@ export default {
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           queryBody
         );
+        console.log(queryBody)
         console.info(response.data.query)
         if (response.data.error) {
           throw new Error(response.data.error);

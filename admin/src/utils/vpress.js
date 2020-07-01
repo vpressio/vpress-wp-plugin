@@ -142,7 +142,7 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
           chartValues.xAxis.type === newValue.type &&
           chartValues.yAxis.type === newValue.type
         ) {
-          chartValues.chart = 'scatter'
+          chartValues.chart = 'map'
         } else if (
           chartValues.xAxis.type === 'ordinal' ||
           chartValues.yAxis.type === 'ordinal'
@@ -359,7 +359,7 @@ const prepareQuery = (payload, dataSetName) => {
   body['dataset'] = `vpress_${dataSetName}`
   body['chart_type'] = payload.chart
   body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
-  if (payload.chart === 'scatter') {
+  if (payload.chart === 'map') {
     if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
       body['column_1'] = payload.xAxis.slug !== 'total_count'
         ? sanitizeSpaces(payload.xAxis.slug)

@@ -14,6 +14,7 @@
 <script>
 import * as d3 from 'd3';
 import * as _ from 'lodash';
+import 'topojson';
 import * as dbox from '@dboxjs/core';
 
 export default {
@@ -285,7 +286,8 @@ export default {
           active: true
         };
       });
-
+      //eslint-disable-next-line
+      debugger
       const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
       const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
 
@@ -328,6 +330,8 @@ export default {
         this.$store.getters['data/origin'] === 'api'
           ? this.parseApiData(this.filteredData)
           : this.parseData(this.filteredData);
+      // eslint-disable-next-line
+      debugger
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -504,6 +508,7 @@ export default {
           this.drawTimeline();
           break;
         case 'map':
+          console.log('es map, switch')
           this.drawMap();
           break;
         default:
@@ -654,18 +659,18 @@ export default {
       /**
        * Set options to build a leaflet map
        */
-      const width = window['$']('.empty-chart').width();
-      const height = window['$']('.empty-chart').height();
+      // const width = window['$'](`#${this.id}`).width();
+      // const height = window['$'](`#${this.id}`).height();
 
-      d3.select('.empty-chart').text('');
-      d3.select('.empty-chart')
+      d3.select(`#${this.id}`).text('');
+      d3.select(`#${this.id}`)
         .selectAll('*')
         .remove();
-      d3.select('.empty-chart')
+      d3.select(`#${this.id}`)
         .append('div')
         .attr('id', 'leaflet-wrapper')
-        .style('width', this.innerWidth >= mobileWidth ? width - 200 + 'px' : width + 'px')
-        .style('height', height + 'px');
+        .style('width', this.innerWidth >= mobileWidth ? this.width - 200 + 'px' : this.width + 'px')
+        .style('height', this.height + 'px');
 
       const lconfig = {
         formatPreffix: this.chartConfig.preffix || '',
@@ -686,17 +691,17 @@ export default {
         map: {
           /** @todo Replace topojson info (configure) */
           topojson: {
-            url: 'assets/geojson/CVNL.json',
-            objects: ['NuevoLeon', 'AMM', 'MUNS'],
+            url: '/topojsons/mx_edos.json',
+            objects: ['states'],
             translate: [25.4092844, -101.2450029],
             zoom: 7,
             maxZoom: 10,
             minZoom: 5,
             parser: function(d) {
-              return d.id;
+              return d.properties.state_code;
             },
             id: function(d) {
-              return 'municipio-' + d.id;
+              return 'estado-' + d.id;
             }
           },
           formatLegend: function(number) {
@@ -714,12 +719,12 @@ export default {
           }
         },
         events: {
-          load: function(chart) {
+          load: function() {
             if (!vm.visibleLabels) {
               d3.selectAll('.dbox-label').style('display', 'none');
               d3.selectAll('.dbox-label-coefficient').style('display', 'none');
             }
-            vm.chartDrawn.emit(chart);
+             vm.$emit('chart_loaded', vm.$el);
           }
         },
         responsive: {
@@ -729,11 +734,10 @@ export default {
 
       const data = this.dataToDraw;
       this.chart = dbox.chart(lconfig).data({ raw: data });
-
       this.chart
         .layer(dbox.leaflet)
-        .id('id')
-        .fill(this.yAxis.slug)
+        .id('cve_ent')
+        .fill(this.chartConfig.yAxis.slug)
         .opacity(0.9)
         .colors(this.chartConfig.colors.slice(0, 5))
         .colorLegend(this.legendDisplay.title);
@@ -741,7 +745,7 @@ export default {
       if (this.innerWidth >= mobileWidth) {
         // Responsive mobile
         const legend = d3
-          .select('.empty-chart')
+          .select(`#${this.id}`)
           .style('display', 'flex')
           .style('flex-direction', 'row')
           .style('flex-wrap', 'nowrap')
@@ -749,7 +753,7 @@ export default {
           .style('padding-left', '30px')
           .style('top', 8 + 'px')
           .style('right', 10 + 'px')
-          .style('height', height + 'px')
+          .style('height', this.height + 'px')
           .style('text-align', 'left');
 
         const items = legend
@@ -778,7 +782,7 @@ export default {
               d3.select(parentNode)
                 .select('input')
                 .attr('checked', checked);
-              vm.legendChanged.emit(vm.legendOptions);
+              vm.legendChanged(vm.legendOptions);
             }
           })
           .text(d => d.name);
@@ -799,7 +803,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes(['scatter', 'heatmap'], vm.chartConfig.chart)) {
+      if (!_.includes(['scatter', 'heatmap', 'map'], vm.chartConfig.chart)) {
         const parsedData = d3
           .nest()
           .key(d => d[vm.ordinalAxis.slug])

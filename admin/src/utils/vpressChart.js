@@ -31,7 +31,7 @@ const fillValues = (incomingChart, defaultChart) =>{
 }
 
 const defaultChart = {    
-  chart: 'bars',
+  chart: 'map',
   xAxis: { title: '', type: '', slug: '', func: '' },
   yAxis: { title: '', type: '', slug: '', func: '' },
   groupBy: { title: '', type: '', slug: '' },
