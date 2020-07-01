@@ -170,10 +170,13 @@ export default {
     },
     chartConfig() {
       if (
-        !_.includes(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'], this.chartConfig.chart)
+        !_.includes(
+          ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map'],
+          this.chartConfig.chart
+        )
       ) {
         throw new Error(
-          'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`'
+          'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`, `map`'
         );
       }
       if (
@@ -510,6 +513,9 @@ export default {
         case 'timeline':
           this.drawTimeline();
           break;
+        case 'map':
+          this.drawMap();
+          break;
         default:
           this.drawBars();
           break;
@@ -651,6 +657,143 @@ export default {
       timeline
         .x(this.chartConfig.xAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+    },
+    drawMap() {
+      const vm = this;
+      const mobileWidth = 600; // Size in pixels
+      // const tabletWidth = 800; // Size in pixels
+      /**
+       * Set options to build a leaflet map
+       */
+      const width = window['$']('.empty-chart').width();
+      const height = window['$']('.empty-chart').height();
+
+      d3.select('.empty-chart').text('');
+      d3.select('.empty-chart')
+        .selectAll('*')
+        .remove();
+      d3.select('.empty-chart')
+        .append('div')
+        .attr('id', 'leaflet-wrapper')
+        .style('width', this.innerWidth >= mobileWidth ? width - 200 + 'px' : width + 'px')
+        .style('height', height + 'px');
+
+      const lconfig = {
+        formatPreffix: this.chartConfig.preffix || '',
+        formatSuffix: this.chartConfig.suffix || '',
+        decimals: this.chartConfig.decimals,
+        size: {
+          width: this.width,
+          height: this.height,
+          margin: this.margin
+        },
+        bindTo: 'leaflet-wrapper',
+        xAxis: {
+          enabled: false
+        },
+        yAxis: {
+          enabled: false
+        },
+        map: {
+          /** @todo Replace topojson info (configure) */
+          topojson: {
+            url: 'assets/geojson/CVNL.json',
+            objects: ['NuevoLeon', 'AMM', 'MUNS'],
+            translate: [25.4092844, -101.2450029],
+            zoom: 7,
+            maxZoom: 10,
+            minZoom: 5,
+            parser: function(d) {
+              return d.id;
+            },
+            id: function(d) {
+              return 'municipio-' + d.id;
+            }
+          },
+          formatLegend: function(number) {
+            if (number >= 100000) {
+              return d3.format('s')(number);
+            } else {
+              if (typeof vm.chart.helper.utils.format(number) === 'string') {
+                /** @deprecated uses dbox version 0.0.8, only to keep compatibility if dbox version wasn't changed yet*/
+                return vm.chart.helper.utils.format(number);
+              } else {
+                /** cool, uses dbox version 0.0.9 */
+                return vm.chart.helper.utils.format()(number);
+              }
+            }
+          }
+        },
+        events: {
+          load: function(chart) {
+            if (!vm.visibleLabels) {
+              d3.selectAll('.dbox-label').style('display', 'none');
+              d3.selectAll('.dbox-label-coefficient').style('display', 'none');
+            }
+            vm.chartDrawn.emit(chart);
+          }
+        },
+        responsive: {
+          enabled: this.innerWidth <= mobileWidth ? true : false
+        }
+      };
+
+      const data = this.dataToDraw;
+      this.chart = dbox.chart(lconfig).data({ raw: data });
+
+      this.chart
+        .layer(dbox.leaflet)
+        .id('id')
+        .fill(this.yAxis.slug)
+        .opacity(0.9)
+        .colors(this.chartConfig.colors.slice(0, 5))
+        .colorLegend(this.legendDisplay.title);
+
+      if (this.innerWidth >= mobileWidth) {
+        // Responsive mobile
+        const legend = d3
+          .select('.empty-chart')
+          .style('display', 'flex')
+          .style('flex-direction', 'row')
+          .style('flex-wrap', 'nowrap')
+          .append('div')
+          .style('padding-left', '30px')
+          .style('top', 8 + 'px')
+          .style('right', 10 + 'px')
+          .style('height', height + 'px')
+          .style('text-align', 'left');
+
+        const items = legend
+          .selectAll('.legend-items')
+          .data(this.legendOptions)
+          .enter()
+          .append('div');
+
+        items
+          .append('input')
+          .attr('type', 'checkbox')
+          .attr('checked', d => (d.active ? true : null))
+          .attr('value', d => d.id);
+        items
+          .append('label')
+          .style('color', '#333')
+          .style('font-size', '12px')
+          .on('click', function(d) {
+            // d.active = !d.active;
+            if (vm.legendOptions.filter(o => o.active).length > 1 || !d.active) {
+              vm.legendOptions[vm.legendOptions.indexOf(d)].active = !vm.legendOptions[
+                vm.legendOptions.indexOf(d)
+              ].active;
+              const parentNode = this['parentNode'];
+              const checked = vm.legendOptions[vm.legendOptions.indexOf(d)].active ? true : null;
+              d3.select(parentNode)
+                .select('input')
+                .attr('checked', checked);
+              vm.legendChanged.emit(vm.legendOptions);
+            }
+          })
+          .text(d => d.name);
+      }
     },
     legendChanged(legendOptions) {
       this.legendOptions = legendOptions;
