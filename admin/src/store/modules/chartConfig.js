@@ -30,7 +30,7 @@ export default {
     availableGraphs: [
       {
         type: 'bars',
-        rules: ['collapseBy'],
+        required: ['collapseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -48,7 +48,7 @@ export default {
       },
       {
         type: 'heatmap',
-        rules: ['groupBy'],
+        required: ['groupBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -70,7 +70,7 @@ export default {
       },
       {
         type: 'spineplot',
-        rules: ['groupBy', 'collpaseBy'],
+        required: ['groupBy', 'collpaseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -92,7 +92,7 @@ export default {
       },
       {
         type: 'map',
-        rules: ['collapseBy'],
+        required: ['collapseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -110,7 +110,7 @@ export default {
       },
       {
         type: 'timeline',
-        rules:['collapseBy'],
+        required:['collapseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -128,7 +128,7 @@ export default {
       },
       {
         type: 'scatter',
-        rules:[],
+        required:[],
         slots: [
           {
             slotId: 'xAxis',
@@ -397,26 +397,99 @@ export default {
     availableColors: state => state.colorsEnum,
     getAvailableCharts: ({ availableGraphs }, { chart }) => {
       return availableGraphs.map(graph => {
-        if (chart.xAxis.slug === '' || chart.yAxis.slug === '') {
-          return { ...graph, disabled: true }
+        if (chart.xAxis.slug === '' && chart.yAxis.slug === '') {
+         return { ...graph, disabled: true }
         }
-        if (
-          (chart.chart === 'heatmap' || chart.chart === 'spineplot') &&
-          (chart.xAxis.type === 'linear' || chart.yAxis.type === 'linear')
-        ) {
-          return { ...graph, disabled: true }
+          switch (graph.type) {
+            case 'bars':
+              if (
+                chart.xAxis.type !== chart.yAxis.type &&
+                ((chart.xAxis.type !== 'linear' && chart.yAxis.type === 'linear') ||
+                (chart.xAxis.type === 'linear' && chart.yAxis.type !== 'linear'))
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true }
+            case 'heatmap':
+              if (
+                chart.xAxis.type === chart.yAxis.type &&
+                chart.xAxis.type === 'ordinal'
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true };
+            case 'spineplot':
+              if (
+                chart.xAxis.type !== chart.yAxis.type &&
+                (chart.xAxis.slug !== '' &&  chart.yAxis.slug !== '')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                };
+              }
+              return { ...graph, disabled: true };
+            case 'map':
+              return {
+                ...graph,
+                disabled: graph.required.reduce((acc, chartValue) => {
+                if (chartValue[chartValue]) {
+                  acc = chart[chartValue].slug === ''
+                }
+                return acc
+                }, false)
+              }
+            case 'timeline':
+              if (chart.xAxis.type === 'date') {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true };
+            case 'scatter':
+              if (
+                chart.xAxis.type === chart.yAxis.type &&
+                chart.xAxis.type === 'linear'
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true };
         }
-          
-        const chartList = {
-          ...graph,
-          disabled: graph.rules.reduce((disabled, value) => {
-            chart[value]
-              ? disabled = false
-              : disabled = true
-            return disabled
-          }, true)
-        }
-        return chartList
       })
     }
   }

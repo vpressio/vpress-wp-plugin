@@ -25,8 +25,8 @@
           <v-img
             :src="requireImg(graph.type)"
             :alt="graph.type"
-            width="30"
-            height="30"
+             :width="graph.type === 'map' ? 35 : 30"
+            :height="graph.type === 'map' ? 24 : 30"
           />
         </v-btn>
       </v-col>
