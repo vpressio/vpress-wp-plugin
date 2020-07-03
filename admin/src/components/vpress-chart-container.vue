@@ -505,7 +505,6 @@ export default {
           this.drawTimeline();
           break;
         case 'map':
-          console.log('es map, switch')
           this.drawMap();
           break;
         default:
@@ -690,7 +689,7 @@ export default {
           topojson: {
             url: '/topojsons/mx_edos.json',
             objects: ['states'],
-            translate: [25.4092844, -101.2450029],
+            translate: undefined,
             zoom: 7,
             maxZoom: 10,
             minZoom: 5,
@@ -1070,5 +1069,9 @@ svg text {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   color: #666;
   font-weight: bold;
+}
+
+.leaflet-container {
+  z-index: 0;
 }
 </style>

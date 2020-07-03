@@ -22,7 +22,7 @@
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn> -->
-              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
+              <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
@@ -200,7 +200,7 @@ export default {
   },
   mounted() {
     if(!this.$route.params.chartid) {
-      this.$tours['vpress-tour'].start();
+      // this.$tours['vpress-tour'].start();
     }
   },
   computed: {

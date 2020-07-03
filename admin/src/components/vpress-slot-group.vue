@@ -63,6 +63,22 @@ export default {
       return this.slots.reduce(
         (acc, slot) => {
             switch (slot.slotId) {
+              case 'xAxis':
+                if(activeChartValues.chart === 'map') {
+                  slot.label = 'Geometría'
+                } else {
+                  slot.label = 'Filas'
+                }
+                acc.push(slot)
+                break
+              case 'yAxis':
+                if(activeChartValues.chart === 'map') {
+                  slot.label = 'Numérico'
+                } else {
+                  slot.label = 'Columnas'
+                }
+                acc.push(slot)
+                break
               case 'aggregation':
                 if(
                   activeChartValues.chart === 'bars' ||
@@ -72,12 +88,12 @@ export default {
                 } else {
                   slot.label = 'Color'
                 }
-                  acc.push(slot)
+                if(activeChartValues.chart === 'map') break;
+                acc.push(slot)
                 break;
               case 'filter':
-                if (this.$store.getters['data/origin'] === 'api') {
+                if (this.$store.getters['data/origin'] !== 'api') break
                   acc.push(slot)
-                }
                 break
               default:
                 acc.push(slot)

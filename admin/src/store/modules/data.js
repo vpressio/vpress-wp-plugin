@@ -16,6 +16,9 @@ export default {
     SET_DATA(state, { index ,data }) {
       state.data[`${index}`] = data;
     },
+    SET_CLEANED_DATA(state, dataArray) {
+      state.data = dataArray
+    },
     SET_DATASET_NAME(state, dataSetName) {
       state.dataSetName = dataSetName
     },
@@ -55,6 +58,10 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
+    },
+    REMOVE_CHART_DATA({ state, commit }, payload) {
+      const cleanedChartsData = state.data.filter((_, chartIndex) => chartIndex !== payload)
+      commit('SET_CLEANED_DATA', cleanedChartsData)
     },
     async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
       try {

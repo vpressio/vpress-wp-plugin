@@ -16,7 +16,7 @@
       :key="`empty_chart_${chartIndex}`"
     >
       <VpressChartContainer
-        v-show="activeChartIndex === chartIndex && !loadingChart"
+        v-if="activeChartIndex === chartIndex && !loadingChart"
         :id="`empty_chart_${chartIndex}`"
         :data="dataChart(chartIndex)"
         :chartConfig="charts[chartIndex]"
@@ -41,6 +41,16 @@
       depressed
     >
       Gráfica {{ chartIndex + 1 }}
+      <v-btn
+        v-show="charts.length > 1"
+        class="ml-3 mr-2"
+        x-small
+        icon
+        color="primary"
+        @click.stop.prevent="removeChart(chartIndex)"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-btn>
   </v-card>
 </template>
@@ -101,6 +111,20 @@ export default {
     },
     addChart() {
       this.$store.dispatch('chartConfig/CREATE_CHART');
+      const nextIndex = this.activeChartIndex + 1
+      this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX',nextIndex);
+      this.activeChartIndex = nextIndex
+      this.charts = this.$store.getters['chartConfig/charts'];
+    },
+    removeChart(chartIndex) {
+      this.$store.dispatch('chartConfig/REMOVE_CHART', chartIndex);
+        this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX',0);
+        this.activeChartIndex = 0
+        this.charts = this.$store.getters['chartConfig/charts'];
+        this.$store.dispatch(
+          'data/GET_CHART_DATA',
+          { chartValues: this.$store.getters['chartConfig/chart'], chartIndex: 0 }
+        )
     },
     change() {
       this.loadingChart = !this.loadingChart

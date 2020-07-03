@@ -91,20 +91,16 @@ export default {
         ]
       },
       {
-        type: 'scatter',
-        rules:[],
+        type: 'map',
+        rules: ['collapseBy'],
         slots: [
           {
             slotId: 'xAxis',
-            values: ['xAxis']
+            values: ['xAxis', 'groupBy']
           },
           {
             slotId: 'yAxis',
-            values: ['yAxis']
-          },
-          {
-            slotId: 'colors',
-            values: ['groupBy']
+            values: ['yAxis', 'groupBy']
           },
           {
             slotId: 'filter',
@@ -129,7 +125,29 @@ export default {
             values: ['filters']
           }
         ]
-      }
+      },
+      {
+        type: 'scatter',
+        rules:[],
+        slots: [
+          {
+            slotId: 'xAxis',
+            values: ['xAxis']
+          },
+          {
+            slotId: 'yAxis',
+            values: ['yAxis']
+          },
+          {
+            slotId: 'colors',
+            values: ['groupBy']
+          },
+          {
+            slotId: 'filter',
+            values: ['filters']
+          }
+        ]
+      },
     ],
     colorsEnum: [
       {
@@ -155,78 +173,7 @@ export default {
           ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628']
         ]
       }
-    ],
-    chartsEnum: Object.freeze({
-      bars: {
-        type: 'bars',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy'
-        }
-      },
-      heatmap:{
-        type: 'heatmap',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'color',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          groupBy: 'groupBy',
-        }
-      },
-      spineplot: {
-        type: 'spineplot',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'color',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy',
-          groupBy: 'groupBy'
-        }
-      },
-      scatter: {
-        type: 'scatter',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'groupBy',
-          size: 'size',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis'
-        }
-      },
-      timeline: {
-        type: 'timeline',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy'
-        }
-      }
-    })
+    ]
   },
   mutations: {
     SET_ACTIVE_CHART_INDEX(state, payload) {
@@ -246,6 +193,9 @@ export default {
     },
     SET_CHART_ERROR(state, payload) {
       state.error = payload
+    },
+    SET_CHARTS_ARRAY(state, payload) {
+      state.charts = [...payload]
     },
     RESET_CHART_VALUES(state, newValues) {
       state.charts = [ newValues ? newValues : new VpressChart().values() ]
@@ -337,9 +287,14 @@ export default {
         commit('SET_CHART_VALUE', { valueToUpdate, value })
       }
     },
-    async CREATE_CHART({ commit }, payload) {
+    CREATE_CHART({ commit }, payload) {
       const chartValues = new VpressChart(payload).values();
       commit('ADD_CHART', chartValues)
+    },
+    REMOVE_CHART({ commit, dispatch, state }, payload) {
+      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== payload)
+      dispatch('data/REMOVE_CHART_DATA',payload ,{ root: true })
+      commit('SET_CHARTS_ARRAY', cleanedCharts)
     },
     async SAVE_CHART({ state }) {
       try {
@@ -440,6 +395,29 @@ export default {
     order: (_, { chart }) => chart.orderBy.order,
     error: state => state.error,
     availableColors: state => state.colorsEnum,
-    getAvailableCharts: ({ availableGraphs }) => availableGraphs.map(chart =>({ ...chart, disabled: false }))
+    getAvailableCharts: ({ availableGraphs }, { chart }) => {
+      return availableGraphs.map(graph => {
+        if (chart.xAxis.slug === '' || chart.yAxis.slug === '') {
+          return { ...graph, disabled: true }
+        }
+        if (
+          (chart.chart === 'heatmap' || chart.chart === 'spineplot') &&
+          (chart.xAxis.type === 'linear' || chart.yAxis.type === 'linear')
+        ) {
+          return { ...graph, disabled: true }
+        }
+          
+        const chartList = {
+          ...graph,
+          disabled: graph.rules.reduce((disabled, value) => {
+            chart[value]
+              ? disabled = false
+              : disabled = true
+            return disabled
+          }, true)
+        }
+        return chartList
+      })
+    }
   }
 };
