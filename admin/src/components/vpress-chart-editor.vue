@@ -200,7 +200,7 @@ export default {
   },
   mounted() {
     if(!this.$route.params.chartid) {
-      // this.$tours['vpress-tour'].start();
+      this.$tours['vpress-tour'].start();
     }
   },
   computed: {
