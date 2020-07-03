@@ -19,7 +19,13 @@
               <v-icon dense>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
-          <v-list v-if="variableData.type === 'linear' && variableData.slug !== 'total_count'">
+          <v-list
+          v-if="
+            variableData.type === 'linear' &&
+            variableData.slug !== 'total_count' && 
+            slotId !== 'filter'
+          "
+          >
             <v-list-item
               class="px-5"
               v-for="(func, funcIndex) in funcs"
@@ -54,7 +60,11 @@
           • {{ variableData.title }}
         </span>
         <p
-          v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
+          v-show="
+            inSlot &&
+            variableData.type === 'linear' &&
+            variableData.slug !== 'total_count'
+          "
           class="variableCardDataType mb-0"
         >{{ `(${selectedFunc.name})` }}</p>
       </div>
@@ -79,28 +89,10 @@ export default {
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
         { type: 'min', name: 'Mínimo' },
-        { type: 'max', name: 'Máximo' },
-        { type: '', name: 'Sin mutar' }
-      ]
+        { type: 'max', name: 'Máximo' }
+      ],
+      selectedFunc: { type: 'mean', name: 'Promedio' }
     };
-  },
-  computed: {
-    selectedFunc() {
-      if (this.inSlot) {
-        const variable = this.$store.getters[`chartConfig/${this.slotId}`];
-        const funcInStore = this.funcs.reduce(
-          (acc, functionInArray) => {
-            if (variable.func === functionInArray.type) {
-              return (acc = functionInArray);
-            }
-            return acc;
-          },
-          { type: '', name: 'Sin mutar' }
-        );
-        return funcInStore;
-      }
-      return { type: '', name: 'Sin mutar' };
-    }
   },
   methods: {
     dragStart(e) {
@@ -119,8 +111,9 @@ export default {
       );
     },
     selectFunc(func) {
-      const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
-      variable.func = func.type;
+      let variable = { ...this.variableData }
+      variable.func = func.type
+      this.selectedFunc = func
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
         mutationType: this.slotId,
         value: variable

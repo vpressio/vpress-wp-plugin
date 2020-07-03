@@ -7,7 +7,8 @@ export default {
   namespaced: true,
   state: {
     activeChartIndex: 0,
-    charts: [ new VpressChart().values() ],
+    charts: [new VpressChart().values()],
+    loadingChart: false,
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
@@ -199,6 +200,9 @@ export default {
     },
     RESET_CHART_VALUES(state, newValues) {
       state.charts = [ newValues ? newValues : new VpressChart().values() ]
+    },
+    SET_LOAD_STATE(state, payload) {
+      state.loadingChart = payload ? true : false
     }
   },
   actions: {
@@ -228,6 +232,7 @@ export default {
             newValue.mutationType === 'filter'
           )
         ) {
+          commit('SET_LOAD_STATE', true)
           await dispatch(
             'data/GET_CHART_DATA',
             { chartValues: newChartValues, chartIndex: state.activeChartIndex },
@@ -237,9 +242,11 @@ export default {
         commit('SET_CHART', newChartValues)
         commit('SET_CHART_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
+        commit('SET_LOAD_STATE', false)
         return newValue
       } catch (error) {
         commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
+        commit('SET_LOAD_STATE', false)
         throw new Error(error.message);
       }
     },
@@ -319,6 +326,10 @@ export default {
     charts: state => state.charts,
     chart: ({ charts, activeChartIndex }) => charts[activeChartIndex],
     activeChartIndex: state => state.activeChartIndex,
+    loadingState: ({ loadingChart }) => {
+      console.log(loadingChart)
+     return loadingChart
+    },
     xAxis: (_, { chart }) => {
       // if (
       //   chart.chart === 'bars' ||

@@ -71,7 +71,7 @@ export default {
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
       charts: this.$store.getters['chartConfig/charts'],
-      loadingChart: false,
+      loadingChart: this.$store.getters['chartConfig/loadingState'],
       activeChartIndex:0
     };
   },
@@ -83,8 +83,12 @@ export default {
           mutation.type === 'chartConfig/ADD_CHART'
         )
       ) {
-        this.loadingChart = false
         this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
+      }
+      if (
+        mutation.type === 'chartConfig/SET_LOAD_STATE'
+      ) {
+        this.loadingChart = this.$store.getters['chartConfig/loadingState']
       }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
     });

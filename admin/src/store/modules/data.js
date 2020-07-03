@@ -54,7 +54,7 @@ export default {
         const body = await vpress.prepareQuery(chartValues, state.dataSetName);
         const response = await dispatch('GET_QUERY_DATA', body)
         commit('SET_DATA',{ index: chartIndex, data: response })
-        return chartValues
+        return response
       } catch (error) {
         throw new Error(error.message)
       }

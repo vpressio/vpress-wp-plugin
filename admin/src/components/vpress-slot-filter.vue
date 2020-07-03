@@ -126,9 +126,8 @@ export default {
         const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
-        } else {
-          this.min = +filterParams[0].min
-          this.max = +filterParams[0].max
+        } else { 
+          throw new Error(`min: ${+filterParams[0].min}, max: ${+filterParams[0].max}`)
         }
         this.loading = false;
       } catch (error) {
