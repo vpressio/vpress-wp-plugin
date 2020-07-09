@@ -229,8 +229,13 @@ export default {
             newValue.mutationType === 'xAxis' ||
             newValue.mutationType === 'yAxis' ||
             newValue.mutationType === 'aggregation' ||
-            newValue.mutationType === 'filter'
+            newValue.mutationType === 'filter' ||
+            (
+              newValue.mutationType === 'chart' &&
+              newValue.value === 'map'
+            )
           )
+          
         ) {
           commit('SET_LOAD_STATE', true)
           await dispatch(

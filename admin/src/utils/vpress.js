@@ -359,7 +359,14 @@ const prepareQuery = (payload, dataSetName) => {
   body['dataset'] = `vpress_${dataSetName}`
   body['chart_type'] = payload.chart
   body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
-  if (payload.chart === 'map' || payload.chart === 'scatter') {
+
+  if (payload.chart === 'map') {
+    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+    body['subquery_aggregate'] = selectAggregateFunction(payload.yAxis.func)
+    body['subquery_column'] = sanitizeSpaces(payload.yAxis.slug)
+    body['group_by'] = body['column_1']
+  }
+  if ( payload.chart === 'scatter') {
     if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
       body['column_1'] = payload.xAxis.slug !== 'total_count'
         ? sanitizeSpaces(payload.xAxis.slug)

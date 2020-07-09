@@ -40,9 +40,13 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                    <v-col cols="12" class="pb-0 pt-1">
+                      <v-img class="db-icon" src="../assets/images/db1.svg" />
+                      <span class="db-titulo">{{ dataSetName  }}</span>
+                      <hr class="v-divider theme--light hr-divider" />
+                    </v-col>
                     <VpressVariableContainer
                       :variableData="variableData"
-                      :dataSetName="dataSetName"
                     />
                   </VpressExpansionPanel>
                 </v-tab-item>
@@ -393,6 +397,24 @@ export default {
 
 * >>> .config-switch {
   margin-top: 0;
+}
+.hr-divider {
+  width: 91%;
+  margin-left: 15px;
+  margin-bottom: 10px;
+}
+
+.db-icon {
+  width: 17px;
+  margin: 4px 10px 4px 0;
+  display: inline-flex;
+  padding-bottom: 1px;
+}
+
+.db-titulo {
+  color: #737373;
+  font-size: 0.8rem;
+  font-family: Roboto;
 }
 
 .limit-scroll {

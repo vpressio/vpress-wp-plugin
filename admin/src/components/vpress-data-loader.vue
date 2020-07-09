@@ -64,8 +64,7 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.size }} </v-card-subtitle>
-          <!-- >{{ dataSet.size }} - {{ pimpMyInt(dataSet.rows) }} filas</v-card-subtitle> -->
+          >{{ dataSet.size }} - {{ intFromat(dataSet.rows) }} filas</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -154,7 +153,7 @@ export default {
       pastedData: '',
       showTable: true,
       storageDataSets: [],
-      storageDataSetsDir: '/defaultFolder',
+      storageDataSetsDir: '/defaultDir',
       uploadMethod: 'upload',
       WPDataSets: []
     };
@@ -210,11 +209,12 @@ export default {
         }
         const files  = await this.$store.dispatch('data/GET_DATASETS', this.storageDataSetsDir);
         if (files.items.length === 0) {
-          throw new Error(`Sin coincidencias para ${this.storageDataSetsDir}`);
+          console.warn(`${this.storageDataSetsDir} is empty`);
         }
         this.storageDataSets = files.items;
       } catch (error){
-        this.$router.push('/')
+        console.error(error.message)
+        if(this.$route.path !== '/') this.$router.push('/');
       }
     },
     async selectStorageDataset(fileName) {
@@ -342,8 +342,8 @@ export default {
     switchUploadMethod(method) {
       this.uploadMethod = method;
     },
-    pimpMyInt(num) {
-      return num.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+    intFromat(number) {
+      return new Intl.NumberFormat().format(number)
     }
   }
 };

@@ -732,7 +732,7 @@ export default {
       this.chart = dbox.chart(lconfig).data({ raw: data });
       this.chart
         .layer(dbox.leaflet)
-        .id('cve_ent')
+        .id(this.chartConfig.xAxis.slug)
         .fill(this.chartConfig.yAxis.slug)
         .opacity(0.9)
         .colors(this.chartConfig.colors.slice(0, 5))
@@ -781,7 +781,7 @@ export default {
               vm.legendChanged(vm.legendOptions);
             }
           })
-          .text(d => d.name);
+          .text(d => d.id);
       }
     },
     legendChanged(legendOptions) {
