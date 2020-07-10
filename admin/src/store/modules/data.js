@@ -49,9 +49,13 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_CHART_DATA({ state, commit, dispatch } , { chartValues, chartIndex }) {
+    async GET_CHART_DATA(
+      { state, commit, dispatch },
+      { chartValues, chartIndex,
+        dataSetName = state.dataSetName }
+    ) {
       try {
-        const body = await vpress.prepareQuery(chartValues, state.dataSetName);
+        const body = await vpress.prepareQuery(chartValues, dataSetName);
         const response = await dispatch('GET_QUERY_DATA', body)
         commit('SET_DATA',{ index: chartIndex, data: response })
         return response

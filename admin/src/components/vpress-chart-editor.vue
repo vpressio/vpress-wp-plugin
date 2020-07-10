@@ -18,10 +18,10 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <!-- <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+              <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
-              </v-btn> -->
+              </v-btn>
               <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
@@ -242,9 +242,10 @@ export default {
       }
     },
     downloadChartImg() {
-      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeChartIndex']}`)
+      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`)
     },
     clipboardCopy() {
+      //Todo: url dinamica de acuerdo al origen de los datos, wp o api, para 
       const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
       navigator.clipboard.writeText(iframe);
     },

@@ -1,13 +1,14 @@
 import vpress from '../../utils/vpress.js';
-import { VpressChart } from '../../utils/vpressChart.js';
+import { VpressViz } from '../../utils/vpressViz.js';
 import { firestore } from '../../plugins/firebase';
 import axios from 'axios';
 
 export default {
   namespaced: true,
   state: {
-    activeChartIndex: 0,
-    charts: [new VpressChart().values()],
+    activeVizIdx: 0,
+    charts: [ new VpressViz().values() ],
+    workspace: [ new VpressViz() ],
     loadingChart: false,
     chartValues: {
       chart: 'bars',
@@ -178,13 +179,13 @@ export default {
   },
   mutations: {
     SET_ACTIVE_CHART_INDEX(state, payload) {
-      state.activeChartIndex = payload
+      state.activeVizIdx = payload
     },
     ADD_CHART(state, payload) {
       state.charts = [...state.charts, payload]
     },
     SET_CHART(state, payload) {
-      state.charts[state.activeChartIndex] = payload
+      state.charts[state.activeVizIdx] = payload
     },
     SET_CHART_VALUES(state, payload) {
       state.chartValues = payload;
@@ -198,11 +199,23 @@ export default {
     SET_CHARTS_ARRAY(state, payload) {
       state.charts = [...payload]
     },
-    RESET_CHART_VALUES(state, newValues) {
-      state.charts = [ newValues ? newValues : new VpressChart().values() ]
-    },
     SET_LOAD_STATE(state, payload) {
       state.loadingChart = payload ? true : false
+    },
+    RESET_WSP(state, newViz = new VpressViz() ) {
+      state.workspace = [ newViz ]
+    },
+    ADD_VIZ_TO_WSP(state, payload) {
+      state.workspace.push[payload]
+      state.charts = state.workspace.map(wsp => wsp.values())
+    },
+    SET_VIZ_VALUES(state, chartValues) {
+      state.workspace[state.activeVizIdx].setChartValues(chartValues)
+      state.charts = state.workspace.map(wsp => wsp.values());
+    },
+    SET_VIZ_DATA(state, data ) {
+      state.workspace[state.activeVizIdx].setData(data)
+      state.charts = state.workspace.map(wsp => wsp.values());
     }
   },
   actions: {
@@ -213,7 +226,7 @@ export default {
       try {
         const newValue = payload
         const newChartValues = await vpress.merge(
-          state.charts[state.activeChartIndex],
+          state.charts[state.activeVizIdx],
           {
             newValue: newValue.value,
             mutationType: newValue.mutationType
@@ -238,14 +251,15 @@ export default {
           
         ) {
           commit('SET_LOAD_STATE', true)
-          await dispatch(
+          const data = await dispatch(
             'data/GET_CHART_DATA',
-            { chartValues: newChartValues, chartIndex: state.activeChartIndex },
+            { chartValues: newChartValues, chartIndex: state.activeVizIdx },
             { root: true }
-          )
+            )
+          commit('SET_VIZ_DATA', data)
         }
-        commit('SET_CHART', newChartValues)
-        commit('SET_CHART_VALUES', newChartValues)
+        commit('SET_VIZ_VALUES', newChartValues)
+
         commit('SET_CHART_ERROR', null)
         commit('SET_LOAD_STATE', false)
         return newValue
@@ -255,7 +269,7 @@ export default {
         throw new Error(error.message);
       }
     },
-    async GET_CHART_BY_ID({ commit }, chartId) {
+    async GET_ST_CHART({ commit }, chartId) {
       try {
         const document = await firestore
           .collection('charts')
@@ -267,26 +281,56 @@ export default {
         }
         const chartValues = document
         .data()
-        .chartValues
-        const chart = new VpressChart(chartValues).values();
+          .chartValues
         
-        commit('RESET_CHART_VALUES', chart)
-        commit(
-          'SET_CHART_VALUES',
-          chart
-        )
+        const viz = new VpressViz(chartValues);
+        commit('RESET_WSP', viz)
         return document.data()
         } catch (error) {
         throw new Error(error.message)
       }
     },
-    RESET_CHART_VALUES({ commit }) {
-      commit('RESET_CHART_VALUES')
-      commit('SET_CHART_VALUES', new VpressChart().values())
+    async GET_WP_CHART({ commit, dispatch, state }, chartId) {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
+        )
+        const viz = response.data.data
+        const chartValues = JSON.parse(viz.value)
+        const data = await dispatch(
+          'data/GET_CHART_DATA',
+          {
+            chartValues: chartValues,
+            chartIndex: state.activeVizIdx,
+            dataSetName: 'montolocalidades'
+          },
+          { root: true }
+        )
+        commit(
+          'ADD_VIZ_TO_WSP',
+          new VpressViz(
+            chartValues,
+            viz.id,
+            null,
+            viz.dataset_id,
+            data,
+            viz.description,
+            viz.permission,
+            viz.img_url,
+          )
+        )
+        return { chartConfig: chartValues, chartData: data }
+      } catch (error) {
+        console.error(error.message);
+        throw new Error(error.message)
+      }
+    },
+    RESET_WSP({ commit }, viz) {
+      commit('RESET_WSP', viz)
     },
     async INVERT_AXIS({ state, commit }) {
       try {
-        const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeChartIndex] });
+        const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeVizIdx] });
         commit('SET_CHART_VALUES', newChartValues)
       } catch (error) {
         throw new Error(error.message)
@@ -299,14 +343,20 @@ export default {
         commit('SET_CHART_VALUE', { valueToUpdate, value })
       }
     },
-    CREATE_CHART({ commit }, payload) {
-      const chartValues = new VpressChart(payload).values();
-      commit('ADD_CHART', chartValues)
+    CREATE_CHART({ commit }) {
+      const viz = new VpressViz()
+      console.log(viz)
+      commit('ADD_VIZ_TO_WSP', viz)
+      // const chartValues = viz.values();
+      // commit('ADD_CHART', chartValues)
     },
-    REMOVE_CHART({ commit, dispatch, state }, payload) {
-      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== payload)
-      dispatch('data/REMOVE_CHART_DATA',payload ,{ root: true })
+    REMOVE_CHART({ commit, dispatch, state }, removedWspIdx) {
+      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+      dispatch('data/REMOVE_CHART_DATA',removedWspIdx ,{ root: true })
       commit('SET_CHARTS_ARRAY', cleanedCharts)
+
+      // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+
     },
     async SAVE_CHART({ state }) {
       try {
@@ -314,7 +364,7 @@ export default {
           dataset_id: 1,
           title: "Covid19",
           tags: "covid19, vpress",
-          value: JSON.stringify(state.charts[state.activeChartIndex]),
+          value: JSON.stringify(state.charts[state.activeVizIdx]),
           owner_id: 1,
           description: "Gráfica creada desde Vpress",
           permissions: "Public",
@@ -328,13 +378,12 @@ export default {
     }
   },
   getters: {
-    charts: state => state.charts,
-    chart: ({ charts, activeChartIndex }) => charts[activeChartIndex],
-    activeChartIndex: state => state.activeChartIndex,
-    loadingState: ({ loadingChart }) => {
-      console.log(loadingChart)
-     return loadingChart
-    },
+    workspace: state => state.workspace,
+    activeVizIdx: state => state.activeVizIdx,
+    viz: ({ workspace, activeVizIdx }) => workspace[activeVizIdx],
+    chart: (_, { viz }) => viz.values(),
+    data: (_, { viz }) => viz.vizData(),
+    loadingState: ({ loadingChart }) =>  loadingChart,
     xAxis: (_, { chart }) => {
       // if (
       //   chart.chart === 'bars' ||

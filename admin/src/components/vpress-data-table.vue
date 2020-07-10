@@ -94,7 +94,7 @@ export default {
       this.items = data.data
       this.total = data.total
       this.headers = this.extractHeaders(this.items[0]);
-      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('chartConfig/RESET_WSP');
       this.$store.dispatch('data/SAVE_DATA', { data: this.items, dataSetName: this.dataset, dataOrigin: this.dataOrigin});
       this.loading = false
     },

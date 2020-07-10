@@ -325,10 +325,8 @@ export default {
       const vm = this;
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
-      this.dataToDraw =
-        this.$store.getters['data/origin'] === 'api'
-          ? this.parseApiData(this.filteredData)
-          : this.parseData(this.filteredData);
+      this.dataToDraw = this.parseApiData(this.filteredData)
+      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -688,6 +686,7 @@ export default {
           /** @todo Replace topojson info (configure) */
           topojson: {
             url: '/topojsons/mx_edos.json',
+            center: [ 19.6930200, -89.0503700 ],
             objects: ['states'],
             translate: undefined,
             zoom: 7,

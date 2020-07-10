@@ -192,7 +192,7 @@ export default {
       try {
         const self = this;
         if( this.$route.params.chartid ) {
-          const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
+          const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
           this.storageDataSetsDir = '/savedDatasets';
           const dataSetData = await this.selectStorageDataset(document.dataSet);
           await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName });
@@ -256,11 +256,10 @@ export default {
         self.loading = true;
         const content = await this.$store.dispatch('data/READ_FILE', file);
         self.headers = self.extractSampleHeaders(content[0]);
-          // eslint-disable-next-line
-          self.data = content;
-          setTimeout(() => {
-            self.loading = false;
-          }, 0);
+        self.data = content;
+        setTimeout(() => {
+          self.loading = false;
+        }, 0);
         return content
       } catch (error) {
         self.loading = false;
@@ -336,7 +335,7 @@ export default {
       if (this.dataOrigin !== 'api') this.saveData(this.data, this.dataSetName, this.dataOrigin);
     },
     saveData(data, dataSetName, dataOrigin) {
-      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
+      this.$store.dispatch('chartConfig/RESET_WSP');
       this.$store.dispatch('data/SAVE_DATA', { data: data, dataSetName: dataSetName, dataOrigin: dataOrigin});
     },
     switchUploadMethod(method) {
