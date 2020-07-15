@@ -225,7 +225,7 @@ function create_chart( $request ) {
   );
 
   $response = array(
-    'data' => $data,
+    'data' => $wpdb->insert_id,
     'query' => $wpdb->last_query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
