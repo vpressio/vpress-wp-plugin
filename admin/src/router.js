@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Chart from './views/Chart.vue';
 import Vpress from './views/Vpress.vue';
-import Recuperacion from './views/Recuperacion.vue'
+import reunionDonantes from './views/reunionDonantes.vue'
 import VpressChartEditor from './components/vpress-chart-editor.vue';
 import VpressChartList from './components/vpress-chart-list.vue';
 
@@ -29,8 +29,8 @@ export default new Router({
       ]
     },
     {
-      path: '/recuperacion',
-      component: Recuperacion
+      path: '/reunionDonantes',
+      component: reunionDonantes
     }
   ]
 });

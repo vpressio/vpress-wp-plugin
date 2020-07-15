@@ -190,7 +190,6 @@ export default {
     dataType: state => state.dataVariables,
     dateFormat: state => state.dateFormat,
     dataSetName: state => state.datasetMeta.name,
-    origin: state => state.datasetMeta.origin ,
-    activeChartData: state =>  state.datasetMeta.origin !== 'api' ? () => state.data[0] : index => state.data[index]
+    origin: state => state.datasetMeta.origin 
   }
 };

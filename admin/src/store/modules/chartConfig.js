@@ -155,6 +155,7 @@ export default {
       {
         colorSchemeType: 'SECUENCIAL',
         schemes: [
+          ['#40348c', '#842f8e', '#ba2982', '#e2346d', '#fc5353', '#ff7b33', '#ffa600'],
           ['#7a0177', '#c51b8a', '#f768a1', '#fbb4b9', '#feebe2'],
           ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
           ['#54278f', '#756bb1', '#9e9ac8', '#cbc9e2', '#f2f0f7'],
@@ -312,7 +313,7 @@ export default {
           new VpressViz(
             chartValues,
             viz.id,
-            null,
+            state.chart.title,
             viz.dataset_id,
             data,
             viz.description,
@@ -345,9 +346,7 @@ export default {
     },
     CREATE_CHART({ commit }) {
       //todo bug create workspace or viz?
-      
       const viz = new VpressViz()
-      console.log(viz)
       commit('ADD_VIZ_TO_WSP', viz)
       // const chartValues = viz.values();
       // commit('ADD_CHART', chartValues)
@@ -360,19 +359,25 @@ export default {
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
 
     },
-    async SAVE_CHART({ state }) {
+    async SAVE_CHART({ getters }) {
       try {
-        //todo despues de guardados ens tore get id of dataset, get description, permissiomns, img_url, value, tags from workspace, 
+        const {
+          dataset_id,
+          chartValues,
+          owner_id,
+          description,
+          permission,
+          img_url
+        } = getters.viz
+
         const body = {
-          dataset_id: 1,
-          title: "Covid19",
-          tags: "covid19, vpress",
-          value: JSON.stringify(state.charts[state.activeVizIdx]),
-          owner_id: 1,
-          description: "Gráfica creada desde Vpress",
-          permissions: "Public",
-          img_url: "http://google.com"
-      }
+          dataset_id: dataset_id,
+          value: JSON.stringify(chartValues),
+          owner_id: owner_id,
+          description: description,
+          permissions: permission,
+          img_url: img_url
+        }
         const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`, body)
         console.log(response)
       } catch (error) {

@@ -4,7 +4,11 @@
       <v-toolbar full-width flat>
         <v-btn
           color="primary"
-          :class="{selecteduploadMethod: uploadMethod === 'upload'}"
+          :class="
+            {
+              selecteduploadMethod: uploadMethod === 'upload'
+            }
+          "
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('upload')"

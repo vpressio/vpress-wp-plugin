@@ -101,10 +101,6 @@ export default {
     this.unsubscribeAction();
   },
   computed: {
-    // dataChart() {
-    //   ///////////////
-    //   return this.$store.getters['data/activeChartData']
-    // },
     showLoader() {
       return this.loadingChart
     },

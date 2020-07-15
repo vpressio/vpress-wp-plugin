@@ -81,7 +81,7 @@ const defaultChart = {
   opacity: 1,
   theme: '',
   labels: false,
-  colors: ['#fcff9d', '#f6ca3b', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e']
+  colors: ['#40348c', '#842f8e', '#ba2982', '#e2346d', '#fc5353', '#ff7b33', '#ffa600']
 }
 
 const defaultMap = {

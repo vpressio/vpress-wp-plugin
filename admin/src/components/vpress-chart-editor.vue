@@ -243,9 +243,17 @@ export default {
       downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`)
     },
     clipboardCopy() {
-      //Todo: url dinamica de acuerdo al origen de los datos, wp o api, para 
-      const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
-      navigator.clipboard.writeText(iframe);
+      try {
+        const chartId = this.$store.getters['chartConfig/viz'].id
+        if (chartId) {
+          const iframe = `<iframe src="https://demo.v-press.org/#/shared/${chartId}" width="400" height="150"></iframe>`
+          navigator.clipboard.writeText(iframe);
+        } else {
+          throw new Error('Gráfica no guardada.')
+        }
+      } catch (error) {
+        console.error(error.message);
+      }
     },
     mergeValue(slot, dataToMerge) {
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
