@@ -1,8 +1,6 @@
 <template>
   <v-card
-    v-show="variableData.type !== '' && variableData.title !== ''"
-    :id="id"
-    :ref="id"
+    v-show="variable.type !== '' && variable.title !== ''"
     :draggable="draggable"
     @dragstart="dragStart"
     tile
@@ -11,63 +9,61 @@
     dark
     hover
   >
-    <div>
-      <div v-if="inSlot" class="operationButtonContainer">
-        <v-menu close-on-click offset-x right nudge-right="15">
-          <template v-slot:activator="{ on }">
-            <v-btn small icon dark class="operationButton" v-on="on">
-              <v-icon dense>mdi-dots-horizontal</v-icon>
-            </v-btn>
-          </template>
-          <v-list
-          v-if="
-            variableData.type === 'linear' &&
-            variableData.slug !== 'total_count' && 
-            slotId !== 'filter'
-          "
-          >
-            <v-list-item
-              class="px-5"
-              v-for="(func, funcIndex) in funcs"
-              :key="`func_${funcIndex}`"
-              @click="selectFunc(func)"
-              :class="{ 'selected-func': selectedFunc === func }"
-            >
-              <v-list-item-title
-                class="func-menu"
-                :class="{ 'selected-func': selectedFunc === func }"
-                :dark="selectedFunc === func"
-              >{{ func.name }}</v-list-item-title>
-            </v-list-item>
-            <v-divider></v-divider>
-            <v-list-item class="px-5" @click="removeCard()">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-            </v-list-item>
-          </v-list>
-          <v-list v-if="variableData.type !== 'linear' || variableData.slug === 'total_count'">
-            <v-list-item class="px-5" @click="removeCard">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-      <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
-        <p v-if="id !== 'cardId_total'" class="ma-0">{{ variableData.title }}</p>
-        <span
-          v-if="id === 'cardId_total'"
-          class="vpress-default-card"
+    <div v-if="inSlot" class="operationButtonContainer">
+      <v-menu close-on-click offset-x right nudge-right="15">
+        <template v-slot:activator="{ on }">
+          <v-btn small icon dark class="operationButton" v-on="on">
+            <v-icon dense>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list
+        v-if="
+          variable.type === 'linear' &&
+          variable.slug !== 'total_count' && 
+          slotId !== 'filter'
+        "
         >
-          • {{ variableData.title }}
-        </span>
-        <p
-          v-show="
-            inSlot &&
-            variableData.type === 'linear' &&
-            variableData.slug !== 'total_count'
-          "
-          class="variableCardDataType mb-0"
-        >{{ `(${selectedFunc.name})` }}</p>
-      </div>
+          <v-list-item
+            class="px-5"
+            v-for="(func, funcIndex) in funcs"
+            :key="`func_${funcIndex}`"
+            @click="selectFunc(func)"
+            :class="{ 'selected-func': selectedFunc === func }"
+          >
+            <v-list-item-title
+              class="func-menu"
+              :class="{ 'selected-func': selectedFunc === func }"
+              :dark="selectedFunc === func"
+            >{{ func.name }}</v-list-item-title>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item class="px-5" @click="removeCard()">
+            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+          </v-list-item>
+        </v-list>
+        <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count'">
+          <v-list-item class="px-5" @click="removeCard">
+            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+    <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
+      <p v-if="variable.slug !== 'total_count'" class="ma-0">{{ variable.title }}</p>
+      <span
+        v-if="variable.slug === 'total_count'"
+        class="vpress-default-card"
+      >
+        • {{ variable.title }}
+      </span>
+      <p
+        v-show="
+          inSlot &&
+          variable.type === 'linear' &&
+          variable.slug !== 'total_count'
+        "
+        class="variableCardDataType mb-0"
+      >{{ `(${selectedFunc.name})` }}</p>
     </div>
   </v-card>
 </template>
@@ -75,15 +71,13 @@
 export default {
   name: 'VpressVariableCard',
   props: {
-    id: String,
     slotId: String,
-    variableData: Object,
+    variable: Object,
     inSlot: Boolean,
     error: Boolean
   },
   data() {
     return {
-      columnDataToTransferInObject: {},
       draggable: true,
       funcs: [
         { type: 'sum', name: 'Suma' },
@@ -97,34 +91,23 @@ export default {
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      this.columnDataToTransferInObject = {
-        id: this.id,
-        ...this.variableData,
-        func: this.selectedFunc.type
-      };
-      const transferedString = JSON.stringify(
-        this.columnDataToTransferInObject
-      );
-      dataTransfer.setData(
-        'transferedString',
-        transferedString
-      );
+      const payload = JSON.stringify(this.variable);
+      dataTransfer.setData('variableJson', payload);
     },
     selectFunc(func) {
-      let variable = { ...this.variableData }
-      variable.func = func.type
+      this.variable.func = func.type
       this.selectedFunc = func
       this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
         mutationType: this.slotId,
-        value: variable
+        value: this.variable
       });
     },
     removeCard() {
       const payload = this.slotId === 'filter'
       ? {
-          title: this.variableData.title,
-          type: this.variableData.type,
-          slug: this.variableData.slug,
+          title: this.variableMeta.title,
+          type: this.variableMeta.type,
+          slug: this.variableMeta.slug,
           value: 'remove'
         } 
       : {

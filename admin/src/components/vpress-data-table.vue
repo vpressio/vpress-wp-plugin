@@ -3,7 +3,7 @@
     :class="{'data-table--container':$vuetify.breakpoint.xlOnly}"
   >
     <v-data-table
-      v-if="dataOrigin === 'api'"
+      v-if="datasetMeta.origin === 'api'"
       :headers="headers"
       :items="items"
       :item-key="headers[0] ? headers[0].value : ''"
@@ -42,12 +42,8 @@
 export default {
   name:'VpressDataTable',
   props: {
-    dataOrigin: {
-      type: String,
-      required: true
-    },
-    dataset: {
-      type: String,
+    datasetMeta: {
+      type: Object,
       required: true
     },
     data: {
@@ -68,8 +64,8 @@ export default {
     }
   },
   watch: {
-    dataOrigin(newval, oldval) {
-      if (oldval == 'file') this.getDataFromApi()
+    datasetMeta(newval, oldval) {
+      if (oldval.origin == 'file') this.getDataFromApi()
     },
     data(val) {
       if (val.length > 0) this.headers = this.extractHeaders(this.data[0]);
@@ -87,7 +83,7 @@ export default {
       const { page, itemsPerPage } = this.options
       const obj = {
         page,
-        dataset: this.dataset,
+        dataset: this.datasetMeta.slug,
         itemsPerPage
       }
       const data = await this.$store.dispatch('data/GET_WP_DATASET_DATA', obj);
@@ -95,7 +91,7 @@ export default {
       this.total = data.total
       this.headers = this.extractHeaders(this.items[0]);
       this.$store.dispatch('chartConfig/RESET_WSP');
-      this.$store.dispatch('data/SAVE_DATA', { data: this.items, dataSetName: this.dataset, dataOrigin: this.dataOrigin});
+      this.$store.dispatch('data/SAVE_DATA', { data: this.items, datasetMeta: this.datasetMeta});
       this.loading = false
     },
     extractHeaders(data) {

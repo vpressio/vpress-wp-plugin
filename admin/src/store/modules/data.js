@@ -7,10 +7,9 @@ export default {
   namespaced: true,
   state: {
     data: [],
-    dataSetName:'',
+    datasetMeta: {},
     dataVariables : [],
-    dateFormat: '',
-    origin: ''
+    dateFormat: ''
   },
   mutations: {
     SET_DATA(state, { index ,data }) {
@@ -19,8 +18,8 @@ export default {
     SET_CLEANED_DATA(state, dataArray) {
       state.data = dataArray
     },
-    SET_DATASET_NAME(state, dataSetName) {
-      state.dataSetName = dataSetName
+    SET_DATASET_META(state, datasetMeta) {
+      state.datasetMeta = datasetMeta
     },
     SET_DATE_FORMAT(state, format) {
       state.dateFormat = format
@@ -39,8 +38,6 @@ export default {
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
           queryBody
         );
-        console.log(queryBody)
-        console.info(response.data.query)
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -50,14 +47,15 @@ export default {
       }
     },
     async GET_CHART_DATA(
-      { state, commit, dispatch },
-      { chartValues, chartIndex,
-        dataSetName = state.dataSetName }
+      { state, dispatch },
+      {
+        chartValues,
+        dataSetSlug = state.datasetMeta.slug
+      }
     ) {
       try {
-        const body = await vpress.prepareQuery(chartValues, dataSetName);
+        const body = await vpress.prepareQuery(chartValues, dataSetSlug);
         const response = await dispatch('GET_QUERY_DATA', body)
-        commit('SET_DATA',{ index: chartIndex, data: response })
         return response
       } catch (error) {
         throw new Error(error.message)
@@ -70,7 +68,7 @@ export default {
     async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
       try {
         const body = {
-          dataset: `vpress_${state.dataSetName}`,
+          dataset: `vpress_${state.datasetMeta.slug}`,
           chart_type: rootGetters['chartConfig/chart'].chart
         }
         if (payload.type !== 'linear') {
@@ -87,7 +85,33 @@ export default {
     async GET_WP_DATASETS() {
       try {
         const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
         return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_WP_DATASET_INFO( _ , payload) {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${payload}`
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        const dataset = response.data.datasets[0]
+        return {
+          id: dataset.id,
+          slug: dataset.slug,
+          name: dataset.name,
+          description: dataset.description,
+          owner_id: dataset.owner_id, 
+          permissions: dataset.permissions,
+          source: dataset.source,
+          tags: dataset.tag
+        }
       } catch (error) {
         throw new Error(error.message)
       }
@@ -104,19 +128,16 @@ export default {
         throw new Error(error.message)
       }
     },
-    async SAVE_DATA({ state, commit }, { data, dataSetName, dataOrigin }) {
+    async SAVE_DATA({ commit }, { data, datasetMeta }) {
       try {
         if (data.length > 0) {
-          const variables = vpress.sortByDataType(data[0])
-          commit('SET_VARIABLE_DATA', variables)
-          commit('SET_DATE_FORMAT',vpress.extractDateFormat(variables));
+          const typedVariabales = vpress.extractDataType(data[0])
+          commit('SET_VARIABLE_DATA', typedVariabales.variables)
+          commit('SET_DATE_FORMAT', typedVariabales.dateFormat);
         } else {
           commit('SET_VARIABLE_DATA', [])
         }
-        commit('SET_ORIGIN', dataOrigin)
-        commit('SET_DATASET_NAME', dataSetName);
-        if(state.origin !== 'api') commit('SET_DATA', { index: 0, data: data });
-        return { data: data, dataSetName: dataSetName }
+        commit('SET_DATASET_META', datasetMeta);
       } catch (error) {
         throw new Error(error.message)
       }
@@ -166,11 +187,10 @@ export default {
     }
   },
   getters: {
-    data: state => state.data,
-    dataSetName: state => state.dataSetName,
-    dataType: state => state.dataVariables.map(({ type, title, slug }) => ({ type: type.dataType, title: title, slug: slug })),
+    dataType: state => state.dataVariables,
     dateFormat: state => state.dateFormat,
-    activeChartData: state =>  state.origin !== 'api' ? () => state.data[0] : index => state.data[index],
-    origin: state => state.origin
+    dataSetName: state => state.datasetMeta.name,
+    origin: state => state.datasetMeta.origin ,
+    activeChartData: state =>  state.datasetMeta.origin !== 'api' ? () => state.data[0] : index => state.data[index]
   }
 };

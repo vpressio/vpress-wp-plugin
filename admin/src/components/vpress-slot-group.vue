@@ -23,7 +23,7 @@
 import VpressSlot from './vpress-slot';
 
 export default {
-  name: 'VpressVariableSlotsContainer',
+  name: 'VpressSlotGroup',
   components: {
     VpressSlot
   },

@@ -229,10 +229,12 @@ const setAggregate = async (payload) => {
       case 'spineplot':
         if (newValue.type === 'linear') {
           chartValues.collapseBy = newValue
+        } else if (newValue.type === 'ordinal') {
+          chartValues.groupBy = newValue
         } else {
           chartValues.collapseBy.title = newValue.title
           throw new VpressError(newValue.title, 'Los spineplot sólo pueden agruparse por una variable linear.')
-        }
+        } 
         break;
       case 'scatter':
         if (newValue.type === 'ordinal') {
@@ -303,38 +305,33 @@ const setFilters = ({ chartValues, newValue }) => {
   }
 };
 
-const extractDateFormat = (variables) => {
-  return variables.reduce(
-    (acc, variable) => {
-      if (variable.type.format) {
-        acc = variable.type.format
-      }
-      return acc
-    },
-    '%Y-%d-%m'
-  )
-};
-
-const sortByDataType = (dataSample) => {
+const extractDataType = (dataSample) => {
   const dateFormats = ['%Y/%m/%d','%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d'];
   const dataSampleEntries = Object.entries(dataSample);
-  return dataSampleEntries
-    .map(variable => {
-      return {
-        title: variable[0],
-        slug: variable[0],
-        type: dateFormats.reduce((acc, dateFormat) => {
-          if (d3.timeParse(dateFormat)(variable[1]) !== null) {
-            acc.dataType = 'date';
-            acc.format = dateFormat;
-          }
-          if (isNaN(+variable[1]) && acc.format === undefined) {
-            acc.dataType = 'ordinal';
-          }
-          return acc;
-        }, { dataType: 'linear' })
+  let dateFormat = null
+  const variables = dataSampleEntries
+    .map(sampleValue => {
+      const dataType = dateFormats.reduce((acc, format) => {
+        if (d3.timeParse(dateFormat)(sampleValue[1]) !== null) {
+          acc.type = 'date';
+          dateFormat = format;
+        }
+        if (isNaN(+sampleValue[1]) && acc.format === undefined) {
+          acc.type = 'ordinal';
+        }
+        return acc;
+      }, { type: 'linear' })
+      const variable = {
+        title : sampleValue[0],
+        slug : sampleValue[0],
+        type : dataType.type
       }
+      if (variable.type === 'linear') {
+        variable.func = ''
+      }
+      return variable
     })
+  return { variables, dateFormat }
 };
 const filterOrdinalParamsQuery = (body, column) => {
   body['order_by'] = `${sanitizeSpaces(column)} ASC`
@@ -354,9 +351,9 @@ const filterLinearParamsQuery = (body, column) => {
 }
 
 
-const prepareQuery = (payload, dataSetName) => {
+const prepareQuery = (payload, table_name) => {
   const body = {};
-  body['dataset'] = `vpress_${dataSetName}`
+  body['dataset'] = `vpress_${table_name}`
   body['chart_type'] = payload.chart
   body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
 
@@ -495,8 +492,7 @@ const sanitizeSpaces = (columnName) => {
 export default {
   merge,
   invertAxis,
-  sortByDataType,
-  extractDateFormat,
+  extractDataType,
   filterOrdinalParamsQuery,
   filterLinearParamsQuery,
   prepareQuery

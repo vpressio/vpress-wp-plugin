@@ -52,3 +52,19 @@ function get_dataset_data($request) {
   );
   return $response;
 }
+
+function get_dataset_info( $request ) {
+  global $wpdb;
+  $dataset_slug = $request['dataset'];
+  $table_name = $wpdb->prefix.'vpresscore_datasets';
+  $query = "SELECT * FROM $table_name WHERE slug = %s";
+
+  $datasets = $wpdb->get_results($wpdb->prepare($query, $dataset_slug ));
+  $response = array(
+    'datasets' => $datasets,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false
+  );
+
+  return $response;
+}

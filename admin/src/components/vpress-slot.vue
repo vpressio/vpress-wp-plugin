@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="ma-1" @drop.stop.self="drop">
+  <div class="ma-1">
     <v-icon
       v-if="slotIcon.length === 0"
       color="secondary"
@@ -31,9 +31,8 @@
       <VpressVariableCard
         class="mb-1"
         v-for="(variable, variableIndex) in storeVariables"
-        :id="variable.id"
         :key="`variable_${variableIndex}`"
-        :variableData="variable"
+        :variable="variable"
         inSlot
         :slotId="slotId"
         :error="error"
@@ -51,11 +50,11 @@
       :type="filterType"
       :openFilterDialog.sync="openFilterDialog"
     />
-  </v-card>
+  </div>
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card';
-import VpressSlotFilter from './vpress-slot-filter.vue';
+import VpressSlotFilter from './vpress-filter';
 
 export default {
   name: 'VpressSlot',
@@ -94,8 +93,9 @@ export default {
     async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const transferedString = dataTransfer.getData('transferedString');
-      const variable = JSON.parse(transferedString);
+      const variableJson = dataTransfer.getData('variableJson');
+      const variable = JSON.parse(variableJson);
+      console.log(variable)
       if (this.slotId === 'filter') {
         this.filterData(variable.slug,variable.type);
       } else {
@@ -121,21 +121,6 @@ export default {
         console.error(error)
         this.error = true
       }
-    },
-    addToStack(variable) {
-      console.log(variable)
-    //   const stack = [...this.variablesStack]
-    //   if(stack.length < 2) {
-    //     switch(stack.push(variable)){
-    //       case 0:
-    //         this.mergeVariable(variable, this.slotId)
-    //         break;
-    //       case 1:
-    //         this.mergeVariable(variable, 'aggregation')
-    //         break;
-    //     }
-    //   }
-    //  this.variablesStack = stack
     },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle

@@ -12,8 +12,8 @@
               grow
             >
               <v-tab>DATOS</v-tab>
-              <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
-              <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
+              <v-tab :disabled="variables.length === 0">CONFIGURA</v-tab>
+              <v-tab class="v-step-8" :disabled="variables.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
@@ -26,10 +26,10 @@
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
-              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
                 <v-icon left color="primary">mdi-share-variant</v-icon>
                 Compartir
-              </v-btn> -->
+              </v-btn>
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -42,12 +42,10 @@
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
                     <v-col cols="12" class="pb-0 pt-1">
                       <v-img class="db-icon" src="../assets/images/db1.svg" />
-                      <span class="db-titulo">{{ dataSetName  }}</span>
+                      <span class="db-titulo">{{ dataSetName }}</span>
                       <hr class="v-divider theme--light hr-divider" />
                     </v-col>
-                    <VpressVariableContainer
-                      :variableData="variableData"
-                    />
+                    <VpressVariableContainer :variables="variables"/>
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
@@ -77,7 +75,7 @@
             v-show="numberOfColsIftabIsNotZero !== '12'"
             :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressChartGroup v-if="variableData.length !== 0"/>
+            <VpressChartGroup v-if="variables.length !== 0"/>
           </v-col>
         </v-row>
       </div>
@@ -223,7 +221,7 @@ export default {
       // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
-    variableData() {
+    variables() {
       return this.$store.getters['data/dataType'];
     },
     dataSetName() {

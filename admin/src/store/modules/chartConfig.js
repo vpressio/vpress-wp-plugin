@@ -72,7 +72,7 @@ export default {
       },
       {
         type: 'spineplot',
-        required: ['groupBy', 'collpaseBy'],
+        required: ['collpaseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -286,7 +286,8 @@ export default {
         const viz = new VpressViz(chartValues);
         commit('RESET_WSP', viz)
         return document.data()
-        } catch (error) {
+      } catch (error) {
+        console.error(error.message);
         throw new Error(error.message)
       }
     },
@@ -302,7 +303,7 @@ export default {
           {
             chartValues: chartValues,
             chartIndex: state.activeVizIdx,
-            dataSetName: 'montolocalidades'
+            dataSetSlug: state.dataSetInfo.slug
           },
           { root: true }
         )
@@ -321,7 +322,6 @@ export default {
         )
         return { chartConfig: chartValues, chartData: data }
       } catch (error) {
-        console.error(error.message);
         throw new Error(error.message)
       }
     },
@@ -344,6 +344,8 @@ export default {
       }
     },
     CREATE_CHART({ commit }) {
+      //todo bug create workspace or viz?
+      
       const viz = new VpressViz()
       console.log(viz)
       commit('ADD_VIZ_TO_WSP', viz)
@@ -360,6 +362,7 @@ export default {
     },
     async SAVE_CHART({ state }) {
       try {
+        //todo despues de guardados ens tore get id of dataset, get description, permissiomns, img_url, value, tags from workspace, 
         const body = {
           dataset_id: 1,
           title: "Covid19",
@@ -385,43 +388,9 @@ export default {
     data: (_, { viz }) => viz.vizData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
     xAxis: (_, { chart }) => {
-      // if (
-      //   chart.chart === 'bars' ||
-      //   chart.chart === 'timeline'
-      //   ) {
-      //   if (chart.xAxis.type !== 'linear') {
-      //     return [chart.xAxis, chart.groupBy].filter(value => value.slug !== '')
-      //   } else {
-      //     return [chart.xAxis]
-      //   }
-      // }
-      // if (
-      //   chart.chart === 'scatter' ||
-      //   chart.chart === 'heatmap' ||
-      //   chart.chart === 'spineplot'
-      // ) {
-      //   return [chart.xAxis]
-      // }
       return [chart.xAxis]
     },
     yAxis: (_, { chart }) => {
-      // if (
-      //   chart.chart === 'bars' ||
-      //   chart.chart === 'timeline'
-      //   ) {
-      //   if (chart.yAxis.type !== 'linear') {
-      //     return [chart.yAxis, chart.groupBy].filter(value => value.slug !== '')
-      //   } else {
-      //     return [chart.yAxis]
-      //   }
-      // }
-      // if (
-      //   chart.chart === 'scatter' ||
-      //   chart.chart === 'heatmap' ||
-      //   chart.chart === 'spineplot'
-      // ) {
-      //   return [chart.yAxis]
-      // }
       return [chart.yAxis]
     },
     ordinalAxis: (_, { chart }) => {
@@ -437,6 +406,16 @@ export default {
       return null
     },
     aggregation: (_, { chart }) => {
+      if (chart.chart === 'spineplot') {
+        if (
+          (chart.xAxis.type === chart.yAxis.type) &&
+          (chart.yAxis.type === 'ordinal')
+        ) {
+          return [chart.collapseBy]
+        } else {
+          return [chart.groupBy]
+        }
+      }
       if (
         chart.chart === 'bars' ||
         chart.chart === 'scatter' ||
@@ -445,8 +424,7 @@ export default {
         return [chart.groupBy]
       }
       if (
-        chart.chart === 'heatmap' ||
-        chart.chart === 'spineplot'
+        chart.chart === 'heatmap'
       ) {
         return [chart.collapseBy]
       }

@@ -326,7 +326,6 @@ export default {
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
-      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -581,7 +580,7 @@ export default {
       }
 
       spineplot
-        .category(this.chartConfig.xAxis.slug)
+        .category(this.ordinalAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawScatter() {
