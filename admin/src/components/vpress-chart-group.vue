@@ -16,10 +16,10 @@
       :key="`empty_chart_${chartIndex}`"
     >
       <VpressChartContainer
-        v-show="activeChartIndex === chartIndex && !loadingChart"
+        v-if="activeChartIndex === chartIndex && !loadingChart"
         :id="`empty_chart_${chartIndex}`"
-        :data="dataChart(chartIndex)"
-        :chartConfig="charts[chartIndex]"
+        :data="charts[chartIndex].vizData()"
+        :chartConfig="charts[chartIndex].values()"
         @chart_loaded="onChartIsLoaded"
       />
     </div>
@@ -41,6 +41,16 @@
       depressed
     >
       Gráfica {{ chartIndex + 1 }}
+      <v-btn
+        v-show="charts.length > 1"
+        class="ml-3 mr-2"
+        x-small
+        icon
+        color="primary"
+        @click.stop.prevent="removeChart(chartIndex)"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-btn>
   </v-card>
 </template>
@@ -60,8 +70,8 @@ export default {
     return {
       chartConfig: this.$store.getters['chartConfig/chart'],
       availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
-      charts: this.$store.getters['chartConfig/charts'],
-      loadingChart: false,
+      charts: this.$store.getters['chartConfig/workspace'],
+      loadingChart: this.$store.getters['chartConfig/loadingState'],
       activeChartIndex:0
     };
   },
@@ -73,8 +83,12 @@ export default {
           mutation.type === 'chartConfig/ADD_CHART'
         )
       ) {
-        this.loadingChart = false
-        this.charts = this.$store.getters['chartConfig/charts'].map( chart => _.cloneDeep(chart));
+        this.charts = this.$store.getters['chartConfig/workspace'].map( chart => _.cloneDeep(chart));
+      }
+      if (
+        mutation.type === 'chartConfig/SET_LOAD_STATE'
+      ) {
+        this.loadingChart = this.$store.getters['chartConfig/loadingState']
       }
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
     });
@@ -87,9 +101,6 @@ export default {
     this.unsubscribeAction();
   },
   computed: {
-    dataChart() {
-      return this.$store.getters['data/activeChartData']
-    },
     showLoader() {
       return this.loadingChart
     },
@@ -100,7 +111,22 @@ export default {
       this.activeChartIndex = chartIndex;
     },
     addChart() {
-      this.$store.dispatch('chartConfig/CREATE_CHART');
+      // this.$store.dispatch('chartConfig/CREATE_CHART');
+      // const nextIndex = this.activeChartIndex + 1
+      // this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX',nextIndex);
+      // this.activeChartIndex = nextIndex
+      // this.charts = this.$store.getters['chartConfig/charts'];
+    },
+    removeChart(chartIndex) {
+      console.log(chartIndex);
+      // this.$store.dispatch('chartConfig/REMOVE_CHART', chartIndex);
+      //   this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX',0);
+      //   this.activeChartIndex = 0
+      //   this.charts = this.$store.getters['chartConfig/charts'];
+      //   this.$store.dispatch(
+      //     'data/GET_CHART_DATA',
+      //     { chartValues: this.$store.getters['chartConfig/chart'], chartIndex: 0 }
+      //   )
     },
     change() {
       this.loadingChart = !this.loadingChart

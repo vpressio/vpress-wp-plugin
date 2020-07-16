@@ -1,6 +1,6 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" width="500">
+    <v-dialog v-model="dialog" persistent width="500">
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -16,26 +16,41 @@
           <a class="underline" @click="deselectAll">Limpiar selección</a>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-text class="py-4">
-          <template v-if="type == 'linear'">
+        <div
+          style="width:100%;display:flex;justify-content:center;padding-top:10px"
+          v-if="loading"
+        >
+          <v-progress-circular
+            :size="70"
+            :width="7"
+            color="primary"
+            indeterminate
+          />
+        </div>
+        <v-card-text else class="py-4">
+          <template v-if="type === 'linear'">
             <v-range-slider
-              v-if="this.range"
               class="mt-5"
               v-model="linearFilter"
+              :min="min"
+              :max="max"
               dense
               hide-details
-              :min="range[0]"
-              :max="range[1]"
-              step="0.1"
-              thumb-label="always"
-              thumb-size="32"
+              step= "1"
+              thumb-size= "32"
             >
+              <template v-slot:prepend>
+                {{ linearFilter[0] }}
+              </template>
+              <template v-slot:append>
+                {{ linearFilter[1] }}
+              </template>
             </v-range-slider>
           </template>
           <template v-else>
             <v-checkbox
               v-model="ordinalFilter"
-              v-for="item in dataFiltered"
+              v-for="item in categories"
               :key="item"
               :label="item"
               :value="item"
@@ -51,7 +66,7 @@
           <v-btn color="secondary" outlined @click="closeDialog">
             Cancelar
           </v-btn>
-          <v-btn color="primary" @click="setFilter">
+          <v-btn color="primary" @click="applyFilter">
             Aplicar
           </v-btn>
           <v-spacer/>
@@ -80,14 +95,20 @@ export default {
   },
   data() {
     return {
+      loading: true,
       dialog: true,
-      linearFilter: this.range,
-      ordinalFilter: []
+      linearFilter: [0,100],
+      min: 100,
+      max: 0,
+      ordinalFilter: [],
+      categories: [],
     };
+  },
+  created() {
+    this.getFilterParams()
   },
   computed: {
     dataFiltered() {
-      
       const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
       return _.map(uniq, this.column);
     },
@@ -100,24 +121,38 @@ export default {
     },
   },
   methods: {
+    async getFilterParams() {
+      try {
+        const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
+        if(this.type !== 'linear'){
+          this.categories = filterParams.map(category => category[this.column])
+        } else { 
+          throw new Error(`min: ${+filterParams[0].min}, max: ${+filterParams[0].max}`)
+        }
+        this.loading = false;
+      } catch (error) {
+        this.closeDialog()
+        console.error(error.message)
+      }
+    },
     async applyFilter() {
       try {
          this.$store.dispatch(
            'chartConfig/MERGE_CHART_VALUE',
            {
-              newValue: {
-                "op": this.type === 'linear'
-                  ? 'BEETWEEN'
-                  : 'IN',
-                column: this.column,
-                value: []
+              value: {
+                  title: this.column,
+                  slug: this.column,
+                  type: this.type,
+                  value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter
               }, 
               mutationType: 'filter'
            }
-           
          )
+        this.closeDialog()
       } catch (error) {
         console.error(error)
+        this.closeDialog()
       }
     },
     closeDialog() {
@@ -125,20 +160,10 @@ export default {
       this.dialog = false;
     },
     selectAll() {
-      this.ordinalFilter = this.dataFiltered;
+      this.ordinalFilter = this.categories;
     },
     deselectAll() {
       this.ordinalFilter = [];
-    },
-    setFilter() {
-      const filter = { type: this.type, column: this.column };
-      if (this.type == 'linear') {
-        this.$store.dispatch(' Filter', { ...filter, value: this.linearFilter });
-      } else {
-        this.$store.dispatch('data/setFilter', { ...filter, value: this.ordinalFilter });
-      }
-      this.dialog = false;
-      this.$emit('update:openFilterDialog', false)
     }
   }
 };

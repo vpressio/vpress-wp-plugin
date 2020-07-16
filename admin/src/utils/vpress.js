@@ -98,7 +98,7 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
         )
       ) {
         chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
-      }
+    }
     switch (newValue.type) {
       case 'ordinal':
         if (
@@ -229,10 +229,12 @@ const setAggregate = async (payload) => {
       case 'spineplot':
         if (newValue.type === 'linear') {
           chartValues.collapseBy = newValue
+        } else if (newValue.type === 'ordinal') {
+          chartValues.groupBy = newValue
         } else {
           chartValues.collapseBy.title = newValue.title
           throw new VpressError(newValue.title, 'Los spineplot sólo pueden agruparse por una variable linear.')
-        }
+        } 
         break;
       case 'scatter':
         if (newValue.type === 'ordinal') {
@@ -288,50 +290,80 @@ const removeAggregate = async ({chartValues, newValue, mutationType}) => {
   }
 }
 
-const setFilters = async ({ chartValues, newValue }) => {
-  chartValues.filter =  newValue 
+const setFilters = ({ chartValues, newValue }) => {
+  try {
+    if (newValue.value === 'remove') {
+      chartValues.filters = chartValues.filters.filter(filter => {
+        return filter.slug !== newValue.slug
+      });
+    } else {
+      chartValues.filters.push(newValue)
+    }
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
+  }
 };
 
-const extractDateFormat = (variables) => {
-  return variables.reduce(
-    (acc, variable) => {
-      if (variable.type.format) {
-        acc = variable.type.format
-      }
-      return acc
-    },
-    '%Y-%d-%m'
-  )
-};
-
-const sortByDataType = (dataSample) => {
+const extractDataType = (dataSample) => {
   const dateFormats = ['%Y/%m/%d','%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d'];
   const dataSampleEntries = Object.entries(dataSample);
-  return dataSampleEntries
-    .map(variable => {
-      return {
-        title: variable[0],
-        slug: variable[0],
-        type: dateFormats.reduce((acc, dateFormat) => {
-          if (d3.timeParse(dateFormat)(variable[1]) !== null) {
-            acc.dataType = 'date';
-            acc.format = dateFormat;
-          }
-          if (isNaN(+variable[1]) && acc.format === undefined) {
-            acc.dataType = 'ordinal';
-          }
-          return acc;
-        }, { dataType: 'linear' })
+  let dateFormat = null
+  const variables = dataSampleEntries
+    .map(sampleValue => {
+      const dataType = dateFormats.reduce((acc, format) => {
+        if (d3.timeParse(dateFormat)(sampleValue[1]) !== null) {
+          acc.type = 'date';
+          dateFormat = format;
+        }
+        if (isNaN(+sampleValue[1]) && acc.format === undefined) {
+          acc.type = 'ordinal';
+        }
+        return acc;
+      }, { type: 'linear' })
+      const variable = {
+        title : sampleValue[0],
+        slug : sampleValue[0],
+        type : dataType.type
       }
+      if (variable.type === 'linear') {
+        variable.func = ''
+      }
+      return variable
     })
+  return { variables, dateFormat }
 };
+const filterOrdinalParamsQuery = (body, column) => {
+  body['order_by'] = `${sanitizeSpaces(column)} ASC`
+  body['column_1'] = sanitizeSpaces(column)
+  body['group_by'] = sanitizeSpaces(column)
+  return body
+}
 
-const prepareQuery = (payload, dataSetName) => {
+const filterLinearParamsQuery = (body, column) => {
+  body['subquery_aggregate'] = selectAggregateFunction('min')
+  body['subquery_column'] = sanitizeSpaces(column)
+  body['subquery_column_alias'] = `min`
+  body['subquery_aggregate_2'] = selectAggregateFunction('max')
+  body['subquery_column_2'] = sanitizeSpaces(column)
+  body['subquery_column_alias_2'] = `max`
+  return body
+}
+
+
+const prepareQuery = (payload, table_name) => {
   const body = {};
-  body['dataset'] = `vpress_${dataSetName}`
+  body['dataset'] = `vpress_${table_name}`
   body['chart_type'] = payload.chart
   body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
-  if (payload.chart === 'scatter') {
+
+  if (payload.chart === 'map') {
+    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
+    body['subquery_aggregate'] = selectAggregateFunction(payload.yAxis.func)
+    body['subquery_column'] = sanitizeSpaces(payload.yAxis.slug)
+    body['group_by'] = body['column_1']
+  }
+  if ( payload.chart === 'scatter') {
     if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
       body['column_1'] = payload.xAxis.slug !== 'total_count'
         ? sanitizeSpaces(payload.xAxis.slug)
@@ -415,9 +447,24 @@ const prepareQuery = (payload, dataSetName) => {
       body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
     }
   }
-  body['order_by'] = `${payload.orderBy.slug === '' ? body['order_by'] : sanitizeSpaces(payload.orderBy.slug)} ${payload.orderBy.order.toUpperCase()}`
 
-  console.log(body)
+  if (payload.filters.length > 0) {
+    body['where'] = payload.filters.map(clause => {
+      return {
+        op: clause.type !== 'ordinal' && clause.value.length === 2
+          ? 'BETWEEN'
+          : 'IN',
+        column: sanitizeSpaces(clause.slug),
+        value: clause.value
+      }
+    })
+  }
+
+  body['order_by'] = `${
+    payload.orderBy.slug === ''
+      ? body['order_by']
+      : sanitizeSpaces(payload.orderBy.slug)
+    } ${payload.orderBy.order.toUpperCase()}`
   return body
 }
 
@@ -432,7 +479,7 @@ const selectAggregateFunction = (func) => {
     case 'max':
       return 'MAX'
     default:
-      return 'SUM'
+      return 'AVG'
   }
 }
 
@@ -445,7 +492,8 @@ const sanitizeSpaces = (columnName) => {
 export default {
   merge,
   invertAxis,
-  sortByDataType,
-  extractDateFormat,
+  extractDataType,
+  filterOrdinalParamsQuery,
+  filterLinearParamsQuery,
   prepareQuery
 };

@@ -4,7 +4,11 @@
       <v-toolbar full-width flat>
         <v-btn
           color="primary"
-          :class="{selecteduploadMethod: uploadMethod === 'upload'}"
+          :class="
+            {
+              selecteduploadMethod: uploadMethod === 'upload'
+            }
+          "
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('upload')"
@@ -64,7 +68,7 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.size }} - {{ pimpMyInt(dataSet.rows) }} filas</v-card-subtitle>
+          >{{ dataSet.size }} - {{ intFromat(dataSet.rows) }} filas</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -79,10 +83,10 @@
             rounded
             outlined
             @click="cleanComponentData"
-            :disabled="data.length === 0 && dataOrigin !== 'api'"
+            :disabled="data.length === 0 && datasetMeta.origin !== 'api'"
           >Limpiar</v-btn>
           <v-btn
-            :disabled="data.length === 0 && dataOrigin !== 'api'"
+            :disabled="data.length === 0 && datasetMeta.origin !== 'api'"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -98,12 +102,12 @@
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
     </v-row>
-    <v-row v-if="uploadMethod === 'upload' && !dataSetName" class="ma-0">
+    <v-row v-if="uploadMethod === 'upload' && !datasetMeta.slug" class="ma-0">
       <v-col>
         <VpressFilepond :file.sync="files" />
       </v-col>
     </v-row>
-    <v-row v-if="uploadMethod === 'paste' && !dataSetName" class="ma-0">
+    <v-row v-if="uploadMethod === 'paste' && !datasetMeta.slug" class="ma-0">
       <v-col v-show="data.length === 0">
         <v-textarea
           class="pl-4 pt-4"
@@ -123,9 +127,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-if="dataSetName" class="ma-0">
+    <v-row v-if="datasetMeta.slug" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable :dataset="dataSetName" :dataOrigin="dataOrigin" :data="data"/>
+        <VpressDataTable :datasetMeta="datasetMeta" :data="data"/>
       </v-col>
     </v-row>
   </div>
@@ -144,8 +148,7 @@ export default {
   data() {
     return {
       data: [],
-      dataOrigin: '',
-      dataSetName: '',
+      datasetMeta: {},
       errorMessage: '',
       files: [],
       headers: [],
@@ -153,7 +156,7 @@ export default {
       pastedData: '',
       showTable: true,
       storageDataSets: [],
-      storageDataSetsDir: '/savedDatasets',
+      storageDataSetsDir: '/defaultDir',
       uploadMethod: 'upload',
       WPDataSets: []
     };
@@ -166,17 +169,17 @@ export default {
   watch: {
     files(newFiles) {
       if (newFiles.length >= 1){
-        this.dataSetName = this.files[0].file.name
+        this.datasetMeta.slug = this.files[0].file.name
         this.loadFile(this.files[0].file);
       }
     },
     tourFile(newTourFile) {
       if (!newTourFile.error){
-        this.dataSetName = newTourFile.fileName;
+        this.datasetMeta.slug = newTourFile.fileName;
         this.storageDataSetsDir = newTourFile.fileDir;
         this.getStorageDatasets();
         this.loadFile(newTourFile.file)
-        .then(() => this.saveData(this.data, this.dataSetName, this.dataOrigin));
+        .then(() => this.saveData(this.data, this.datasetMeta));
       }
     }
   },
@@ -192,10 +195,10 @@ export default {
       try {
         const self = this;
         if( this.$route.params.chartid ) {
-          const document = await self.$store.dispatch(`chartConfig/GET_CHART_BY_ID`, this.$route.params.chartid );
+          const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
           this.storageDataSetsDir = '/savedDatasets';
           const dataSetData = await this.selectStorageDataset(document.dataSet);
-          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, dataSetName: this.dataSetName });
+          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
           this.$emit('update:tabChange', 1);
         }
       } catch (error) {
@@ -209,21 +212,22 @@ export default {
         }
         const files  = await this.$store.dispatch('data/GET_DATASETS', this.storageDataSetsDir);
         if (files.items.length === 0) {
-          throw new Error(`Sin coincidencias para ${this.storageDataSetsDir}`);
+          console.warn(`${this.storageDataSetsDir} is empty`);
         }
         this.storageDataSets = files.items;
       } catch (error){
-        this.$router.push('/')
+        console.error(error.message)
+        if(this.$route.path !== '/') this.$router.push('/');
       }
     },
     async selectStorageDataset(fileName) {
       try {
         const self = this;
         self.loading = true;
-        self.dataSetName = fileName;
+        self.datasetMeta.slug = fileName;
         const file = await this.$store.dispatch(
           'data/GET_DATASET_BY_NAME',
-          { dataSetDir: this.storageDataSetsDir, file: this.dataSetName }
+          { dataSetDir: this.storageDataSetsDir, file: this.datasetMeta.slug }
         )
         self.loading = false;
         return await self.loadFile(file)
@@ -239,27 +243,30 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    async selectWPDataset(dataSetName) {
+    async selectWPDataset(dataSetSlug) {
       try {
         this.data = []
-        this.dataOrigin = 'api'
-        this.dataSetName = dataSetName;
+        const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO', dataSetSlug)
+        this.datasetMeta = {
+          ...info,
+          origin: 'api'
+          }
       } catch(error) {
+        console.error(error.message);
         this.errorMessage = error.message;
       }
     },
     async loadFile(file) {
       try {
         const self = this;
-        self.dataOrigin = 'file'
+        self.datasetMeta.origin = 'file'
         self.loading = true;
         const content = await this.$store.dispatch('data/READ_FILE', file);
         self.headers = self.extractSampleHeaders(content[0]);
-          // eslint-disable-next-line
-          self.data = content;
-          setTimeout(() => {
-            self.loading = false;
-          }, 0);
+        self.data = content;
+        setTimeout(() => {
+          self.loading = false;
+        }, 0);
         return content
       } catch (error) {
         self.loading = false;
@@ -314,7 +321,7 @@ export default {
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
-      self.dataSetName = 'Dataset copiado';
+      self.datasetMeta.slug = 'Dataset copiado';
     },
     extractSampleHeaders(dataSample) {
       return Object.keys(dataSample).map(o => ({
@@ -326,23 +333,23 @@ export default {
     cleanComponentData() {
       this.data = [];
       this.headers = [];
-      this.dataOrigin = 'file'
+      this.datasetMeta.origin = 'file'
       this.files = [];
-      this.$store.dispatch('data/SAVE_DATA', { data: [], dataSetName: '', dataOrigin:'' });
+      this.$store.dispatch('data/SAVE_DATA', { data: [], datasetMeta: {} });
     },
     nextTab() {
       this.$emit('update:tabChange', 1);
-      if (this.dataOrigin !== 'api') this.saveData(this.data, this.dataSetName, this.dataOrigin);
+      if (this.datasetMeta.origin !== 'api') this.saveData(this.data, this.datasetMeta);
     },
-    saveData(data, dataSetName, dataOrigin) {
-      this.$store.dispatch('chartConfig/RESET_CHART_VALUES');
-      this.$store.dispatch('data/SAVE_DATA', { data: data, dataSetName: dataSetName, dataOrigin: dataOrigin});
+    saveData(data, datasetMeta) {
+      this.$store.dispatch('chartConfig/RESET_WSP');
+      this.$store.dispatch('data/SAVE_DATA', { data: data, datasetMeta: datasetMeta});
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;
     },
-    pimpMyInt(num) {
-      return num.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+    intFromat(number) {
+      return new Intl.NumberFormat().format(number)
     }
   }
 };

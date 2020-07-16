@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="ma-1" @drop.stop.self="drop">
+  <div class="ma-1">
     <v-icon
       v-if="slotIcon.length === 0"
       color="secondary"
@@ -31,10 +31,8 @@
       <VpressVariableCard
         class="mb-1"
         v-for="(variable, variableIndex) in storeVariables"
-        :id="variable.id"
         :key="`variable_${variableIndex}`"
-        :variableData="variable"
-        @drop.stop.self="drop"
+        :variable="variable"
         inSlot
         :slotId="slotId"
         :error="error"
@@ -52,11 +50,11 @@
       :type="filterType"
       :openFilterDialog.sync="openFilterDialog"
     />
-  </v-card>
+  </div>
 </template>
 <script>
 import VpressVariableCard from './vpress-variable-card';
-import VpressSlotFilter from './vpress-slot-filter.vue';
+import VpressSlotFilter from './vpress-filter';
 
 export default {
   name: 'VpressSlot',
@@ -72,6 +70,8 @@ export default {
   },
   data() {
     return {
+      variablesStack: [],
+      stackMaxLength: 0,
       variablesInSlot: [],
       openFilterDialog: false,
       addMargin: false,
@@ -93,9 +93,16 @@ export default {
     async drop(event) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
-      const transferedString = dataTransfer.getData('transferedString');
-      const variable = JSON.parse(transferedString);
-      if (this.slotId === 'filter') this.filterData(variable.slug,variable.type);
+      const variableJson = dataTransfer.getData('variableJson');
+      const variable = JSON.parse(variableJson);
+      console.log(variable)
+      if (this.slotId === 'filter') {
+        this.filterData(variable.slug,variable.type);
+      } else {
+        this.mergeVariable(variable, this.slotId)
+      }
+    },
+    async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
           `chartConfig/MERGE_CHART_VALUE`,
@@ -105,11 +112,11 @@ export default {
               title: variable.title,
               type: variable.type
             },
-            mutationType: this.slotId
+            mutationType: mutationType
           }
         );
-        this.addVariableToSlot(result);
         this.error = false
+        return result;
       } catch (error) {
         console.error(error)
         this.error = true
@@ -117,10 +124,6 @@ export default {
     },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
-    },
-    addVariableToSlot() {
-       const variable = this.$store.getters[`chartConfig/${this.slotId}`]
-       this.variablesInSlot = [ ...this.variablesInSlot, variable ]
     },
     filterData(column, type) {
       this.filterType = type;
