@@ -64,7 +64,7 @@ const fillValues = (incomingChart, defaultChart) =>{
 }
 
 const defaultChart = {    
-  chart: 'bars',
+  chart: 'treemap',
   xAxis: { title: '', type: '', slug: '', func: '' },
   yAxis: { title: '', type: '', slug: '', func: '' },
   groupBy: { title: '', type: '', slug: '' },

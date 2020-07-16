@@ -144,7 +144,7 @@ export default {
         return require(`../assets/images/${chartType}.svg`);
       } catch (error) {
         console.error(error.message)
-        return require('../assets/images/bars.svg')
+        return require('../assets/images/spineplot.svg')
       }
     },
     toggleLabels() {

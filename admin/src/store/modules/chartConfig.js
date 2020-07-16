@@ -93,6 +93,24 @@ export default {
         ]
       },
       {
+        type: 'treemap',
+        required: [],
+        slots: [
+          {
+            slotId: 'xAxis',
+            values: ['xAxis', 'groupBy']
+          },
+          {
+            slotId: 'yAxis',
+            values: ['yAxis', 'groupBy']
+          },
+          {
+            slotId: 'filter',
+            values: ['filters']
+          }
+        ]
+      },
+      {
         type: 'map',
         required: ['collapseBy'],
         slots: [
@@ -489,6 +507,22 @@ export default {
               }
               return { ...graph, disabled: true };
             case 'spineplot':
+              if (
+                chart.xAxis.type !== chart.yAxis.type &&
+                (chart.xAxis.slug !== '' &&  chart.yAxis.slug !== '')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                };
+              }
+              return { ...graph, disabled: true };
+            case 'treemap':
               if (
                 chart.xAxis.type !== chart.yAxis.type &&
                 (chart.xAxis.slug !== '' &&  chart.yAxis.slug !== '')

@@ -451,6 +451,10 @@ export default {
             if (!vm.chartConfig.labels) {
               chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
+            
+            if(vm.chartConfig.chart === 'heatmap') {
+              d3.selectAll('.dbox-label').style('fill', 'white')
+            }
             /** Rotate x axis ticks texts */
             chart._svg.selectAll('.x.axis .tick text').each(function() {
               if (
@@ -503,6 +507,9 @@ export default {
           break;
         case 'map':
           this.drawMap();
+          break;
+        case 'treemap':
+          this.drawTreemap();
           break;
         default:
           this.drawBars();
@@ -569,7 +576,7 @@ export default {
     },
     drawSpineplot() {
       const spineplot = this.chart.layer(dbox.spineplot);
-
+      console.log(spineplot);
       if (this.groupByOptions.length > 0) {
         spineplot
           .stackBy(this.groupByOptions)
@@ -578,10 +585,19 @@ export default {
       } else {
         spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.collapseBy.slug);
       }
-
       spineplot
         .category(this.ordinalAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+    },
+    drawTreemap() {
+      console.log('quiubo desde treemap');
+      const vm = this
+      const treemap = this.chart.layer(dbox.treemap);
+      treemap
+        .nestBy(vm.chartConfig.xAxis.slug)
+        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse())
+      console.log( treemap )
+
     },
     drawScatter() {
       const vm = this;
