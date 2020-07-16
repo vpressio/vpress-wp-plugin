@@ -190,6 +190,7 @@ export default {
     dataType: state => state.dataVariables,
     dateFormat: state => state.dateFormat,
     dataSetName: state => state.datasetMeta.name,
-    origin: state => state.datasetMeta.origin 
+    origin: state => state.datasetMeta.origin,
+    datasetMeta: state => state.datasetMeta
   }
 };

@@ -95,7 +95,6 @@ export default {
       const { dataTransfer } = event;
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
-      console.log(variable)
       if (this.slotId === 'filter') {
         this.filterData(variable.slug,variable.type);
       } else {

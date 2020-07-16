@@ -53,7 +53,5 @@ export default {
 .iframe-margin{
   padding: 50px 10px;
   flex-wrap: wrap;
-  overflow: hidden;
-  height: 400px;
 }
 </style>

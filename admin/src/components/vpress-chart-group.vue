@@ -23,14 +23,14 @@
         @chart_loaded="onChartIsLoaded"
       />
     </div>
-    <v-btn
+    <!-- <v-btn
       tile
       depressed
       @click="addChart"
       :disabled="charts.length > 5"
     >
       <v-icon color="grey">mdi-plus-thick</v-icon>
-    </v-btn>
+    </v-btn> -->
     <v-btn
       v-for="(chart, chartIndex) in charts"
       :key="`chart_tab_${chartIndex}`"

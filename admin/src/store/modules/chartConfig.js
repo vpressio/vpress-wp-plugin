@@ -217,6 +217,9 @@ export default {
     SET_VIZ_DATA(state, data ) {
       state.workspace[state.activeVizIdx].setData(data)
       state.charts = state.workspace.map(wsp => wsp.values());
+    },
+    SET_WSP_CHART_ID(state, id) {
+      state.workspace[state.activeVizIdx].id = id
     }
   },
   actions: {
@@ -292,7 +295,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_CHART({ commit, dispatch, state }, chartId) {
+    async GET_WP_CHART({ commit, dispatch }, chartId) {
       try {
         const response = await axios.get(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
@@ -303,8 +306,7 @@ export default {
           'data/GET_CHART_DATA',
           {
             chartValues: chartValues,
-            chartIndex: state.activeVizIdx,
-            dataSetSlug: state.dataSetInfo.slug
+            dataSetSlug: 'actividades'
           },
           { root: true }
         )
@@ -313,7 +315,7 @@ export default {
           new VpressViz(
             chartValues,
             viz.id,
-            state.chart.title,
+            null,
             viz.dataset_id,
             data,
             viz.description,
@@ -359,10 +361,9 @@ export default {
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
 
     },
-    async SAVE_CHART({ getters }) {
+    async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
         const {
-          dataset_id,
           chartValues,
           owner_id,
           description,
@@ -370,8 +371,9 @@ export default {
           img_url
         } = getters.viz
 
+        const datasetMeta = rootGetters['data/datasetMeta']
         const body = {
-          dataset_id: dataset_id,
+          dataset_id: datasetMeta.id,
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
           description: description,
@@ -379,7 +381,11 @@ export default {
           img_url: img_url
         }
         const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`, body)
-        console.log(response)
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        const savedChart = response.data
+        commit('SET_WSP_CHART_ID', savedChart.data)
       } catch (error) {
         throw new Error(error.message)
       } 
