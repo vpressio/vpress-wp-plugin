@@ -148,13 +148,7 @@ const setAxis = async ({ chartValues, newValue, mutationType }) => {
           chartValues.yAxis.type === 'ordinal'
         ) {
           chartValues.chart = 'bars';
-          
-          if (chartValues.groupBy === chartValues.xAxis) {
-            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
-          } else if (chartValues.groupBy === chartValues.yAxis) {
-            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
-          }
-
+          chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
           chartValues.collapseBy = newValue
         } else if (
           chartValues.xAxis.type === 'date' ||

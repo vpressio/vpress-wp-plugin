@@ -93,24 +93,24 @@ export default {
           }
         ]
       },
-      {
-        type: 'treemap',
-        required: [],
-        slots: [
-          {
-            slotId: 'xAxis',
-            values: ['xAxis', 'groupBy']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis', 'groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
-          }
-        ]
-      },
+      // {
+      //   type: 'treemap',
+      //   required: [],
+      //   slots: [
+      //     {
+      //       slotId: 'xAxis',
+      //       values: ['xAxis', 'groupBy']
+      //     },
+      //     {
+      //       slotId: 'yAxis',
+      //       values: ['yAxis', 'groupBy']
+      //     },
+      //     {
+      //       slotId: 'filter',
+      //       values: ['filters']
+      //     }
+      //   ]
+      // },
       {
         type: 'map',
         required: ['collapseBy'],
@@ -255,7 +255,7 @@ export default {
             mutationType: newValue.mutationType
           }
         )
-
+        
         // const get_data = () => dispatch(
         //   'data/GET_CHART_DATA',
         //   { chartValues: newChartValues, chartIndex: state.activeVizIdx },
@@ -295,6 +295,7 @@ export default {
             )
           commit('SET_VIZ_DATA', data)
         }
+        console.log(newChartValues, 'chartconfig store');
         commit('SET_VIZ_VALUES', newChartValues)
 
         commit('SET_CHART_ERROR', null)
@@ -432,22 +433,28 @@ export default {
     data: (_, { viz }) => viz.vizData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
     xAxis: (_, { chart }) => {
-      return [chart.xAxis]
+      if (
+        (chart.chart === 'bars' && chart.xAxis.type === 'ordinal') ||
+        (chart.chart === 'timeline' && chart.xAxis.type === 'date')
+      ) {
+        return [
+          { variable: chart.xAxis, mutationType: 'xAxis' },
+          { variable: chart.groupBy, mutationType: 'aggregation' }
+        ]
+      }
+      return [{ variable: chart.xAxis, mutationType: 'xAxis' },]
     },
     yAxis: (_, { chart }) => {
-      return [chart.yAxis]
-    },
-    ordinalAxis: (_, { chart }) => {
-      const activeChart = chart;
-      if (
-        activeChart.chart === 'bars' ||
-        activeChart.chart === 'timeline'
-      ) {
-        return activeChart.xAxis.type === 'ordinal'
-          ? 'xAxis'
-          : 'yAxis'
-      }
-      return null
+        if (
+          (chart.chart === 'bars' && chart.yAxis.type === 'ordinal') ||
+          (chart.chart === 'timeline' && chart.yAxis.type === 'date')
+        ) {
+          return [
+            { variable: chart.yAxis, mutationType: 'yAxis' },
+            { variable: chart.groupBy, mutationType: 'aggregation' }
+          ]
+        }
+        return [{ variable: chart.yAxis, mutationType: 'yAxis' },]
     },
     aggregation: (_, { chart }) => {
       if (chart.chart === 'spineplot') {
@@ -455,9 +462,9 @@ export default {
           (chart.xAxis.type === chart.yAxis.type) &&
           (chart.yAxis.type === 'ordinal')
         ) {
-          return [chart.collapseBy]
+          return [{ variable: chart.collapseBy, mutationType: 'aggregation' }]
         } else {
-          return [chart.groupBy]
+          return [{ variable: chart.groupBy, mutationType: 'aggregation' }]
         }
       }
       if (
@@ -465,15 +472,19 @@ export default {
         chart.chart === 'scatter' ||
         chart.chart === 'timeline'
       ) {
-        return [chart.groupBy]
+        return [{ variable: chart.groupBy, mutationType: 'aggregation' }]
       }
       if (
         chart.chart === 'heatmap'
       ) {
-        return [chart.collapseBy]
+        return [{ variable: chart.collapseBy, mutationType: 'aggregation' }]
       }
     },
-    filter: (_, { chart }) => chart.filters,
+    filter: (_, { chart }) => {
+      return chart.filters.map((filter) => {
+        return { variable: filter, mutationType: 'filter' }
+      })
+    },
     theme: (_, { chart }) => chart.theme,
     chartType: (_, { chart }) => chart.chart,
     labels: (_, { chart }) => chart.labels,

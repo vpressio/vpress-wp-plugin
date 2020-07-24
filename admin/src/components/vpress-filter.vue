@@ -127,7 +127,8 @@ export default {
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
         } else { 
-          throw new Error(`min: ${+filterParams[0].min}, max: ${+filterParams[0].max}`)
+          this.min = +filterParams[0].min
+          this.max = +filterParams[0].max
         }
         this.loading = false;
       } catch (error) {

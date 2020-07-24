@@ -6,10 +6,10 @@
       :max-width="`${this.cssProps['--logo-width']}px`"
       alt="Vpress logo"
     />
-    <!-- <span class="ml-10 grey--text">
+    <span class="ml-10 grey--text">
       Selecciona
-    </span> -->
-    <!-- <v-menu>
+    </span>
+    <v-menu>
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           color="white"
@@ -33,7 +33,7 @@
           <v-list-item-title>{{ item.title }}</v-list-item-title>
         </v-list-item>
       </v-list>
-    </v-menu> -->
+    </v-menu>
   </v-app-bar>
 </template>
 <script>

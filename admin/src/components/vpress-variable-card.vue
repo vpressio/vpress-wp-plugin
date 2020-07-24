@@ -105,9 +105,9 @@ export default {
     removeCard() {
       const payload = this.slotId === 'filter'
       ? {
-          title: this.variableMeta.title,
-          type: this.variableMeta.type,
-          slug: this.variableMeta.slug,
+          title: this.variable.title,
+          type: this.variable.type,
+          slug: this.variable.slug,
           value: 'remove'
         } 
       : {

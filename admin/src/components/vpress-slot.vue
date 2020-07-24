@@ -16,33 +16,69 @@
     <span>
       {{ label }}
     </span>
-    <v-card
-      class="pa-2"
-      :class="{'selectedSlot' : changeSlotStyle}"
-      min-height="50"
-      outlined
-      :raised="changeSlotStyle"
-      @dragover.prevent
-      @dragenter="dragOver"
-      @dragleave="dragOver"
-      @drop.stop.self="drop"
-      light
+    <div
+      v-if="slotId !== 'filter'"
     >
-      <VpressVariableCard
-        class="mb-1"
-        v-for="(variable, variableIndex) in storeVariables"
-        :key="`variable_${variableIndex}`"
-        :variable="variable"
+      <v-card
+        v-for="(card, cardIndex) in storeVariables"
+        :key="`card_${cardIndex}`"
+        :min-height="50"
+        outlined
+        :raised="changeSlotStyle"
+        light
+      >
+        <div
+          class="slot_placeholder pt-2"
+          :class="{ 'overCard': changeSlotStyle }"
+          @drop.stop.self="drop($event, cardIndex)"
+          @dragenter="dragOver"
+          @dragleave="dragOver"
+          @dragover.prevent
+        >
+          Números o categorías aquí.
+        </div>
+        <VpressVariableCard
+        v-show="card.variable.slug !== ''"
+        class="my-2 mx-3"
+        :variable="card.variable"
         inSlot
-        :slotId="slotId"
+        :slotId="card.mutationType"  
         :error="error"
       />
-      <p
-        class="slot_placeholder my-2"
+    
+      </v-card>
+    </div>
+    <div
+      v-if="slotId === 'filter'"
+    >
+      <v-card
+        :min-height="50"
+        outlined
+        :raised="changeSlotStyle"
+        light
       >
-        Números o categorías aquí.
-      </p>
-    </v-card>
+        <VpressVariableCard
+          v-for="(card, cardIndex) in storeVariables"
+          :key="`card_${cardIndex}`"
+          class="mx-3 my-2"
+          :variable="card.variable"
+          inSlot
+          :slotId="card.mutationType"  
+          :error="error"
+        />
+        <div
+            class="slot_placeholder_filter pt-2"
+            :class="{ 'overCard': changeSlotStyle }"
+            @drop.stop.self="drop"
+            @dragenter="dragOver"
+            @dragleave="dragOver"
+            @dragover.prevent
+          >
+            Números o categorías aquí.
+        </div>
+      </v-card>
+    </div>
+    
     <VpressSlotFilter
       v-if="openFilterDialog"
       :column="filterColumn"
@@ -82,6 +118,7 @@ export default {
   },
   computed: {
     storeVariables() {
+      console.log(this.$store.getters[`chartConfig/${this.slotId}`]);
       return this.$store.getters[`chartConfig/${this.slotId}`];
     },
     iconSrc() {
@@ -89,24 +126,19 @@ export default {
     }
   },
   methods: {
-    async drop(event) {
+    async drop(event, position) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
-      console.log(variable)
+      if (this.slotId === 'filter') {
+        this.filterData(variable.slug,variable.type);
+      } else {
+        const mutationType = this.storeVariables[position].mutationType
+        console.log(variable, mutationType);
+        this.mergeVariable(variable, mutationType)
+      }
     },
-    // async drop(event) {
-    //   this.changeSlotStyle = false;
-    //   const { dataTransfer } = event;
-    //   const variableJson = dataTransfer.getData('variableJson');
-    //   const variable = JSON.parse(variableJson);
-    //   if (this.slotId === 'filter') {
-    //     this.filterData(variable.slug,variable.type);
-    //   } else {
-    //     this.mergeVariable(variable, this.slotId)
-    //   }
-    // },
     async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
@@ -123,13 +155,12 @@ export default {
         this.error = false
         return result;
       } catch (error) {
-        console.error(error)
         this.error = true
+        throw new Error(error.message)
       }
     },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
-      console.log('hola')
     },
     filterData(column, type) {
       this.filterType = type;
@@ -145,10 +176,25 @@ export default {
   text-align: center;
   line-height: 1.2;
   font-size: 0.8rem;
+  height:100%;
+  width: 100%;
+  position:absolute;
+}
+
+.slot_placeholder_filter {
+  color: #c3c3c3;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 0.8rem;
+  height:50px;
 }
 
 .selectedSlot {
   background-color: #f4f4f4;
+}
+
+.overCard {
+  z-index:4
 }
 
 </style>

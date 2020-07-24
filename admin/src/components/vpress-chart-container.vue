@@ -188,6 +188,7 @@ export default {
      * Draw an interactive chart using dboxjs
      */
     configChart() {
+      console.log(this.chartConfig)
       const vm = this;
       const tabletWidth = 800; // Size in pixels
       /**
