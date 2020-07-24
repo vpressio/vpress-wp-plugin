@@ -1,5 +1,5 @@
 <template>
-  <div class="iframe-margin">
+  <div>
     <VpressChartContainer
       id="empty_chart_0"
       :data="chartData"
@@ -49,9 +49,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-.iframe-margin{
-  padding: 50px 10px;
-  flex-wrap: wrap;
-}
-</style>

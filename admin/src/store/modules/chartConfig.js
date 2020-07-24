@@ -1,6 +1,7 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
 import { firestore } from '../../plugins/firebase';
+// import Vpress from '../../vpress/index';
 import axios from 'axios';
 
 export default {
@@ -254,6 +255,20 @@ export default {
             mutationType: newValue.mutationType
           }
         )
+
+        // const get_data = () => dispatch(
+        //   'data/GET_CHART_DATA',
+        //   { chartValues: newChartValues, chartIndex: state.activeVizIdx },
+        //   { root: true }
+        // )
+        // const activeChartJson = state.charts[state.activeVizIdx]
+
+        // Vpress.query(
+        //   'test_chart',
+        //   activeChartJson,
+        //   { requestData: get_data}
+        // )('xAxis', payload)
+
         if (
           rootGetters['data/origin'] === 'api' &&
           (

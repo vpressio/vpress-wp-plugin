@@ -132,7 +132,7 @@ export default {
         this.loading = false;
       } catch (error) {
         this.closeDialog()
-        console.error(error.message)
+        throw new Error(error.message)
       }
     },
     async applyFilter() {

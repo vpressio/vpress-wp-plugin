@@ -39,7 +39,6 @@
       />
       <p
         class="slot_placeholder my-2"
-        @drop.stop.self="drop"
       >
         Números o categorías aquí.
       </p>
@@ -95,12 +94,19 @@ export default {
       const { dataTransfer } = event;
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
-      if (this.slotId === 'filter') {
-        this.filterData(variable.slug,variable.type);
-      } else {
-        this.mergeVariable(variable, this.slotId)
-      }
+      console.log(variable)
     },
+    // async drop(event) {
+    //   this.changeSlotStyle = false;
+    //   const { dataTransfer } = event;
+    //   const variableJson = dataTransfer.getData('variableJson');
+    //   const variable = JSON.parse(variableJson);
+    //   if (this.slotId === 'filter') {
+    //     this.filterData(variable.slug,variable.type);
+    //   } else {
+    //     this.mergeVariable(variable, this.slotId)
+    //   }
+    // },
     async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
@@ -123,6 +129,7 @@ export default {
     },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
+      console.log('hola')
     },
     filterData(column, type) {
       this.filterType = type;
