@@ -121,9 +121,10 @@ export default {
       } else {
         legendDisplay = vm.chartConfig.xAxis;
       }
-      if (vm.chartConfig.chart === 'heatmap') {
-        legendDisplay.title = vm.chartConfig.collapseBy.title;
-      }
+      // Cambiaba el nombre de la tarjeta al hacer on load
+      // if (vm.chartConfig.chart === 'heatmap') {
+      //   legendDisplay.title = vm.chartConfig.collapseBy.title;
+      // }
       return legendDisplay;
     },
     ordinalAxis() {
@@ -327,6 +328,7 @@ export default {
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
+      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -542,11 +544,11 @@ export default {
     drawBars() {
       const bars = this.chart.layer(dbox.bars);
 
-      if (this.groupByOptions[0] && this.chartConfig.groupBy.slug) {
+      if (this.groupByOptions[0] && this.chartConfig.groupBy.slug !== "") {
         if (this.chartConfig.stackedBars) {
-          bars.stackBy(this.groupByOptions.filter(o => o !== 'Todos'));
+          bars.stackBy(this.groupByOptions);
         } else {
-          bars.groupBy(this.groupByOptions.filter(o => o !== 'Todos'));
+          bars.groupBy(this.groupByOptions);
         }
         if (this.chartConfig.yAxis.type === 'linear') {
           bars.x(this.chartConfig.xAxis.slug).fill(this.chartConfig.xAxis.slug);
@@ -577,27 +579,28 @@ export default {
     },
     drawSpineplot() {
       const spineplot = this.chart.layer(dbox.spineplot);
-      console.log(spineplot);
       if (this.groupByOptions.length > 0) {
         spineplot
           .stackBy(this.groupByOptions)
           .fill('key')
           .value(this.chartConfig.collapseBy.slug);
       } else {
-        spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.collapseBy.slug);
+        if (this.chartConfig.xAxis.type === 'linear') {
+          spineplot.fill(this.chartConfig.yAxis.slug).value(this.chartConfig.xAxis.slug);
+        } else if (this.chartConfig.xAxis.type !== 'linear') {
+          spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.yAxis.slug);
+        }
       }
       spineplot
         .category(this.ordinalAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawTreemap() {
-      console.log('quiubo desde treemap');
       const vm = this
       const treemap = this.chart.layer(dbox.treemap);
       treemap
         .nestBy(vm.chartConfig.xAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse())
-      console.log( treemap )
 
     },
     drawScatter() {
@@ -814,7 +817,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes(['scatter', 'heatmap', 'map'], vm.chartConfig.chart)) {
+      if (!_.includes([ 'heatmap', 'map'], vm.chartConfig.chart)) {
         const parsedData = d3
           .nest()
           .key(d => d[vm.ordinalAxis.slug])
@@ -823,7 +826,7 @@ export default {
             obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
             obj[vm.chartConfig.collapseBy.slug] = +leaves[0][vm.chartConfig.collapseBy.slug];
             if (vm.chartConfig.collapseBy.slug === 'total_count') {
-              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+              vm.chartConfig.collapseBy = { title: vm.chartConfig.collapseBy.title , type: 'linear', slug: 'total_count' };
             }
             if (vm.chartConfig.groupBy.slug !== '') {
               leaves.forEach(leaf => {
@@ -874,7 +877,7 @@ export default {
             obj[vm.chartConfig.groupBy.slug] = leaves[0][vm.chartConfig.groupBy.slug];
             if (vm.chartConfig.collapseBy.slug === 'total_count') {
               obj['total_count'] = leaves.length;
-              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+              vm.chartConfig.collapseBy = { title: vm.chartConfig.collapseBy.title, type: 'linear', slug: 'total_count' };
             } else {
               switch (vm.chartConfig.collapseBy.func) {
                 case 'min':

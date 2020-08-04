@@ -256,7 +256,7 @@ export default {
       }
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, { value: dataToMerge, mutationType: slot})
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';

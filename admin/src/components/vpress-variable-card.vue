@@ -20,7 +20,7 @@
         v-if="
           variable.type === 'linear' &&
           variable.slug !== 'total_count' && 
-          slotId !== 'filter'
+          mutationType !== 'filter'
         "
         >
           <v-list-item
@@ -57,13 +57,13 @@
         • {{ variable.title }}
       </span>
       <p
-        v-show="
+        v-if="
           inSlot &&
           variable.type === 'linear' &&
           variable.slug !== 'total_count'
         "
         class="variableCardDataType mb-0"
-      >{{ `(${selectedFunc.name})` }}</p>
+      >{{ variableFunction(variable) }}</p>
     </div>
   </v-card>
 </template>
@@ -71,7 +71,7 @@
 export default {
   name: 'VpressVariableCard',
   props: {
-    slotId: String,
+    mutationType: String,
     variable: Object,
     inSlot: Boolean,
     error: Boolean
@@ -83,10 +83,22 @@ export default {
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
         { type: 'min', name: 'Mínimo' },
-        { type: 'max', name: 'Máximo' }
+        { type: 'max', name: 'Máximo' },
+        { type: '', name: 'Valor por defecto' }
       ],
-      selectedFunc: { type: 'mean', name: 'Promedio' }
+      selectedFunc: { type: '', name: '' }
     };
+  },
+  computed: {
+    variableFunction() {
+     return (variable) => {
+       if (variable.func) {
+         return variable.func === '' ? '' : `(${variable.func})`
+       } else {
+         return ''
+       }
+     } 
+    }
   },
   methods: {
     dragStart(e) {
@@ -97,27 +109,27 @@ export default {
     selectFunc(func) {
       this.variable.func = func.type
       this.selectedFunc = func
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        mutationType: this.slotId,
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+        mutationType: this.mutationType,
         value: this.variable
       });
     },
     removeCard() {
-      const payload = this.slotId === 'filter'
+      const payload = this.mutationType === 'filter'
       ? {
           title: this.variable.title,
           type: this.variable.type,
           slug: this.variable.slug,
           value: 'remove'
-        } 
+        }
       : {
           title: '',
           type: '',
           slug: '',
           func: ''
         }
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        mutationType: this.slotId,
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+        mutationType: this.mutationType,
         value: payload
       });
     }

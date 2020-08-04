@@ -35,9 +35,11 @@ export default {
     async GET_QUERY_DATA(_, queryBody ) {
       try {
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
           queryBody
         );
+        console.log(queryBody);
+        console.log(response.data.query);
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -54,7 +56,7 @@ export default {
       }
     ) {
       try {
-        const body = await vpress.prepareQuery(chartValues, dataSetSlug);
+        const body = await vpress.queryBody(chartValues, dataSetSlug);
         const response = await dispatch('GET_QUERY_DATA', body)
         return response
       } catch (error) {

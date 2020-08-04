@@ -93,7 +93,7 @@ export default {
       this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
     });
     this.unsubscribeAction = this.$store.subscribeAction( action => {
-      if(action.type === 'chartConfig/MERGE_CHART_VALUE') this.loadingChart = true;
+      if(action.type === 'chartConfig/DATA_QUERY') this.loadingChart = true;
     })
   },
   beforeDestroy() {
@@ -173,39 +173,40 @@ export default {
      * Called when chart has been rendered
      */
     onChartIsLoaded($element) {
-      const vm = this;
-      this.createInputToEditLabel($element, '.generated-title', '.input-edit-title', value => {
-        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'subtitle', value: value});
-      });
-      this.createInputToEditLabel(
-        $element,
-        '.generated-subtitle',
-        '.input-edit-subtitle',
-        value => {
-        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'title', value: value});
-        }
-      );
-      this.createInputToEditLabel($element, '.x.axis .axis-title', '.input-edit-x-axis', value => {
-        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
-      });
-      this.createInputToEditLabel($element, '.y.axis .axis-title', '.input-edit-y-axis', value => {
-        this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
-      });
-      this.createInputToEditLabel(
-        $element,
-        '.legend-title tspan, .legend-title',
-        '.input-edit-legend-title',
-        value => {
-          /** Update current config with new value */
-          if (vm.chartConfig.groupBy.slug) {
-            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'groupBy', value: value});
-          } else if (vm.chartConfig.yAxis.type === 'ordinal') {
-            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
-          } else if (vm.chartConfig.xAxis.type === 'ordinal') {
-            this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
-          }
-        }
-      );
+      console.log($element);
+      // const vm = this;
+      // this.createInputToEditLabel($element, '.generated-title', '.input-edit-title', value => {
+      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'subtitle', value: value});
+      // });
+      // this.createInputToEditLabel(
+      //   $element,
+      //   '.generated-subtitle',
+      //   '.input-edit-subtitle',
+      //   value => {
+      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'title', value: value});
+      //   }
+      // );
+      // this.createInputToEditLabel($element, '.x.axis .axis-title', '.input-edit-x-axis', value => {
+      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
+      // });
+      // this.createInputToEditLabel($element, '.y.axis .axis-title', '.input-edit-y-axis', value => {
+      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
+      // });
+      // this.createInputToEditLabel(
+      //   $element,
+      //   '.legend-title tspan, .legend-title',
+      //   '.input-edit-legend-title',
+      //   value => {
+      //     /** Update current config with new value */
+      //     if (vm.chartConfig.groupBy.slug) {
+      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'groupBy', value: value});
+      //     } else if (vm.chartConfig.yAxis.type === 'ordinal') {
+      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
+      //     } else if (vm.chartConfig.xAxis.type === 'ordinal') {
+      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
+      //     }
+      //   }
+      // );
     }
   }
 };

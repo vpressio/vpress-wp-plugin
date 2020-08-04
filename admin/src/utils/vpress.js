@@ -2,26 +2,150 @@ import * as _ from 'lodash';
 import * as d3 from 'd3';
 import VpressError from './vpressError';
 
-const merge = async (chartValues, { newValue, mutationType }) => {
+const queryByChart =  (chartValues, { newValue, mergeType } ) => {
+  try {
+    const payload = {
+      chartValues,
+      mutationType: mergeType,
+      newValue: newValue
+    }
+    const callback = {
+      filter: setFilters,
+      orderBy: setOrder,
+      collapseBy: ({ chartValues, mutationType, newValue }) => {
+        if (newValue.type === 'linear') {
+          chartValues[mutationType] = newValue;
+        }
+        return chartValues
+      },
+      groupBy: ({chartValues, mutationType, newValue}) => {
+        if (newValue.type !== 'linear') {
+          chartValues[mutationType] =
+            chartValues.xAxis.slug === chartValues.groupBy.slug ||
+            chartValues.yAxis.slug === chartValues.groupBy.slug
+              ? { title: '', type: '', slug: '' }
+              : newValue
+        }
+        return chartValues
+      },
+      xAxis: setAxisByChart,
+      yAxis: setAxisByChart,
+    }[mergeType]
+    return callback(payload)
+  } catch (error) {
+    if (error instanceof VpressError) {
+      throw new VpressError (
+          error.valueName,
+          error.message
+      )
+    } else {
+      throw new VpressError (
+        mergeType,
+        error.message
+      )
+    }
+  }
+
+}
+
+const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
+  try {
+    chartValues[mutationType] = newValue
+    const mainAxis = mutationType === 'xAxis'
+      ? chartValues['xAxis']
+      : chartValues['yAxis']
+    const oppAxis = mutationType === 'xAxis'
+      ? chartValues['yAxis']
+      : chartValues['xAxis']
+    switch (chartValues.chart) {
+
+      case 'bars':
+        if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
+          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+        }
+        if (
+          (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
+          (oppAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug)
+        ) {
+          chartValues.groupBy = { title: '', type: '', slug: '' }
+        }
+        if (mainAxis.type === 'linear') {
+          if (!mainAxis.func || mainAxis.func === '') {
+            chartValues[mutationType].func = 'sum'
+          }
+          chartValues.collapseBy = mainAxis
+        } else if (oppAxis.type === 'linear') {
+          chartValues.collapseBy = oppAxis
+        }
+        break;
+      
+      case 'heatmap':
+        if (mainAxis.type !== 'linear' && oppAxis.type !== 'linear') {
+          chartValues.groupBy = mainAxis
+        }
+        if (mainAxis.type !== 'linear') {
+          chartValues.groupBy = mainAxis
+        } else if (oppAxis.type !== 'linear') {
+          chartValues.groupBy = oppAxis
+        }
+        break;
+      
+      case 'spineplot':
+        if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
+          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+        }
+        if (
+          (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
+          (oppAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug)
+        ) {
+          chartValues.groupBy = { title: '', type: '', slug: '' }
+        }
+        if (mainAxis.type === 'linear') {
+          if (!mainAxis.func || mainAxis.func === '') {
+            chartValues[mutationType].func = 'sum'
+          }
+          chartValues.collapseBy = mainAxis
+        } else if (oppAxis.type === 'linear') {
+          chartValues.collapseBy = oppAxis
+        }
+        break;
+      
+      case 'timeline':
+        if (!(mainAxis.type === 'date' && oppAxis.type === 'linear')) {
+          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+        }
+        if (
+          (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
+          (oppAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug)
+        ) {
+          chartValues.groupBy = { title: '', type: '', slug: '' }
+        }
+        if (mainAxis.type === 'linear') {
+          if (!mainAxis.func || mainAxis.func === '') {
+            chartValues[mutationType].func = 'sum'
+          }
+          chartValues.collapseBy = mainAxis
+        } else if (oppAxis.type === 'linear') {
+          chartValues.collapseBy = oppAxis
+        }
+        break;
+    }
+    console.log(chartValues);
+    return chartValues
+  } catch (error) {
+    throw new VpressError( mutationType , error.message);
+  }
+  
+}
+
+const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
   try {
       const payload = {
         chartValues,
         mutationType: mutationType,
         newValue: newValue
       }
-    if (mutationType === 'xAxis' || mutationType === 'yAxis') {
-      return await setAxis(payload)
-    }
-    if (mutationType === 'aggregation') {
-      return await setAggregate(payload)
-    }
-    if (mutationType === 'orderBy') {
-      return await setOrder(payload)
-    }
-    if (mutationType === 'filter') {
-      return await setFilters(payload)
-    }
-    return await setValue(payload)
+    return setValue(payload)
     
   } catch (error) {
       if (error instanceof VpressError) {
@@ -38,7 +162,7 @@ const merge = async (chartValues, { newValue, mutationType }) => {
     }
 };
 
-const setValue = async ({ chartValues, newValue, mutationType }) => {
+const setValue =  ({ chartValues, newValue, mutationType }) => {
   try {
     chartValues[mutationType] = newValue
     return chartValues
@@ -47,7 +171,7 @@ const setValue = async ({ chartValues, newValue, mutationType }) => {
   }
 }
 
-const setOrder = async ({ chartValues, newValue }) => {
+const setOrder =  ({ chartValues, newValue }) => {
   try {
     const order = newValue === 'asc' || newValue === 'desc'
       ? newValue
@@ -62,7 +186,7 @@ const setOrder = async ({ chartValues, newValue }) => {
   }
 }
 
-const invertAxis = async ({ chartValues }) => {
+const invertAxis =  ({ chartValues }) => {
   try {
     const xAxis = { ...chartValues.xAxis };
     const yAxis = { ...chartValues.yAxis };
@@ -88,201 +212,34 @@ const invertAxis = async ({ chartValues }) => {
   }
 }
 
-const setAxis = async ({ chartValues, newValue, mutationType }) => {
-  try {
-    chartValues[mutationType] = newValue;
-    if (
-        !_.includes(
-          [ chartValues.xAxis.slug, chartValues.yAxis.slug ],
-          chartValues.collapseBy.slug
-        )
-      ) {
-        chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: ''};
-    }
-    switch (newValue.type) {
-      case 'ordinal':
-        if (
-          chartValues.xAxis.type === chartValues.yAxis.type
-        ) {
-          chartValues.chart = chartValues.collapseBy.slug === ''
-            ? 'heatmap'
-            : 'spineplot';
-          chartValues.groupBy = chartValues.yAxis;
-        } else if (
-          chartValues.xAxis.type === 'linear' ||
-          chartValues.yAxis.type === 'linear'
-        ) {
-          chartValues.chart = 'bars';
-          
-          if (chartValues.groupBy === chartValues[mutationType]) {
-            chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
-          }
-          
-          if (chartValues.xAxis.type === 'linear') {
-            chartValues.collapseBy = chartValues.xAxis
-          } else if (chartValues.yAxis.type === 'linear') {
-            chartValues.collapseBy = chartValues.yAxis
-          }
-        } else if (
-          chartValues.xAxis.type === 'date' ||
-          chartValues.yAxis.type === 'date'
-          ) {
-            chartValues.chart = chartValues.collapseBy.slug === ''
-            ? 'heatmap'
-            : 'spineplot';
-          if (chartValues.xAxis.type === 'date') {
-            chartValues.groupBy = chartValues.yAxis
-          } else if (chartValues.yAxis.type === 'date') {
-            chartValues.groupBy = chartValues.yAxis
-          }
-        }
-        break;
-      case 'linear':
-        if (
-          chartValues.xAxis.type === newValue.type &&
-          chartValues.yAxis.type === newValue.type
-        ) {
-          chartValues.chart = 'scatter'
-        } else if (
-          chartValues.xAxis.type === 'ordinal' ||
-          chartValues.yAxis.type === 'ordinal'
-        ) {
-          chartValues.chart = 'bars';
-          chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
-          chartValues.collapseBy = newValue
-        } else if (
-          chartValues.xAxis.type === 'date' ||
-          chartValues.yAxis.type === 'date'
-        ) {
-          if (chartValues.yAxis.type === 'date') {
-            chartValues.chart = 'bars'
-          }
-          if (chartValues.xAxis.type === 'date') {
-            chartValues.chart = 'timeline';
-          }
-          chartValues.collapseBy = newValue;
-          chartValues.groupBy = { title: '', type: 'ordinal', slug: '' };
-        }
-        break;
-      case 'date':
-        chartValues.groupBy = { title: '', type: 'ordinal', slug: ''}
-        if (
-          chartValues.xAxis.type === chartValues.yAxis.type
-        ) {
-          chartValues.chart = 'heatmap'
-          chartValues.collapseBy = { title: '', type: 'linear', slug: '', func: '' };
-          chartValues.groupBy = chartValues.yAxis;
-        }
-        if (chartValues[mutationType] === chartValues.xAxis && chartValues.yAxis.type === 'linear') {
-          chartValues.chart = 'timeline';
-          chartValues.collapseBy = chartValues.yAxis;
-        }
-        if (chartValues[mutationType] === chartValues.yAxis && chartValues.xAxis.type === 'linear') {
-          chartValues.chart = 'bars';
-          chartValues.collapseBy = chartValues.xAxis
-        }
-        break
-      case '':
-        break
-      default:
-        throw new VpressError(newValue.title, 'Tipo de dato inválido.');
-    }
-    return chartValues;
-  } catch (error) {
-    throw new VpressError(error.valueName, error.message);
-  }
-};
-
-const setAggregate = async (payload) => {
-  try {
-    const {
-      chartValues,
-      newValue
-  } = payload;
-    if (newValue.slug === '') {
-    return removeAggregate(payload);
-  }
-    
-  switch (chartValues.chart) {
-    case 'bars':
-      if (newValue.type === 'ordinal' && (chartValues.xAxis.slug !== newValue.slug && chartValues.yAxis.slug !== newValue.slug)) {
-        chartValues.groupBy = newValue
-      } else {
-        chartValues.groupBy.title = newValue.title
-        throw new VpressError(newValue.title,'Las gráficas de barra sólo pueden agruparse por una variable ordinal.')
-      }
-      break;
-    case 'heatmap':
-      if (newValue.type === 'linear') {
-        chartValues.collapseBy = newValue;
-      } else {
-        chartValues.collapseBy.title = newValue.title
-        throw new VpressError(newValue.title, 'Los heatmap sólo pueden agruparse por una variable linear.')
-      }
-      break;
-      case 'spineplot':
-        if (newValue.type === 'linear') {
-          chartValues.collapseBy = newValue
-        } else if (newValue.type === 'ordinal') {
-          chartValues.groupBy = newValue
-        } else {
-          chartValues.collapseBy.title = newValue.title
-          throw new VpressError(newValue.title, 'Los spineplot sólo pueden agruparse por una variable linear.')
-        } 
-        break;
-      case 'scatter':
-        if (newValue.type === 'ordinal') {
-          chartValues.groupBy = newValue
-        } else {
-          chartValues.groupBy.title = newValue.title
-          throw new VpressError(newValue.title, 'Los scatter sólo pueden agruparse por una variable linear u ordinal.')
-        }
-      break;
-    case 'timeline':
-      if (newValue.type === 'ordinal') {
-        chartValues.groupBy = newValue
-      } else {
-        chartValues.groupBy.title = newValue.title
-        throw new VpressError( newValue.title, 'Los timeline sólo pueden agruparse por una variable ordinal.')
-      }
-      break;
-    default:
-      throw new VpressError( newValue.title, 'Invalid chart type');
-  }
-    return chartValues;
-  } catch (error) {
-    throw new VpressError(error.valueName, error.message);
-  }
-};
-
-const removeAggregate = async ({chartValues, newValue, mutationType}) => {
-  try {
-    switch (chartValues.chart) {
-      case 'bars':
-        chartValues.groupBy = newValue
-        break
-        case 'heatmap':
-          chartValues.collapseBy = newValue
-          break
-        case 'spineplot':
-          chartValues.collapseBy = newValue
-          break
-        case 'scatter':
-          chartValues.collapseBy = newValue
-          chartValues.groupBy = newValue
-          break
-        case 'timeline':
-          chartValues.collapseBy = newValue
-          chartValues.groupBy = newValue
-        break
-      default:
-        throw new VpressError(mutationType,'Invalid chart type');
-    }
-    return chartValues;
-  } catch (error) {
-    throw new VpressError(error.value, error.message)
-  }
-}
+// const removeAggregate =  ({chartValues, newValue, mutationType}) => {
+//   try {
+//     switch (chartValues.chart) {
+//       case 'bars':
+//         chartValues.groupBy = newValue
+//         break
+//         case 'heatmap':
+//           chartValues.collapseBy = newValue
+//           break
+//         case 'spineplot':
+//           chartValues.collapseBy = newValue
+//           break
+//         case 'scatter':
+//           chartValues.collapseBy = newValue
+//           chartValues.groupBy = newValue
+//           break
+//         case 'timeline':
+//           chartValues.collapseBy = newValue
+//           chartValues.groupBy = newValue
+//         break
+//       default:
+//         throw new VpressError(mutationType,'Invalid chart type');
+//     }
+//     return chartValues;
+//   } catch (error) {
+//     throw new VpressError(error.value, error.message)
+//   }
+// }
 
 const setFilters = ({ chartValues, newValue }) => {
   try {
@@ -327,6 +284,7 @@ const extractDataType = (dataSample) => {
     })
   return { variables, dateFormat }
 };
+
 const filterOrdinalParamsQuery = (body, column) => {
   body['order_by'] = `${sanitizeSpaces(column)} ASC`
   body['column_1'] = sanitizeSpaces(column)
@@ -344,6 +302,92 @@ const filterLinearParamsQuery = (body, column) => {
   return body
 }
 
+const queryBody = (payload, table_name) => {
+  const body = {}
+  body['dataset'] = `vpress_${table_name}`
+  body['chart_type'] = payload.chart
+  
+
+  if (payload.xAxis.type === 'linear' && payload.yAxis.type === 'linear') {
+    if (payload.xAxis.slug !== '') {
+     body['linear_column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
+    }
+    if (payload.yAxis.slug !== '') {
+      body['linear_column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
+      
+    }
+    if (payload.groupBy.slug !== '') {
+      body['linear_column_3'] = `${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+    if (payload.collapseBy.slug !== '') {
+      body['linear_column_4'] = `${sanitizeSpaces(payload.collapseBy.slug)}`
+    }
+  }
+
+
+  if (
+    (payload.xAxis.type === 'linear' && payload.yAxis.type !== 'linear') ||
+    (payload.yAxis.type === 'linear' && payload.xAxis.type !== 'linear')
+  ) {
+    if (payload.xAxis.slug !== '') {
+      if (payload.xAxis.type === 'linear') {
+        body['aggregate_1'] = selectAggregateFunction(payload.xAxis.func)
+        body['aggregate_column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
+      } else if (payload.xAxis.slug === 'total_count') {
+        body['aggregate_1'] = 'COUNT'
+        body['aggregate_column_1'] = '*'
+      } else {
+        body['column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
+      }
+     }
+     if (payload.yAxis.slug !== '') {
+      if (payload.yAxis.type === 'linear') {
+        body['aggregate_2'] = selectAggregateFunction(payload.yAxis.func)
+        body['aggregate_column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
+      } else if (payload.yAxis.slug === 'total_count') {
+        body['aggregate_2'] = 'COUNT'
+        body['aggregate_column_2'] = '*'
+      } else {
+        body['column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
+      }
+     }
+    if (payload.groupBy.slug !== '') {
+      body['column_2'] = `${sanitizeSpaces(payload.groupBy.slug)}`
+    }
+    if (payload.collapseBy.slug !== '' && (payload.chart !== 'bars' && payload.chart !== 'spineplot' && payload.chart !== 'timeline')) {
+      if (payload.xAxis.slug === 'total_count') {
+        body['aggregate_3'] = 'COUNT'
+        body['aggregate_column_3'] = '*'
+      } else {
+        body['aggregate_3'] = selectAggregateFunction(payload.collapseBy.func)
+        body['aggregate_column_3'] = `${sanitizeSpaces(payload.collapseBy.slug)}`
+      }
+     }
+   }
+  
+
+
+
+
+
+  if (payload.filters.length > 0) {
+    body['where'] = payload.filters.map(clause => {
+      return {
+        op: clause.type !== 'ordinal' && clause.value.length === 2
+          ? 'BETWEEN'
+          : 'IN',
+        column: sanitizeSpaces(clause.slug),
+        value: clause.value
+      }
+    })
+  }
+  // body['order_by'] = `${
+  //   payload.orderBy.slug === ''
+  //     ? body['order_by']
+  //     : sanitizeSpaces(payload.orderBy.slug)
+  //   } ${payload.orderBy.order.toUpperCase()}`
+  return body
+}
 
 const prepareQuery = (payload, table_name) => {
   const body = {};
@@ -484,10 +528,12 @@ const sanitizeSpaces = (columnName) => {
 }
 
 export default {
-  merge,
+  queryByChart,
+  mergeChartVal,
   invertAxis,
   extractDataType,
   filterOrdinalParamsQuery,
   filterLinearParamsQuery,
-  prepareQuery
+  prepareQuery,
+  queryBody
 };

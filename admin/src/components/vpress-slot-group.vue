@@ -1,5 +1,6 @@
 <template>
   <v-card
+    style="height:100%"
   >
       <VpressSlot
         class="mb-2"
@@ -16,12 +17,28 @@
         label="Eje y"
       />
       <VpressSlot
-          v-if="chartType !== 'bars' && chartType !== 'timeline'"
+          v-if="chartType === 'heatmap'"
           class="mb-2"
-          slotId="aggregation"
+          slotId="collapseBy"
           icon="mdi-palette-outline"
           slotIcon="color"
           label="Color"
+        />
+      <VpressSlot
+          v-if="chartType === 'scatter'"
+          class="mb-2"
+          slotId="groupBy"
+          icon="mdi-palette-outline"
+          slotIcon="color"
+          label="Color"
+        />
+      <VpressSlot
+          v-if="chartType === 'scatter'"
+          class="mb-2"
+          slotId="collapseBy"
+          icon="mdi-palette-outline"
+          slotIcon="color"
+          label="Tamaño"
         />
       <VpressSlot
           class="mb-2"

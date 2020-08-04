@@ -30,7 +30,7 @@
         <div
           class="slot_placeholder pt-2"
           :class="{ 'overCard': changeSlotStyle }"
-          @drop.stop.self="drop($event, cardIndex)"
+          @drop.stop.self="drop($event, card.mutationType)"
           @dragenter="dragOver"
           @dragleave="dragOver"
           @dragover.prevent
@@ -42,7 +42,7 @@
         class="my-2 mx-3"
         :variable="card.variable"
         inSlot
-        :slotId="card.mutationType"  
+        :mutationType="card.mutationType"  
         :error="error"
       />
     
@@ -118,7 +118,6 @@ export default {
   },
   computed: {
     storeVariables() {
-      console.log(this.$store.getters[`chartConfig/${this.slotId}`]);
       return this.$store.getters[`chartConfig/${this.slotId}`];
     },
     iconSrc() {
@@ -126,7 +125,7 @@ export default {
     }
   },
   methods: {
-    async drop(event, position) {
+    async drop(event, mutationType) {
       this.changeSlotStyle = false;
       const { dataTransfer } = event;
       const variableJson = dataTransfer.getData('variableJson');
@@ -134,15 +133,13 @@ export default {
       if (this.slotId === 'filter') {
         this.filterData(variable.slug,variable.type);
       } else {
-        const mutationType = this.storeVariables[position].mutationType
-        console.log(variable, mutationType);
         this.mergeVariable(variable, mutationType)
       }
     },
     async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
-          `chartConfig/MERGE_CHART_VALUE`,
+          `chartConfig/DATA_QUERY`,
           { 
             value: {
               slug: variable.slug,

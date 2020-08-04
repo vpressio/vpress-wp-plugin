@@ -139,7 +139,7 @@ export default {
     async applyFilter() {
       try {
          this.$store.dispatch(
-           'chartConfig/MERGE_CHART_VALUE',
+           'chartConfig/DATA_QUERY',
            {
               value: {
                   title: this.column,
