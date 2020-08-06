@@ -30,6 +30,7 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
       },
       xAxis: setAxisByChart,
       yAxis: setAxisByChart,
+      chart: setValue
     }[mergeType]
     return callback(payload)
   } catch (error) {
@@ -286,56 +287,71 @@ const queryBody = (payload, table_name) => {
     orderBy
   } = payload;
   if (xAxis.type === 'linear' && yAxis.type === 'linear') {
+
+    console.log('linear-linear');
     if (xAxis.slug === 'total_count' && yAxis.slug === 'total_count') {
       throw new Error('Combinación de variables inválida.')
     }
-    if (
-      (xAxis.slug === 'total_count' || yAxis.slug === 'total_count') ||
-      (xAxis.func && (xAxis.func !== '' || yAxis.func !== '')) ||
-      collapseBy.slug === 'total_count'
-    ) {
-      // if (xAxis.slug === 'total_count') {
-      //   body['column_head'] = sanitizeSpaces(yAxis.slug)
-      //   body['function_operation_2'] = 'COUNT(*)'
-      //   body['function_alias_2'] = 'total_count'
-      // } else if (yAxis.slug === 'total_count') {
-      //   if (xAxis.func !== '') {
-      //     body['aggregate_column_head'] = sanitizeSpaces(xAxis.slug)
-      //     body['aggregate_head'] = selectAggregateFunction(xAxis.func)
-        // } else if (xAxis.func !== '' && yAxis.func !== ''){
-        //   body['column_head'] = sanitizeSpaces(yAxis.slug)
-        // } else if (xAxis.func !== '' && yAxis.func !== '') {
-        //   body['function_operation_2'] = 'COUNT(*)'
-        //   body['function_alias_2'] = 'total_count'
-        // }
-        // body['aggregate_column_head'] = sanitizeSpaces(xAxis.slug)
-        // body['aggregate_head'] = selectAggregateFunction(xAxis.func)
-        // body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
-        // body['aggregate_2'] = selectAggregateFunction(yAxis.func)
-      // } else if (xAxis.func !== '') {
-      //   body['column_head'] = sanitizeSpaces(xAxis.slug)
-      //   body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
-      //   body['aggregate_2'] = selectAggregateFunction(yAxis.func)
-      // } else if (yAxis.func !== '') {
-      //   body['aggregate_column_2'] = sanitizeSpaces(xAxis.slug)
-      //   body['aggregate_2'] = selectAggregateFunction(xAxis.func)
-      //   body['column_head'] = sanitizeSpaces(yAxis.slug)
-      // }
+    if (xAxis.slug === 'total_count' || yAxis.slug === 'total_count') {
+      const variable = xAxis.slug !== 'total_count'
+        ? xAxis
+        : yAxis
+      body['function_operation_2'] = 'COUNT(*)'
+      body['function_alias_2'] = 'total_count'
+      if (variable.func && variable.func !== '') {
+        body['column_head'] = variable.slug
+      } else {
+        body['aggregate_column_2'] = sanitizeSpaces(variable.slug)
+        body['aggregate_2'] = selectAggregateFunction(variable.func)
+      }
 
-      // if (collapseBy.slug !== '') {
-      //   body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
-      //   body['aggregate_3'] = selectAggregateFunction(xAxis.func)
-      // }
-      // if (groupBy.slug !== '') {
-      //   body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
-      // }
+      if (collapseBy.slug !== '') {
+        body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
+        body['aggregate_3'] = selectAggregateFunction(collapseBy.func)
+      }
+      if (groupBy.slug !== '') {
+        body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
+      }
+    } else if (
+      (xAxis.func && xAxis.func !== '') ||
+      (yAxis.func && yAxis.func !== '') ||
+      (collapseBy.func && collapseBy.func !== '')
+    ) {
+      if (xAxis.func !== '') {
+        body['aggregate_column_head'] = sanitizeSpaces(xAxis.slug)
+        body['aggregate_head'] = selectAggregateFunction(xAxis.func)
+      } else {
+        body['column_head'] = sanitizeSpaces(xAxis.slug)
+      }
+      if (yAxis.func !== '') {
+        body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
+        body['aggregate_2'] = selectAggregateFunction(yAxis.func)
+      } else {
+        body['column_head'] = sanitizeSpaces(yAxis.slug)
+      }
+
+      if (collapseBy.slug !== '' && (collapseBy.slug !== xAxis.slug && collapseBy.slug !== yAxis.slug)) {
+        if (collapseBy.slug === 'total_count') {
+          body['function_operation_2'] = 'COUNT(*)'
+          body['function_alias_2'] = 'total_count'
+        } else {
+          body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
+          body['aggregate_3'] = selectAggregateFunction(xAxis.func)
+        }
+      }
+      if (groupBy.slug !== '') {
+        body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
+      }
     } else {
       body['linear_column_head'] = sanitizeSpaces(xAxis.slug)
       body['linear_column_2'] = sanitizeSpaces(yAxis.slug)
-      if (collapseBy.slug !== '') {
+      if (
+        collapseBy.slug !== '' &&
+        (collapseBy.slug !== xAxis.slug && collapseBy.slug !== yAxis.slug)
+      ) {
         body['linear_column_3'] = sanitizeSpaces(collapseBy.slug)
       }
-      if (groupBy.slug !== '') {
+      if (groupBy.slug !== '' && (groupBy.slug !== xAxis.slug && groupBy.slug !== yAxis.slug)) {
         body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
       }
     }
@@ -356,9 +372,6 @@ const queryBody = (payload, table_name) => {
         body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
       }
     }
-    if (groupBy.slug !== '') {
-      body['column_3'] = sanitizeSpaces(groupBy.slug)
-    }
    } else if (
     (
       (xAxis.type === 'linear' && (yAxis.type === 'ordinal' || yAxis.type === 'date')) ||
@@ -374,18 +387,18 @@ const queryBody = (payload, table_name) => {
       : xAxis
 
     body['column_head'] = sanitizeSpaces(ordinalAxis.slug)
-    if (linearAxis.func && linearAxis.func !== '') {
+    if (linearAxis.slug === 'total_count') {
       body['function_operation_2'] = 'COUNT(*)'
       body['function_alias_2'] = 'total_count'
     } else {
       body['aggregate_2'] = selectAggregateFunction(linearAxis.func)
       body['aggregate_column_2'] = sanitizeSpaces(linearAxis.slug)
     }
-    if (collapseBy.slug !== '' && (collapseBy.slug !== linearAxis.slug)) {
+    if (collapseBy.slug !== '' && collapseBy.slug !== linearAxis.slug) {
       body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
       body['aggregate_3'] = selectAggregateFunction(collapseBy.func)
     }
-    if (groupBy.slug !== '') {
+    if (groupBy.slug !== '' && ordinalAxis.slug !== groupBy.slug) {
       body['column_3'] = sanitizeSpaces(groupBy.slug)
     }
   } else if (

@@ -136,7 +136,7 @@ export default {
     }
   },
   methods: {
-    setChartType(chartType) {
+    async setChartType(chartType) {
       this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'chart' , value: chartType});
     },
     requireImg(chartType) {

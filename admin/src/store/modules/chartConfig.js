@@ -516,11 +516,10 @@ export default {
         }
           switch (graph.type) {
             case 'bars':
-            //   if (
-            //     chart.xAxis.type !== chart.yAxis.type &&
-            //     ((chart.xAxis.type !== 'linear' && chart.yAxis.type === 'linear') ||
-            //     (chart.xAxis.type === 'linear' && chart.yAxis.type !== 'linear'))
-            //   ) {
+              if (
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
+              ) {
                 return {
                   ...graph,
                   disabled: graph.required.reduce((acc, chartValue) => {
@@ -530,13 +529,12 @@ export default {
                   return acc
                   }, false)
                 }
-              // }
-              // return { ...graph, disabled: true }
+              }
+              return { ...graph, disabled: true }
             case 'heatmap':
-              // if (
-              //   chart.xAxis.type === chart.yAxis.type &&
-              //   chart.xAxis.type === 'ordinal'
-              // ) {
+              if (
+                !(chart.xAxis.type === 'linear' && chart.xAxis.type === 'linear')
+              ) {
                 return {
                   ...graph,
                   disabled: graph.required.reduce((acc, chartValue) => {
@@ -546,13 +544,13 @@ export default {
                   return acc
                   }, false)
                 }
-              // }
-              // return { ...graph, disabled: true };
+              }
+              return { ...graph, disabled: true };
             case 'spineplot':
-              // if (
-              //   chart.xAxis.type !== chart.yAxis.type &&
-              //   (chart.xAxis.slug !== '' &&  chart.yAxis.slug !== '')
-              // ) {
+              if (
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
+              ) {
                 return {
                   ...graph,
                   disabled: graph.required.reduce((acc, chartValue) => {
@@ -562,12 +560,12 @@ export default {
                   return acc
                   }, false)
                 };
-              // }
-              // return { ...graph, disabled: true };
+              }
+              return { ...graph, disabled: true };
             case 'treemap':
               if (
-                chart.xAxis.type !== chart.yAxis.type &&
-                (chart.xAxis.slug !== '' &&  chart.yAxis.slug !== '')
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
               ) {
                 return {
                   ...graph,
@@ -585,13 +583,15 @@ export default {
                 ...graph,
                 disabled: graph.required.reduce((acc, chartValue) => {
                 if (chartValue[chartValue]) {
-                  acc = chart[chartValue].slug === ''
+                  chart[chartValue].slug === ''
                 }
-                return acc
+                return true
                 }, false)
               }
             case 'timeline':
-              // if (chart.xAxis.type === 'date') {
+              if (
+                (chart.xAxis.type === 'date' &&  chart.yAxis.type === 'linear')
+              ) {
                 return {
                   ...graph,
                   disabled: graph.required.reduce((acc, chartValue) => {
@@ -601,13 +601,9 @@ export default {
                   return acc
                   }, false)
                 }
-              // }
-              // return { ...graph, disabled: true };
+              }
+              return { ...graph, disabled: true };
             case 'scatter':
-              // if (
-              //   chart.xAxis.type === chart.yAxis.type &&
-              //   chart.xAxis.type === 'linear'
-              // ) {
                 return {
                   ...graph,
                   disabled: graph.required.reduce((acc, chartValue) => {
@@ -617,8 +613,6 @@ export default {
                   return acc
                   }, false)
                 }
-              // }
-              // return { ...graph, disabled: true };
         }
       })
     }
