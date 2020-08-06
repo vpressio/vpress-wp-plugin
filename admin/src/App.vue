@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <v-content>
+    <v-main>
       <router-view :key="$route.path"/>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 

@@ -1,13 +1,16 @@
 import vpress from '../../utils/vpress.js';
-import { VpressChart } from '../../utils/vpressChart.js';
+import { VpressViz } from '../../utils/vpressViz.js';
 import { firestore } from '../../plugins/firebase';
+// import Vpress from '../../vpress/index';
 import axios from 'axios';
 
 export default {
   namespaced: true,
   state: {
-    activeChartIndex: 0,
-    charts: [ new VpressChart().values() ],
+    activeVizIdx: 0,
+    charts: [ new VpressViz().values() ],
+    workspace: [ new VpressViz() ],
+    loadingChart: false,
     chartValues: {
       chart: 'bars',
       xAxis: { title: '', type: '', slug: '' , func: ''},
@@ -30,7 +33,7 @@ export default {
     availableGraphs: [
       {
         type: 'bars',
-        rules: ['collapseBy'],
+        required: ['collapseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -48,7 +51,7 @@ export default {
       },
       {
         type: 'heatmap',
-        rules: ['groupBy'],
+        required: ['groupBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -70,7 +73,7 @@ export default {
       },
       {
         type: 'spineplot',
-        rules: ['groupBy', 'collpaseBy'],
+        required: ['collpaseBy'],
         slots: [
           {
             slotId: 'xAxis',
@@ -90,9 +93,63 @@ export default {
           }
         ]
       },
+      // {
+      //   type: 'treemap',
+      //   required: [],
+      //   slots: [
+      //     {
+      //       slotId: 'xAxis',
+      //       values: ['xAxis', 'groupBy']
+      //     },
+      //     {
+      //       slotId: 'yAxis',
+      //       values: ['yAxis', 'groupBy']
+      //     },
+      //     {
+      //       slotId: 'filter',
+      //       values: ['filters']
+      //     }
+      //   ]
+      // },
+      {
+        type: 'map',
+        required: ['collapseBy'],
+        slots: [
+          {
+            slotId: 'xAxis',
+            values: ['xAxis', 'groupBy']
+          },
+          {
+            slotId: 'yAxis',
+            values: ['yAxis', 'groupBy']
+          },
+          {
+            slotId: 'filter',
+            values: ['filters']
+          }
+        ]
+      },
+      {
+        type: 'timeline',
+        required:['collapseBy'],
+        slots: [
+          {
+            slotId: 'xAxis',
+            values: ['xAxis', 'groupBy']
+          },
+          {
+            slotId: 'yAxis',
+            values: ['yAxis', 'groupBy']
+          },
+          {
+            slotId: 'filter',
+            values: ['filters']
+          }
+        ]
+      },
       {
         type: 'scatter',
-        rules:[],
+        required:[],
         slots: [
           {
             slotId: 'xAxis',
@@ -112,29 +169,12 @@ export default {
           }
         ]
       },
-      {
-        type: 'timeline',
-        rules:['collapseBy'],
-        slots: [
-          {
-            slotId: 'xAxis',
-            values: ['xAxis', 'groupBy']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis', 'groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
-          }
-        ]
-      }
     ],
     colorsEnum: [
       {
         colorSchemeType: 'SECUENCIAL',
         schemes: [
+          ['#40348c', '#842f8e', '#ba2982', '#e2346d', '#fc5353', '#ff7b33', '#ffa600'],
           ['#7a0177', '#c51b8a', '#f768a1', '#fbb4b9', '#feebe2'],
           ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
           ['#54278f', '#756bb1', '#9e9ac8', '#cbc9e2', '#f2f0f7'],
@@ -155,88 +195,17 @@ export default {
           ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628']
         ]
       }
-    ],
-    chartsEnum: Object.freeze({
-      bars: {
-        type: 'bars',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy'
-        }
-      },
-      heatmap:{
-        type: 'heatmap',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'color',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          groupBy: 'groupBy',
-        }
-      },
-      spineplot: {
-        type: 'spineplot',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'color',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy',
-          groupBy: 'groupBy'
-        }
-      },
-      scatter: {
-        type: 'scatter',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          color: 'groupBy',
-          size: 'size',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis'
-        }
-      },
-      timeline: {
-        type: 'timeline',
-        slots: {
-          xAxis:  'xAxis',
-          yAxis: 'yAxis',
-          filters: 'filters'
-        },
-        requiredValues: {
-          xAxis: 'xAxis',
-          yAxis: 'yAxis',
-          collapseBy: 'collapseBy'
-        }
-      }
-    })
+    ]
   },
   mutations: {
     SET_ACTIVE_CHART_INDEX(state, payload) {
-      state.activeChartIndex = payload
+      state.activeVizIdx = payload
     },
     ADD_CHART(state, payload) {
       state.charts = [...state.charts, payload]
     },
     SET_CHART(state, payload) {
-      state.charts[state.activeChartIndex] = payload
+      state.charts[state.activeVizIdx] = payload
     },
     SET_CHART_VALUES(state, payload) {
       state.chartValues = payload;
@@ -247,45 +216,74 @@ export default {
     SET_CHART_ERROR(state, payload) {
       state.error = payload
     },
-    RESET_CHART_VALUES(state, newValues) {
-      state.charts = [ newValues ? newValues : new VpressChart().values() ]
+    SET_CHARTS_ARRAY(state, payload) {
+      state.charts = [...payload]
+    },
+    SET_LOAD_STATE(state, payload) {
+      state.loadingChart = payload ? true : false
+    },
+    RESET_WSP(state, newViz = new VpressViz() ) {
+      state.workspace = [ newViz ]
+    },
+    ADD_VIZ_TO_WSP(state, payload) {
+      state.workspace.push[payload]
+      state.charts = state.workspace.map(wsp => wsp.values())
+    },
+    SET_VIZ_VALUES(state, chartValues) {
+      state.workspace[state.activeVizIdx].setChartValues(chartValues)
+      state.charts = state.workspace.map(wsp => wsp.values());
+    },
+    SET_VIZ_DATA(state, data ) {
+      state.workspace[state.activeVizIdx].setData(data)
+      state.charts = state.workspace.map(wsp => wsp.values());
+    },
+    SET_WSP_CHART_ID(state, id) {
+      state.workspace[state.activeVizIdx].id = id
     }
   },
   actions: {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
-    async MERGE_CHART_VALUE({ rootGetters, dispatch, state, commit }, payload) {
+    async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
+      try {
+        const activeChart = state.charts[state.activeVizIdx]
+        const newChartValues = vpress.queryByChart(
+          activeChart,
+          {
+            newValue: value,
+            mergeType: mutationType
+          }
+        )
+        if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
+          commit('SET_LOAD_STATE', true)
+          const data = await dispatch(
+              'data/GET_CHART_DATA',
+              { chartValues: newChartValues, chartIndex: state.activeVizIdx },
+              { root: true }
+          )
+          commit('SET_VIZ_DATA', data)
+        }
+        commit('SET_VIZ_VALUES', newChartValues)
+        commit('SET_CHART_ERROR', null)
+        commit('SET_LOAD_STATE', false)
+      } catch (error) {
+        commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
+        commit('SET_LOAD_STATE', false)
+        throw new Error(error.message);
+      }
+    },
+    async MERGE_CHART_VALUE({ state, commit }, payload) {
       try {
         const newValue = payload
-        const newChartValues = await vpress.merge(
-          state.charts[state.activeChartIndex],
+        const newChartValues = vpress.mergeChartVal(
+          state.charts[state.activeVizIdx],
           {
             newValue: newValue.value,
             mutationType: newValue.mutationType
           }
-        )
-        if (
-          rootGetters['data/origin'] === 'api' &&
-          (
-            newChartValues.xAxis.slug !== '' &&
-            newChartValues.yAxis.slug !== ''
-          ) &&
-          (
-            newValue.mutationType === 'xAxis' ||
-            newValue.mutationType === 'yAxis' ||
-            newValue.mutationType === 'aggregation' ||
-            newValue.mutationType === 'filter'
-          )
-        ) {
-          await dispatch(
-            'data/GET_CHART_DATA',
-            { chartValues: newChartValues, chartIndex: state.activeChartIndex },
-            { root: true }
-          )
-        }
-        commit('SET_CHART', newChartValues)
-        commit('SET_CHART_VALUES', newChartValues)
+        ) 
+        commit('SET_VIZ_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
         return newValue
       } catch (error) {
@@ -293,7 +291,7 @@ export default {
         throw new Error(error.message);
       }
     },
-    async GET_CHART_BY_ID({ commit }, chartId) {
+    async GET_ST_CHART({ commit }, chartId) {
       try {
         const document = await firestore
           .collection('charts')
@@ -305,133 +303,204 @@ export default {
         }
         const chartValues = document
         .data()
-        .chartValues
-        const chart = new VpressChart(chartValues).values();
+          .chartValues
         
-        commit('RESET_CHART_VALUES', chart)
-        commit(
-          'SET_CHART_VALUES',
-          chart
-        )
+        const viz = new VpressViz(chartValues);
+        commit('RESET_WSP', viz)
         return document.data()
-        } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    RESET_CHART_VALUES({ commit }) {
-      commit('RESET_CHART_VALUES')
-      commit('SET_CHART_VALUES', new VpressChart().values())
-    },
-    async INVERT_AXIS({ state, commit }) {
-      try {
-        const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeChartIndex] });
-        commit('SET_CHART_VALUES', newChartValues)
       } catch (error) {
         throw new Error(error.message)
       }
     },
-    UPDATE_CHART_TITLES({ commit }, {valueToUpdate, value}) {
-      if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
-        commit('SET_AXIS_TITLE', { valueToUpdate, value })
-      } else {
-        commit('SET_CHART_VALUE', { valueToUpdate, value })
-      }
-    },
-    async CREATE_CHART({ commit }, payload) {
-      const chartValues = new VpressChart(payload).values();
-      commit('ADD_CHART', chartValues)
-    },
-    async SAVE_CHART({ state }) {
+    async GET_WP_CHART({ commit, dispatch }, chartId) {
       try {
-        const body = {
-          dataset_id: 1,
-          title: "Covid19",
-          tags: "covid19, vpress",
-          value: JSON.stringify(state.charts[state.activeChartIndex]),
-          owner_id: 1,
-          description: "Gráfica creada desde Vpress",
-          permissions: "Public",
-          img_url: "http://google.com"
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
+        )
+        const viz = response.data.data
+        const chartValues = JSON.parse(viz.value)
+        const data = await dispatch(
+          'data/GET_CHART_DATA',
+          {
+            chartValues: chartValues,
+            dataSetSlug: 'actividades'
+          },
+          { root: true }
+        )
+        commit(
+          'ADD_VIZ_TO_WSP',
+          new VpressViz(
+            chartValues,
+            viz.id,
+            null,
+            viz.dataset_id,
+            data,
+            viz.description,
+            viz.permission,
+            viz.img_url,
+          )
+        )
+        return { chartConfig: chartValues, chartData: data }
+      } catch (error) {
+        throw new Error(error.message)
       }
+    },
+    RESET_WSP({ commit }, viz) {
+      commit('RESET_WSP', viz)
+    },
+    async INVERT_AXIS() {
+      try {
+        // const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeVizIdx] });
+        // commit('SET_CHART_VALUES', newChartValues)
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    UPDATE_CHART_TITLES(_, {valueToUpdate}) {
+      if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
+        // commit('SET_AXIS_TITLE', { valueToUpdate, value })
+      } else {
+        // commit('SET_CHART_VALUE', { valueToUpdate, value })
+      }
+    },
+    CREATE_CHART({ commit }) {
+      //todo bug create workspace or viz?
+      const viz = new VpressViz()
+      commit('ADD_VIZ_TO_WSP', viz)
+      // const chartValues = viz.values();
+      // commit('ADD_CHART', chartValues)
+    },
+    REMOVE_CHART({ commit, dispatch, state }, removedWspIdx) {
+      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+      dispatch('data/REMOVE_CHART_DATA',removedWspIdx ,{ root: true })
+      commit('SET_CHARTS_ARRAY', cleanedCharts)
+
+      // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+
+    },
+    async SAVE_CHART({ commit, getters, rootGetters }) {
+      try {
+        const {
+          chartValues,
+          owner_id,
+          description,
+          permission,
+          img_url
+        } = getters.viz
+
+        const datasetMeta = rootGetters['data/datasetMeta']
+        const body = {
+          dataset_id: datasetMeta.id,
+          value: JSON.stringify(chartValues),
+          owner_id: owner_id,
+          description: description,
+          permissions: permission,
+          img_url: img_url
+        }
         const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`, body)
-        console.log(response)
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        const savedChart = response.data
+        commit('SET_WSP_CHART_ID', savedChart.data)
       } catch (error) {
         throw new Error(error.message)
       } 
     }
   },
   getters: {
-    charts: state => state.charts,
-    chart: ({ charts, activeChartIndex }) => charts[activeChartIndex],
-    activeChartIndex: state => state.activeChartIndex,
+    workspace: state => state.workspace,
+    activeVizIdx: state => state.activeVizIdx,
+    viz: ({ workspace, activeVizIdx }) => workspace[activeVizIdx],
+    chart: (_, { viz }) => viz.values(),
+    data: (_, { viz }) => viz.vizData(),
+    loadingState: ({ loadingChart }) =>  loadingChart,
     xAxis: (_, { chart }) => {
-      // if (
-      //   chart.chart === 'bars' ||
-      //   chart.chart === 'timeline'
-      //   ) {
-      //   if (chart.xAxis.type !== 'linear') {
-      //     return [chart.xAxis, chart.groupBy].filter(value => value.slug !== '')
-      //   } else {
-      //     return [chart.xAxis]
-      //   }
-      // }
-      // if (
-      //   chart.chart === 'scatter' ||
-      //   chart.chart === 'heatmap' ||
-      //   chart.chart === 'spineplot'
-      // ) {
-      //   return [chart.xAxis]
-      // }
-      return [chart.xAxis]
+      const mainAxis = chart.xAxis
+      const oppsAxis = chart.yAxis
+      const mutationType = 'xAxis' 
+      const slotVariables = []
+      switch (chart.chart) {
+        case 'bars':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType:'groupBy' })
+          }
+          break;
+        case 'heatmap':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
+        case 'spineplot':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType: 'groupBy' })
+          }
+          break
+        case 'map':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
+        case 'timeline':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType: 'groupBy' })
+          }
+          break
+        case 'scatter':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
+        default:
+          break;
+      }
+      
+      return slotVariables
     },
     yAxis: (_, { chart }) => {
-      // if (
-      //   chart.chart === 'bars' ||
-      //   chart.chart === 'timeline'
-      //   ) {
-      //   if (chart.yAxis.type !== 'linear') {
-      //     return [chart.yAxis, chart.groupBy].filter(value => value.slug !== '')
-      //   } else {
-      //     return [chart.yAxis]
-      //   }
-      // }
-      // if (
-      //   chart.chart === 'scatter' ||
-      //   chart.chart === 'heatmap' ||
-      //   chart.chart === 'spineplot'
-      // ) {
-      //   return [chart.yAxis]
-      // }
-      return [chart.yAxis]
-    },
-    ordinalAxis: (_, { chart }) => {
-      const activeChart = chart;
-      if (
-        activeChart.chart === 'bars' ||
-        activeChart.chart === 'timeline'
-      ) {
-        return activeChart.xAxis.type === 'ordinal'
-          ? 'xAxis'
-          : 'yAxis'
+      const mainAxis = chart.yAxis
+      const oppsAxis = chart.xAxis
+      const mutationType = 'yAxis' 
+      const slotVariables = []
+      switch (chart.chart) {
+        case 'bars':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType:'groupBy' })
+          }
+          break;
+        case 'heatmap':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
+        case 'spineplot':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType: 'groupBy' })
+          }
+          break
+        case 'map':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
+        case 'timeline':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          if (oppsAxis.type === 'linear') {
+            slotVariables.push({ variable: chart.groupBy, mutationType: 'groupBy' })
+          }
+          break
+        case 'scatter':
+          slotVariables.push({ variable: mainAxis, mutationType: mutationType })
+          break
       }
-      return null
+      return slotVariables
     },
-    aggregation: (_, { chart }) => {
-      if (
-        chart.chart === 'bars' ||
-        chart.chart === 'scatter' ||
-        chart.chart === 'timeline'
-      ) {
-        return [chart.groupBy]
-      }
-      if (
-        chart.chart === 'heatmap' ||
-        chart.chart === 'spineplot'
-      ) {
-        return [chart.collapseBy]
-      }
+    groupBy: (_, { chart }) => {
+        return [{ variable: chart.groupBy, mutationType: 'groupBy' }]
     },
-    filter: (_, { chart }) => chart.filters,
+    collapseBy: (_, { chart }) => {
+      return [{ variable: chart.collapseBy, mutationType: 'collapseBy' }]
+    },
+    filter: (_, { chart }) => {
+      return chart.filters.map((filter) => {
+        return { variable: filter, mutationType: 'filter' }
+      })
+    },
     theme: (_, { chart }) => chart.theme,
     chartType: (_, { chart }) => chart.chart,
     labels: (_, { chart }) => chart.labels,
@@ -440,6 +509,112 @@ export default {
     order: (_, { chart }) => chart.orderBy.order,
     error: state => state.error,
     availableColors: state => state.colorsEnum,
-    getAvailableCharts: ({ availableGraphs }) => availableGraphs.map(chart =>({ ...chart, disabled: false }))
+    getAvailableCharts: ({ availableGraphs }, { chart }) => {
+      return availableGraphs.map(graph => {
+        if (chart.xAxis.slug === '' && chart.yAxis.slug === '') {
+         return { ...graph, disabled: true }
+        }
+          switch (graph.type) {
+            case 'bars':
+              if (
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true }
+            case 'heatmap':
+              if (
+                !(chart.xAxis.type === 'linear' && chart.xAxis.type === 'linear')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true };
+            case 'spineplot':
+              if (
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                };
+              }
+              return { ...graph, disabled: true };
+            case 'treemap':
+              if (
+                !(chart.xAxis.type === 'linear' && chart.yAxis.type === 'linear') &&
+                !(chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                };
+              }
+              return { ...graph, disabled: true };
+            case 'map':
+              return {
+                ...graph,
+                disabled: graph.required.reduce((acc, chartValue) => {
+                if (chartValue[chartValue]) {
+                  chart[chartValue].slug === ''
+                }
+                return true
+                }, false)
+              }
+            case 'timeline':
+              if (
+                (chart.xAxis.type === 'date' &&  chart.yAxis.type === 'linear')
+              ) {
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+              }
+              return { ...graph, disabled: true };
+            case 'scatter':
+                return {
+                  ...graph,
+                  disabled: graph.required.reduce((acc, chartValue) => {
+                  if (chartValue[chartValue]) {
+                    acc = chart[chartValue].slug === ''
+                  }
+                  return acc
+                  }, false)
+                }
+        }
+      })
+    }
   }
 };

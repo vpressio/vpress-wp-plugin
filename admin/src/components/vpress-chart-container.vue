@@ -14,6 +14,7 @@
 <script>
 import * as d3 from 'd3';
 import * as _ from 'lodash';
+import 'topojson';
 import * as dbox from '@dboxjs/core';
 
 export default {
@@ -120,9 +121,10 @@ export default {
       } else {
         legendDisplay = vm.chartConfig.xAxis;
       }
-      if (vm.chartConfig.chart === 'heatmap') {
-        legendDisplay.title = vm.chartConfig.collapseBy.title;
-      }
+      // Cambiaba el nombre de la tarjeta al hacer on load
+      // if (vm.chartConfig.chart === 'heatmap') {
+      //   legendDisplay.title = vm.chartConfig.collapseBy.title;
+      // }
       return legendDisplay;
     },
     ordinalAxis() {
@@ -187,6 +189,7 @@ export default {
      * Draw an interactive chart using dboxjs
      */
     configChart() {
+      console.log(this.chartConfig)
       const vm = this;
       const tabletWidth = 800; // Size in pixels
       /**
@@ -285,7 +288,7 @@ export default {
           active: true
         };
       });
-
+      //eslint-disable-next-line
       const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
       const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
 
@@ -324,10 +327,8 @@ export default {
       const vm = this;
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
-      this.dataToDraw =
-        this.$store.getters['data/origin'] === 'api'
-          ? this.parseApiData(this.filteredData)
-          : this.parseData(this.filteredData);
+      this.dataToDraw = this.parseApiData(this.filteredData)
+      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -453,6 +454,10 @@ export default {
             if (!vm.chartConfig.labels) {
               chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
+            
+            if(vm.chartConfig.chart === 'heatmap') {
+              d3.selectAll('.dbox-label').style('fill', 'white')
+            }
             /** Rotate x axis ticks texts */
             chart._svg.selectAll('.x.axis .tick text').each(function() {
               if (
@@ -506,6 +511,9 @@ export default {
         case 'map':
           this.drawMap();
           break;
+        case 'treemap':
+          this.drawTreemap();
+          break;
         default:
           this.drawBars();
           break;
@@ -536,11 +544,11 @@ export default {
     drawBars() {
       const bars = this.chart.layer(dbox.bars);
 
-      if (this.groupByOptions[0] && this.chartConfig.groupBy.slug) {
+      if (this.groupByOptions[0] && this.chartConfig.groupBy.slug !== "") {
         if (this.chartConfig.stackedBars) {
-          bars.stackBy(this.groupByOptions.filter(o => o !== 'Todos'));
+          bars.stackBy(this.groupByOptions);
         } else {
-          bars.groupBy(this.groupByOptions.filter(o => o !== 'Todos'));
+          bars.groupBy(this.groupByOptions);
         }
         if (this.chartConfig.yAxis.type === 'linear') {
           bars.x(this.chartConfig.xAxis.slug).fill(this.chartConfig.xAxis.slug);
@@ -571,19 +579,29 @@ export default {
     },
     drawSpineplot() {
       const spineplot = this.chart.layer(dbox.spineplot);
-
       if (this.groupByOptions.length > 0) {
         spineplot
           .stackBy(this.groupByOptions)
           .fill('key')
           .value(this.chartConfig.collapseBy.slug);
       } else {
-        spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.collapseBy.slug);
+        if (this.chartConfig.xAxis.type === 'linear') {
+          spineplot.fill(this.chartConfig.yAxis.slug).value(this.chartConfig.xAxis.slug);
+        } else if (this.chartConfig.xAxis.type !== 'linear') {
+          spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.yAxis.slug);
+        }
       }
-
       spineplot
-        .category(this.chartConfig.xAxis.slug)
+        .category(this.ordinalAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+    },
+    drawTreemap() {
+      const vm = this
+      const treemap = this.chart.layer(dbox.treemap);
+      treemap
+        .nestBy(vm.chartConfig.xAxis.slug)
+        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse())
+
     },
     drawScatter() {
       const vm = this;
@@ -654,18 +672,18 @@ export default {
       /**
        * Set options to build a leaflet map
        */
-      const width = window['$']('.empty-chart').width();
-      const height = window['$']('.empty-chart').height();
+      // const width = window['$'](`#${this.id}`).width();
+      // const height = window['$'](`#${this.id}`).height();
 
-      d3.select('.empty-chart').text('');
-      d3.select('.empty-chart')
+      d3.select(`#${this.id}`).text('');
+      d3.select(`#${this.id}`)
         .selectAll('*')
         .remove();
-      d3.select('.empty-chart')
+      d3.select(`#${this.id}`)
         .append('div')
         .attr('id', 'leaflet-wrapper')
-        .style('width', this.innerWidth >= mobileWidth ? width - 200 + 'px' : width + 'px')
-        .style('height', height + 'px');
+        .style('width', this.innerWidth >= mobileWidth ? this.width - 200 + 'px' : this.width + 'px')
+        .style('height', this.height + 'px');
 
       const lconfig = {
         formatPreffix: this.chartConfig.preffix || '',
@@ -686,17 +704,18 @@ export default {
         map: {
           /** @todo Replace topojson info (configure) */
           topojson: {
-            url: 'assets/geojson/CVNL.json',
-            objects: ['NuevoLeon', 'AMM', 'MUNS'],
-            translate: [25.4092844, -101.2450029],
+            url: '/topojsons/mx_edos.json',
+            center: [ 19.6930200, -89.0503700 ],
+            objects: ['states'],
+            translate: undefined,
             zoom: 7,
             maxZoom: 10,
             minZoom: 5,
             parser: function(d) {
-              return d.id;
+              return d.properties.state_code;
             },
             id: function(d) {
-              return 'municipio-' + d.id;
+              return 'estado-' + d.id;
             }
           },
           formatLegend: function(number) {
@@ -714,12 +733,12 @@ export default {
           }
         },
         events: {
-          load: function(chart) {
+          load: function() {
             if (!vm.visibleLabels) {
               d3.selectAll('.dbox-label').style('display', 'none');
               d3.selectAll('.dbox-label-coefficient').style('display', 'none');
             }
-            vm.chartDrawn.emit(chart);
+             vm.$emit('chart_loaded', vm.$el);
           }
         },
         responsive: {
@@ -729,11 +748,10 @@ export default {
 
       const data = this.dataToDraw;
       this.chart = dbox.chart(lconfig).data({ raw: data });
-
       this.chart
         .layer(dbox.leaflet)
-        .id('id')
-        .fill(this.yAxis.slug)
+        .id(this.chartConfig.xAxis.slug)
+        .fill(this.chartConfig.yAxis.slug)
         .opacity(0.9)
         .colors(this.chartConfig.colors.slice(0, 5))
         .colorLegend(this.legendDisplay.title);
@@ -741,7 +759,7 @@ export default {
       if (this.innerWidth >= mobileWidth) {
         // Responsive mobile
         const legend = d3
-          .select('.empty-chart')
+          .select(`#${this.id}`)
           .style('display', 'flex')
           .style('flex-direction', 'row')
           .style('flex-wrap', 'nowrap')
@@ -749,7 +767,7 @@ export default {
           .style('padding-left', '30px')
           .style('top', 8 + 'px')
           .style('right', 10 + 'px')
-          .style('height', height + 'px')
+          .style('height', this.height + 'px')
           .style('text-align', 'left');
 
         const items = legend
@@ -778,10 +796,10 @@ export default {
               d3.select(parentNode)
                 .select('input')
                 .attr('checked', checked);
-              vm.legendChanged.emit(vm.legendOptions);
+              vm.legendChanged(vm.legendOptions);
             }
           })
-          .text(d => d.name);
+          .text(d => d.id);
       }
     },
     legendChanged(legendOptions) {
@@ -799,7 +817,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes(['scatter', 'heatmap'], vm.chartConfig.chart)) {
+      if (!_.includes([ 'scatter','heatmap', 'map'], vm.chartConfig.chart)) {
         const parsedData = d3
           .nest()
           .key(d => d[vm.ordinalAxis.slug])
@@ -808,7 +826,7 @@ export default {
             obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
             obj[vm.chartConfig.collapseBy.slug] = +leaves[0][vm.chartConfig.collapseBy.slug];
             if (vm.chartConfig.collapseBy.slug === 'total_count') {
-              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+              vm.chartConfig.collapseBy = { title: vm.chartConfig.collapseBy.title , type: 'linear', slug: 'total_count' };
             }
             if (vm.chartConfig.groupBy.slug !== '') {
               leaves.forEach(leaf => {
@@ -859,7 +877,7 @@ export default {
             obj[vm.chartConfig.groupBy.slug] = leaves[0][vm.chartConfig.groupBy.slug];
             if (vm.chartConfig.collapseBy.slug === 'total_count') {
               obj['total_count'] = leaves.length;
-              vm.chartConfig.collapseBy = { title: 'Total', type: 'linear', slug: 'total_count' };
+              vm.chartConfig.collapseBy = { title: vm.chartConfig.collapseBy.title, type: 'linear', slug: 'total_count' };
             } else {
               switch (vm.chartConfig.collapseBy.func) {
                 case 'min':
@@ -1069,5 +1087,9 @@ svg text {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   color: #666;
   font-weight: bold;
+}
+
+.leaflet-container {
+  z-index: 0;
 }
 </style>

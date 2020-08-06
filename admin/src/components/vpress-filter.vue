@@ -126,20 +126,20 @@ export default {
         const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
-        } else {
+        } else { 
           this.min = +filterParams[0].min
           this.max = +filterParams[0].max
         }
         this.loading = false;
       } catch (error) {
         this.closeDialog()
-        console.error(error.message)
+        throw new Error(error.message)
       }
     },
     async applyFilter() {
       try {
          this.$store.dispatch(
-           'chartConfig/MERGE_CHART_VALUE',
+           'chartConfig/DATA_QUERY',
            {
               value: {
                   title: this.column,

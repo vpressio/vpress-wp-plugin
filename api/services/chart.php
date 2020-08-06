@@ -1,4 +1,135 @@
 <?php
+
+function query_chart_data($request) {
+  $body = $request->get_json_params();
+  if ( empty($body['dataset']) ) {
+    return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
+  } else if (
+    ( !empty($body['aggregate']) && empty($body['aggregate_column']) ) || 
+    ( empty($body['aggregate']) && !empty($body['aggregate_column']) )
+  ) {
+    return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
+  }
+
+  $dataset = $body['dataset'];
+  $column_head = $body['column_head'];
+  $column_2 = $body['column_2'];
+  $column_3 = $body['column_3'];
+  $aggregate_head = $body['aggregate_head'];
+  $aggregate_column_head = $body['aggregate_column_head'];
+  $aggregate_2 = $body['aggregate_2'];
+  $aggregate_column_2 = $body['aggregate_column_2'];
+  $aggregate_3 = $body['aggregate_3'];
+  $aggregate_column_3 = $body['aggregate_column_3'];
+  $linear_column_head = $body['linear_column_head'];
+  $linear_column_2 = $body['linear_column_2'];
+  $linear_column_3 = $body['linear_column_3'];
+  $linear_column_4 = $body['linear_column_4'];
+  $function_operation_head = $body['function_operation_head'];
+  $function_alias_head = $body['function_alias_head'];
+  $function_operation_2 = $body['function_operation_2'];
+  $function_alias_2 = $body['function_alias_2'];
+
+  $where = $body['where'];
+  $order_by = $body['order_by'];
+  $limit = $body['limit'];
+
+
+  
+  $query_select = "SELECT ";
+  $query_from = " FROM " . trim($dataset) . " as f1";
+  $query_where = "";
+  $query_group_by = "";
+  $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
+  $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
+
+  if (!empty($column_head)) {
+    $query_select .= "f1.$column_head";
+    $query_group_by .= "GROUP BY f1.$column_head";
+  }
+  if (!empty($column_2)) {
+    $query_select .= ", f1.$column_2";
+    $query_group_by .= ", f1.$column_2";
+  }
+  if (!empty($column_3)) {
+    $query_select .= ", f1.$column_3";
+    $query_group_by .= ", f1.$column_3";
+  }
+
+
+  if (!empty($aggregate_head) && !empty($aggregate_column_head)) {
+    $query_select .= " $aggregate_head($aggregate_column_head) AS $aggregate_column_head";
+  }
+  if (!empty($aggregate_2) && !empty($aggregate_column_2)) {
+    $query_select .= ", $aggregate_2($aggregate_column_2) AS $aggregate_column_2";
+  }
+  if (!empty($aggregate_3) && !empty($aggregate_column_3)) {
+    $query_select .= ", $aggregate_3($aggregate_column_3) as $aggregate_column_3";
+  }
+  if (!empty($aggregate_4) && !empty($aggregate_column_4)) {
+    $query_select .= ", $aggregate_4($aggregate_column_4) as $aggregate_column_4";
+  }
+  
+  if (!empty($linear_column_head)) {
+    $query_select .= "f1.$linear_column_head";
+  }
+  if (!empty($linear_column_2)) {
+    $query_select .= ", f1.$linear_column_2";
+  }
+  if (!empty($linear_column_3)) {
+    $query_select .= ", f1.$linear_column_3";
+  }
+  if (!empty($linear_column_4)) {
+    $query_select .= ", f1.$linear_column_4";
+  }
+
+  if (!empty($function_operation_head) && !empty($function_alias_head)) {
+    $query_select .= "($function_operation_head) AS $function_alias_head";
+  }
+  if (!empty($function_operation_2) && !empty($function_alias_2)) {
+    $query_select .= " ,($function_operation_2) AS $function_alias_2";
+  }
+
+
+  if ( !empty($where) ) {
+    $where_array = [];
+    foreach ($where as &$value) {
+      if ( $value['op'] == 'IN' ) {
+        array_push($where_array, $value["column"] . " IN (" . "'" . implode ( "', '", $value["value"] ) . "'" . ")");
+      } elseif ( $value['op'] == 'EQ' ) {
+        array_push($where_array, $value['column'] . " = '" . $value["value"] . "'");
+      } elseif ( $value['op'] == 'BETWEEN' ) {
+        array_push($where_array, $value['column'] . " BETWEEN '" . $value["value"][0] . "' AND '" . $value["value"][1] . "'");
+      }
+    }
+    $query_where = "WHERE " . implode(" AND ", $where_array);
+  }
+
+  if ( 
+    empty($aggregate) &&
+    empty($aggregate_column) &&
+    empty($subquery_aggregate) &&
+    empty($subquery_column) &&
+    empty($column_2) &&
+    empty($query_group_by)
+  ) {
+    // Todo: Validate if both axis are selected
+  }
+
+  $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
+
+  global $wpdb;
+  $data =$wpdb->get_results($wpdb->prepare($query));
+  $response = array(
+    'query' => $wpdb->last_query,
+    'data' => $data,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+
+}
+
+
 function get_data( $request ) {
   $body = $request->get_json_params();
   if ( empty($body['dataset']) || empty($body['chart_type']) ) {
@@ -234,7 +365,7 @@ function create_chart( $request ) {
   );
 
   $response = array(
-    'data' => $data,
+    'data' => $wpdb->insert_id,
     'query' => $wpdb->last_query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );

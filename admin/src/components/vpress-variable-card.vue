@@ -1,8 +1,6 @@
 <template>
   <v-card
-    v-show="variableData.type !== '' && variableData.title !== ''"
-    :id="id"
-    :ref="id"
+    v-show="variable.type !== '' && variable.title !== ''"
     :draggable="draggable"
     @dragstart="dragStart"
     tile
@@ -11,53 +9,61 @@
     dark
     hover
   >
-    <div>
-      <div v-if="inSlot" class="operationButtonContainer">
-        <v-menu close-on-click offset-x right nudge-right="15">
-          <template v-slot:activator="{ on }">
-            <v-btn small icon dark class="operationButton" v-on="on">
-              <v-icon dense>mdi-dots-horizontal</v-icon>
-            </v-btn>
-          </template>
-          <v-list v-if="variableData.type === 'linear' && variableData.slug !== 'total_count'">
-            <v-list-item
-              class="px-5"
-              v-for="(func, funcIndex) in funcs"
-              :key="`func_${funcIndex}`"
-              @click="selectFunc(func)"
-              :class="{ 'selected-func': selectedFunc === func }"
-            >
-              <v-list-item-title
-                class="func-menu"
-                :class="{ 'selected-func': selectedFunc === func }"
-                :dark="selectedFunc === func"
-              >{{ func.name }}</v-list-item-title>
-            </v-list-item>
-            <v-divider></v-divider>
-            <v-list-item class="px-5" @click="removeCard()">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-            </v-list-item>
-          </v-list>
-          <v-list v-if="variableData.type !== 'linear' || variableData.slug === 'total_count'">
-            <v-list-item class="px-5" @click="removeCard">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
-      <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
-        <p v-if="id !== 'cardId_total'" class="ma-0">{{ variableData.title }}</p>
-        <span
-          v-if="id === 'cardId_total'"
-          class="vpress-default-card"
+    <div v-if="inSlot" class="operationButtonContainer">
+      <v-menu close-on-click offset-x right nudge-right="15">
+        <template v-slot:activator="{ on }">
+          <v-btn small icon dark class="operationButton" v-on="on">
+            <v-icon dense>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list
+        v-if="
+          variable.type === 'linear' &&
+          variable.slug !== 'total_count' && 
+          mutationType !== 'filter'
+        "
         >
-          • {{ variableData.title }}
-        </span>
-        <p
-          v-show="selectedFunc.name !== 'Sin mutar' && selectedFunc.name"
-          class="variableCardDataType mb-0"
-        >{{ `(${selectedFunc.name})` }}</p>
-      </div>
+          <v-list-item
+            class="px-5"
+            v-for="(func, funcIndex) in funcs"
+            :key="`func_${funcIndex}`"
+            @click="selectFunc(func)"
+            :class="{ 'selected-func': selectedFunc === func }"
+          >
+            <v-list-item-title
+              class="func-menu"
+              :class="{ 'selected-func': selectedFunc === func }"
+              :dark="selectedFunc === func"
+            >{{ func.name }}</v-list-item-title>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item class="px-5" @click="removeCard()">
+            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+          </v-list-item>
+        </v-list>
+        <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count'">
+          <v-list-item class="px-5" @click="removeCard">
+            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+    <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
+      <p v-if="variable.slug !== 'total_count'" class="ma-0">{{ variable.title }}</p>
+      <span
+        v-if="variable.slug === 'total_count'"
+        class="vpress-default-card"
+      >
+        • {{ variable.title }}
+      </span>
+      <p
+        v-if="
+          inSlot &&
+          variable.type === 'linear' &&
+          variable.slug !== 'total_count'
+        "
+        class="variableCardDataType mb-0"
+      >{{ variableFunction(variable) }}</p>
     </div>
   </v-card>
 </template>
@@ -65,83 +71,65 @@
 export default {
   name: 'VpressVariableCard',
   props: {
-    id: String,
-    slotId: String,
-    variableData: Object,
+    mutationType: String,
+    variable: Object,
     inSlot: Boolean,
     error: Boolean
   },
   data() {
     return {
-      columnDataToTransferInObject: {},
       draggable: true,
       funcs: [
         { type: 'sum', name: 'Suma' },
         { type: 'mean', name: 'Promedio' },
         { type: 'min', name: 'Mínimo' },
         { type: 'max', name: 'Máximo' },
-        { type: '', name: 'Sin mutar' }
-      ]
+        { type: '', name: 'Valor por defecto' }
+      ],
+      selectedFunc: { type: '', name: '' }
     };
   },
   computed: {
-    selectedFunc() {
-      if (this.inSlot) {
-        const variable = this.$store.getters[`chartConfig/${this.slotId}`];
-        const funcInStore = this.funcs.reduce(
-          (acc, functionInArray) => {
-            if (variable.func === functionInArray.type) {
-              return (acc = functionInArray);
-            }
-            return acc;
-          },
-          { type: '', name: 'Sin mutar' }
-        );
-        return funcInStore;
-      }
-      return { type: '', name: 'Sin mutar' };
+    variableFunction() {
+     return (variable) => {
+       if (variable.func) {
+         return variable.func === '' ? '' : `(${variable.func})`
+       } else {
+         return ''
+       }
+     } 
     }
   },
   methods: {
     dragStart(e) {
       const { dataTransfer } = e;
-      this.columnDataToTransferInObject = {
-        id: this.id,
-        ...this.variableData,
-        func: this.selectedFunc.type
-      };
-      const transferedString = JSON.stringify(
-        this.columnDataToTransferInObject
-      );
-      dataTransfer.setData(
-        'transferedString',
-        transferedString
-      );
+      const payload = JSON.stringify(this.variable);
+      dataTransfer.setData('variableJson', payload);
     },
     selectFunc(func) {
-      const variable = { ...this.$store.getters[`chartConfig/${this.slotId}`] };
-      variable.func = func.type;
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        mutationType: this.slotId,
-        value: variable
+      this.variable.func = func.type
+      this.selectedFunc = func
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+        mutationType: this.mutationType,
+        value: this.variable
       });
     },
     removeCard() {
-      const payload = this.slotId === 'filter'
+      const payload = this.mutationType === 'filter'
       ? {
-          title: this.variableData.title,
-          type: this.variableData.type,
-          slug: this.variableData.slug,
+          title: this.variable.title,
+          type: this.variable.type,
+          slug: this.variable.slug,
           value: 'remove'
-        } 
+        }
       : {
           title: '',
           type: '',
           slug: '',
           func: ''
         }
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, {
-        mutationType: this.slotId,
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+        mutationType: this.mutationType,
         value: payload
       });
     }

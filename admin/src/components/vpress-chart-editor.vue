@@ -12,8 +12,8 @@
               grow
             >
               <v-tab>DATOS</v-tab>
-              <v-tab :disabled="variableData.length === 0">CONFIGURA</v-tab>
-              <v-tab class="v-step-8" :disabled="variableData.length === 0">ESTILO</v-tab>
+              <v-tab :disabled="variables.length === 0">CONFIGURA</v-tab>
+              <v-tab class="v-step-8" :disabled="variables.length === 0">ESTILO</v-tab>
             </v-tabs>
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
@@ -22,7 +22,7 @@
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn> -->
-              <v-btn class="middle-button" outlined color="primary" @click="downloadChartImg" >
+              <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
@@ -40,10 +40,12 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
-                    <VpressVariableContainer
-                      :variableData="variableData"
-                      :dataSetName="dataSetName"
-                    />
+                    <v-col cols="12" class="pb-0 pt-1">
+                      <v-img class="db-icon" src="../assets/images/db1.svg" />
+                      <span class="db-titulo">{{ dataSetName }}</span>
+                      <hr class="v-divider theme--light hr-divider" />
+                    </v-col>
+                    <VpressVariableContainer :variables="variables"/>
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
@@ -73,7 +75,7 @@
             v-show="numberOfColsIftabIsNotZero !== '12'"
             :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressChartGroup v-if="variableData.length !== 0"/>
+            <VpressChartGroup v-if="variables.length !== 0"/>
           </v-col>
         </v-row>
       </div>
@@ -200,7 +202,7 @@ export default {
   },
   mounted() {
     if(!this.$route.params.chartid) {
-      this.$tours['vpress-tour'].start();
+      // this.$tours['vpress-tour'].start();
     }
   },
   computed: {
@@ -219,7 +221,7 @@ export default {
       // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
-    variableData() {
+    variables() {
       return this.$store.getters['data/dataType'];
     },
     dataSetName() {
@@ -238,14 +240,23 @@ export default {
       }
     },
     downloadChartImg() {
-      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeChartIndex']}`)
+      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`)
     },
     clipboardCopy() {
-      const iframe = `<iframe src="https://demo.v-press.org/#/shared/HltJ46MKTD2k50mov5UW" width="400" height="300"></iframe>`
-      navigator.clipboard.writeText(iframe);
+      try {
+        const chartId = this.$store.getters['chartConfig/viz'].id
+        if (chartId) {
+          const iframe = `<iframe src="https://demo.v-press.org/#/shared/${chartId}" width="400" height="150"></iframe>`
+          navigator.clipboard.writeText(iframe);
+        } else {
+          throw new Error('Gráfica no guardada.')
+        }
+      } catch (error) {
+        console.error(error.message);
+      }
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/MERGE_CHART_VALUE`, { value: dataToMerge, mutationType: slot})
+      this.$store.dispatch(`chartConfig/DATA_QUERY`, { value: dataToMerge, mutationType: slot})
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';
@@ -393,6 +404,24 @@ export default {
 
 * >>> .config-switch {
   margin-top: 0;
+}
+.hr-divider {
+  width: 91%;
+  margin-left: 15px;
+  margin-bottom: 10px;
+}
+
+.db-icon {
+  width: 17px;
+  margin: 4px 10px 4px 0;
+  display: inline-flex;
+  padding-bottom: 1px;
+}
+
+.db-titulo {
+  color: #737373;
+  font-size: 0.8rem;
+  font-family: Roboto;
 }
 
 .limit-scroll {

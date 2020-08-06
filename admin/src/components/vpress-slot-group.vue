@@ -1,92 +1,65 @@
 <template>
-  <v-card class="py-3">
-    <div
-      v-for="(slot, slotIndex) in slotsToRender"
-      :key="`slot_${slotIndex}`"
-    >
+  <v-card
+    style="height:100%"
+  >
       <VpressSlot
         class="mb-2"
-        :class="{
-          'v-step-4': slot.slotId === 'xAxis',
-          'v-step-5': slot.slotId === 'yAxis',
-          'v-step-6': slot.slotId === 'aggregation'
-        }"
-        :slotId="slot.slotId"
-        :icon="slot.icon"
-        :slotIcon="slot.slotIcon"
-        :label="slot.label"
+        slotId="xAxis"
+        icon="mdi-view-sequential"
+        slotIcon="eje-x"
+        label="Eje x"
       />
-    </div>
+      <VpressSlot
+        class="mb-2"
+        slotId="yAxis"
+        icon="mdi-view-parallel"
+        slotIcon="eje-y"
+        label="Eje y"
+      />
+      <VpressSlot
+          v-if="chartType === 'heatmap'"
+          class="mb-2"
+          slotId="collapseBy"
+          icon="mdi-palette-outline"
+          slotIcon="color"
+          label="Color"
+        />
+      <VpressSlot
+          v-if="chartType === 'scatter'"
+          class="mb-2"
+          slotId="groupBy"
+          icon="mdi-palette-outline"
+          slotIcon="color"
+          label="Color"
+        />
+      <VpressSlot
+          v-if="chartType === 'scatter'"
+          class="mb-2"
+          slotId="collapseBy"
+          icon="mdi-palette-outline"
+          slotIcon="color"
+          label="Tamaño"
+        />
+      <!-- <VpressSlot
+          class="mb-2"
+          slotId="filter"
+          icon="mdi-tune"
+          slotIcon=""
+          label="Filtros"
+        /> -->
   </v-card>
 </template>
 <script>
 import VpressSlot from './vpress-slot';
 
 export default {
-  name: 'VpressVariableSlotsContainer',
+  name: 'VpressSlotGroup',
   components: {
     VpressSlot
   },
-  data() {
-    return {
-      slots: [
-        {
-          slotId:"xAxis",
-          icon:"mdi-view-sequential",
-          slotIcon: "eje-x",
-          label:"Filas"
-        },
-        {
-          slotId:"yAxis",
-          icon:"mdi-view-parallel",
-          slotIcon: "eje-y",
-          label:"Columnas"
-        },
-        {
-          slotId:"aggregation",
-          icon:" mdi-palette-outline",
-          slotIcon: "color",
-          label:"Color"
-        },
-        {
-          slotId:"filter",
-          icon:"mdi-tune",
-          slotIcon: "",
-          label: "Filtros"
-        }
-      ]
-    };
-  },
   computed: {
-    slotsToRender() {
-      const activeChartValues = this.$store.getters['chartConfig/chart']
-      return this.slots.reduce(
-        (acc, slot) => {
-            switch (slot.slotId) {
-              case 'aggregation':
-                if(
-                  activeChartValues.chart === 'bars' ||
-                  activeChartValues.chart === 'timeline'
-                ) {
-                  slot.label = 'Grupo'
-                } else {
-                  slot.label = 'Color'
-                }
-                  acc.push(slot)
-                break;
-              case 'filter':
-                if (this.$store.getters['data/origin'] === 'api') {
-                  acc.push(slot)
-                }
-                break
-              default:
-                acc.push(slot)
-                break;
-            }
-          return acc
-        },
-        []
-      )
+    chartType () {
+      return this.$store.getters['chartConfig/chartType']
     }
   }
 };
