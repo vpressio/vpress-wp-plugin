@@ -12,21 +12,25 @@ function query_chart_data($request) {
   }
 
   $dataset = $body['dataset'];
-  $column_1 = $body['column_1'];
+  $column_head = $body['column_head'];
   $column_2 = $body['column_2'];
   $column_3 = $body['column_3'];
-  $aggregate_1 = $body['aggregate_1'];
-  $aggregate_column_1 = $body['aggregate_column_1'];
+  $aggregate_head = $body['aggregate_head'];
+  $aggregate_column_head = $body['aggregate_column_head'];
   $aggregate_2 = $body['aggregate_2'];
   $aggregate_column_2 = $body['aggregate_column_2'];
   $aggregate_3 = $body['aggregate_3'];
   $aggregate_column_3 = $body['aggregate_column_3'];
-  $linear_column_1 = $body['linear_column_1'];
+  $linear_column_head = $body['linear_column_head'];
   $linear_column_2 = $body['linear_column_2'];
   $linear_column_3 = $body['linear_column_3'];
   $linear_column_4 = $body['linear_column_4'];
+  $function_operation_head = $body['function_operation_head'];
+  $function_alias_head = $body['function_alias_head'];
+  $function_operation_2 = $body['function_operation_2'];
+  $function_alias_2 = $body['function_alias_2'];
+
   $where = $body['where'];
-  $group_by = $body['group_by'];
   $order_by = $body['order_by'];
   $limit = $body['limit'];
 
@@ -35,17 +39,17 @@ function query_chart_data($request) {
   $query_select = "SELECT ";
   $query_from = " FROM " . trim($dataset) . " as f1";
   $query_where = "";
-  $query_group_by = ( "GROUP BY ". $group_by);
+  $query_group_by = "";
   $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
   $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
 
-  if (!empty($column_1)) {
-    $query_select .= "f1.$column_1";
-    $query_group_by .= " f1.$column_1";
+  if (!empty($column_head)) {
+    $query_select .= "f1.$column_head";
+    $query_group_by .= "GROUP BY f1.$column_head";
   }
   if (!empty($column_2)) {
-    $query_select .= " f1.$column_2";
-    $query_group_by .= " f1.$column_2";
+    $query_select .= ", f1.$column_2";
+    $query_group_by .= ", f1.$column_2";
   }
   if (!empty($column_3)) {
     $query_select .= ", f1.$column_3";
@@ -53,19 +57,21 @@ function query_chart_data($request) {
   }
 
 
-  if (!empty($aggregate_1) && !empty($aggregate_column_1)) {
-    $query_select .= ", $aggregate_1($aggregate_column_1)";
+  if (!empty($aggregate_head) && !empty($aggregate_column_head)) {
+    $query_select .= " $aggregate_head($aggregate_column_head) AS $aggregate_column_head";
   }
   if (!empty($aggregate_2) && !empty($aggregate_column_2)) {
     $query_select .= ", $aggregate_2($aggregate_column_2) AS $aggregate_column_2";
   }
   if (!empty($aggregate_3) && !empty($aggregate_column_3)) {
-    $query_select .= ", $aggregate_3($aggregate_column_3)";
+    $query_select .= ", $aggregate_3($aggregate_column_3) as $aggregate_column_3";
+  }
+  if (!empty($aggregate_4) && !empty($aggregate_column_4)) {
+    $query_select .= ", $aggregate_4($aggregate_column_4) as $aggregate_column_4";
   }
   
-  if (!empty($linear_column_1)) {
-    $query_select .= "f1.$column_1";
-    $query_limit .= "LIMIT 100000";
+  if (!empty($linear_column_head)) {
+    $query_select .= "f1.$linear_column_head";
   }
   if (!empty($linear_column_2)) {
     $query_select .= ", f1.$linear_column_2";
@@ -77,6 +83,12 @@ function query_chart_data($request) {
     $query_select .= ", f1.$linear_column_4";
   }
 
+  if (!empty($function_operation_head) && !empty($function_alias_head)) {
+    $query_select .= "($function_operation_head) AS $function_alias_head";
+  }
+  if (!empty($function_operation_2) && !empty($function_alias_2)) {
+    $query_select .= " ,($function_operation_2) AS $function_alias_2";
+  }
 
 
   if ( !empty($where) ) {
@@ -102,7 +114,6 @@ function query_chart_data($request) {
     empty($query_group_by)
   ) {
     // Todo: Validate if both axis are selected
-    $query_limit = " LIMIT 10";
   }
 
   $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
