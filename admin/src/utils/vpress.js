@@ -13,13 +13,13 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
       filter: setFilters,
       orderBy: setOrder,
       collapseBy: ({ chartValues, mutationType, newValue }) => {
-        if (newValue.type === 'linear') {
+        if (newValue.type === 'linear' || newValue.slug === '') {
           chartValues[mutationType] = newValue;
         }
         return chartValues
       },
       groupBy: ({chartValues, mutationType, newValue}) => {
-        if (newValue.type !== 'linear') {
+        if (newValue.type !== 'linear' || newValue.slug === '') {
           chartValues[mutationType] =
             chartValues.xAxis.slug === chartValues.groupBy.slug ||
             chartValues.yAxis.slug === chartValues.groupBy.slug
@@ -50,7 +50,7 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
 
 const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
   try {
-    chartValues[mutationType] = newValue
+    chartValues[mutationType] = newValue                                                  
     const mainAxis = mutationType === 'xAxis'
       ? chartValues['xAxis']
       : chartValues['yAxis']
@@ -212,35 +212,6 @@ const invertAxis =  ({ chartValues }) => {
   }
 }
 
-// const removeAggregate =  ({chartValues, newValue, mutationType}) => {
-//   try {
-//     switch (chartValues.chart) {
-//       case 'bars':
-//         chartValues.groupBy = newValue
-//         break
-//         case 'heatmap':
-//           chartValues.collapseBy = newValue
-//           break
-//         case 'spineplot':
-//           chartValues.collapseBy = newValue
-//           break
-//         case 'scatter':
-//           chartValues.collapseBy = newValue
-//           chartValues.groupBy = newValue
-//           break
-//         case 'timeline':
-//           chartValues.collapseBy = newValue
-//           chartValues.groupBy = newValue
-//         break
-//       default:
-//         throw new VpressError(mutationType,'Invalid chart type');
-//     }
-//     return chartValues;
-//   } catch (error) {
-//     throw new VpressError(error.value, error.message)
-//   }
-// }
-
 const setFilters = ({ chartValues, newValue }) => {
   try {
     if (newValue.value === 'remove') {
@@ -306,72 +277,156 @@ const queryBody = (payload, table_name) => {
   const body = {}
   body['dataset'] = `vpress_${table_name}`
   body['chart_type'] = payload.chart
-  
+  const {
+    xAxis,
+    yAxis,
+    collapseBy,
+    groupBy,
+    filters,
+    orderBy
+  } = payload;
+  if (xAxis.type === 'linear' && yAxis.type === 'linear') {
+    if (xAxis.slug === 'total_count' && yAxis.slug === 'total_count') {
+      throw new Error('Combinación de variables inválida.')
+    }
+    if (
+      (xAxis.slug === 'total_count' || yAxis.slug === 'total_count') ||
+      (xAxis.func && (xAxis.func !== '' || yAxis.func !== '')) ||
+      collapseBy.slug === 'total_count'
+    ) {
+      // if (xAxis.slug === 'total_count') {
+      //   body['column_head'] = sanitizeSpaces(yAxis.slug)
+      //   body['function_operation_2'] = 'COUNT(*)'
+      //   body['function_alias_2'] = 'total_count'
+      // } else if (yAxis.slug === 'total_count') {
+      //   if (xAxis.func !== '') {
+      //     body['aggregate_column_head'] = sanitizeSpaces(xAxis.slug)
+      //     body['aggregate_head'] = selectAggregateFunction(xAxis.func)
+        // } else if (xAxis.func !== '' && yAxis.func !== ''){
+        //   body['column_head'] = sanitizeSpaces(yAxis.slug)
+        // } else if (xAxis.func !== '' && yAxis.func !== '') {
+        //   body['function_operation_2'] = 'COUNT(*)'
+        //   body['function_alias_2'] = 'total_count'
+        // }
+        // body['aggregate_column_head'] = sanitizeSpaces(xAxis.slug)
+        // body['aggregate_head'] = selectAggregateFunction(xAxis.func)
+        // body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
+        // body['aggregate_2'] = selectAggregateFunction(yAxis.func)
+      // } else if (xAxis.func !== '') {
+      //   body['column_head'] = sanitizeSpaces(xAxis.slug)
+      //   body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
+      //   body['aggregate_2'] = selectAggregateFunction(yAxis.func)
+      // } else if (yAxis.func !== '') {
+      //   body['aggregate_column_2'] = sanitizeSpaces(xAxis.slug)
+      //   body['aggregate_2'] = selectAggregateFunction(xAxis.func)
+      //   body['column_head'] = sanitizeSpaces(yAxis.slug)
+      // }
 
-  if (payload.xAxis.type === 'linear' && payload.yAxis.type === 'linear') {
-    if (payload.xAxis.slug !== '') {
-     body['linear_column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
+      // if (collapseBy.slug !== '') {
+      //   body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
+      //   body['aggregate_3'] = selectAggregateFunction(xAxis.func)
+      // }
+      // if (groupBy.slug !== '') {
+      //   body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
+      // }
+    } else {
+      body['linear_column_head'] = sanitizeSpaces(xAxis.slug)
+      body['linear_column_2'] = sanitizeSpaces(yAxis.slug)
+      if (collapseBy.slug !== '') {
+        body['linear_column_3'] = sanitizeSpaces(collapseBy.slug)
+      }
+      if (groupBy.slug !== '') {
+        body['linear_column_4'] = sanitizeSpaces(groupBy.slug)
+      }
     }
-    if (payload.yAxis.slug !== '') {
-      body['linear_column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
-      
-    }
-    if (payload.groupBy.slug !== '') {
-      body['linear_column_3'] = `${sanitizeSpaces(payload.groupBy.slug)}`
-    }
-    if (payload.collapseBy.slug !== '') {
-      body['linear_column_4'] = `${sanitizeSpaces(payload.collapseBy.slug)}`
-    }
-  }
 
-
-  if (
-    (payload.xAxis.type === 'linear' && payload.yAxis.type !== 'linear') ||
-    (payload.yAxis.type === 'linear' && payload.xAxis.type !== 'linear')
+  } else if (
+    (xAxis.type === 'ordinal' || xAxis.type === 'date') &&
+    (yAxis.type === 'ordinal' || yAxis.type === 'date')
   ) {
-    if (payload.xAxis.slug !== '') {
-      if (payload.xAxis.type === 'linear') {
-        body['aggregate_1'] = selectAggregateFunction(payload.xAxis.func)
-        body['aggregate_column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
-      } else if (payload.xAxis.slug === 'total_count') {
-        body['aggregate_1'] = 'COUNT'
-        body['aggregate_column_1'] = '*'
+    console.log('ordinal-ordinal');
+    body['column_head'] = sanitizeSpaces(xAxis.slug)
+    body['column_2'] = sanitizeSpaces(yAxis.slug)
+    if (collapseBy.slug !== '') {
+      if (collapseBy.slug === 'total_count') {
+        body['function_operation_2'] = 'COUNT(*)'
+        body['function_alias_2'] = 'total_count'
       } else {
-        body['column_1'] = `${sanitizeSpaces(payload.xAxis.slug)}`
+        body['aggregate_column_2'] = sanitizeSpaces(collapseBy.slug)
+        body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
       }
-     }
-     if (payload.yAxis.slug !== '') {
-      if (payload.yAxis.type === 'linear') {
-        body['aggregate_2'] = selectAggregateFunction(payload.yAxis.func)
-        body['aggregate_column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
-      } else if (payload.yAxis.slug === 'total_count') {
-        body['aggregate_2'] = 'COUNT'
-        body['aggregate_column_2'] = '*'
-      } else {
-        body['column_2'] = `${sanitizeSpaces(payload.yAxis.slug)}`
-      }
-     }
-    if (payload.groupBy.slug !== '') {
-      body['column_2'] = `${sanitizeSpaces(payload.groupBy.slug)}`
     }
-    if (payload.collapseBy.slug !== '' && (payload.chart !== 'bars' && payload.chart !== 'spineplot' && payload.chart !== 'timeline')) {
-      if (payload.xAxis.slug === 'total_count') {
-        body['aggregate_3'] = 'COUNT'
-        body['aggregate_column_3'] = '*'
-      } else {
-        body['aggregate_3'] = selectAggregateFunction(payload.collapseBy.func)
-        body['aggregate_column_3'] = `${sanitizeSpaces(payload.collapseBy.slug)}`
-      }
-     }
-   }
+    if (groupBy.slug !== '') {
+      body['column_3'] = sanitizeSpaces(groupBy.slug)
+    }
+   } else if (
+    (
+      (xAxis.type === 'linear' && (yAxis.type === 'ordinal' || yAxis.type === 'date')) ||
+      (yAxis.type === 'linear' && (xAxis.type === 'ordinal' || xAxis.type === 'date'))
+    )
+  ) {
+    console.log('lineaar-ordinal');
+    const linearAxis = xAxis.type === 'linear'
+      ? xAxis
+      : yAxis
+    const ordinalAxis = xAxis.type === 'linear'
+      ? yAxis
+      : xAxis
+
+    body['column_head'] = sanitizeSpaces(ordinalAxis.slug)
+    if (linearAxis.func && linearAxis.func !== '') {
+      body['function_operation_2'] = 'COUNT(*)'
+      body['function_alias_2'] = 'total_count'
+    } else {
+      body['aggregate_2'] = selectAggregateFunction(linearAxis.func)
+      body['aggregate_column_2'] = sanitizeSpaces(linearAxis.slug)
+    }
+    if (collapseBy.slug !== '' && (collapseBy.slug !== linearAxis.slug)) {
+      body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
+      body['aggregate_3'] = selectAggregateFunction(collapseBy.func)
+    }
+    if (groupBy.slug !== '') {
+      body['column_3'] = sanitizeSpaces(groupBy.slug)
+    }
+  } else if (
+    ( xAxis.type === 'linear' && yAxis.slug === '' ) ||
+    ( yAxis.type === 'linear' && xAxis.slug === '' )
+  ) {
+    const linearAxis = xAxis.type === 'linear'
+      ? xAxis
+      : yAxis
+    body['aggregate_column_head'] = sanitizeSpaces(linearAxis.slug)
+    body['aggregate_head'] = selectAggregateFunction()
+    if (collapseBy.slug !== '' && (collapseBy.slug !== linearAxis.slug)) {
+      body['aggregate_column_2'] = sanitizeSpaces(collapseBy.slug)
+      body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
+    }
+    if (groupBy.slug !== '') {
+      body['column_2'] = sanitizeSpaces(groupBy.slug)
+    }
+  } else if (
+    (yAxis.slug === '' && (xAxis.type === 'ordinal' || xAxis.type === 'date')) ||
+    (xAxis.slug === '' && (yAxis.type === 'ordinal' || yAxis.type === 'date'))
+  ) {
+    const ordinalAxis = xAxis.type === 'ordinal' || xAxis.type === 'date'
+      ? xAxis
+      : yAxis
+    body['column_2'] = sanitizeSpaces(ordinalAxis.slug)
+    body['function_operation_head'] = 'COUNT(*)'
+    body['function_alias_head'] = 'total_count'
+    if (collapseBy.slug !== '') {
+      body['aggregate_column_3'] = sanitizeSpaces(collapseBy.slug)
+      body['aggregate_3'] = selectAggregateFunction(collapseBy.func)
+    }
+    if (groupBy.slug !== '') {
+      body['column_3'] = sanitizeSpaces(groupBy.slug)
+    }
+  } else {
+    throw new Error('Invalid chart query')
+  }
   
-
-
-
-
-
-  if (payload.filters.length > 0) {
-    body['where'] = payload.filters.map(clause => {
+  if (filters.length > 0) {
+    body['where'] = filters.map(clause => {
       return {
         op: clause.type !== 'ordinal' && clause.value.length === 2
           ? 'BETWEEN'
@@ -381,11 +436,11 @@ const queryBody = (payload, table_name) => {
       }
     })
   }
-  // body['order_by'] = `${
-  //   payload.orderBy.slug === ''
-  //     ? body['order_by']
-  //     : sanitizeSpaces(payload.orderBy.slug)
-  //   } ${payload.orderBy.order.toUpperCase()}`
+
+ 
+  body['order_by'] = orderBy.slug === ''
+    ? null
+    : `${orderBy.slug} ${orderBy.order.toUpperCase()}`
   return body
 }
 
@@ -521,19 +576,18 @@ const selectAggregateFunction = (func) => {
   }
 }
 
-const sanitizeSpaces = (columnName) => {
-  return /\s/g.test(columnName)
-    ? '`'+columnName+'`'
-    : columnName
-}
-
-export default {
-  queryByChart,
-  mergeChartVal,
-  invertAxis,
-  extractDataType,
-  filterOrdinalParamsQuery,
-  filterLinearParamsQuery,
-  prepareQuery,
-  queryBody
-};
+  const sanitizeSpaces = (columnName) => {
+    return /\s/g.test(columnName)
+      ? '`' + columnName + '`'
+      : columnName
+  }
+  export default {
+    queryByChart,
+    mergeChartVal,
+    invertAxis,
+    extractDataType,
+    filterOrdinalParamsQuery,
+    filterLinearParamsQuery,
+    prepareQuery,
+    queryBody
+  };

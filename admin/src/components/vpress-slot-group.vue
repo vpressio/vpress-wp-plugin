@@ -40,13 +40,13 @@
           slotIcon="color"
           label="Tamaño"
         />
-      <VpressSlot
+      <!-- <VpressSlot
           class="mb-2"
           slotId="filter"
           icon="mdi-tune"
           slotIcon=""
           label="Filtros"
-        />
+        /> -->
   </v-card>
 </template>
 <script>

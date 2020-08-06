@@ -245,7 +245,7 @@ export default {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
-    async DATA_QUERY({  state, commit }, { value, mutationType }) {
+    async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
       try {
         const activeChart = state.charts[state.activeVizIdx]
         const newChartValues = vpress.queryByChart(
@@ -255,15 +255,15 @@ export default {
             mergeType: mutationType
           }
         )
-        // commit('SET_LOAD_STATE', true)
-        // if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
-        //   const data = await dispatch(
-        //       'data/GET_CHART_DATA',
-        //       { chartValues: newChartValues, chartIndex: state.activeVizIdx },
-        //       { root: true }
-        //   )
-        //   commit('SET_VIZ_DATA', data)
-        // }
+        if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
+          commit('SET_LOAD_STATE', true)
+          const data = await dispatch(
+              'data/GET_CHART_DATA',
+              { chartValues: newChartValues, chartIndex: state.activeVizIdx },
+              { root: true }
+          )
+          commit('SET_VIZ_DATA', data)
+        }
         commit('SET_VIZ_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
         commit('SET_LOAD_STATE', false)
