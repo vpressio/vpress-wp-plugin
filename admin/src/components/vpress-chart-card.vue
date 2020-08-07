@@ -5,7 +5,7 @@
   >
     <v-img
       height="250"
-      :src="image_url"
+      :src="image_default"
     ></v-img>
     <v-card-title>{{ title }}</v-card-title>
     <v-card-text>
@@ -84,5 +84,22 @@ export default {
   data: () => ({
     loading: false
   }),
+  computed: {
+    image_default() {
+      if (this.type === 'bars') {
+        return require('../assets/images/grafica-barras.png')
+      } else if (this.type === 'heatmap') {
+        return require('../assets/images/grafica-heatmap.png')
+      } else if (this.type === 'spineplot') {
+        return require('../assets/images/grafica-spineplot.png')
+      } else if (this.type === 'scatter') {
+        return require('../assets/images/grafica-scatter.png')
+      } else if (this.type === 'timeline') {
+        return require('../assets/images/grafica-linea.png')
+      } else {
+        return 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
+      }
+    }
+  }
 }
 </script>
