@@ -51,6 +51,7 @@
               :tags="item.tags"
               :status="item.status"
               :updated="item.updated"
+              :type="item.type"
             />
           </v-col>
         </v-row>
@@ -124,6 +125,8 @@ export default {
         if (element.tags) {
           element.tags = element.tags.split(', ')
         }
+        const value = JSON.parse(element.value)
+        element.type = value.chart
       });
       this.items = data.data
       this.total = data.total

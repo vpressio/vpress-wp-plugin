@@ -5,7 +5,7 @@
   >
     <v-img
       height="250"
-      :src="image_default"
+      :src="requireImg(type)"
     ></v-img>
     <v-card-title>{{ title }}</v-card-title>
     <v-card-text>
@@ -80,25 +80,17 @@ export default {
       type: String,
       required: true
     },
+    type: {
+      type: String,
+      required: true
+    }
   },
   data: () => ({
     loading: false
   }),
-  computed: {
-    image_default() {
-      if (this.type === 'bars') {
-        return require('../assets/images/grafica-barras.png')
-      } else if (this.type === 'heatmap') {
-        return require('../assets/images/grafica-heatmap.png')
-      } else if (this.type === 'spineplot') {
-        return require('../assets/images/grafica-spineplot.png')
-      } else if (this.type === 'scatter') {
-        return require('../assets/images/grafica-scatter.png')
-      } else if (this.type === 'timeline') {
-        return require('../assets/images/grafica-linea.png')
-      } else {
-        return 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
-      }
+  methods: {
+    requireImg(chartType) {
+      return require(`../assets/images/${chartType}.png`);
     }
   }
 }
