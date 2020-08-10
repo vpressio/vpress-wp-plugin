@@ -45,6 +45,7 @@ class Vpress_Activator {
 			permissions TINYTEXT NOT NULL,
 			name TINYTEXT NOT NULL,
 			description TEXT NOT NULL,
+			slug TINYTEXT NOT NULL,
 			tag TINYTEXT NOT NULL,
 			source TINYTEXT NOT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
@@ -56,7 +57,7 @@ class Vpress_Activator {
 		$sql_charts = "CREATE TABLE $table_charts (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			dataset_id MEDIUMINT(9) NOT NULL,
-			value JSON NOT NULL,
+			value TEXT NOT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			tags TEXT NOT NULL,
 			title TEXT NOT NULL,

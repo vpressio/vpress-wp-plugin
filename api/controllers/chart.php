@@ -17,7 +17,7 @@ function register_chart_routes() {
     BASE_URL,
     LIST_CHART_ROUTE,
     array(
-      'methods' => WP_REST_SERVER::CREATABLE,
+      'methods' => WP_REST_SERVER::READABLE,
       'callback' => 'list_charts'
     )
   );
@@ -26,7 +26,10 @@ function register_chart_routes() {
     CREATE_CHART_ROUTE,
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
-      'callback' => 'create_chart'
+      'callback' => 'create_chart',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'publish_posts' );
+      } */
     )
   );
   register_rest_route(
@@ -34,7 +37,10 @@ function register_chart_routes() {
     UPDATE_CHART_ROUTE,
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
-      'callback' => 'update_chart'
+      'callback' => 'update_chart',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'edit_posts' );
+      } */
     )
   );
   register_rest_route(
@@ -42,25 +48,21 @@ function register_chart_routes() {
     DELETE_CHART_ROUTE,
     array(
       'methods' => WP_REST_SERVER::DELETABLE,
-      'callback' => 'delete_chart'
+      'callback' => 'delete_chart',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'delete_posts' );
+      } */
     )
   );
-
-  register_rest_route(
-    BASE_URL,
-    QUERY_CHART_DATA,
-    array(
-      'methods' => WP_REST_SERVER::EDITABLE,
-      'callback' => 'query_chart_data'
-    )
-  );
-
   register_rest_route(
     BASE_URL,
     GET_CHART_DATA_ROUTE,
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
-      'callback' => 'get_chart_data'
+      'callback' => 'get_chart_data',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'edit_posts' );
+      } */
     )
   );
   register_rest_route(
@@ -68,8 +70,21 @@ function register_chart_routes() {
     GET_CHART_DATA_ROUTE_TEST,
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
-      'callback' => 'get_data'
+      'callback' => 'get_data',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'edit_posts' );
+      } */
     )
   );
-
+  register_rest_route(
+    BASE_URL,
+    QUERY_CHART_DATA,
+    array(
+      'methods' => WP_REST_SERVER::EDITABLE,
+      'callback' => 'query_chart_data'
+      /* 'permission_callback' => function () {
+        return current_user_can( 'edit_posts' );
+      } */
+    )
+  );
 }

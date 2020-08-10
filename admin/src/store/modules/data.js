@@ -109,7 +109,7 @@ export default {
           slug: dataset.slug,
           name: dataset.name,
           description: dataset.description,
-          owner_id: dataset.owner_id, 
+          owner_id: dataset.owner_id,
           permissions: dataset.permissions,
           source: dataset.source,
           tags: dataset.tag
@@ -183,6 +183,19 @@ export default {
           content = await FReader.readExcel(file);
         }
         return content
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_CHART_LIST(_, payload) {
+      let { page, itemsPerPage, q } = payload
+      if (!page) page = 1
+      if (!itemsPerPage) itemsPerPage = 10
+      if (!q) q = ''
+      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
+      try {
+        const response = await axios.get(url);
+        return response.data
       } catch (error) {
         throw new Error(error.message)
       }

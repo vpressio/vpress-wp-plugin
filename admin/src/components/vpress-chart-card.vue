@@ -5,7 +5,7 @@
   >
     <v-img
       height="250"
-      :src="image_url"
+      :src="requireImg(type)"
     ></v-img>
     <v-card-title>{{ title }}</v-card-title>
     <v-card-text>
@@ -57,7 +57,8 @@ export default {
   props: {
     image_url: {
       type: String,
-      required: true
+      required: true,
+      default: 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
     },
     title: {
       type: String,
@@ -79,9 +80,18 @@ export default {
       type: String,
       required: true
     },
+    type: {
+      type: String,
+      required: true
+    }
   },
   data: () => ({
     loading: false
   }),
+  methods: {
+    requireImg(chartType) {
+      return require(`../assets/images/${chartType}.png`);
+    }
+  }
 }
 </script>
