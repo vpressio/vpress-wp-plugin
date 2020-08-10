@@ -76,4 +76,15 @@ function register_chart_routes() {
       } */
     )
   );
+  register_rest_route(
+    BASE_URL,
+    QUERY_CHART_DATA,
+    array(
+      'methods' => WP_REST_SERVER::EDITABLE,
+      'callback' => 'query_chart_data'
+      /* 'permission_callback' => function () {
+        return current_user_can( 'edit_posts' );
+      } */
+    )
+  );
 }

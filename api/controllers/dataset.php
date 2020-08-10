@@ -13,7 +13,15 @@ function register_dataset_routes(){
       'callback' => 'get_demo_datasets'
     )
   );
-
+  
+  register_rest_route(
+    BASE_URL,
+    GET_DATASET_LIST_INFO,
+    array(
+      'methods' => WP_REST_SERVER::READABLE,
+      'callback' => 'get_dataset_info'  
+    )
+  );
   register_rest_route(
     BASE_URL,
     GET_DATASET_DATA,
@@ -22,4 +30,5 @@ function register_dataset_routes(){
       'callback' => 'get_dataset_data'  
     )
   );
+
 };

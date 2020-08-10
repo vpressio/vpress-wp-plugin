@@ -77,9 +77,6 @@ export default {
       }
       return name;
     }
-  },
-  mounted() {
-    console.log(this.$route);
   }
 };
 </script>

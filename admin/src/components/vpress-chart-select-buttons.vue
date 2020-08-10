@@ -25,13 +25,13 @@
           <v-img
             :src="requireImg(graph.type)"
             :alt="graph.type"
-            width="30"
-            height="30"
+             :width="graph.type === 'map' ? 35 : 30"
+            :height="graph.type === 'map' ? 24 : 30"
           />
         </v-btn>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row v-if="$store.getters['chartConfig/chart'].chart !== 'map'">
       <v-col class="ml-5 v-step-7">
         <v-btn
           class="mr-2"
@@ -136,11 +136,16 @@ export default {
     }
   },
   methods: {
-    setChartType(chartType) {
+    async setChartType(chartType) {
       this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'chart' , value: chartType});
     },
     requireImg(chartType) {
-      return require(`../assets/images/${chartType}.svg`);
+      try {
+        return require(`../assets/images/${chartType}.svg`);
+      } catch (error) {
+        console.error(error.message)
+        return require('../assets/images/spineplot.svg')
+      }
     },
     toggleLabels() {
       this.labels = !this.labels;

@@ -7,24 +7,22 @@ export default {
   namespaced: true,
   state: {
     data: [],
-    dataSetName:'',
+    datasetMeta: {},
     dataVariables : [],
-    dateFormat: '',
-    filter: {},
-    origin: ''
+    dateFormat: ''
   },
   mutations: {
     SET_DATA(state, { index ,data }) {
       state.data[`${index}`] = data;
     },
-    SET_DATASET_NAME(state, dataSetName) {
-      state.dataSetName = dataSetName
+    SET_CLEANED_DATA(state, dataArray) {
+      state.data = dataArray
+    },
+    SET_DATASET_META(state, datasetMeta) {
+      state.datasetMeta = datasetMeta
     },
     SET_DATE_FORMAT(state, format) {
       state.dateFormat = format
-    },
-    SET_FILTER(state, data) {
-      state.filter = data
     },
     SET_ORIGIN(state, payload) {
       state.origin = payload
@@ -34,20 +32,53 @@ export default {
     }
   },
   actions: {
-    async GET_CHART_DATA({ state, commit } , { chartValues, chartIndex }) {
+    async GET_QUERY_DATA(_, queryBody ) {
       try {
-        const body = await vpress.prepareQuery(chartValues, state.dataSetName);
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/test/columns`,
-          body
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
+          queryBody
         );
-        console.info(response.data.query)
+        console.log(queryBody);
+        console.log(response.data.query);
         if (response.data.error) {
-
           throw new Error(response.data.error);
+        }
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_CHART_DATA(
+      { state, dispatch },
+      {
+        chartValues,
+        dataSetSlug = state.datasetMeta.slug
+      }
+    ) {
+      try {
+        const body = await vpress.queryBody(chartValues, dataSetSlug);
+        const response = await dispatch('GET_QUERY_DATA', body)
+        return response
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    REMOVE_CHART_DATA({ state, commit }, payload) {
+      const cleanedChartsData = state.data.filter((_, chartIndex) => chartIndex !== payload)
+      commit('SET_CLEANED_DATA', cleanedChartsData)
+    },
+    async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
+      try {
+        const body = {
+          dataset: `vpress_${state.datasetMeta.slug}`,
+          chart_type: rootGetters['chartConfig/chart'].chart
+        }
+        if (payload.type !== 'linear') {
+          const ordinalBody = vpress.filterOrdinalParamsQuery(body, payload.column)
+          return await dispatch('GET_QUERY_DATA', ordinalBody)
         } else {
-          commit('SET_DATA',{ index: chartIndex, data: response.data.data})
-          return chartValues
+          const linearBody = vpress.filterLinearParamsQuery(body, payload.column)
+          return await dispatch('GET_QUERY_DATA', linearBody)
         }
       } catch (error) {
         throw new Error(error.message)
@@ -56,7 +87,33 @@ export default {
     async GET_WP_DATASETS() {
       try {
         const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
         return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_WP_DATASET_INFO( _ , payload) {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${payload}`
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        const dataset = response.data.datasets[0]
+        return {
+          id: dataset.id,
+          slug: dataset.slug,
+          name: dataset.name,
+          description: dataset.description,
+          owner_id: dataset.owner_id,
+          permissions: dataset.permissions,
+          source: dataset.source,
+          tags: dataset.tag
+        }
       } catch (error) {
         throw new Error(error.message)
       }
@@ -73,26 +130,20 @@ export default {
         throw new Error(error.message)
       }
     },
-    async SAVE_DATA({ state, commit }, { data, dataSetName, dataOrigin }) {
+    async SAVE_DATA({ commit }, { data, datasetMeta }) {
       try {
         if (data.length > 0) {
-          const variables = vpress.sortByDataType(data[0])
-          commit('SET_VARIABLE_DATA', variables)
-          commit('SET_DATE_FORMAT',vpress.extractDateFormat(variables));
+          const typedVariabales = vpress.extractDataType(data[0])
+          commit('SET_VARIABLE_DATA', typedVariabales.variables)
+          commit('SET_DATE_FORMAT', typedVariabales.dateFormat);
         } else {
           commit('SET_VARIABLE_DATA', [])
         }
-        commit('SET_ORIGIN', dataOrigin)
-        commit('SET_DATASET_NAME', dataSetName);
-        if(state.origin !== 'api') commit('SET_DATA', { index: 0, data: data });
-        return { data: data, dataSetName: dataSetName }
+        commit('SET_DATASET_META', datasetMeta);
       } catch (error) {
         throw new Error(error.message)
       }
 
-    },
-    setFilter({ commit }, data) {
-      commit('SET_FILTER', data);
     },
     async GET_DATASET_BY_NAME(_context, { dataSetDir, file }) {
       try {
@@ -151,15 +202,10 @@ export default {
     }
   },
   getters: {
-    data: state => state.data,
-    dataSetName: state => state.dataSetName,
-    dataType: state => state.dataVariables.map(({ type, title, slug }) => ({ type: type.dataType, title: title, slug: slug })),
+    dataType: state => state.dataVariables,
     dateFormat: state => state.dateFormat,
-    activeChartData: state => {
-      return state.origin !== 'api'
-        ? () => state.data[0]
-        : index => state.data[index]
-    },
-    origin: state => state.origin
+    dataSetName: state => state.datasetMeta.name,
+    origin: state => state.datasetMeta.origin,
+    datasetMeta: state => state.datasetMeta
   }
 };

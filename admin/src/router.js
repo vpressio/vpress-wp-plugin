@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Chart from './views/Chart.vue';
 import Vpress from './views/Vpress.vue';
+import reunionDonantes from './views/reunionDonantes.vue'
 import VpressChartEditor from './components/vpress-chart-editor.vue';
 import VpressChartList from './components/vpress-chart-list.vue';
 
@@ -26,6 +27,10 @@ export default new Router({
         { path: '/chart/list', component: VpressChartList },
         { path: '/chart/:chartid', component: VpressChartEditor }
       ]
+    },
+    {
+      path: '/reunionDonantes',
+      component: reunionDonantes
     }
   ]
 });
