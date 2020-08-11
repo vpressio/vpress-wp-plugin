@@ -193,16 +193,25 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        const self = this;
-        if( this.$route.params.chartid ) {
-          const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
-          this.storageDataSetsDir = '/savedDatasets';
-          const dataSetData = await this.selectStorageDataset(document.dataSet);
-          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
-          this.$emit('update:tabChange', 1);
+        if( this.$route.params.chartid && this.$store.getters['data/datasetMeta'].slug) {
+          this.datasetMeta = this.$store.getters['data/datasetMeta']
+          this.nextTab()
+        } else if (this.$route.params.chartid) {
+          const payload = await this.$store.dispatch('chartConfig/SET_WP_CHART', this.$route.params.chartid)
+          this.datasetMeta = payload.datasetMeta
+          this.data = []
+          this.nextTab()
         }
+        // if( this.$route.params.chartid ) {
+        //   const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
+        //   this.storageDataSetsDir = '/savedDatasets';
+        //   const dataSetData = await this.selectStorageDataset(document.dataSet);
+        //   await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
+        //   this.$emit('update:tabChange', 1);
+        // }
       } catch (error) {
         this.$router.push('/')
+        throw new Error(error.message)
       }
     },
     async getStorageDatasets() {
@@ -243,19 +252,27 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    async selectWPDataset(dataSetSlug) {
+    async selectWPDataset(value, column = 'slug', datasetMeta) {
       try {
         this.data = []
-        const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO', dataSetSlug)
-        this.datasetMeta = {
-          ...info,
-          origin: 'api'
+        if (datasetMeta) {
+          this.datasetMeta = {
+            ...datasetMeta,
+            origin: 'api'
           }
+        } else {
+          const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO',  { column: column, value: value  })
+          this.datasetMeta = {
+            ...info,
+            origin: 'api'
+          }
+        }
       } catch(error) {
         console.error(error.message);
         this.errorMessage = error.message;
       }
     },
+    
     async loadFile(file) {
       try {
         const self = this;

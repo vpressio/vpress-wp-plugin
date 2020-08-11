@@ -12,12 +12,6 @@ export default {
     dateFormat: ''
   },
   mutations: {
-    SET_DATA(state, { index ,data }) {
-      state.data[`${index}`] = data;
-    },
-    SET_CLEANED_DATA(state, dataArray) {
-      state.data = dataArray
-    },
     SET_DATASET_META(state, datasetMeta) {
       state.datasetMeta = datasetMeta
     },
@@ -38,8 +32,6 @@ export default {
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
           queryBody
         );
-        console.log(queryBody);
-        console.log(response.data.query);
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -62,10 +54,6 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-    },
-    REMOVE_CHART_DATA({ state, commit }, payload) {
-      const cleanedChartsData = state.data.filter((_, chartIndex) => chartIndex !== payload)
-      commit('SET_CLEANED_DATA', cleanedChartsData)
     },
     async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
       try {
@@ -95,10 +83,10 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASET_INFO( _ , payload) {
+    async GET_WP_DATASET_INFO( _ , { column, value  }) {
       try {
         const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${payload}`
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${column}/${value}`
         )
         if (response.data.error) {
           throw new Error(response.data.error);

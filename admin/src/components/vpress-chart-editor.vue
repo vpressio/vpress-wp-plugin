@@ -18,10 +18,10 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <!-- <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+              <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
-              </v-btn> -->
+              </v-btn>
               <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar

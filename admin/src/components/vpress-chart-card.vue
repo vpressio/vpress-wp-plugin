@@ -5,9 +5,9 @@
   >
     <v-img
       height="250"
-      :src="requireImg(type)"
+      :src="requireImg(chartValues.chart)"
     ></v-img>
-    <v-card-title>{{ title }}</v-card-title>
+    <v-card-title>{{ chartValues.title }}</v-card-title>
     <v-card-text>
       <div>
         {{ description }}
@@ -33,7 +33,7 @@
       <v-row class="pa-4" align="center">
         <v-col>
           <strong class="success--text mr-2">
-            {{ status }}
+            {{ permissions }}
           </strong>
           <span class="grey--text">
             <v-icon small>mdi-clock-outline</v-icon>
@@ -41,7 +41,7 @@
           </span>
         </v-col>
         <v-col class="shrink">
-          <v-btn color="primary" text>
+          <v-btn color="primary" text @click="createChart">
             <v-icon small left>mdi-pencil</v-icon>
             Editar
           </v-btn>
@@ -55,16 +55,28 @@
 export default {
   name: 'VpressChartCard',
   props: {
-    image_url: {
+    id: {
+      type: String,
+      required: true
+    },
+    value: {
+      type: String,
+      required:true
+    },
+    dataset_id: {
+      type: String,
+      required: true
+    },
+    img_url: {
       type: String,
       required: true,
       default: 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
     },
-    title: {
+    description: {
       type: String,
       required: true
     },
-    description: {
+    permissions: {
       type: String,
       required: true
     },
@@ -72,25 +84,31 @@ export default {
       type: Array,
       required: true
     },
-    status: {
-      type: String,
-      required: true
-    },
     updated: {
-      type: String,
-      required: true
-    },
-    type: {
       type: String,
       required: true
     }
   },
   data: () => ({
-    loading: false
+    loading: false,
+    chartValues: {}
   }),
+  created() {
+    this.chartValues = JSON.parse(this.value)
+  },
   methods: {
+    async createChart () {                                      
+      this.loading = true
+      await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
+      this.$router.push({path: `/chart/${this.id}`})
+    },
     requireImg(chartType) {
-      return require(`../assets/images/${chartType}.png`);
+      try {
+        return require(`../assets/images/${chartType}.png`);
+      } catch (error) {
+        console.error(error.message)
+        return require('../assets/images/spineplot.png')
+      }
     }
   }
 }

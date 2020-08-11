@@ -245,6 +245,17 @@ export default {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
+    async GET_CHART_LIST(_, { page, perPage }) {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list`,
+          { page, perPage }
+        )
+        return response.data
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
     async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
       try {
         const activeChart = state.charts[state.activeVizIdx]
@@ -312,23 +323,58 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_CHART({ commit, dispatch }, chartId) {
+    async GET_WP_CHART({ dispatch, commit }, payload) {
+      const viz = payload
+
+      const data = await dispatch(
+        'data/GET_CHART_DATA',
+        {
+          chartValues: viz.chartValues,
+          dataSetSlug: viz.dataset_id
+        },
+        { root: true }
+      )
+      commit(
+        'ADD_VIZ_TO_WSP',
+        new VpressViz(
+          viz.chartValues,
+          viz.id,
+          null,
+          viz.dataset_id,
+          data,
+          viz.description,
+          viz.permission,
+          viz.img_url,
+        )
+      )
+
+    },
+    async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {
         const response = await axios.get(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
         )
         const viz = response.data.data
         const chartValues = JSON.parse(viz.value)
+        const info = await dispatch(
+          'data/GET_WP_DATASET_INFO',
+          { column: 'id', value: viz.dataset_id },
+          { root: true }
+        )
+        const datasetMeta = { ...info, origin: 'api'}
+        const params = { dataset: datasetMeta.slug, page: 1, perPage: 1 }
+        const dataSample = await dispatch('data/GET_WP_DATASET_DATA', params, { root: true })
+        await dispatch('data/SAVE_DATA', { data: dataSample, datasetMeta: datasetMeta }, { root: true })
         const data = await dispatch(
           'data/GET_CHART_DATA',
           {
             chartValues: chartValues,
-            dataSetSlug: 'actividades'
+            dataSetSlug: datasetMeta.slug
           },
           { root: true }
         )
         commit(
-          'ADD_VIZ_TO_WSP',
+          'RESET_WSP',
           new VpressViz(
             chartValues,
             viz.id,
@@ -340,7 +386,8 @@ export default {
             viz.img_url,
           )
         )
-        return { chartConfig: chartValues, chartData: data }
+        const context = { chartConfig: chartValues, chartData: data, datasetMeta: datasetMeta }
+        return context
       } catch (error) {
         throw new Error(error.message)
       }
@@ -370,9 +417,8 @@ export default {
       // const chartValues = viz.values();
       // commit('ADD_CHART', chartValues)
     },
-    REMOVE_CHART({ commit, dispatch, state }, removedWspIdx) {
+    REMOVE_CHART({ commit, state }, removedWspIdx) {
       const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-      dispatch('data/REMOVE_CHART_DATA',removedWspIdx ,{ root: true })
       commit('SET_CHARTS_ARRAY', cleanedCharts)
 
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
@@ -381,6 +427,7 @@ export default {
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
         const {
+          id,
           chartValues,
           owner_id,
           description,
@@ -390,19 +437,27 @@ export default {
 
         const datasetMeta = rootGetters['data/datasetMeta']
         const body = {
-          dataset_id: datasetMeta.id,
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
           description: description,
           permissions: permission,
           img_url: img_url
         }
-        const response = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`, body)
-        if (response.data.error) {
-          throw new Error(response.data.error);
+        if (!id) {
+          const saveResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,{ dataset_id: datasetMeta.id, ...body})
+          const savedChart = saveResponse.data
+          console.log('save');
+          if (saveResponse.data.error) {
+            throw new Error(saveResponse.data.error);
+          }
+          commit('SET_WSP_CHART_ID', savedChart.data)
+        } else {
+          console.log('update');
+          const updateResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/update`,{ id , ...body })
+          if (updateResponse.data.error) {
+            throw new Error(updateResponse.data.error);
+          }
         }
-        const savedChart = response.data
-        commit('SET_WSP_CHART_ID', savedChart.data)
       } catch (error) {
         throw new Error(error.message)
       } 

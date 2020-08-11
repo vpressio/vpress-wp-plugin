@@ -370,6 +370,9 @@ const queryBody = (payload, table_name) => {
         body['aggregate_column_2'] = sanitizeSpaces(collapseBy.slug)
         body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
       }
+      if (groupBy.slug !== xAxis.slug && groupBy.slug !== yAxis.slug) {
+        body['column_3']
+      }
     }
    } else if (
     (
@@ -456,123 +459,6 @@ const queryBody = (payload, table_name) => {
   return body
 }
 
-const prepareQuery = (payload, table_name) => {
-  const body = {};
-  body['dataset'] = `vpress_${table_name}`
-  body['chart_type'] = payload.chart
-  body['order_by'] = sanitizeSpaces(payload.xAxis.slug)
-
-  if (payload.chart === 'map') {
-    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
-    body['subquery_aggregate'] = selectAggregateFunction(payload.yAxis.func)
-    body['subquery_column'] = sanitizeSpaces(payload.yAxis.slug)
-    body['group_by'] = body['column_1']
-  }
-  if ( payload.chart === 'scatter') {
-    if (payload.xAxis.slug === 'total_count' || payload.yAxis.slug === 'total_count') {
-      body['column_1'] = payload.xAxis.slug !== 'total_count'
-        ? sanitizeSpaces(payload.xAxis.slug)
-        : sanitizeSpaces(payload.yAxis.slug)
-      body['order_by'] = sanitizeSpaces(body['column_1'])
-      body['aggregate'] = 'COUNT'
-      body['aggregate_column'] = '*'
-      body['group_by'] = body['column_1']
-    } else {
-      body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
-      body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
-      body['group_by'] = `${body['column_1']}, ${body['column_2']}`
-    }
-    if (payload.xAxis.func && payload.xAxis.func && (payload.xAxis.func !== '' && payload.yAxis.func !== '')) {
-      body['column_1'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
-      body['group_by'] = payload.groupBy.slug !== '' ? sanitizeSpaces(payload.groupBy.slug) : null
-      body['column_2'] = null
-      body['subquery_aggregate'] = selectAggregateFunction(payload.xAxis.func)
-      body['subquery_column'] = sanitizeSpaces(payload.xAxis.slug)
-      body['subquery_aggregate_2'] = selectAggregateFunction(payload.yAxis.func)
-      body['subquery_column_2'] = sanitizeSpaces(payload.yAxis.slug)
-      body['order_by'] = `${sanitizeSpaces(body['subquery_column'])}, ${sanitizeSpaces(body['subquery_column_2'])}`
-
-    } else {
-      let aggregate
-      let aggregate_column
-      let column
-      if (payload.xAxis.func && payload.xAxis.func !== '' ) {
-        aggregate = selectAggregateFunction(payload.xAxis.func);
-        aggregate_column = sanitizeSpaces(payload.xAxis.slug)
-        column = sanitizeSpaces(payload.yAxis.slug)
-        body['column_1'] = column
-        body['column_2'] = null
-        body['subquery_aggregate'] = aggregate
-        body['subquery_column'] = aggregate_column
-        body['group_by'] = column
-      } else if (payload.yAxis.func && payload.yAxis.func !== '') {
-        aggregate = selectAggregateFunction(payload.yAxis.func);
-        aggregate_column = sanitizeSpaces(payload.yAxis.slug)
-        column = sanitizeSpaces(payload.xAxis.slug)
-        body['column_1'] = column
-        body['column_2'] = null
-        body['subquery_aggregate'] = aggregate
-        body['subquery_column'] = aggregate_column
-        body['group_by'] = column
-      }
-    }
-    if (payload.groupBy.slug !== '' &&  !(payload.xAxis.func && payload.xAxis.func)) {
-      body['column_1'] += `, ${sanitizeSpaces(payload.groupBy.slug)}`
-    }
-  }
-  if (payload.chart === 'heatmap' || payload.chart === 'spineplot') {
-    body['column_1'] = sanitizeSpaces(payload.xAxis.slug)
-    body['column_2'] = sanitizeSpaces(payload.yAxis.slug)
-    body['group_by'] = `${sanitizeSpaces(payload.xAxis.slug)}, ${sanitizeSpaces(payload.yAxis.slug)}`
-    if (payload.collapseBy.slug === 'total_count') {
-      body['aggregate'] = 'COUNT'
-      body['aggregate_column'] = '*'
-    } else if (payload.collapseBy.slug !== '') {
-      body['aggregate'] = selectAggregateFunction(payload.collapseBy.func)
-      body['aggregate_column'] = sanitizeSpaces(payload.collapseBy.slug)
-    }
-  }
-  if (payload.chart === 'bars' || payload.chart === 'timeline') {
-
-    const column_1 = payload.xAxis.slug !== payload.collapseBy.slug
-      ? payload.xAxis.slug
-      : payload.yAxis.slug
-
-    body['column_1'] = sanitizeSpaces(column_1)
-    body['group_by'] = sanitizeSpaces(column_1)
-    if (payload.collapseBy.slug === 'total_count') {
-      body['aggregate'] = 'COUNT'
-      body['aggregate_column'] = '*'
-    } else if (payload.collapseBy.slug !== '') {
-      body['subquery_aggregate'] = selectAggregateFunction(payload.collapseBy.func)
-      body['subquery_column'] = sanitizeSpaces(payload.collapseBy.slug)
-    }
-    if (payload.groupBy.slug !== '') {
-      body['column_2'] = sanitizeSpaces(payload.groupBy.slug)
-      body['group_by'] = `${sanitizeSpaces(column_1)}, ${sanitizeSpaces(payload.groupBy.slug)}`
-    }
-  }
-
-  if (payload.filters.length > 0) {
-    body['where'] = payload.filters.map(clause => {
-      return {
-        op: clause.type !== 'ordinal' && clause.value.length === 2
-          ? 'BETWEEN'
-          : 'IN',
-        column: sanitizeSpaces(clause.slug),
-        value: clause.value
-      }
-    })
-  }
-
-  body['order_by'] = `${
-    payload.orderBy.slug === ''
-      ? body['order_by']
-      : sanitizeSpaces(payload.orderBy.slug)
-    } ${payload.orderBy.order.toUpperCase()}`
-  return body
-}
-
 const selectAggregateFunction = (func) => {
   switch (func) {
     case 'sum':
@@ -600,6 +486,5 @@ const selectAggregateFunction = (func) => {
     extractDataType,
     filterOrdinalParamsQuery,
     filterLinearParamsQuery,
-    prepareQuery,
     queryBody
   };
