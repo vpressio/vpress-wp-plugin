@@ -5,9 +5,9 @@
   >
     <v-img
       height="250"
-      :src="requireImg(type)"
+      :src="requireImg(chartValues.chart)"
     ></v-img>
-    <v-card-title>{{ title }}</v-card-title>
+    <v-card-title>{{ chartValues.title }}</v-card-title>
     <v-card-text>
       <div>
         {{ description }}
@@ -59,7 +59,7 @@ export default {
       type: String,
       required: true
     },
-    chartValues: {
+    value: {
       type: String,
       required:true
     },
@@ -71,10 +71,6 @@ export default {
       type: String,
       required: true,
       default: 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
-    },
-    title: {
-      type: String,
-      required: true
     },
     description: {
       type: String,
@@ -91,29 +87,19 @@ export default {
     updated: {
       type: String,
       required: true
-    },
-    type: {
-      type: String,
-      required: true
     }
   },
   data: () => ({
-    loading: false
+    loading: false,
+    chartValues: {}
   }),
+  created() {
+    this.chartValues = JSON.parse(this.value)
+  },
   methods: {
-    createChart () {
-      const payload = {
-        id: this.id,
-        dataset_id: this.dataset_id,
-        chartValues: this.chartValues,
-        img_url: this.img_url,
-        title: this.title,
-        description: this.description,
-        permissions: this.permissions,
-        tags: this.tags,
-        updated: this.updated
-      }
-      this.$store.dispatch('chartConfig/SET_WP_CHART', payload)
+    async createChart () {                                      
+      this.loading = true
+      await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
       this.$router.push({path: `/chart/${this.id}`})
     },
     requireImg(chartType) {

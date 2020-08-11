@@ -18,5 +18,5 @@ define('GET_CHART_DATA_ROUTE_TEST','/test/columns');
 //---- DATASET ROUTES
 //READABLE
 define('GET_DATASET_LIST_ROUTE','/dataset/list');
-define('GET_DATASET_LIST_INFO', '/dataset/info/(?P<dataset>(.|%20)+)');
+define('GET_DATASET_LIST_INFO', '/dataset/info/(?P<column>(.|%20)+)/(?P<value>(.|%20)+)');
 define('GET_DATASET_DATA','/dataset/(?P<dataset>(.|%20)+)');

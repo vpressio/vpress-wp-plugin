@@ -68,7 +68,7 @@ export default {
     },
     currentRoute() {
       let name = '';
-      if (this.$route.path === '/') {
+      if (this.$route.path === '/' || this.$route.params.chartid) {
         name = 'Análisis';
       } else if (this.$route.path === '/chart/list') {
         name = 'Gráficas';

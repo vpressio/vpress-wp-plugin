@@ -83,10 +83,10 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASET_INFO( _ , payload) {
+    async GET_WP_DATASET_INFO( _ , { column, value  }) {
       try {
         const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${payload}`
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${column}/${value}`
         )
         if (response.data.error) {
           throw new Error(response.data.error);

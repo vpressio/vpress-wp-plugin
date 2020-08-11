@@ -56,12 +56,12 @@
             <vpress-chart-card
               :id="item.id"
               :dataset_id="item.dataset_id"
-              :title="'Titulos'"
               :description="item.description"
               :permissions="item.permissions"
               :img_url="item.img_url"
               :updated="item.updated"
-              :type="item.type"
+              :value="item.value"
+              :tags="item.tags"
             />
           </v-col>
         </v-row>
@@ -92,35 +92,7 @@ export default {
     total: 0,
     options: {},
     loading: true,
-    items: [
-      {
-        id: "1",
-        image_url: 'https://cdn.vuetifyjs.com/images/cards/cooking.png',
-        title: 'Gráfica COVID19',
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s.',
-        tags: ['Covid19', 'Por estado'],
-        status: 'PÚBLICO',
-        updated: 'Hoy 13:20'
-      },
-      {
-        id: "2",
-        image_url: 'https://cdn.vuetifyjs.com/images/cards/cooking.png',
-        title: 'Gráfica COVID19',
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s.',
-        tags: ['Covid19', 'Por estado'],
-        status: 'PÚBLICO',
-        updated: 'Hoy 13:20'
-      },
-      {
-        id: "3",
-        image_url: 'https://cdn.vuetifyjs.com/images/cards/cooking.png',
-        title: 'Gráfica COVID19',
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s.',
-        tags: ['Covid19', 'Por estado'],
-        status: 'PÚBLICO',
-        updated: 'Hoy 13:20'
-      }
-    ]
+    items: []
   }),
   watch: {
     options: {
@@ -141,11 +113,9 @@ export default {
       }
       const data = await this.$store.dispatch('data/GET_CHART_LIST', obj);
       data.data.forEach(element => {
-        if (element.tags) {
-          element.tags = element.tags.split(', ')
-        }
-        const value = JSON.parse(element.value)
-        element.type = value.chart
+        element.tags = element.tags
+          ? element.tags.split(', ')
+          : element.tags = []
       });
       this.items = data.data
       this.total = data.total

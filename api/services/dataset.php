@@ -55,11 +55,12 @@ function get_dataset_data($request) {
 
 function get_dataset_info( $request ) {
   global $wpdb;
-  $dataset_slug = $request['dataset'];
+  $dataset_value = $request['value'];
+  $column = $request['column'];
   $table_name = $wpdb->prefix.'vpresscore_datasets';
-  $query = "SELECT * FROM $table_name WHERE slug = %s";
+  $query = "SELECT * FROM $table_name WHERE $column = %d";
 
-  $datasets = $wpdb->get_results($wpdb->prepare($query, $dataset_slug ));
+  $datasets = $wpdb->get_results($wpdb->prepare($query, $dataset_value ));
   $response = array(
     'datasets' => $datasets,
     'query' => $query,

@@ -193,11 +193,14 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        const self = this;
-        if( this.$route.params.chartid ) {
-          const context = await self.$store.dispatch(`chartConfig/GET_WP_CHART`, this.$route.params.chartid );
-          this.selectWPDataset(context.dataSetSlug)
-          console.log(context);
+        if( this.$route.params.chartid && this.$store.getters['data/datasetMeta'].slug) {
+          this.datasetMeta = this.$store.getters['data/datasetMeta']
+          this.nextTab()
+        } else if (this.$route.params.chartid) {
+          const payload = await this.$store.dispatch('chartConfig/SET_WP_CHART', this.$route.params.chartid)
+          this.datasetMeta = payload.datasetMeta
+          this.data = []
+          this.nextTab()
         }
         // if( this.$route.params.chartid ) {
         //   const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
@@ -249,13 +252,20 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    async selectWPDataset(dataSetSlug) {
+    async selectWPDataset(value, column = 'slug', datasetMeta) {
       try {
         this.data = []
-        const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO', dataSetSlug)
-        this.datasetMeta = {
-          ...info,
-          origin: 'api'
+        if (datasetMeta) {
+          this.datasetMeta = {
+            ...datasetMeta,
+            origin: 'api'
+          }
+        } else {
+          const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO',  { column: column, value: value  })
+          this.datasetMeta = {
+            ...info,
+            origin: 'api'
+          }
         }
       } catch(error) {
         console.error(error.message);
