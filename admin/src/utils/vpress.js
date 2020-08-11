@@ -371,6 +371,9 @@ const queryBody = (payload, table_name) => {
         body['aggregate_column_2'] = sanitizeSpaces(collapseBy.slug)
         body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
       }
+      if (groupBy.slug !== xAxis.slug && groupBy.slug !== yAxis.slug) {
+        body['column_3']
+      }
     }
    } else if (
     (

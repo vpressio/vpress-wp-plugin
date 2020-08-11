@@ -27,7 +27,7 @@
         <v-list-item
           v-for="(item, index) in items"
           :key="index"
-          :to="item.to"
+          :to="item.path"
           link
         >
           <v-list-item-title>{{ item.title }}</v-list-item-title>
@@ -43,15 +43,15 @@ export default {
     items: [
       {
         title: 'Análisis',
-        to: '/'
+        path: '/'
       },
       {
         title: 'Gráficas',
-        to: '/chart/list'
+        path: '/chart/list'
       },
       {
         title: 'Bases de datos',
-        to: '/dataset/list'
+        path: '/dataset/list'
       },
     ],
   }),

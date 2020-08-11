@@ -30,7 +30,16 @@
       </v-row>
     </v-form>
     <v-divider class="my-6"></v-divider>
+    <v-row v-show="loading" justify="center" align-content="center" style="height:300px;">
+      <v-progress-circular
+        :size="70"
+        :width="7"
+        color="primary"
+        indeterminate
+      />
+    </v-row>
     <v-data-iterator
+      v-show="!loading"
       :items="items"
       :options.sync="options"
       :server-items-length="total"
@@ -45,21 +54,31 @@
             sm="4"
           >
             <vpress-chart-card
-              :image_url="item.image_url"
-              :title="item.title"
+              :id="item.id"
+              :dataset_id="item.dataset_id"
+              :title="'Titulos'"
               :description="item.description"
-              :tags="item.tags"
-              :status="item.status"
+              :permissions="item.permissions"
+              :img_url="item.img_url"
               :updated="item.updated"
               :type="item.type"
             />
           </v-col>
         </v-row>
       </template>
+      <template v-slot:footer>
+        <v-row>
+          <v-btn>
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <v-btn>
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
+        </v-row>
+      </template>
     </v-data-iterator>
   </v-container>
 </template>
-
 <script>
 import VpressChartCard from '@/components/vpress-chart-card.vue'
 

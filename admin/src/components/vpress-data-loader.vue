@@ -195,14 +195,20 @@ export default {
       try {
         const self = this;
         if( this.$route.params.chartid ) {
-          const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
-          this.storageDataSetsDir = '/savedDatasets';
-          const dataSetData = await this.selectStorageDataset(document.dataSet);
-          await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
-          this.$emit('update:tabChange', 1);
+          const context = await self.$store.dispatch(`chartConfig/GET_WP_CHART`, this.$route.params.chartid );
+          this.selectWPDataset(context.dataSetSlug)
+          console.log(context);
         }
+        // if( this.$route.params.chartid ) {
+        //   const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
+        //   this.storageDataSetsDir = '/savedDatasets';
+        //   const dataSetData = await this.selectStorageDataset(document.dataSet);
+        //   await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
+        //   this.$emit('update:tabChange', 1);
+        // }
       } catch (error) {
         this.$router.push('/')
+        throw new Error(error.message)
       }
     },
     async getStorageDatasets() {
@@ -250,12 +256,13 @@ export default {
         this.datasetMeta = {
           ...info,
           origin: 'api'
-          }
+        }
       } catch(error) {
         console.error(error.message);
         this.errorMessage = error.message;
       }
     },
+    
     async loadFile(file) {
       try {
         const self = this;

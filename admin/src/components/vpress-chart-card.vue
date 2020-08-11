@@ -33,7 +33,7 @@
       <v-row class="pa-4" align="center">
         <v-col>
           <strong class="success--text mr-2">
-            {{ status }}
+            {{ permissions }}
           </strong>
           <span class="grey--text">
             <v-icon small>mdi-clock-outline</v-icon>
@@ -41,7 +41,7 @@
           </span>
         </v-col>
         <v-col class="shrink">
-          <v-btn color="primary" text>
+          <v-btn color="primary" text @click="createChart">
             <v-icon small left>mdi-pencil</v-icon>
             Editar
           </v-btn>
@@ -55,7 +55,19 @@
 export default {
   name: 'VpressChartCard',
   props: {
-    image_url: {
+    id: {
+      type: String,
+      required: true
+    },
+    chartValues: {
+      type: String,
+      required:true
+    },
+    dataset_id: {
+      type: String,
+      required: true
+    },
+    img_url: {
       type: String,
       required: true,
       default: 'https://cdn.vuetifyjs.com/images/cards/cooking.png'
@@ -68,12 +80,12 @@ export default {
       type: String,
       required: true
     },
-    tags: {
-      type: Array,
+    permissions: {
+      type: String,
       required: true
     },
-    status: {
-      type: String,
+    tags: {
+      type: Array,
       required: true
     },
     updated: {
@@ -89,8 +101,28 @@ export default {
     loading: false
   }),
   methods: {
+    createChart () {
+      const payload = {
+        id: this.id,
+        dataset_id: this.dataset_id,
+        chartValues: this.chartValues,
+        img_url: this.img_url,
+        title: this.title,
+        description: this.description,
+        permissions: this.permissions,
+        tags: this.tags,
+        updated: this.updated
+      }
+      this.$store.dispatch('chartConfig/SET_WP_CHART', payload)
+      this.$router.push({path: `/chart/${this.id}`})
+    },
     requireImg(chartType) {
-      return require(`../assets/images/${chartType}.png`);
+      try {
+        return require(`../assets/images/${chartType}.png`);
+      } catch (error) {
+        console.error(error.message)
+        return require('../assets/images/spineplot.png')
+      }
     }
   }
 }

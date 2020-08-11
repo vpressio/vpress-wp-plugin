@@ -318,7 +318,19 @@ function list_charts( $request ) {
   $table_name = $wpdb->prefix.'vpresscore_charts';
 
   $query_total = "SELECT COUNT(*) AS total FROM $table_name";
-  $query = "SELECT * FROM $table_name LIMIT $start_at, $per_page";
+  $query = 
+  "SELECT
+    created,
+    dataset_id,
+    description,
+    id,
+    img_url,
+    owner_id,
+    permissions,
+    updated,
+    value
+  FROM $table_name
+  LIMIT $start_at, $per_page";
 
   $data = $wpdb->get_results($query);
   $total = $wpdb->get_var($query_total);

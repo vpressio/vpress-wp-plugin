@@ -245,6 +245,17 @@ export default {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
+    async GET_CHART_LIST(_, { page, perPage }) {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list`,
+          { page, perPage }
+        )
+        return response.data
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
     async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
       try {
         const activeChart = state.charts[state.activeVizIdx]
@@ -312,6 +323,32 @@ export default {
         throw new Error(error.message)
       }
     },
+    async SET_WP_CHART({ dispatch, commit }, payload) {
+      const viz = payload
+
+      const data = await dispatch(
+        'data/GET_CHART_DATA',
+        {
+          chartValues: viz.chartValues,
+          dataSetSlug: viz.dataset_id
+        },
+        { root: true }
+      )
+      commit(
+        'ADD_VIZ_TO_WSP',
+        new VpressViz(
+          viz.chartValues,
+          viz.id,
+          null,
+          viz.dataset_id,
+          data,
+          viz.description,
+          viz.permission,
+          viz.img_url,
+        )
+      )
+
+    },
     async GET_WP_CHART({ commit, dispatch }, chartId) {
       try {
         const response = await axios.get(
@@ -323,7 +360,7 @@ export default {
           'data/GET_CHART_DATA',
           {
             chartValues: chartValues,
-            dataSetSlug: 'actividades'
+            dataSetSlug: viz.dataset_id
           },
           { root: true }
         )
@@ -340,7 +377,7 @@ export default {
             viz.img_url,
           )
         )
-        return { chartConfig: chartValues, chartData: data }
+        return { chartConfig: chartValues, chartData: data, dataSetSlug: viz.dataset_id }
       } catch (error) {
         throw new Error(error.message)
       }
@@ -370,9 +407,8 @@ export default {
       // const chartValues = viz.values();
       // commit('ADD_CHART', chartValues)
     },
-    REMOVE_CHART({ commit, dispatch, state }, removedWspIdx) {
+    REMOVE_CHART({ commit, state }, removedWspIdx) {
       const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-      dispatch('data/REMOVE_CHART_DATA',removedWspIdx ,{ root: true })
       commit('SET_CHARTS_ARRAY', cleanedCharts)
 
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
@@ -390,7 +426,7 @@ export default {
 
         const datasetMeta = rootGetters['data/datasetMeta']
         const body = {
-          dataset_id: datasetMeta.id,
+          dataset_id: datasetMeta.slug,
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
           description: description,
@@ -590,7 +626,7 @@ export default {
               }
             case 'timeline':
               if (
-                (chart.xAxis.type === 'date' &&  chart.yAxis.type === 'linear')
+                (chart.xAxis.type === 'ordinal' &&  chart.yAxis.type === 'linear')
               ) {
                 return {
                   ...graph,
