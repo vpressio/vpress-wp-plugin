@@ -51,7 +51,7 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
 
 const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
   try {
-    chartValues[mutationType] = newValue                                                  
+    chartValues[mutationType] = newValue
     const mainAxis = mutationType === 'xAxis'
       ? chartValues['xAxis']
       : chartValues['yAxis']
@@ -79,7 +79,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
           chartValues.collapseBy = oppAxis
         }
         break;
-      
+
       case 'heatmap':
         if (mainAxis.type !== 'linear' && oppAxis.type !== 'linear') {
           chartValues.groupBy = mainAxis
@@ -90,7 +90,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
           chartValues.groupBy = oppAxis
         }
         break;
-      
+
       case 'spineplot':
         if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
           throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
@@ -110,7 +110,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
           chartValues.collapseBy = oppAxis
         }
         break;
-      
+
       case 'timeline':
         if (!(mainAxis.type === 'date' && oppAxis.type === 'linear')) {
           throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
@@ -136,7 +136,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
   } catch (error) {
     throw new VpressError( mutationType , error.message);
   }
-  
+
 }
 
 const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
@@ -147,7 +147,7 @@ const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         newValue: newValue
       }
     return setValue(payload)
-    
+
   } catch (error) {
       if (error instanceof VpressError) {
         throw new VpressError (
@@ -229,17 +229,16 @@ const setFilters = ({ chartValues, newValue }) => {
 };
 
 const extractDataType = (dataSample) => {
-  const dateFormats = ['%Y/%m/%d','%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d'];
+  const dateFormats = ['%Y/%m/%d', '%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d'];
   const dataSampleEntries = Object.entries(dataSample);
   let dateFormat = null
   const variables = dataSampleEntries
     .map(sampleValue => {
       const dataType = dateFormats.reduce((acc, format) => {
-        if (d3.timeParse(dateFormat)(sampleValue[1]) !== null) {
+        if (d3.timeParse(format)(sampleValue[1]) !== null) {
           acc.type = 'date';
           dateFormat = format;
-        }
-        if (isNaN(+sampleValue[1]) && acc.format === undefined) {
+        } else if (isNaN(+sampleValue[1]) && acc.format === undefined) {
           acc.type = 'ordinal';
         }
         return acc;
@@ -440,7 +439,7 @@ const queryBody = (payload, table_name) => {
   } else {
     throw new Error('Invalid chart query')
   }
-  
+
   if (filters.length > 0) {
     body['where'] = filters.map(clause => {
       return {
@@ -453,7 +452,7 @@ const queryBody = (payload, table_name) => {
     })
   }
 
- 
+
   body['order_by'] = orderBy.slug === ''
     ? null
     : `${orderBy.slug} ${orderBy.order.toUpperCase()}`
