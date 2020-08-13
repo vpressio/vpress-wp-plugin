@@ -41,7 +41,7 @@
             <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
           </v-list-item>
         </v-list>
-        <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count'">
+        <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count' || mutationType === 'filter'">
           <v-list-item class="px-5" @click="removeCard">
             <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
           </v-list-item>
@@ -115,6 +115,7 @@ export default {
       });
     },
     removeCard() {
+      console.log(this.mutationType);
       const payload = this.mutationType === 'filter'
       ? {
           title: this.variable.title,

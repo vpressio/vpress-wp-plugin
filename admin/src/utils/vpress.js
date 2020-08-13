@@ -258,18 +258,15 @@ const extractDataType = (dataSample) => {
 
 const filterOrdinalParamsQuery = (body, column) => {
   body['order_by'] = `${sanitizeSpaces(column)} ASC`
-  body['column_1'] = sanitizeSpaces(column)
-  body['group_by'] = sanitizeSpaces(column)
+  body['column_head'] = sanitizeSpaces(column)
   return body
 }
 
 const filterLinearParamsQuery = (body, column) => {
-  body['subquery_aggregate'] = selectAggregateFunction('min')
-  body['subquery_column'] = sanitizeSpaces(column)
-  body['subquery_column_alias'] = `min`
-  body['subquery_aggregate_2'] = selectAggregateFunction('max')
-  body['subquery_column_2'] = sanitizeSpaces(column)
-  body['subquery_column_alias_2'] = `max`
+  body['function_operation_head'] = `MIN(${sanitizeSpaces(column)})`
+  body['function_alias_head'] = 'min'
+  body['function_operation_2'] = `MAX(${sanitizeSpaces(column)})`
+  body['function_alias_2'] = 'max'
   return body
 }
 
@@ -300,8 +297,8 @@ const queryBody = (payload, table_name) => {
       if (variable.func && variable.func !== '') {
         body['column_head'] = variable.slug
       } else {
-        body['aggregate_column_2'] = sanitizeSpaces(variable.slug)
-        body['aggregate_2'] = selectAggregateFunction(variable.func)
+        body['aggregate_column_head'] = sanitizeSpaces(variable.slug)
+        body['aggregate_head'] = selectAggregateFunction(variable.func)
       }
 
       if (collapseBy.slug !== '') {

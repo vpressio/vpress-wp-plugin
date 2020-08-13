@@ -62,8 +62,8 @@
           :key="`card_${cardIndex}`"
           class="mx-3 my-2"
           :variable="card.variable"
+          :mutationType="card.mutationType"  
           inSlot
-          :slotId="card.mutationType"  
           :error="error"
         />
         <div

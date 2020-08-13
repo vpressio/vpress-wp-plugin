@@ -124,6 +124,7 @@ export default {
     async getFilterParams() {
       try {
         const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
+        console.log(filterParams);
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
         } else { 

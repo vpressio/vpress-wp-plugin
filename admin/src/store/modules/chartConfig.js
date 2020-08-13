@@ -347,7 +347,6 @@ export default {
           viz.img_url,
         )
       )
-
     },
     async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {

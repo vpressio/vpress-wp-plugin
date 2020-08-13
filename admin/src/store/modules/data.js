@@ -28,6 +28,7 @@ export default {
   actions: {
     async GET_QUERY_DATA(_, queryBody ) {
       try {
+        console.log( queryBody )
         const response = await axios.post(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
           queryBody
@@ -55,11 +56,10 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
+    async GET_FILTER_PARAMS({ state, dispatch }, payload) {
       try {
         const body = {
-          dataset: `vpress_${state.datasetMeta.slug}`,
-          chart_type: rootGetters['chartConfig/chart'].chart
+          dataset: `vpress_${state.datasetMeta.slug}`
         }
         if (payload.type !== 'linear') {
           const ordinalBody = vpress.filterOrdinalParamsQuery(body, payload.column)
