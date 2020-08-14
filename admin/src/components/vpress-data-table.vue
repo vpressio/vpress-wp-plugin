@@ -2,39 +2,44 @@
   <v-container
     :class="{'data-table--container':$vuetify.breakpoint.xlOnly}"
   >
-    <v-data-table
-      v-if="datasetMeta.origin === 'api'"
-      :headers="headers"
-      :items="items"
-      :item-key="headers[0] ? headers[0].value : ''"
-      :options.sync="options"
-      :server-items-length="total"
-      :loading="loading"
-      class="elevation-1"
-    >
-      <template v-slot:item="props">
-        <tr class="eltr">
-          <td class="eltd" v-for="header in props.headers" :key="header.value">
-            {{ props.item[header.value] }}
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
-    <v-data-table
-      v-else
-      :headers="headers"
-      :items="data"
-      :item-key="headers[0] ? headers[0].value : ''"
-      class="elevation-1"
-    >
-      <template v-slot:item="props">
-        <tr class="eltr">
-          <td class="eltd" v-for="header in props.headers" :key="header.value">
-            {{ props.item[header.value] }}
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
+    <v-row>
+      <v-col cols="12" v-if="datasetMeta.origin === 'api'">
+        <v-data-table
+          :headers="headers"
+          :items="items"
+          :item-key="headers[0] ? headers[0].value : ''"
+          :options.sync="options"
+          :server-items-length="total"
+          :loading="loading"
+          class="elevation-1"
+        >
+          <template v-slot:item="props">
+            <tr class="eltr">
+              <td class="eltd" v-for="header in props.headers" :key="header.value">
+                {{ props.item[header.value] }}
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+      </v-col>
+      <v-col cols="12" v-else>
+        <v-data-table
+
+          :headers="headers"
+          :items="data"
+          :item-key="headers[0] ? headers[0].value : ''"
+          class="elevation-1"
+        >
+          <template v-slot:item="props">
+            <tr class="eltr">
+              <td class="eltd" v-for="header in props.headers" :key="header.value">
+                {{ props.item[header.value] }}
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
