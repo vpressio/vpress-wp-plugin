@@ -44,6 +44,7 @@
         inSlot
         :mutationType="card.mutationType"  
         :error="error"
+        :errorMsg="errorMsg"
       />
     
       </v-card>
@@ -65,6 +66,7 @@
           :mutationType="card.mutationType"  
           inSlot
           :error="error"
+          :errorMsg="errorMsg"
         />
         <div
             class="slot_placeholder_filter pt-2"
@@ -78,7 +80,6 @@
         </div>
       </v-card>
     </div>
-    
     <VpressSlotFilter
       v-if="openFilterDialog"
       :column="filterColumn"
@@ -113,7 +114,8 @@ export default {
       filterColumn: '',
       filterType: '',
       error: false,
-      changeSlotStyle: false
+      changeSlotStyle: false,
+      errorMsg: ''
     };
   },
   computed: {
@@ -153,6 +155,7 @@ export default {
         return result;
       } catch (error) {
         this.error = true
+        this.errorMsg = error.message
         throw new Error(error.message)
       }
     },
