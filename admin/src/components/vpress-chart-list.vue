@@ -66,16 +66,6 @@
           </v-col>
         </v-row>
       </template>
-      <template v-slot:footer>
-        <v-row>
-          <v-btn>
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <v-btn>
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
-        </v-row>
-      </template>
     </v-data-iterator>
   </v-container>
 </template>

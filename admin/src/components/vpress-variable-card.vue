@@ -10,7 +10,7 @@
     hover
   >
     <div v-if="inSlot" class="operationButtonContainer">
-      <v-menu close-on-click offset-x right nudge-right="15">
+      <v-menu attach close-on-click offset-x right nudge-right="15">
         <template v-slot:activator="{ on }">
           <v-btn small icon dark class="operationButton" v-on="on">
             <v-icon dense>mdi-dots-vertical</v-icon>
@@ -19,7 +19,7 @@
         <v-list
         v-if="
           variable.type === 'linear' &&
-          variable.slug !== 'total_count' && 
+          variable.slug !== 'total_count' &&
           mutationType !== 'filter'
         "
         >
@@ -97,7 +97,7 @@ export default {
        } else {
          return ''
        }
-     } 
+     }
     }
   },
   methods: {
