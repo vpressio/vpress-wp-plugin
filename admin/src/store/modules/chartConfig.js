@@ -313,7 +313,7 @@ export default {
           throw new Error('Lo sentimos, no se encontró la gráfica.');
         }
         const chartValues = document
-        .data()
+          .data()
           .chartValues
         
         const viz = new VpressViz(chartValues);
@@ -347,7 +347,6 @@ export default {
           viz.img_url,
         )
       )
-
     },
     async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {
@@ -446,13 +445,11 @@ export default {
         if (!id) {
           const saveResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,{ dataset_id: datasetMeta.id, ...body})
           const savedChart = saveResponse.data
-          console.log('save');
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
           commit('SET_WSP_CHART_ID', savedChart.data)
         } else {
-          console.log('update');
           const updateResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/update`,{ id , ...body })
           if (updateResponse.data.error) {
             throw new Error(updateResponse.data.error);

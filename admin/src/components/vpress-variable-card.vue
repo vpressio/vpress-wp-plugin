@@ -1,71 +1,120 @@
 <template>
-  <v-card
-    v-show="variable.type !== '' && variable.title !== ''"
-    :draggable="draggable"
-    @dragstart="dragStart"
-    tile
-    :class="{ 'pr-5': inSlot }"
-    :color="error ? 'error' : 'color2'"
-    dark
-    hover
-  >
-    <div v-if="inSlot" class="operationButtonContainer">
-      <v-menu attach close-on-click offset-x right nudge-right="15">
-        <template v-slot:activator="{ on }">
-          <v-btn small icon dark class="operationButton" v-on="on">
-            <v-icon dense>mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list
-        v-if="
-          variable.type === 'linear' &&
-          variable.slug !== 'total_count' &&
-          mutationType !== 'filter'
-        "
+  <div>
+    <v-card v-show="error" class="errorMsgContainer">
+      <div style="display:flex">
+        <v-card
+          class="mr-2"
+          dark
+          flat
+          tile
+          color="warning1"
         >
-          <v-list-item
-            class="px-5"
-            v-for="(func, funcIndex) in funcs"
-            :key="`func_${funcIndex}`"
-            @click="selectFunc(func)"
-            :class="{ 'selected-func': selectedFunc === func }"
-          >
-            <v-list-item-title
-              class="func-menu"
-              :class="{ 'selected-func': selectedFunc === func }"
-              :dark="selectedFunc === func"
-            >{{ func.name }}</v-list-item-title>
-          </v-list-item>
-          <v-divider></v-divider>
-          <v-list-item class="px-5" @click="removeCard()">
-            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-          </v-list-item>
-        </v-list>
-        <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count'">
-          <v-list-item class="px-5" @click="removeCard">
-            <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
-    <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{ 'pr-5':inSlot }">
-      <p v-if="variable.slug !== 'total_count'" class="ma-0">{{ variable.title }}</p>
-      <span
-        v-if="variable.slug === 'total_count'"
-        class="vpress-default-card"
+          <v-icon>
+            mdi-alert-outline
+          </v-icon>
+        </v-card>
+        <div class="py-2">
+          <h4>Aviso</h4>
+          <div class="errorMsg">
+            {{ errorMessage }}
+          </div>
+        </div>
+        <!-- <v-btn x-small text @click="closeErrorMsg">
+          <v-icon>
+            mdi-close
+          </v-icon>
+        </v-btn> -->
+      </div>
+    </v-card>
+    <v-card
+      :style="cssProps"
+      v-show="variable.type !== '' && variable.title !== ''"
+      :draggable="draggable"
+      @dragstart="dragStart"
+      tile
+      :class="{ 'pr-5': inSlot }"
+      :color="error ? 'warning1' : 'color2'"
+      dark
+      hover
+    >
+      <div v-if="inSlot" class="operationButtonContainer">
+        <v-menu
+          close-on-click
+          offset-x
+          right
+          nudge-right="15"
+        >
+          <template v-slot:activator="{ on }">
+            <v-btn
+              class="operationButton"
+              v-on="on"
+              small
+              icon
+              dark
+            >
+              <v-icon dense>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <div
+              v-if="
+                variable.type === 'linear' &&
+                variable.slug !== 'total_count' && 
+                mutationType !== 'filter'
+              "
+            >
+              <v-list-item
+                class="px-5"
+                v-for="(func, funcIndex) in funcs"
+                :key="`func_${funcIndex}`"
+                @click="selectFunc(func)"
+                :class="{ 'selected-func': selectedFunc === func }"
+              >
+                <v-list-item-title
+                  class="func-menu"
+                  :class="{ 'selected-func': selectedFunc === func }"
+                  :dark="selectedFunc === func"
+                >
+                  {{ func.name }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-divider/>
+            </div>
+            <v-list-item class="px-5" @click="removeCard">
+              <v-list-item-title class="func-menu">
+                Eliminar
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+      <div
+        class="dataTypeTitle py-1 pl-3 pr-5"
+        :class="{'warning-text-color': error }"
       >
-        • {{ variable.title }}
-      </span>
-      <p
-        v-if="
-          inSlot &&
-          variable.type === 'linear' &&
-          variable.slug !== 'total_count'
-        "
-        class="variableCardDataType mb-0"
-      >{{ variableFunction(variable) }}</p>
-    </div>
-  </v-card>
+        <span
+          v-if="variable.slug !== 'total_count'"
+          class="ma-0"
+        >
+          {{ variable.title }}
+        </span>
+        <span
+          v-if="variable.slug === 'total_count'"
+          class="vpress-default-card"
+        >
+          • {{ variable.title }}
+        </span>
+        <br>
+        <span
+          v-if="inSlot"
+          class="variableCardDataType mb-0"
+          :class="{'warning-text-color': error }"
+        >
+          {{ variableType }}
+        </span>
+      </div>  
+    </v-card>
+  </div>
 </template>
 <script>
 export default {
@@ -74,10 +123,12 @@ export default {
     mutationType: String,
     variable: Object,
     inSlot: Boolean,
-    error: Boolean
+    error: Boolean,
+    errorMsg: String,
   },
   data() {
     return {
+      showErrorMsg: false,
       draggable: true,
       funcs: [
         { type: 'sum', name: 'Suma' },
@@ -90,17 +141,29 @@ export default {
     };
   },
   computed: {
-    variableFunction() {
-     return (variable) => {
-       if (variable.func) {
-         return variable.func === '' ? '' : `(${variable.func})`
-       } else {
-         return ''
-       }
-     }
-    }
+    errorMessage() {
+      return this.errorMsg
+    },
+    variableType() {
+      return (
+        this.variable.func &&
+        this.variable.type === 'linear' &&
+        this.variable.func !== '' &&
+        this.variable.slug !== 'total_count'
+      )
+        ? `${this.variable.type} • ${this.variable.func || ''}`
+        : `${this.variable.type}`
+    },
+    cssProps() {
+      return {
+        '--warning2': this.$vuetify.theme.themes.light.warning2
+      }
+    },
   },
   methods: {
+    closeErrorMsg () {
+      this.showErrorMsg = false
+    },
     dragStart(e) {
       const { dataTransfer } = e;
       const payload = JSON.stringify(this.variable);
@@ -132,7 +195,7 @@ export default {
         mutationType: this.mutationType,
         value: payload
       });
-    }
+    }    
   }
 };
 </script>
@@ -145,6 +208,10 @@ export default {
   width: 100%;
   white-space: nowrap;
   height: 100%;
+}
+
+.warning-text-color {
+  color: var(--warning2) !important
 }
 
 .dataTypeContainer {
@@ -168,6 +235,20 @@ export default {
   font-size: 12px;
   font-weight: 500;
   color: #cfcfcf;
+}
+
+.errorMsgContainer {
+  position: absolute;
+  margin-left: 100%;
+  z-index: 5;
+  min-height: 60px;
+  flex-wrap: wrap;
+  width: 130%
+}
+
+.errorMsg {
+  font-size: 0.9 rem;
+  line-height: 1.3;
 }
 
 .operationButtonContainer {

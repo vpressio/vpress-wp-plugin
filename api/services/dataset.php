@@ -58,7 +58,7 @@ function get_dataset_info( $request ) {
   $dataset_value = $request['value'];
   $column = $request['column'];
   $table_name = $wpdb->prefix.'vpresscore_datasets';
-  $query = "SELECT * FROM $table_name WHERE $column = %d";
+  $query = "SELECT * FROM $table_name WHERE $column = %s";
 
   $datasets = $wpdb->get_results($wpdb->prepare($query, $dataset_value ));
   $response = array(

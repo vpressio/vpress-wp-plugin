@@ -9,29 +9,17 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
       mutationType: mergeType,
       newValue: newValue
     }
+
     const callback = {
       filter: setFilters,
       orderBy: setOrder,
-      collapseBy: ({ chartValues, mutationType, newValue }) => {
-        if (newValue.type === 'linear' || newValue.slug === '') {
-          chartValues[mutationType] = newValue;
-        }
-        return chartValues
-      },
-      groupBy: ({chartValues, mutationType, newValue}) => {
-        if (newValue.type !== 'linear' || newValue.slug === '') {
-          chartValues[mutationType] =
-            chartValues.xAxis.slug === chartValues.groupBy.slug ||
-            chartValues.yAxis.slug === chartValues.groupBy.slug
-              ? { title: '', type: '', slug: '' }
-              : newValue
-        }
-        return chartValues
-      },
+      collapseBy: setCollapse,
+      groupBy: setGroupBy,
       xAxis: setAxisByChart,
       yAxis: setAxisByChart,
       chart: setValue
     }[mergeType]
+
     return callback(payload)
   } catch (error) {
     if (error instanceof VpressError) {
@@ -49,6 +37,24 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
 
 }
 
+const setCollapse = ({ chartValues, mutationType, newValue }) => {
+  if (newValue.type === 'linear' || newValue.slug === '') {
+    chartValues[mutationType] = newValue;
+  }
+  return chartValues
+}
+
+const setGroupBy= ({chartValues, mutationType, newValue}) => {
+  if (newValue.type !== 'linear' || newValue.slug === '') {
+    chartValues[mutationType] =
+      chartValues.xAxis.slug === chartValues.groupBy.slug ||
+      chartValues.yAxis.slug === chartValues.groupBy.slug
+        ? { title: '', type: '', slug: '' }
+        : newValue
+  }
+  return chartValues
+}
+
 const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
   try {
     chartValues[mutationType] = newValue
@@ -62,7 +68,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
 
       case 'bars':
         if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
-          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+          throw new VpressError( mutationType , 'Gráfica de barras es incompatible con dos ejes con valores lineares');
         }
         if (
           (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
@@ -93,7 +99,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
 
       case 'spineplot':
         if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
-          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+          throw new VpressError( mutationType , 'Gráfica Spineplot es incompatible con dos ejes con valores lineares');
         }
         if (
           (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
@@ -113,7 +119,7 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
 
       case 'timeline':
         if (!(mainAxis.type === 'date' && oppAxis.type === 'linear')) {
-          throw new VpressError( mutationType , 'Selección de variables no compatible con la gráfica.');
+          throw new VpressError( mutationType , 'Gráfica timeline debe contener una fecha en el Eje x y un valor numérico o linear en el eje y');
         }
         if (
           (mainAxis.type !== 'linear' && mainAxis.slug === chartValues.groupBy.slug) ||
@@ -131,7 +137,6 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
         }
         break;
     }
-    console.log(chartValues);
     return chartValues
   } catch (error) {
     throw new VpressError( mutationType , error.message);
@@ -258,25 +263,22 @@ const extractDataType = (dataSample) => {
 
 const filterOrdinalParamsQuery = (body, column) => {
   body['order_by'] = `${sanitizeSpaces(column)} ASC`
-  body['column_1'] = sanitizeSpaces(column)
-  body['group_by'] = sanitizeSpaces(column)
+  body['column_head'] = sanitizeSpaces(column)
   return body
 }
 
 const filterLinearParamsQuery = (body, column) => {
-  body['subquery_aggregate'] = selectAggregateFunction('min')
-  body['subquery_column'] = sanitizeSpaces(column)
-  body['subquery_column_alias'] = `min`
-  body['subquery_aggregate_2'] = selectAggregateFunction('max')
-  body['subquery_column_2'] = sanitizeSpaces(column)
-  body['subquery_column_alias_2'] = `max`
+  body['function_operation_head'] = `MIN(${sanitizeSpaces(column)})`
+  body['function_alias_head'] = 'min'
+  body['function_operation_2'] = `MAX(${sanitizeSpaces(column)})`
+  body['function_alias_2'] = 'max'
   return body
 }
 
-const queryBody = (payload, table_name) => {
+const queryBody = (context, table_name) => {
   const body = {}
   body['dataset'] = `vpress_${table_name}`
-  body['chart_type'] = payload.chart
+  body['chart_type'] = context.chart
   const {
     xAxis,
     yAxis,
@@ -284,9 +286,8 @@ const queryBody = (payload, table_name) => {
     groupBy,
     filters,
     orderBy
-  } = payload;
+  } = context;
   if (xAxis.type === 'linear' && yAxis.type === 'linear') {
-
     console.log('linear-linear');
     if (xAxis.slug === 'total_count' && yAxis.slug === 'total_count') {
       throw new Error('Combinación de variables inválida.')
@@ -300,8 +301,8 @@ const queryBody = (payload, table_name) => {
       if (variable.func && variable.func !== '') {
         body['column_head'] = variable.slug
       } else {
-        body['aggregate_column_2'] = sanitizeSpaces(variable.slug)
-        body['aggregate_2'] = selectAggregateFunction(variable.func)
+        body['aggregate_column_head'] = sanitizeSpaces(variable.slug)
+        body['aggregate_head'] = selectAggregateFunction(variable.func)
       }
 
       if (collapseBy.slug !== '') {
@@ -326,7 +327,7 @@ const queryBody = (payload, table_name) => {
         body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
         body['aggregate_2'] = selectAggregateFunction(yAxis.func)
       } else {
-        body['column_head'] = sanitizeSpaces(yAxis.slug)
+        body['column_2'] = sanitizeSpaces(yAxis.slug)
       }
 
       if (collapseBy.slug !== '' && (collapseBy.slug !== xAxis.slug && collapseBy.slug !== yAxis.slug)) {
@@ -451,8 +452,6 @@ const queryBody = (payload, table_name) => {
       }
     })
   }
-
-
   body['order_by'] = orderBy.slug === ''
     ? null
     : `${orderBy.slug} ${orderBy.order.toUpperCase()}`
