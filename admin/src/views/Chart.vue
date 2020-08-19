@@ -31,9 +31,10 @@ export default {
           //Todo: validate with route /wp for wordpress api, and /st for storage
           // if(this.$store.getters['data/origin'] === 'api') {
             const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', this.$route.params.chartid )
+            console.log(chart);
             this.chartData = chart.chartData
             this.chartConfig = chart.chartConfig
-            console.log(this.chartData)
+            // console.log(this.chartData)
           // } else {
             // const document = await this.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
             // this.chartConfig = document.chartValues;

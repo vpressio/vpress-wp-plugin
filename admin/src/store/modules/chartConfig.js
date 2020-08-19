@@ -323,30 +323,31 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_CHART({ dispatch, commit }, payload) {
-      const viz = payload
-
-      const data = await dispatch(
-        'data/GET_CHART_DATA',
-        {
-          chartValues: viz.chartValues,
-          dataSetSlug: viz.dataset_id
-        },
-        { root: true }
-      )
-      commit(
-        'ADD_VIZ_TO_WSP',
-        new VpressViz(
-          viz.chartValues,
-          viz.id,
-          null,
-          viz.dataset_id,
-          data,
-          viz.description,
-          viz.permission,
-          viz.img_url,
+    async GET_WP_CHART({ dispatch }, chartId) {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
         )
-      )
+        const viz = response.data.data
+        const chartValues = JSON.parse(viz.value)
+        const info = await dispatch(
+          'data/GET_WP_DATASET_INFO',
+          { column: 'id', value: viz.dataset_id },
+          { root: true }
+        )
+        const data = await dispatch(
+          'data/GET_CHART_DATA',
+          {
+            chartValues: chartValues,
+            dataSetSlug: info.slug
+          },
+          { root: true }
+        )
+        const context = { chartConfig: chartValues, chartData: data, datasetMeta: { ...info, origin: 'api' } }
+        return context
+      } catch (error) {
+        throw new Error(error.message)
+      }
     },
     async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {
