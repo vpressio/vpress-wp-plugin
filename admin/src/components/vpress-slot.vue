@@ -46,7 +46,6 @@
         :error="error"
         :errorMsg="errorMsg"
       />
-    
       </v-card>
     </div>
     <div
@@ -58,25 +57,29 @@
         :raised="changeSlotStyle"
         light
       >
-        <VpressVariableCard
+        <div
           v-for="(card, cardIndex) in storeVariables"
           :key="`card_${cardIndex}`"
-          class="mx-3 my-2"
-          :variable="card.variable"
-          :mutationType="card.mutationType"  
-          inSlot
-          :error="error"
-          :errorMsg="errorMsg"
-        />
+          @click="changeCurrentFilter($event, cardIndex)"
+        >
+          <VpressVariableCard
+            class="mx-3 my-2"
+            :variable="card.variable"
+            :mutationType="card.mutationType"  
+            inSlot
+            :error="error"
+            :errorMsg="errorMsg"
+          />
+        </div>
         <div
-            class="slot_placeholder_filter pt-2"
-            :class="{ 'overCard': changeSlotStyle }"
-            @drop.stop.self="drop"
-            @dragenter="dragOver"
-            @dragleave="dragOver"
-            @dragover.prevent
-          >
-            Números o categorías aquí.
+          class="slot_placeholder_filter pt-2"
+          :class="{ 'overCard': changeSlotStyle }"
+          @drop.stop.self="drop"
+          @dragenter="dragOver"
+          @dragleave="dragOver"
+          @dragover.prevent
+        >
+          Números o categorías aquí.
         </div>
       </v-card>
     </div>
@@ -133,7 +136,7 @@ export default {
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
       if (this.slotId === 'filter') {
-        this.filterData(variable.slug,variable.type);
+        this.filterData(variable.slug, variable.type);
       } else {
         this.mergeVariable(variable, mutationType)
       }
@@ -162,10 +165,27 @@ export default {
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
     },
-    filterData(column, type) {
+    filterData({slug, type}) {
       this.filterType = type;
-      this.filterColumn = column;
+      this.filterColumn = slug;
       this.openFilterDialog = true;
+    },
+    changeCurrentFilter(event, index) {
+      console.log(index);
+
+      const filterCard = this.$store.getters['chartConfig/chart'].filters[index]
+      const e = {
+        type: filterCard.type
+      }
+
+      if (filterCard.type === 'linear') {
+        e.min = filterCard.value[0]
+        e.max = filterCard.value[1]
+      } else {
+        e.categories = filterCard.value
+      }
+
+      console.log(e);
     }
   }
 };

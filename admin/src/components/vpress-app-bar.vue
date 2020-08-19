@@ -9,7 +9,7 @@
     <span class="ml-10 grey--text">
       Selecciona
     </span>
-    <v-menu>
+    <v-menu attach=".v-main">
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           color="white"
@@ -17,7 +17,6 @@
           v-bind="attrs"
           v-on="on"
           text
-
         >
           {{ currentRoute }}
           <v-icon right dark>mdi-menu-down</v-icon>

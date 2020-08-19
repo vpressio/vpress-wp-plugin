@@ -2,7 +2,13 @@
   <div>
     <v-card v-show="error" class="errorMsgContainer">
       <div style="display:flex">
-        <v-card dark flat tile color="warning1" class="mr-2">
+        <v-card
+          class="mr-2"
+          dark
+          flat
+          tile
+          color="warning1"
+        >
           <v-icon>
             mdi-alert-outline
           </v-icon>
@@ -32,59 +38,82 @@
       hover
     >
       <div v-if="inSlot" class="operationButtonContainer">
-        <v-menu close-on-click offset-x right nudge-right="15">
+        <v-menu
+          close-on-click
+          offset-x
+          right
+          nudge-right="15"
+        >
           <template v-slot:activator="{ on }">
-            <v-btn small icon dark class="operationButton" v-on="on">
+            <v-btn
+              class="operationButton"
+              v-on="on"
+              small
+              icon
+              dark
+            >
               <v-icon dense>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
-          <v-list
-          v-if="
-            variable.type === 'linear' &&
-            variable.slug !== 'total_count' && 
-            mutationType !== 'filter'
-          "
-          >
-            <v-list-item
-              class="px-5"
-              v-for="(func, funcIndex) in funcs"
-              :key="`func_${funcIndex}`"
-              @click="selectFunc(func)"
-              :class="{ 'selected-func': selectedFunc === func }"
+          <v-list>
+            <div
+              v-if="
+                variable.type === 'linear' &&
+                variable.slug !== 'total_count' && 
+                mutationType !== 'filter'
+              "
             >
-              <v-list-item-title
-                class="func-menu"
+              <v-list-item
+                class="px-5"
+                v-for="(func, funcIndex) in funcs"
+                :key="`func_${funcIndex}`"
+                @click="selectFunc(func)"
                 :class="{ 'selected-func': selectedFunc === func }"
-                :dark="selectedFunc === func"
-              >{{ func.name }}</v-list-item-title>
-            </v-list-item>
-            <v-divider></v-divider>
-            <v-list-item class="px-5" @click="removeCard()">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
-            </v-list-item>
-          </v-list>
-          <v-list v-if="variable.type !== 'linear' || variable.slug === 'total_count' || mutationType === 'filter'">
+              >
+                <v-list-item-title
+                  class="func-menu"
+                  :class="{ 'selected-func': selectedFunc === func }"
+                  :dark="selectedFunc === func"
+                >
+                  {{ func.name }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-divider/>
+            </div>
             <v-list-item class="px-5" @click="removeCard">
-              <v-list-item-title class="func-menu">Eliminar</v-list-item-title>
+              <v-list-item-title class="func-menu">
+                Eliminar
+              </v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
-      <div class="dataTypeTitle py-1 pl-3 pr-5" :class="{'warning-text-color': error }">
-        <p v-if="variable.slug !== 'total_count'" class="ma-0" >
+      <div
+        class="dataTypeTitle py-1 pl-3 pr-5"
+        :class="{'warning-text-color': error }"
+      >
+        <span
+          v-if="variable.slug !== 'total_count'"
+          class="ma-0"
+        >
           {{ variable.title }}
-        </p>
+        </span>
         <span
           v-if="variable.slug === 'total_count'"
           class="vpress-default-card"
         >
           • {{ variable.title }}
         </span>
-        <p v-if="inSlot" class="variableCardDataType mb-0" :class="{'warning-text-color': error }">
-          <span>{{ variableType }}</span>
-        </p>
+        <br>
+        <span
+          v-if="inSlot"
+          class="variableCardDataType mb-0"
+          :class="{'warning-text-color': error }"
+        >
+          {{ variableType }}
+        </span>
       </div>  
-  </v-card>
+    </v-card>
   </div>
 </template>
 <script>
@@ -166,7 +195,7 @@ export default {
         mutationType: this.mutationType,
         value: payload
       });
-    }
+    }    
   }
 };
 </script>

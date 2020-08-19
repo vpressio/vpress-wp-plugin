@@ -76,8 +76,6 @@
   </div>
 </template>
 <script>
-import _ from 'lodash';
-import * as d3 from 'd3';
 
 export default {
   props: {
@@ -107,24 +105,13 @@ export default {
   created() {
     this.getFilterParams()
   },
-  computed: {
-    dataFiltered() {
-      const uniq = _.uniqBy(this.$store.getters['data/data'], this.column);
-      return _.map(uniq, this.column);
-    },
-    range() {
-      if (this.type == 'linear') {
-        return [d3.min(this.dataFiltered), d3.max(this.dataFiltered)];
-      } else {
-        return null;
-      }
-    },
-  },
   methods: {
     async getFilterParams() {
       try {
-        const filterParams = await this.$store.dispatch('data/GET_FILTER_PARAMS', { column: this.column, type: this.type })
-        console.log(filterParams);
+        const filterParams = await this.$store.dispatch(
+          'data/GET_FILTER_PARAMS',
+          { column: this.column, type: this.type }
+        )
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
         } else { 
@@ -146,15 +133,16 @@ export default {
                   title: this.column,
                   slug: this.column,
                   type: this.type,
-                  value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter
+                  value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
+                  
               }, 
               mutationType: 'filter'
            }
          )
         this.closeDialog()
       } catch (error) {
-        console.error(error)
         this.closeDialog()
+        throw new Error(error.message)
       }
     },
     closeDialog() {
