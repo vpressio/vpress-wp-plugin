@@ -87,6 +87,7 @@
       v-if="openFilterDialog"
       :column="filterColumn"
       :type="filterType"
+      :value="filterPayload"
       :openFilterDialog.sync="openFilterDialog"
     />
   </div>
@@ -109,16 +110,13 @@ export default {
   },
   data() {
     return {
-      variablesStack: [],
-      stackMaxLength: 0,
-      variablesInSlot: [],
       openFilterDialog: false,
-      addMargin: false,
       filterColumn: '',
       filterType: '',
+      filterPayload: {},
       error: false,
-      changeSlotStyle: false,
-      errorMsg: ''
+      errorMsg: '',
+      changeSlotStyle: false
     };
   },
   computed: {
@@ -136,7 +134,7 @@ export default {
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
       if (this.slotId === 'filter') {
-        this.filterData(variable.slug, variable.type);
+        this.filterData(variable);
       } else {
         this.mergeVariable(variable, mutationType)
       }
@@ -171,21 +169,18 @@ export default {
       this.openFilterDialog = true;
     },
     changeCurrentFilter(event, index) {
-      console.log(index);
-
       const filterCard = this.$store.getters['chartConfig/chart'].filters[index]
-      const e = {
+      const payload = {
         type: filterCard.type
       }
-
       if (filterCard.type === 'linear') {
-        e.min = filterCard.value[0]
-        e.max = filterCard.value[1]
+        payload.min = filterCard.value[0]
+        payload.max = filterCard.value[1]
       } else {
-        e.categories = filterCard.value
+        payload.categories = filterCard.value
       }
-
-      console.log(e);
+      this.filterPayload = payload
+      this.filterData({ slug: filterCard.slug, type: filterCard.type })
     }
   }
 };

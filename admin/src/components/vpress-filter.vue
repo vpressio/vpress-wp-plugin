@@ -89,6 +89,9 @@ export default {
       default: '',
       required: true
     },
+    value: {
+      type: Object,
+    },
     openFilterDialog: Boolean
   },
   data() {
@@ -108,6 +111,12 @@ export default {
   methods: {
     async getFilterParams() {
       try {
+        if (this.value.type && this.value.type === 'linear') {
+          this.linearFilter = [this.value.min, this.value.max]
+        } else if (this.value.type && this.value.type !== 'linear') {
+          this.ordinalFilter = this.value.categories
+        }
+
         const filterParams = await this.$store.dispatch(
           'data/GET_FILTER_PARAMS',
           { column: this.column, type: this.type }

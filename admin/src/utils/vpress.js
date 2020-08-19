@@ -327,7 +327,7 @@ const queryBody = (context, table_name) => {
         body['aggregate_column_2'] = sanitizeSpaces(yAxis.slug)
         body['aggregate_2'] = selectAggregateFunction(yAxis.func)
       } else {
-        body['column_head'] = sanitizeSpaces(yAxis.slug)
+        body['column_2'] = sanitizeSpaces(yAxis.slug)
       }
 
       if (collapseBy.slug !== '' && (collapseBy.slug !== xAxis.slug && collapseBy.slug !== yAxis.slug)) {
