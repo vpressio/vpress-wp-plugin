@@ -28,7 +28,7 @@
         light
       >
         <div
-          class="slot_placeholder pt-2"
+          class="slot_placeholder pa-2"
           :class="{ 'overCard': changeSlotStyle }"
           @drop.stop.self="drop($event, card.mutationType)"
           @dragenter="dragOver"
@@ -72,7 +72,7 @@
           />
         </div>
         <div
-          class="slot_placeholder_filter pt-2"
+          class="slot_placeholder pa-2"
           :class="{ 'overCard': changeSlotStyle }"
           @drop.stop.self="drop"
           @dragenter="dragOver"
