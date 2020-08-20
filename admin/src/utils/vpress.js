@@ -95,6 +95,9 @@ const setAxisByChart = ({ chartValues, mutationType, newValue }) => {
         } else if (oppAxis.type !== 'linear') {
           chartValues.groupBy = oppAxis
         }
+        if (mainAxis.type === 'linear' && oppAxis.type === 'linear') {
+          throw new VpressError( mutationType , 'La gráfica Heatmap require de ambos ejes de tipo ordinal.');
+        }
         break;
 
       case 'spineplot':
@@ -151,7 +154,14 @@ const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         mutationType: mutationType,
         newValue: newValue
       }
-    return setValue(payload)
+    switch (mutationType) {
+      case 'orderBy':
+        return setOrder(payload)
+      case 'invertAxis':
+        return invertAxis(chartValues)
+      default:
+        return setValue(payload)
+    }
 
   } catch (error) {
       if (error instanceof VpressError) {
@@ -192,7 +202,7 @@ const setOrder =  ({ chartValues, newValue }) => {
   }
 }
 
-const invertAxis =  ({ chartValues }) => {
+const invertAxis =  (chartValues) => {
   try {
     const xAxis = { ...chartValues.xAxis };
     const yAxis = { ...chartValues.yAxis };
@@ -370,9 +380,6 @@ const queryBody = (context, table_name) => {
       } else {
         body['aggregate_column_2'] = sanitizeSpaces(collapseBy.slug)
         body['aggregate_2'] = selectAggregateFunction(collapseBy.func)
-      }
-      if (groupBy.slug !== xAxis.slug && groupBy.slug !== yAxis.slug) {
-        body['column_3']
       }
     }
    } else if (

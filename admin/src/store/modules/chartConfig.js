@@ -1,7 +1,6 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
 import { firestore } from '../../plugins/firebase';
-// import Vpress from '../../vpress/index';
 import axios from 'axios';
 
 export default {
@@ -11,24 +10,6 @@ export default {
     charts: [ new VpressViz().values() ],
     workspace: [ new VpressViz() ],
     loadingChart: false,
-    chartValues: {
-      chart: 'bars',
-      xAxis: { title: '', type: '', slug: '' , func: ''},
-      yAxis: { title: '', type: '', slug: '', func: ''},
-      groupBy: { title: '', type: 'ordinal', slug: ''},
-      collapseBy: { title: '', type: 'linear', slug: '', func: '' },
-      orderBy: { order: 'asc', slug: '' },
-      decimals: 1,
-      preffix: '',
-      suffix: '',
-      stackedBars: false,
-      title: 'Título',
-      subtitle: 'Subtítulo',
-      labels: false,
-      opacity: 1,
-      theme: 'light',
-      colors: ['#e66101'],
-    },
     error: {},
     availableGraphs: [
       {
@@ -245,17 +226,6 @@ export default {
     UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
       commit('SET_ACTIVE_CHART_INDEX', payload)
     },
-    async GET_CHART_LIST(_, { page, perPage }) {
-      try {
-        const response = await axios.post(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list`,
-          { page, perPage }
-        )
-        return response.data
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
     async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
       try {
         const activeChart = state.charts[state.activeVizIdx]
@@ -323,6 +293,17 @@ export default {
         throw new Error(error.message)
       }
     },
+    async GET_CHART_LIST(_, { page, perPage }) {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list`,
+          { page, perPage }
+        )
+        return response.data
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
     async GET_WP_CHART({ dispatch }, chartId) {
       try {
         const response = await axios.get(
@@ -386,7 +367,11 @@ export default {
             viz.img_url,
           )
         )
-        const context = { chartConfig: chartValues, chartData: data, datasetMeta: datasetMeta }
+        const context = {
+          chartConfig: chartValues,
+          chartData: data,
+          datasetMeta: datasetMeta
+        }
         return context
       } catch (error) {
         throw new Error(error.message)
@@ -394,14 +379,6 @@ export default {
     },
     RESET_WSP({ commit }, viz) {
       commit('RESET_WSP', viz)
-    },
-    async INVERT_AXIS() {
-      try {
-        // const newChartValues = await vpress.invertAxis({ chartValues: state.charts[state.activeVizIdx] });
-        // commit('SET_CHART_VALUES', newChartValues)
-      } catch (error) {
-        throw new Error(error.message)
-      }
     },
     UPDATE_CHART_TITLES(_, {valueToUpdate}) {
       if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
@@ -444,14 +421,20 @@ export default {
           img_url: img_url
         }
         if (!id) {
-          const saveResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,{ dataset_id: datasetMeta.id, ...body})
+          const saveResponse = await axios.post(
+            `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,
+            { dataset_id: datasetMeta.id, ...body }
+          )
           const savedChart = saveResponse.data
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
           commit('SET_WSP_CHART_ID', savedChart.data)
         } else {
-          const updateResponse = await axios.post(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/update`,{ id , ...body })
+          const updateResponse = await axios.post(
+            `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/update`,
+            { id, ...body }
+          )
           if (updateResponse.data.error) {
             throw new Error(updateResponse.data.error);
           }
@@ -586,7 +569,7 @@ export default {
               return { ...graph, disabled: true }
             case 'heatmap':
               if (
-                !(chart.xAxis.type === 'linear' && chart.xAxis.type === 'linear')
+                (chart.xAxis.type !== 'linear' && chart.yAxis.type !== 'linear')
               ) {
                 return {
                   ...graph,
