@@ -246,7 +246,7 @@ export default {
       try {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
-          const iframe = `<iframe srcdoc="${process.env.VUE_IFRAME_URL}/#/shared/${chartId}" width="500" style="border: none;"></iframe>`
+          const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
         } else {
           throw new Error('Gráfica no guardada.')
