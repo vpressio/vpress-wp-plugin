@@ -39,6 +39,7 @@
     >
       <div v-if="inSlot" class="operationButtonContainer">
         <v-menu
+          attach=".v-main"
           close-on-click
           offset-x
           right
