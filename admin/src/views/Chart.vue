@@ -1,9 +1,11 @@
 <template>
-  <div>
+  <div style="display:flex;justify-content:center;align-items:center;height:100%">
+    <h3>{{ chartConfig.title }}</h3>
     <VpressChartContainer
       id="empty_chart_0"
       :data="chartData"
       :chartConfig="chartConfig"
+      iframe
     /> 
   </div>
 </template>

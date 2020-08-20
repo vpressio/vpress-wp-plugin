@@ -246,7 +246,7 @@ export default {
       try {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
-          const iframe = `<iframe src="http://localhost:8080/#/shared/${chartId}" width="400" height="150"></iframe>`
+          const iframe = `<iframe srcdoc="${process.env.VUE_IFRAME_URL}/#/shared/${chartId}" width="500" style="border: none;"></iframe>`
           navigator.clipboard.writeText(iframe);
         } else {
           throw new Error('Gráfica no guardada.')
@@ -256,7 +256,10 @@ export default {
       }
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, { value: dataToMerge, mutationType: slot})
+      this.$store.dispatch(
+        `chartConfig/DATA_QUERY`,
+        { value: dataToMerge, mutationType: slot}
+      )
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';
@@ -267,7 +270,12 @@ export default {
             'data/GET_DATASET_BY_NAME',
             { dataSetDir:tourFileDir, file: tourFileName }
           )
-            .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
+            .then(file => this.tourFile = {
+              file: file,
+              fileName: tourFileName,
+              fileDir: tourFileDir
+              }
+            )
             .catch(err => this.tourFile = { error: err })
           break
         case 2:
@@ -304,7 +312,10 @@ export default {
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'stackedBars', value: true });
+          this.$store.dispatch(
+            'chartConfig/MERGE_CHART_VALUE',
+            { mutationType:'stackedBars', value: true }
+          );
           break
         case 7:
           this.activeTab = 2

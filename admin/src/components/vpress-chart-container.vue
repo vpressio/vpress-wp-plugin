@@ -8,7 +8,17 @@
 
     .empty-chart( :id="this.id" )
       .vertical-align
-        p.tiny.label-font Arrastra algún valor a filas, columnas o color
+        p.tiny.label-font(v-show="!iframe") Arrastra algún valor a filas, columnas o color
+        div(
+          v-show="iframe"
+          class="progress--layer"
+        )
+          v-progress-circular(
+            :size="70"
+            :width="7"
+            color="primary"
+            indeterminate
+          )
 </template>
 
 <script>
@@ -56,7 +66,8 @@ export default {
       opacity: Number,
       theme: String,
       labels: Boolean
-    }
+    },
+    iframe: Boolean
   },
   data() {
     return {
@@ -189,7 +200,6 @@ export default {
      * Draw an interactive chart using dboxjs
      */
     configChart() {
-      console.log(this.chartConfig)
       const vm = this;
       const tabletWidth = 800; // Size in pixels
       /**
@@ -198,12 +208,12 @@ export default {
        */
 
       /** Configure chart size */
-      this.width =
-        d3
-          .select(this.$el)
-          .select(`#${this.id}`)
-          .node().offsetWidth || 1200;
+      this.width =  d3
+            .select(this.$el)
+            .select(`#${this.id}`)
+            .node().offsetWidth || 1200;
       this.height = this.width * 0.6 || 300;
+      
 
       /** Configure margins */
       this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
@@ -1002,6 +1012,13 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.progress--layer {
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center
+}
+
 .chart-container.light-themed {
   color: #666;
 }
@@ -1036,7 +1053,7 @@ export default {
 
 .empty-chart {
   height: inherit;
-  min-height: 400px;
+  /* min-height: 400px; */
 }
 
 .vertical-align {
@@ -1053,7 +1070,7 @@ export default {
 
 .chart-container {
   width: 100%;
-  min-height: 600px;
+  /* min-height: 600px; */
   max-width: 1000px;
   margin: 0 auto;
 }
