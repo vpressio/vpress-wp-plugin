@@ -26,10 +26,10 @@
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
-              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
                 <v-icon left color="primary">mdi-share-variant</v-icon>
                 Compartir
-              </v-btn> -->
+              </v-btn>
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -246,7 +246,7 @@ export default {
       try {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
-          const iframe = `<iframe src="https://demo.v-press.org/#/shared/${chartId}" width="400" height="150"></iframe>`
+          const iframe = `<iframe src="http://localhost:8080/#/shared/${chartId}" width="400" height="150"></iframe>`
           navigator.clipboard.writeText(iframe);
         } else {
           throw new Error('Gráfica no guardada.')

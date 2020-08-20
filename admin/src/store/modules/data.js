@@ -28,7 +28,6 @@ export default {
   actions: {
     async GET_QUERY_DATA(_, queryBody ) {
       try {
-        console.log( queryBody )
         const response = await axios.post(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
           queryBody

@@ -33,7 +33,7 @@ export default {
             const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', this.$route.params.chartid )
             this.chartData = chart.chartData
             this.chartConfig = chart.chartConfig
-            console.log(this.chartData)
+            // console.log(this.chartData)
           // } else {
             // const document = await this.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
             // this.chartConfig = document.chartValues;
