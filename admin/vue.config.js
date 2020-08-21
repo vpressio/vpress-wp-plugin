@@ -1,7 +1,7 @@
 module.exports = {
   productionSourceMap: false,
   // publicPath: process.env.NODE_ENV === 'production'
-  //   ? './vpress/wp-content/plugins/vpres/admin/dist/'
+  //   ? '/wp-content/plugins/vpress/admin/dist/'
   //   : 'http://localhost:8080/',
   configureWebpack: {
     devServer: {
