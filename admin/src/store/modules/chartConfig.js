@@ -34,83 +34,48 @@ export default {
       {
         type: 'bars',
         required: ['collapseBy'],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis', 'groupBy']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis', 'groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Para estas gráficas necesitas seleccionar',
+            vars: [
+              { type: 'Ordinal', msg: '1 ó 2' },
+              { type: 'Lineal', msg: '1' },
+            ]
           }
         ]
       },
       {
         type: 'heatmap',
         required: ['groupBy'],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis']
+            msg: 'Para estas gráficas necesitas seleccionar',
+            vars: [
+              { type: 'Ordinal', msg: '1' },
+              { type: 'Ordinal', msg: '1' }
+            ]
           },
           {
-            slotId: 'yAxis',
-            values: ['yAxis']
-          },
-          {
-            slotId: 'colors',
-            values: ['collapseBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Color',
+            vars: [
+              { type: 'Lineal', msg: '1' }
+            ]
           }
         ]
       },
       {
         type: 'spineplot',
         required: ['collpaseBy'],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis']
-          },
-          {
-            slotId: 'colors',
-            values: ['collapseBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Para estas gráficas necesitas seleccionar',
+            vars: [
+              { type: 'Ordinal', msg: '1 ó 2' },
+              { type: 'Lineal', msg: '1' },
+            ]
           }
         ]
       },
-      // {
-      //   type: 'treemap',
-      //   required: [],
-      //   slots: [
-      //     {
-      //       slotId: 'xAxis',
-      //       values: ['xAxis', 'groupBy']
-      //     },
-      //     {
-      //       slotId: 'yAxis',
-      //       values: ['yAxis', 'groupBy']
-      //     },
-      //     {
-      //       slotId: 'filter',
-      //       values: ['filters']
-      //     }
-      //   ]
-      // },
       {
         type: 'map',
         required: ['collapseBy'],
@@ -132,40 +97,38 @@ export default {
       {
         type: 'timeline',
         required:['collapseBy'],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis', 'groupBy']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis', 'groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Para estas gráficas necesitas seleccionar',
+            vars: [
+              { type: 'Fecha', msg: 'Agrupado por Ordinal' },
+              { type: 'Lineal', msg: '1' },
+            ]
           }
         ]
       },
       {
         type: 'scatter',
         required:[],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis']
+            msg: 'Para estas gráficas necesitas seleccionar',
+            vars: [
+              { type: 'Lineal u Ordinal', msg: '1' },
+              { type: 'Lineal u Ordinal', msg: '1' },
+            ]
           },
           {
-            slotId: 'yAxis',
-            values: ['yAxis']
+            msg: 'Color',
+            vars: [
+              { type: 'Ordinal', msg: '1' },
+            ]
           },
           {
-            slotId: 'colors',
-            values: ['groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Tamaño',
+            vars: [
+              { type: 'Lineal', msg: '1' }
+            ]
           }
         ]
       },
@@ -565,6 +528,9 @@ export default {
     error: state => state.error,
     availableColors: state => state.colorsEnum,
     getAvailableCharts: ({ availableGraphs }, { chart }) => {
+      const requiredReduce = (acc, chartValue) => chartValue[chartValue]
+        ? chart[chartValue].slug === ''
+        : acc
       return availableGraphs.map(graph => {
         if (chart.xAxis.slug === '' && chart.yAxis.slug === '') {
          return { ...graph, disabled: true }
@@ -577,12 +543,7 @@ export default {
               ) {
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 }
               }
               return { ...graph, disabled: true }
@@ -592,12 +553,7 @@ export default {
               ) {
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 }
               }
               return { ...graph, disabled: true };
@@ -608,12 +564,7 @@ export default {
               ) {
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 };
               }
               return { ...graph, disabled: true };
@@ -624,24 +575,13 @@ export default {
               ) {
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 };
               }
               return { ...graph, disabled: true };
             case 'map':
               return {
                 ...graph,
-                disabled: graph.required.reduce((acc, chartValue) => {
-                if (chartValue[chartValue]) {
-                  chart[chartValue].slug === ''
-                }
-                return true
-                }, false)
               }
             case 'timeline':
               if (
@@ -649,24 +589,14 @@ export default {
               ) {
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 }
               }
               return { ...graph, disabled: true };
             case 'scatter':
                 return {
                   ...graph,
-                  disabled: graph.required.reduce((acc, chartValue) => {
-                  if (chartValue[chartValue]) {
-                    acc = chart[chartValue].slug === ''
-                  }
-                  return acc
-                  }, false)
+                  disabled: graph.required.reduce(requiredReduce, false)
                 }
         }
       })

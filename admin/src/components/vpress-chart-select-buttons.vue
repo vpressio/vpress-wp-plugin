@@ -41,34 +41,17 @@
           </template>
           <v-card>
             <v-card-text>
-              <h6 class="text-subtitle-1 font-weight-bold">Heatmap</h6>
-              <div>Para esta gráfica necesitas estas variables en los ejes</div>
-              <div>
-                1 o 2
-                <v-chip
-                  class="ma-2"
-                >
-                  Ordinales
-                </v-chip>
-              </div>
-              <div>
-                1 o 2
-                <v-chip
-                  class="ma-2"
-                >
-                  Ordinales
-                </v-chip>
-              </div>
-              <div>
-                Lineal en Color
-              </div>
-              <div>
-                1 o 2
-                <v-chip
-                  class="ma-2"
-                >
-                  Ordinales
-                </v-chip>
+              <h6 class="text-subtitle-1 font-weight-bold">{{ graph.type }}</h6>
+              <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
+                {{rule.msg}}
+                <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
+                  {{ chip.msg }}
+                  <v-chip
+                    class="ma-2"
+                  >
+                    {{ chip.type }}
+                  </v-chip>
+                </div>
               </div>
             </v-card-text>
           </v-card>
