@@ -72,10 +72,10 @@ export default {
   data() {
     return {
       chartConfig: this.$store.getters['chartConfig/chart'],
-      availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
       charts: this.$store.getters['chartConfig/workspace'],
       loadingChart: this.$store.getters['chartConfig/loadingState'],
-      activeChartIndex:0
+      activeChartIndex:0,
+      availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
     };
   },
   created() {
