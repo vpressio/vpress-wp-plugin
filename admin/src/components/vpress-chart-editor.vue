@@ -18,7 +18,7 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+              <v-btn class="left-button" outlined color="primary" @click="saveChart">
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn>
@@ -118,7 +118,7 @@ export default {
           buttonPrevious: 'Anterior',
           buttonNext: 'Siguiente',
           buttonStop: 'Terminar'
-        }      
+        }
       },
       tourFile: {
         error: 'Hubo un problema con el tutorial.'
@@ -235,8 +235,16 @@ export default {
     async saveChart() {
       try {
         await this.$store.dispatch('chartConfig/SAVE_CHART')
+        this.$store.dispatch('notifications/open', {
+          color: 'success',
+          text: 'Gráfica guardada con éxito'
+        })
       } catch (error) {
         console.error(error.message);
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Error al guardar gráfica'
+        })
       }
     },
     downloadChartImg() {
@@ -248,7 +256,15 @@ export default {
         if (chartId) {
           const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Gráfica guardada al portapapeles'
+          })
         } else {
+          this.$store.dispatch('notifications/open', {
+            color: 'warning',
+            text: 'Primero debes de guardar la gráfica'
+          })
           throw new Error('Gráfica no guardada.')
         }
       } catch (error) {
@@ -320,7 +336,7 @@ export default {
         case 7:
           this.activeTab = 2
           break
-      } 
+      }
     }
   }
 };
