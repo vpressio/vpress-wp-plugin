@@ -13,22 +13,66 @@
         GRÁFICOS
       </v-col>
       <v-col>
-        <v-btn
+        <v-menu
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
-          :disabled="graph.disabled"
-          :class="graph.disabled ? 'grey lighten-1' : ''"
-          text
-          @click="setChartType(graph.type)"
-          class="mx-1"
+          open-on-hover
+          :close-on-content-click="false"
+          max-width="205"
+          offset-y
         >
-          <v-img
-            :src="requireImg(graph.type)"
-            :alt="graph.type"
-             :width="graph.type === 'map' ? 35 : 30"
-            :height="graph.type === 'map' ? 24 : 30"
-          />
-        </v-btn>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              :disabled="graph.disabled"
+              :class="graph.disabled ? 'grey lighten-1' : ''"
+              text
+              @click="setChartType(graph.type)"
+              class="mx-1"
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-img
+                :src="requireImg(graph.type)"
+                :alt="graph.type"
+                :width="graph.type === 'map' ? 35 : 30"
+                :height="graph.type === 'map' ? 24 : 30"
+              />
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <h6 class="text-subtitle-1 font-weight-bold">Heatmap</h6>
+              <div>Para esta gráfica necesitas estas variables en los ejes</div>
+              <div>
+                1 o 2
+                <v-chip
+                  class="ma-2"
+                >
+                  Ordinales
+                </v-chip>
+              </div>
+              <div>
+                1 o 2
+                <v-chip
+                  class="ma-2"
+                >
+                  Ordinales
+                </v-chip>
+              </div>
+              <div>
+                Lineal en Color
+              </div>
+              <div>
+                1 o 2
+                <v-chip
+                  class="ma-2"
+                >
+                  Ordinales
+                </v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-menu>
       </v-col>
     </v-row>
     <v-row v-if="$store.getters['chartConfig/chart'].chart !== 'map'">
@@ -174,7 +218,7 @@ export default {
         if (chartValues.yAxis.type === 'ordinal' ) {
           this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType: 'orderBy' ,value: chartValues.yAxis.slug });
         }
-        
+
       } else if (chartValues.xAxis.type === 'ordinal') {
         this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'orderBy' ,value: chartValues.xAxis.slug });
       } else {
@@ -199,7 +243,7 @@ export default {
     invertAxis() {
       this.$store.dispatch('chartConfig/INVERT_AXIS')
     }
-    
+
   }
 };
 </script>
