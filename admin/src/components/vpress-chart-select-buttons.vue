@@ -20,6 +20,7 @@
           :close-on-content-click="false"
           max-width="205"
           offset-y
+          attach
         >
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -243,7 +244,7 @@ export default {
         }
         if (chartValues.yAxis.type === 'linear' ) {
           this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE', 
+            'chartConfig/MERGE_CHART_VALUE',
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
@@ -270,6 +271,9 @@ export default {
 };
 </script>
 <style scoped>
+.text-subtitle-1 {
+  margin: 0;
+}
 .buttons-header {
   display: flex;
   justify-content: center;
