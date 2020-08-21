@@ -8,7 +8,7 @@ function vpress_shortcode($atts) {
     'id' => 1
   ), $atts );
 
-  return '<iframe src="' . esc_attr($values['url']) . '"/#/shared/"' . esc_attr($values['id']) . '"/" style="border:none" height="380"></iframe>';
+  return '<iframe src="' . esc_attr($values['url']) . '/#/shared/' . esc_attr($values['id']) . '" style="border:none" height="380"></iframe>';
 }
 
 add_shortcode('vpress', 'vpress_shortcode');
