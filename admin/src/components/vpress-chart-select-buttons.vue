@@ -13,22 +13,49 @@
         GRÁFICOS
       </v-col>
       <v-col>
-        <v-btn
+        <v-menu
           v-for="(graph, graphIndex) in availableCharts"
           :key="graphIndex"
-          :disabled="graph.disabled"
-          :class="graph.disabled ? 'grey lighten-1' : ''"
-          text
-          @click="setChartType(graph.type)"
-          class="mx-1"
+          open-on-hover
+          :close-on-content-click="false"
+          max-width="205"
+          offset-y
         >
-          <v-img
-            :src="requireImg(graph.type)"
-            :alt="graph.type"
-             :width="graph.type === 'map' ? 35 : 30"
-            :height="graph.type === 'map' ? 24 : 30"
-          />
-        </v-btn>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              :disabled="graph.disabled"
+              :class="graph.disabled ? 'grey lighten-1' : ''"
+              text
+              @click="setChartType(graph.type)"
+              class="mx-1"
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-img
+                :src="requireImg(graph.type)"
+                :alt="graph.type"
+                :width="graph.type === 'map' ? 35 : 30"
+                :height="graph.type === 'map' ? 24 : 30"
+              />
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <h6 class="text-subtitle-1 font-weight-bold">{{ graph.type }}</h6>
+              <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
+                {{rule.msg}}
+                <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
+                  {{ chip.msg }}
+                  <v-chip
+                    class="ma-2"
+                  >
+                    {{ chip.type }}
+                  </v-chip>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-menu>
       </v-col>
     </v-row>
     <v-row v-show="$store.getters['chartConfig/chart'].chart !== 'map'">
@@ -192,7 +219,7 @@ export default {
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
-        
+
       } else if (chartValues.xAxis.type === 'ordinal') {
         this.$store.dispatch(
           'chartConfig/MERGE_CHART_VALUE',
@@ -238,7 +265,7 @@ export default {
         { mutationType: 'invertAxis' }
       );
     }
-    
+
   }
 };
 </script>
