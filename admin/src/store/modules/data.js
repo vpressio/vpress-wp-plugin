@@ -55,11 +55,10 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_FILTER_PARAMS({ state, dispatch, rootGetters }, payload) {
+    async GET_FILTER_PARAMS({ state, dispatch }, payload) {
       try {
         const body = {
-          dataset: `vpress_${state.datasetMeta.slug}`,
-          chart_type: rootGetters['chartConfig/chart'].chart
+          dataset: `vpress_${state.datasetMeta.slug}`
         }
         if (payload.type !== 'linear') {
           const ordinalBody = vpress.filterOrdinalParamsQuery(body, payload.column)

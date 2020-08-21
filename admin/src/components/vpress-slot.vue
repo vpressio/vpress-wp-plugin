@@ -28,7 +28,7 @@
         light
       >
         <div
-          class="slot_placeholder pt-2"
+          class="slot_placeholder pa-2"
           :class="{ 'overCard': changeSlotStyle }"
           @drop.stop.self="drop($event, card.mutationType)"
           @dragenter="dragOver"
@@ -44,8 +44,8 @@
         inSlot
         :mutationType="card.mutationType"  
         :error="error"
+        :errorMsg="errorMsg"
       />
-    
       </v-card>
     </div>
     <div
@@ -57,32 +57,37 @@
         :raised="changeSlotStyle"
         light
       >
-        <VpressVariableCard
+        <div
           v-for="(card, cardIndex) in storeVariables"
           :key="`card_${cardIndex}`"
-          class="mx-3 my-2"
-          :variable="card.variable"
-          inSlot
-          :slotId="card.mutationType"  
-          :error="error"
-        />
+          @click="changeCurrentFilter($event, cardIndex)"
+        >
+          <VpressVariableCard
+            class="mx-3 my-2"
+            :variable="card.variable"
+            :mutationType="card.mutationType"  
+            inSlot
+            :error="error"
+            :errorMsg="errorMsg"
+          />
+        </div>
         <div
-            class="slot_placeholder_filter pt-2"
-            :class="{ 'overCard': changeSlotStyle }"
-            @drop.stop.self="drop"
-            @dragenter="dragOver"
-            @dragleave="dragOver"
-            @dragover.prevent
-          >
-            Números o categorías aquí.
+          class="slot_placeholder pa-2"
+          :class="{ 'overCard': changeSlotStyle }"
+          @drop.stop.self="drop"
+          @dragenter="dragOver"
+          @dragleave="dragOver"
+          @dragover.prevent
+        >
+          Números o categorías aquí.
         </div>
       </v-card>
     </div>
-    
     <VpressSlotFilter
       v-if="openFilterDialog"
       :column="filterColumn"
       :type="filterType"
+      :value="filterPayload"
       :openFilterDialog.sync="openFilterDialog"
     />
   </div>
@@ -105,14 +110,12 @@ export default {
   },
   data() {
     return {
-      variablesStack: [],
-      stackMaxLength: 0,
-      variablesInSlot: [],
       openFilterDialog: false,
-      addMargin: false,
       filterColumn: '',
       filterType: '',
+      filterPayload: {},
       error: false,
+      errorMsg: '',
       changeSlotStyle: false
     };
   },
@@ -131,7 +134,7 @@ export default {
       const variableJson = dataTransfer.getData('variableJson');
       const variable = JSON.parse(variableJson);
       if (this.slotId === 'filter') {
-        this.filterData(variable.slug,variable.type);
+        this.filterData(variable);
       } else {
         this.mergeVariable(variable, mutationType)
       }
@@ -153,16 +156,31 @@ export default {
         return result;
       } catch (error) {
         this.error = true
+        this.errorMsg = error.message
         throw new Error(error.message)
       }
     },
     dragOver() {
       this.changeSlotStyle = !this.changeSlotStyle
     },
-    filterData(column, type) {
+    filterData({slug, type}) {
       this.filterType = type;
-      this.filterColumn = column;
+      this.filterColumn = slug;
       this.openFilterDialog = true;
+    },
+    changeCurrentFilter(event, index) {
+      const filterCard = this.$store.getters['chartConfig/chart'].filters[index]
+      const payload = {
+        type: filterCard.type
+      }
+      if (filterCard.type === 'linear') {
+        payload.min = filterCard.value[0]
+        payload.max = filterCard.value[1]
+      } else {
+        payload.categories = filterCard.value
+      }
+      this.filterPayload = payload
+      this.filterData({ slug: filterCard.slug, type: filterCard.type })
     }
   }
 };

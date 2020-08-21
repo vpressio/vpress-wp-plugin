@@ -2,7 +2,7 @@
   <v-card
     min-height='600'
   >
-    <VpressChartSelectButtons :availableCharts="availableCharts"/>
+    <VpressChartSelectButtons :availableCharts="availableCharts" />
     <div
       v-show="loadingChart"
       class="progress--layer"
@@ -12,7 +12,7 @@
         :width="7"
         color="primary"
         indeterminate
-      ></v-progress-circular>
+      />
     </div>
     <div
       v-for="(chart, chartIndex) in charts"
@@ -79,22 +79,25 @@ export default {
     };
   },
   created() {
-    this.unsubscribe = this.$store.subscribe((mutation) => {
-      if(
-        (
-          mutation.type === 'chartConfig/SET_CHART_VALUES' ||
-          mutation.type === 'chartConfig/ADD_CHART'
-        )
-      ) {
-        this.charts = this.$store.getters['chartConfig/workspace'].map( chart => _.cloneDeep(chart));
+    this.unsubscribe = this.$store.subscribe(
+      (mutation) => {
+        if(
+          (
+            mutation.type === 'chartConfig/SET_CHART_VALUES' ||
+            mutation.type === 'chartConfig/ADD_CHART'
+          )
+        ) {
+          this.charts = this.$store.getters['chartConfig/workspace']
+            .map( chart => _.cloneDeep(chart));
+        }
+        if (
+          mutation.type === 'chartConfig/SET_LOAD_STATE'
+        ) {
+          this.loadingChart = this.$store.getters['chartConfig/loadingState']
+        }
+        this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
       }
-      if (
-        mutation.type === 'chartConfig/SET_LOAD_STATE'
-      ) {
-        this.loadingChart = this.$store.getters['chartConfig/loadingState']
-      }
-      this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
-    });
+    );
     this.unsubscribeAction = this.$store.subscribeAction( action => {
       if(action.type === 'chartConfig/DATA_QUERY') this.loadingChart = true;
     })
@@ -176,42 +179,87 @@ export default {
      * Called when chart has been rendered
      */
     onChartIsLoaded($element) {
-      console.log($element);
-      // const vm = this;
-      // this.createInputToEditLabel($element, '.generated-title', '.input-edit-title', value => {
-      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'subtitle', value: value});
-      // });
-      // this.createInputToEditLabel(
-      //   $element,
-      //   '.generated-subtitle',
-      //   '.input-edit-subtitle',
-      //   value => {
-      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'title', value: value});
-      //   }
-      // );
-      // this.createInputToEditLabel($element, '.x.axis .axis-title', '.input-edit-x-axis', value => {
-      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
-      // });
-      // this.createInputToEditLabel($element, '.y.axis .axis-title', '.input-edit-y-axis', value => {
-      //   this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
-      // });
-      // this.createInputToEditLabel(
-      //   $element,
-      //   '.legend-title tspan, .legend-title',
-      //   '.input-edit-legend-title',
-      //   value => {
-      //     /** Update current config with new value */
-      //     if (vm.chartConfig.groupBy.slug) {
-      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'groupBy', value: value});
-      //     } else if (vm.chartConfig.yAxis.type === 'ordinal') {
-      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'yAxis', value: value});
-      //     } else if (vm.chartConfig.xAxis.type === 'ordinal') {
-      //       this.$store.dispatch('chartConfig/UPDATE_CHART_TITLES', {valueToUpdate: 'xAxis', value: value});
-      //     }
-      //   }
-      // );
+      const vm = this;
+      this.createInputToEditLabel(
+        $element,
+        '.generated-title',
+        '.input-edit-title',
+        value => {
+          this.$store.dispatch(
+            'chartConfig/UPDATE_CHART_TITLES',
+            { valueToUpdate: 'subtitle', value: value }
+          );
+        }
+      );
+      this.createInputToEditLabel(
+        $element,
+        '.generated-subtitle',
+        '.input-edit-subtitle',
+        value => {
+          this.$store.dispatch(
+            'chartConfig/UPDATE_CHART_TITLES',
+            { valueToUpdate: 'title', value: value }
+          );
+        }
+      );
+      this.createInputToEditLabel(
+        $element,
+        '.x.axis .axis-title',
+        '.input-edit-x-axis',
+        value => {
+          this.$store.dispatch(
+            'chartConfig/UPDATE_CHART_TITLES',
+            { valueToUpdate: 'xAxis', value: value }
+          );
+        }
+      );
+      this.createInputToEditLabel(
+        $element,
+        '.y.axis .axis-title',
+        '.input-edit-y-axis',
+        value => {
+          this.$store.dispatch(
+            'chartConfig/UPDATE_CHART_TITLES',
+            { valueToUpdate: 'yAxis', value: value }
+          );
+        }
+      );
+      this.createInputToEditLabel(
+        $element,
+        '.legend-title tspan, .legend-title',
+        '.input-edit-legend-title',
+        value => {
+          /** Update current config with new value */
+          if (vm.chartConfig.groupBy.slug) {
+            this.$store.dispatch(
+              'chartConfig/UPDATE_CHART_TITLES',
+              {valueToUpdate: 'groupBy', value: value}
+            );
+          } else if (vm.chartConfig.yAxis.type === 'ordinal') {
+            this.$store.dispatch(
+              'chartConfig/UPDATE_CHART_TITLES',
+              {valueToUpdate: 'yAxis', value: value}
+            );
+          } else if (vm.chartConfig.xAxis.type === 'ordinal') {
+            this.$store.dispatch(
+              'chartConfig/UPDATE_CHART_TITLES',
+              {valueToUpdate: 'xAxis', value: value}
+            );
+          }
+        }
+      );
     }
   }
 };
 </script>
+<style scoped>
 
+.progress--layer {
+  width:100%;
+  height:600px;
+  display:flex;
+  justify-content:center;
+  align-items:center
+}
+
+</style>

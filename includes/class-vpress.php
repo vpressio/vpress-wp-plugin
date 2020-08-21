@@ -123,6 +123,11 @@ class Vpress {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-vpress-public.php';
 
 		/**
+		 * Vpress Shortcode
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/vpress-shortcode.php';
+
+		/**
 		 * Vpress API
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'api/index.php';

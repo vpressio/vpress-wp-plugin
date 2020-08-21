@@ -18,7 +18,7 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+              <v-btn class="left-button" outlined color="primary" @click="saveChart">
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn>
@@ -26,10 +26,10 @@
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
-              <!-- <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
+              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
                 <v-icon left color="primary">mdi-share-variant</v-icon>
                 Compartir
-              </v-btn> -->
+              </v-btn>
             </div>
           </v-col>
           <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
@@ -118,7 +118,7 @@ export default {
           buttonPrevious: 'Anterior',
           buttonNext: 'Siguiente',
           buttonStop: 'Terminar'
-        }      
+        }
       },
       tourFile: {
         error: 'Hubo un problema con el tutorial.'
@@ -235,8 +235,16 @@ export default {
     async saveChart() {
       try {
         await this.$store.dispatch('chartConfig/SAVE_CHART')
+        this.$store.dispatch('notifications/open', {
+          color: 'success',
+          text: 'Gráfica guardada con éxito'
+        })
       } catch (error) {
         console.error(error.message);
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Error al guardar gráfica'
+        })
       }
     },
     downloadChartImg() {
@@ -246,9 +254,17 @@ export default {
       try {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
-          const iframe = `<iframe src="https://demo.v-press.org/#/shared/${chartId}" width="400" height="150"></iframe>`
+          const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Gráfica guardada al portapapeles'
+          })
         } else {
+          this.$store.dispatch('notifications/open', {
+            color: 'warning',
+            text: 'Primero debes de guardar la gráfica'
+          })
           throw new Error('Gráfica no guardada.')
         }
       } catch (error) {
@@ -256,7 +272,10 @@ export default {
       }
     },
     mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, { value: dataToMerge, mutationType: slot})
+      this.$store.dispatch(
+        `chartConfig/DATA_QUERY`,
+        { value: dataToMerge, mutationType: slot}
+      )
     },
     tourNext(currentStep) {
       const tourFileName = 'Monitoreo de despensas.csv';
@@ -267,7 +286,12 @@ export default {
             'data/GET_DATASET_BY_NAME',
             { dataSetDir:tourFileDir, file: tourFileName }
           )
-            .then(file => this.tourFile = { file: file, fileName: tourFileName, fileDir: tourFileDir })
+            .then(file => this.tourFile = {
+              file: file,
+              fileName: tourFileName,
+              fileDir: tourFileDir
+              }
+            )
             .catch(err => this.tourFile = { error: err })
           break
         case 2:
@@ -304,12 +328,15 @@ export default {
           );
           break
         case 6:
-          this.$store.dispatch('chartConfig/MERGE_CHART_VALUE', { mutationType:'stackedBars', value: true });
+          this.$store.dispatch(
+            'chartConfig/MERGE_CHART_VALUE',
+            { mutationType:'stackedBars', value: true }
+          );
           break
         case 7:
           this.activeTab = 2
           break
-      } 
+      }
     }
   }
 };
