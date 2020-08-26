@@ -343,13 +343,6 @@ export default {
     RESET_WSP({ commit }, viz) {
       commit('RESET_WSP', viz)
     },
-    UPDATE_CHART_TITLES(_, {valueToUpdate}) {
-      if (valueToUpdate === 'xAxis' || valueToUpdate === 'yAxis' || valueToUpdate === 'groupBy') {
-        // commit('SET_AXIS_TITLE', { valueToUpdate, value })
-      } else {
-        // commit('SET_CHART_VALUE', { valueToUpdate, value })
-      }
-    },
     CREATE_CHART({ commit }) {
       //todo bug create workspace or viz?
       const viz = new VpressViz()
@@ -405,6 +398,18 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       } 
+    },
+    async DELETE_CHART(_, id) {
+      console.log(id)
+      try {
+        const response = await axios.delete(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/delete`,
+          { data: { id: id }}
+        )
+        return response.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
     }
   },
   getters: {
