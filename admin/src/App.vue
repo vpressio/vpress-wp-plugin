@@ -36,4 +36,7 @@ export default {
 .v-input input {
   border: none;
 }
+.v-snack:not(.v-snack--absolute) {
+  z-index: 99999 !important;
+}
 </style>
