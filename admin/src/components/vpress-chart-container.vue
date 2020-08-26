@@ -2,10 +2,9 @@
   .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
-        h2.generated-title.mb-0 {{ generatedTitle }}
+        h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
       .col-12.py-0
-        h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
-
+        h3.generated-subtitle.mb-0 {{ chartTitle('subtitle', 'Subtítulo') }}
     .empty-chart( :id="this.id" )
       .vertical-align
         p.tiny.label-font(v-show="!iframe") Arrastra algún valor a filas, columnas o color
@@ -111,8 +110,10 @@ export default {
     };
   },
   computed: {
-    generatedTitle() {
-      return this.chartConfig ? this.chartConfig.title : 'Título';
+    chartTitle() {
+      return (chartValue, defaultValue) => this.chartConfig[chartValue] !== ''
+        ? this.chartConfig[chartValue]
+        : defaultValue;
     },
     legendDisplay() {
       const vm = this;
@@ -338,7 +339,6 @@ export default {
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
-      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(

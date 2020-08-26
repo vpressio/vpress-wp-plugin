@@ -1,5 +1,6 @@
 <template>
   <v-card
+    v-if="!deletedCard"
     :loading="loading"
     class="mx-auto"
   >
@@ -43,7 +44,12 @@
         <v-col class="shrink">
           <v-btn color="primary" text @click="createChart">
             <v-icon small left>mdi-pencil</v-icon>
-            Editar
+          </v-btn>
+          <v-btn color="primary" text @click="shareChart">
+            <v-icon small left>mdi-share-variant</v-icon>
+          </v-btn>
+          <v-btn color="error1" text @click="deleteChart">
+            <v-icon small left>mdi-trash-can-outline</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -91,16 +97,54 @@ export default {
   },
   data: () => ({
     loading: false,
-    chartValues: {}
+    chartValues: {},
+    deletedCard: false
   }),
   created() {
     this.chartValues = JSON.parse(this.value)
   },
   methods: {
-    async createChart () {                                      
-      this.loading = true
-      await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
-      this.$router.push({path: `/chart/${this.id}`})
+    async createChart () {    
+      try {
+        this.loading = true
+        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)        
+        this.$router.push({path: `/chart/${this.id}`})
+      } catch (error) {
+        this.loading = false
+      }                                  
+    },
+    async deleteChart() {
+      try {
+        this.loading = true
+        const response = await this.$store.dispatch('chartConfig/DELETE_CHART', this.id)
+        this.deletedCard = true
+        this.loading = false
+        return response       
+      } catch (error) {
+        this.loading = false
+        throw new Error(error.message)
+      }
+    },
+    shareChart() {
+      try {
+        const chartId = this.id
+        if (chartId) {
+          const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
+          navigator.clipboard.writeText(iframe);
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Gráfica guardada al portapapeles'
+          })
+        } else {
+          this.$store.dispatch('notifications/open', {
+            color: 'warning',
+            text: 'Primero debes de guardar la gráfica'
+          })
+          throw new Error('Gráfica no guardada.')
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
     requireImg(chartType) {
       try {

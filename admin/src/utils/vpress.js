@@ -159,6 +159,8 @@ const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         return setOrder(payload)
       case 'invertAxis':
         return invertAxis(chartValues)
+      case 'labelAxis':
+        return labelAxis(payload)
       default:
         return setValue(payload)
     }
@@ -180,7 +182,10 @@ const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
 
 const setValue =  ({ chartValues, newValue, mutationType }) => {
   try {
-    chartValues[mutationType] = newValue
+    if (chartValues[mutationType]) {
+      console.log(mutationType, newValue)
+      chartValues[mutationType] = newValue
+    }
     return chartValues
   } catch (error) {
     throw new VpressError( _ , error.message);
@@ -225,6 +230,16 @@ const invertAxis =  (chartValues) => {
     return chartValues
   } catch (error) {
     throw new VpressError( _ , error.message);
+  }
+}
+
+const labelAxis = ({ chartValues, newValue }) => {
+  try {
+    chartValues[newValue.axis].title = newValue.title
+    console.log(chartValues[newValue.axis].title)
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
   }
 }
 

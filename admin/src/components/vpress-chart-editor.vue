@@ -268,7 +268,7 @@ export default {
           throw new Error('Gráfica no guardada.')
         }
       } catch (error) {
-        console.error(error.message);
+        throw new Error(error.message);
       }
     },
     mergeValue(slot, dataToMerge) {

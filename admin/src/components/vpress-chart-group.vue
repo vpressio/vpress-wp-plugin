@@ -17,6 +17,7 @@
     <div
       v-for="(chart, chartIndex) in charts"
       :key="`empty_chart_${chartIndex}`"
+      style="min-height:600px"
     >
       <VpressChartContainer
         v-if="activeChartIndex === chartIndex && !loadingChart"
@@ -186,8 +187,8 @@ export default {
         '.input-edit-title',
         value => {
           this.$store.dispatch(
-            'chartConfig/UPDATE_CHART_TITLES',
-            { valueToUpdate: 'subtitle', value: value }
+            'chartConfig/MERGE_CHART_VALUE',
+            { mutationType:'title' , value: value}
           );
         }
       );
@@ -197,8 +198,8 @@ export default {
         '.input-edit-subtitle',
         value => {
           this.$store.dispatch(
-            'chartConfig/UPDATE_CHART_TITLES',
-            { valueToUpdate: 'title', value: value }
+            'chartConfig/MERGE_CHART_VALUE',
+            { mutationType:'subtitle' , value: value}
           );
         }
       );
@@ -208,8 +209,8 @@ export default {
         '.input-edit-x-axis',
         value => {
           this.$store.dispatch(
-            'chartConfig/UPDATE_CHART_TITLES',
-            { valueToUpdate: 'xAxis', value: value }
+            'chartConfig/MERGE_CHART_VALUE',
+            { valueToUpdate: 'labelAxis', value:{ axis:'xAxis', value: value} }
           );
         }
       );
@@ -219,8 +220,8 @@ export default {
         '.input-edit-y-axis',
         value => {
           this.$store.dispatch(
-            'chartConfig/UPDATE_CHART_TITLES',
-            { valueToUpdate: 'yAxis', value: value }
+            'chartConfig/MERGE_CHART_VALUE',
+            { valueToUpdate: 'labelAxis', value:{ axis:'yAxis', value: value} }
           );
         }
       );
@@ -232,18 +233,18 @@ export default {
           /** Update current config with new value */
           if (vm.chartConfig.groupBy.slug) {
             this.$store.dispatch(
-              'chartConfig/UPDATE_CHART_TITLES',
-              {valueToUpdate: 'groupBy', value: value}
+              'chartConfig/MERGE_CHART_VALUE',
+              { valueToUpdate: 'labelAxis', value:{ axis:'groupBy', value: value} }
             );
           } else if (vm.chartConfig.yAxis.type === 'ordinal') {
             this.$store.dispatch(
-              'chartConfig/UPDATE_CHART_TITLES',
-              {valueToUpdate: 'yAxis', value: value}
+              'chartConfig/MERGE_CHART_VALUE',
+              { valueToUpdate: 'labelAxis', value:{ axis:'yAxis', value: value} }
             );
           } else if (vm.chartConfig.xAxis.type === 'ordinal') {
             this.$store.dispatch(
-              'chartConfig/UPDATE_CHART_TITLES',
-              {valueToUpdate: 'xAxis', value: value}
+              'chartConfig/MERGE_CHART_VALUE',
+              { valueToUpdate: 'labelAxis', value:{ axis:'xAxis', value: value} }
             );
           }
         }
