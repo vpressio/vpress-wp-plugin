@@ -17,7 +17,7 @@ export default {
         required: ['collapseBy'],
         chartRules: [
           {
-            msg: 'Para estas gráficas necesitas seleccionar',
+            msg: 'Para estas gráfica necesita seleccionar',
             vars: [
               { type: 'Ordinal', msg: '1 ó 2' },
               { type: 'Lineal', msg: '1' },
@@ -30,7 +30,7 @@ export default {
         required: ['groupBy'],
         chartRules: [
           {
-            msg: 'Para estas gráficas necesitas seleccionar',
+            msg: 'Para estas gráfica necesita seleccionar',
             vars: [
               { type: 'Ordinal', msg: '1' },
               { type: 'Ordinal', msg: '1' }
@@ -49,7 +49,7 @@ export default {
         required: ['collpaseBy'],
         chartRules: [
           {
-            msg: 'Para estas gráficas necesitas seleccionar',
+            msg: 'Para esta gráfica necesitas seleccionar',
             vars: [
               { type: 'Ordinal', msg: '1 ó 2' },
               { type: 'Lineal', msg: '1' },
@@ -60,18 +60,13 @@ export default {
       {
         type: 'map',
         required: ['collapseBy'],
-        slots: [
+        chartRules: [
           {
-            slotId: 'xAxis',
-            values: ['xAxis', 'groupBy']
-          },
-          {
-            slotId: 'yAxis',
-            values: ['yAxis', 'groupBy']
-          },
-          {
-            slotId: 'filter',
-            values: ['filters']
+            msg: 'Crear un mapa con',
+            vars: [
+              { type: 'Polígonos', msg: 'Identificador' },
+              { type: 'Lineal', msg: '1' },
+            ]
           }
         ]
       },
@@ -80,7 +75,7 @@ export default {
         required:['collapseBy'],
         chartRules: [
           {
-            msg: 'Para estas gráficas necesitas seleccionar',
+            msg: 'Para esta gráfica necesitas seleccionar',
             vars: [
               { type: 'Fecha', msg: 'Agrupado por Ordinal' },
               { type: 'Lineal', msg: '1' },
@@ -93,7 +88,7 @@ export default {
         required:[],
         chartRules: [
           {
-            msg: 'Para estas gráficas necesitas seleccionar',
+            msg: 'Para esta gráfica necesitas seleccionar',
             vars: [
               { type: 'Lineal u Ordinal', msg: '1' },
               { type: 'Lineal u Ordinal', msg: '1' },
@@ -235,27 +230,24 @@ export default {
         throw new Error(error.message);
       }
     },
-    async GET_ST_CHART({ commit }, chartId) {
-      try {
-        const document = await firestore
-          .collection('charts')
-          .doc(chartId)
-          .get();
-        
-        if (!document.exists) {
-          throw new Error('Lo sentimos, no se encontró la gráfica.');
-        }
-        const chartValues = document
-          .data()
-          .chartValues
-        
-        const viz = new VpressViz(chartValues);
-        commit('RESET_WSP', viz)
-        return document.data()
-      } catch (error) {
-        throw new Error(error.message)
-      }
+    RESET_WSP({ commit }, viz) {
+      commit('RESET_WSP', viz)
     },
+    CREATE_CHART({ commit }) {
+      //todo bug create workspace or viz?
+      const viz = new VpressViz()
+      commit('ADD_VIZ_TO_WSP', viz)
+      // const chartValues = viz.values();
+      // commit('ADD_CHART', chartValues)
+    },
+    REMOVE_CHART({ commit, state }, removedWspIdx) {
+      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+      commit('SET_CHARTS_ARRAY', cleanedCharts)
+
+      // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
+
+    },
+    //CHART_CRUD
     async GET_CHART_LIST(_, { page, perPage }) {
       try {
         const response = await axios.post(
@@ -265,32 +257,6 @@ export default {
         return response.data
       } catch (error) {
         throw new Error(error.message);
-      }
-    },
-    async GET_WP_CHART({ dispatch }, chartId) {
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
-        )
-        const viz = response.data.data
-        const chartValues = JSON.parse(viz.value)
-        const info = await dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { column: 'id', value: viz.dataset_id },
-          { root: true }
-        )
-        const data = await dispatch(
-          'data/GET_CHART_DATA',
-          {
-            chartValues: chartValues,
-            dataSetSlug: info.slug
-          },
-          { root: true }
-        )
-        const context = { chartConfig: chartValues, chartData: data, datasetMeta: { ...info, origin: 'api' } }
-        return context
-      } catch (error) {
-        throw new Error(error.message)
       }
     },
     async SET_WP_CHART({ commit, dispatch }, chartId) {
@@ -340,22 +306,31 @@ export default {
         throw new Error(error.message)
       }
     },
-    RESET_WSP({ commit }, viz) {
-      commit('RESET_WSP', viz)
-    },
-    CREATE_CHART({ commit }) {
-      //todo bug create workspace or viz?
-      const viz = new VpressViz()
-      commit('ADD_VIZ_TO_WSP', viz)
-      // const chartValues = viz.values();
-      // commit('ADD_CHART', chartValues)
-    },
-    REMOVE_CHART({ commit, state }, removedWspIdx) {
-      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-      commit('SET_CHARTS_ARRAY', cleanedCharts)
-
-      // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-
+    async GET_WP_CHART({ dispatch }, chartId) {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
+        )
+        const viz = response.data.data
+        const chartValues = JSON.parse(viz.value)
+        const info = await dispatch(
+          'data/GET_WP_DATASET_INFO',
+          { column: 'id', value: viz.dataset_id },
+          { root: true }
+        )
+        const data = await dispatch(
+          'data/GET_CHART_DATA',
+          {
+            chartValues: chartValues,
+            dataSetSlug: info.slug
+          },
+          { root: true }
+        )
+        const context = { chartConfig: chartValues, chartData: data, datasetMeta: { ...info, origin: 'api' } }
+        return context
+      } catch (error) {
+        throw new Error(error.message)
+      }
     },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
@@ -400,13 +375,34 @@ export default {
       } 
     },
     async DELETE_CHART(_, id) {
-      console.log(id)
       try {
         const response = await axios.delete(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/delete`,
           { data: { id: id }}
         )
         return response.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    //Deprecated
+    async GET_ST_CHART({ commit }, chartId) {
+      try {
+        const document = await firestore
+          .collection('charts')
+          .doc(chartId)
+          .get();
+        
+        if (!document.exists) {
+          throw new Error('Lo sentimos, no se encontró la gráfica.');
+        }
+        const chartValues = document
+          .data()
+          .chartValues
+        
+        const viz = new VpressViz(chartValues);
+        commit('RESET_WSP', viz)
+        return document.data()
       } catch (error) {
         throw new Error(error.message)
       }
