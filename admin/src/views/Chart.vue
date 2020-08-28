@@ -1,10 +1,11 @@
 <template>
-  <div style="display:flex;justify-content:center;height:100%;width:100%">
+  <div style="display:flex;justify-content:center;height:100%;width:100%;align-items:center">
     <VpressChartContainer
       id="empty_chart_0"
       :data="chartData"
       :chartConfig="chartConfig"
       iframe
+      :margin="{ top: 10, right: 100, bottom: 5, left: 100 }"
     /> 
   </div>
 </template>

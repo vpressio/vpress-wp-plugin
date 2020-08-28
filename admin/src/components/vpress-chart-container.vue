@@ -66,7 +66,11 @@ export default {
       theme: String,
       labels: Boolean
     },
-    iframe: Boolean
+    iframe: Boolean,
+    margin: {
+      type: Object,
+      default: () => ({ top: 10, right: 170, bottom: 50, left: 80 })
+    }
   },
   data() {
     return {
@@ -199,51 +203,37 @@ export default {
      */
     configChart() {
       const vm = this;
-      // const tabletWidth = 800; // Size in pixels
+      const tabletWidth = this.iframe ? 200 : 800; // Size in pixels
       /**
        * Draw dbox charts according with selected options
        * (axes, groupby, collapseby, project) and selected chart
        */
-
       /** Configure chart size */
       this.width =  d3
             .select(this.$el)
             .select(`#${this.id}`)
             .node().offsetWidth || 1200;
-
-      this.width = 280
-      console.log(
-        d3
-          .select(this.$el)
-          .select(`#${this.id}`)
-          .node()
-      );
       this.height = this.width * 0.6 || 300;
-      this.height = 380
-      
-
       /** Configure margins */
-      this.margin = { top: 0, right: 0, bottom: 0, left: 0 };
-      // this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
-      // if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
-      //   this.margin.top = 30;
-      //   if (this.windowWidth <= tabletWidth) {
-      //     this.margin.left = 40;
-      //     this.margin.right = 15;
-      //   }
-      // } else if (this.chartConfig.chart === 'scatter') {
-      //   this.margin.top = 30;
-      //   if (this.windowWidth <= tabletWidth) {
-      //     this.margin.left = 80;
-      //     this.margin.right = 15;
-      //   }
-      // } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
-      //   this.margin.top = 20;
-      //   this.margin.right = 100;
-      // } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
-      //   this.margin.left = 15;
-      //   this.margin.right = 15;
-      // }
+      if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
+        this.margin.top = 30;
+        if (this.windowWidth <= tabletWidth) {
+          this.margin.left = 40;
+          this.margin.right = 15;
+        }
+      } else if (this.chartConfig.chart === 'scatter') {
+        this.margin.top = 30;
+        if (this.windowWidth <= tabletWidth) {
+          this.margin.left = 80;
+          this.margin.right = 15;
+        }
+      } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
+        this.margin.top = 20;
+        this.margin.right = 100;
+      } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
+        this.margin.left = 15;
+        this.margin.right = 15;
+      }
       d3.select(this.$el)
         .select(`#${this.id}`)
         .selectAll('*')
@@ -342,10 +332,8 @@ export default {
       }
     },
     drawChart() {
-
-        console.log('hola');
       const vm = this;
-      const tabletWidth = 800;
+      const tabletWidth = this.iframe ? 200 : 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
       this.groupByOptions =
@@ -1021,10 +1009,11 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .progress--layer {
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center
+  height: 420px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center
 }
 
 .chart-container.light-themed {
@@ -1059,10 +1048,6 @@ export default {
   display: initial;
 }
 
-.empty-chart {
-  /* height: inherit; */
-  /* min-height: 400px; */
-}
 
 .vertical-align {
   display: -webkit-box;

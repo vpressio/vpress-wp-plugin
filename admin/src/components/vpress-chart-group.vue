@@ -210,7 +210,7 @@ export default {
         value => {
           this.$store.dispatch(
             'chartConfig/MERGE_CHART_VALUE',
-            { valueToUpdate: 'labelAxis', value:{ axis:'xAxis', value: value} }
+            { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
           );
         }
       );
@@ -221,7 +221,7 @@ export default {
         value => {
           this.$store.dispatch(
             'chartConfig/MERGE_CHART_VALUE',
-            { valueToUpdate: 'labelAxis', value:{ axis:'yAxis', value: value} }
+            { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
           );
         }
       );
@@ -234,17 +234,17 @@ export default {
           if (vm.chartConfig.groupBy.slug) {
             this.$store.dispatch(
               'chartConfig/MERGE_CHART_VALUE',
-              { valueToUpdate: 'labelAxis', value:{ axis:'groupBy', value: value} }
+              { mutationType: 'labelAxis', value:{ axis:'groupBy', value: value} }
             );
           } else if (vm.chartConfig.yAxis.type === 'ordinal') {
             this.$store.dispatch(
               'chartConfig/MERGE_CHART_VALUE',
-              { valueToUpdate: 'labelAxis', value:{ axis:'yAxis', value: value} }
+              { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
             );
           } else if (vm.chartConfig.xAxis.type === 'ordinal') {
             this.$store.dispatch(
               'chartConfig/MERGE_CHART_VALUE',
-              { valueToUpdate: 'labelAxis', value:{ axis:'xAxis', value: value} }
+              { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
             );
           }
         }

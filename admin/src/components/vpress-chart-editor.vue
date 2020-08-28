@@ -58,9 +58,10 @@
                       <v-switch
                         dense
                         inset
-                        v-model="darkTheme"
-                        :color="isDarkThemeActivated"
-                        class="confi£´∑´´∑œœ®´™£¢®œ®´®œg-switch"
+                        v-model="theme"
+                        :color="themeSwitchColor"
+                        class="config-switch"
+                        :value-comparator="(e)=> console.log(e)"
                       />
                     </VpressInputControl>
                   </VpressExpansionPanel>
@@ -111,7 +112,7 @@ export default {
   data() {
     return {
       activeTab: 0,
-      darkTheme: false,
+      theme: false,
       openDialog: false,
       sideBarWidth: 45,
       dataSetFromUrl: {},
@@ -209,6 +210,12 @@ export default {
       // this.$tours['vpress-tour'].start();
     }
   },
+  watch:{
+    theme(newTheme){
+      const chartTheme = newTheme ? 'dark': 'light'
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: chartTheme });
+    }
+  },
   computed: {
     cssProps() {
       return {
@@ -221,9 +228,8 @@ export default {
 
       return numberOfCols;
     },
-    isDarkThemeActivated() {
-      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
-      return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
+    themeSwitchColor() {
+      return this.theme  ? 'black' : '';
     },
     variables() {
       return this.$store.getters['data/dataType'];
