@@ -22,7 +22,11 @@
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn>
-              <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
+              <v-btn
+                v-if="$store.getters['chartConfig/chart'].chart !== 'map'"
+                class="middle-button" outlined color="primary"
+                @click="downloadChartImg"
+              >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
@@ -56,7 +60,7 @@
                         inset
                         v-model="darkTheme"
                         :color="isDarkThemeActivated"
-                        class="config-switch"
+                        class="confi£´∑´´∑œœ®´™£¢®œ®´®œg-switch"
                       />
                     </VpressInputControl>
                   </VpressExpansionPanel>
@@ -218,7 +222,7 @@ export default {
       return numberOfCols;
     },
     isDarkThemeActivated() {
-      // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
       return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
     },
     variables() {
@@ -240,11 +244,11 @@ export default {
           text: 'Gráfica guardada con éxito'
         })
       } catch (error) {
-        console.error(error.message);
         this.$store.dispatch('notifications/open', {
           color: 'error',
           text: 'Error al guardar gráfica'
         })
+        throw new Error(error.message)
       }
     },
     downloadChartImg() {

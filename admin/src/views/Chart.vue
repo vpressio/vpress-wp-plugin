@@ -1,6 +1,5 @@
 <template>
-  <div style="display:flex;justify-content:center;align-items:center;height:100%">
-    <h3>{{ chartConfig.title }}</h3>
+  <div style="display:flex;justify-content:center;height:100%;width:100%">
     <VpressChartContainer
       id="empty_chart_0"
       :data="chartData"
@@ -35,7 +34,6 @@ export default {
             const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', this.$route.params.chartid )
             this.chartData = chart.chartData
             this.chartConfig = chart.chartConfig
-            // console.log(this.chartData)
           // } else {
             // const document = await this.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
             // this.chartConfig = document.chartValues;

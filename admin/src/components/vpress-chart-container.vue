@@ -152,7 +152,7 @@ export default {
         return vm.chartConfig.xAxis;
       }
     },
-    linearAxis() {
+    linearAxis() { 
       const vm = this;
       if (
         vm.chartConfig.xAxis &&
@@ -194,15 +194,12 @@ export default {
     }
   },
   methods: {
-    customGraphStyles() {
-      return 'main-class';
-    },
     /**
      * Draw an interactive chart using dboxjs
      */
     configChart() {
       const vm = this;
-      const tabletWidth = 800; // Size in pixels
+      // const tabletWidth = 800; // Size in pixels
       /**
        * Draw dbox charts according with selected options
        * (axes, groupby, collapseby, project) and selected chart
@@ -213,30 +210,40 @@ export default {
             .select(this.$el)
             .select(`#${this.id}`)
             .node().offsetWidth || 1200;
+
+      this.width = 280
+      console.log(
+        d3
+          .select(this.$el)
+          .select(`#${this.id}`)
+          .node()
+      );
       this.height = this.width * 0.6 || 300;
+      this.height = 380
       
 
       /** Configure margins */
-      this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
-      if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 40;
-          this.margin.right = 15;
-        }
-      } else if (this.chartConfig.chart === 'scatter') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 80;
-          this.margin.right = 15;
-        }
-      } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
-        this.margin.top = 20;
-        this.margin.right = 100;
-      } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
-        this.margin.left = 15;
-        this.margin.right = 15;
-      }
+      this.margin = { top: 0, right: 0, bottom: 0, left: 0 };
+      // this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
+      // if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
+      //   this.margin.top = 30;
+      //   if (this.windowWidth <= tabletWidth) {
+      //     this.margin.left = 40;
+      //     this.margin.right = 15;
+      //   }
+      // } else if (this.chartConfig.chart === 'scatter') {
+      //   this.margin.top = 30;
+      //   if (this.windowWidth <= tabletWidth) {
+      //     this.margin.left = 80;
+      //     this.margin.right = 15;
+      //   }
+      // } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
+      //   this.margin.top = 20;
+      //   this.margin.right = 100;
+      // } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
+      //   this.margin.left = 15;
+      //   this.margin.right = 15;
+      // }
       d3.select(this.$el)
         .select(`#${this.id}`)
         .selectAll('*')
@@ -335,6 +342,8 @@ export default {
       }
     },
     drawChart() {
+
+        console.log('hola');
       const vm = this;
       const tabletWidth = 800;
       this.filteredData = this.filterData(this.sortedData);
@@ -358,7 +367,7 @@ export default {
         formatPreffix: this.chartConfig.preffix || '',
         formatSuffix: this.chartConfig.suffix || '',
         decimals: this.chartConfig.decimals,
-        legendEnabled: this.windowWidth >= tabletWidth ? true : false,
+        legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
         size: {
           width: this.width,
           height: this.height,
@@ -988,8 +997,7 @@ export default {
               }
               return obj;
             })
-            .entries(collapsedData)
-            .map(obj => obj.value);
+            .values(collapsedData);
         }
         return collapsedData;
       } else {
@@ -1052,7 +1060,7 @@ export default {
 }
 
 .empty-chart {
-  height: inherit;
+  /* height: inherit; */
   /* min-height: 400px; */
 }
 
@@ -1070,7 +1078,7 @@ export default {
 
 .chart-container {
   width: 100%;
-  /* min-height: 600px; */
+  min-height: 100%;
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -1078,7 +1086,6 @@ export default {
 <style>
 .empty-chart > svg {
   width: 100%;
-  height: auto;
 }
 
 .d3-tip {
