@@ -79,6 +79,8 @@ class Vpress_Activator {
 		}
 
 		add_option( 'vpress_db_version', '1.0.0' );
+
+		
 	}
 
 }

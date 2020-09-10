@@ -2,10 +2,9 @@
   .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
     .layout-row.left-align.label-font.bold.layout-align-start-end
       .col-12.py-0
-        h2.generated-title.mb-0 {{ generatedTitle }}
+        h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
       .col-12.py-0
-        h3.generated-subtitle.mb-0 {{ chartConfig ? chartConfig.subtitle : 'Subtítulo'}}
-
+        h3.generated-subtitle.mb-0 {{ chartTitle('subtitle', 'Subtítulo') }}
     .empty-chart( :id="this.id" )
       .vertical-align
         p.tiny.label-font(v-show="!iframe") Arrastra algún valor a filas, columnas o color
@@ -67,7 +66,11 @@ export default {
       theme: String,
       labels: Boolean
     },
-    iframe: Boolean
+    iframe: Boolean,
+    margin: {
+      type: Object,
+      default: () => ({ top: 10, right: 170, bottom: 50, left: 80 })
+    }
   },
   data() {
     return {
@@ -111,8 +114,10 @@ export default {
     };
   },
   computed: {
-    generatedTitle() {
-      return this.chartConfig ? this.chartConfig.title : 'Título';
+    chartTitle() {
+      return (chartValue, defaultValue) => this.chartConfig[chartValue] !== ''
+        ? this.chartConfig[chartValue]
+        : defaultValue;
     },
     legendDisplay() {
       const vm = this;
@@ -151,7 +156,7 @@ export default {
         return vm.chartConfig.xAxis;
       }
     },
-    linearAxis() {
+    linearAxis() { 
       const vm = this;
       if (
         vm.chartConfig.xAxis &&
@@ -193,30 +198,23 @@ export default {
     }
   },
   methods: {
-    customGraphStyles() {
-      return 'main-class';
-    },
     /**
      * Draw an interactive chart using dboxjs
      */
     configChart() {
       const vm = this;
-      const tabletWidth = 800; // Size in pixels
+      const tabletWidth = this.iframe ? 200 : 800; // Size in pixels
       /**
        * Draw dbox charts according with selected options
        * (axes, groupby, collapseby, project) and selected chart
        */
-
       /** Configure chart size */
       this.width =  d3
             .select(this.$el)
             .select(`#${this.id}`)
             .node().offsetWidth || 1200;
       this.height = this.width * 0.6 || 300;
-      
-
       /** Configure margins */
-      this.margin = { top: 10, right: 170, bottom: 50, left: 80 };
       if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
         this.margin.top = 30;
         if (this.windowWidth <= tabletWidth) {
@@ -335,10 +333,9 @@ export default {
     },
     drawChart() {
       const vm = this;
-      const tabletWidth = 800;
+      const tabletWidth = this.iframe ? 200 : 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
-      console.log(this.dataToDraw)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? _.uniq(
@@ -358,7 +355,7 @@ export default {
         formatPreffix: this.chartConfig.preffix || '',
         formatSuffix: this.chartConfig.suffix || '',
         decimals: this.chartConfig.decimals,
-        legendEnabled: this.windowWidth >= tabletWidth ? true : false,
+        legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
         size: {
           width: this.width,
           height: this.height,
@@ -988,8 +985,7 @@ export default {
               }
               return obj;
             })
-            .entries(collapsedData)
-            .map(obj => obj.value);
+            .values(collapsedData);
         }
         return collapsedData;
       } else {
@@ -1013,10 +1009,11 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .progress--layer {
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center
+  height: 420px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center
 }
 
 .chart-container.light-themed {
@@ -1051,10 +1048,6 @@ export default {
   display: initial;
 }
 
-.empty-chart {
-  height: inherit;
-  /* min-height: 400px; */
-}
 
 .vertical-align {
   display: -webkit-box;
@@ -1070,7 +1063,7 @@ export default {
 
 .chart-container {
   width: 100%;
-  /* min-height: 600px; */
+  min-height: 100%;
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -1078,7 +1071,6 @@ export default {
 <style>
 .empty-chart > svg {
   width: 100%;
-  height: auto;
 }
 
 .d3-tip {

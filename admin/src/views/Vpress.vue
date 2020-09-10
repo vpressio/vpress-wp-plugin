@@ -13,6 +13,26 @@
   </v-card>
   <div class='vpress-navigation-view'>
     <router-view :key="$route.path"/>
+    <v-snackbar
+      dark
+      top
+      right
+      v-model="$store.state.notifications.show"
+      :timeout="$store.state.notifications.timeout"
+      :color="$store.state.notifications.color"
+    >
+      {{ $store.state.notifications.text }}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="white"
+          text
+          v-bind="attrs"
+          @click="snackbar = $store.dispatch('notifications/close')"
+        >
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </div>
 </template>
@@ -54,5 +74,12 @@ export default {
 
 .beta-banner {
   width: 100px
+}
+
+.v-input input {
+  border: none;
+}
+.v-snack:not(.v-snack--absolute) {
+  z-index: 99999 !important;
 }
 </style>

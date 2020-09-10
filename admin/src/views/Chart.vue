@@ -1,11 +1,11 @@
 <template>
-  <div style="display:flex;justify-content:center;align-items:center;height:100%">
-    <h3>{{ chartConfig.title }}</h3>
+  <div style="display:flex;justify-content:center;height:100%;width:100%;align-items:center">
     <VpressChartContainer
       id="empty_chart_0"
       :data="chartData"
       :chartConfig="chartConfig"
       iframe
+      :margin="{ top: 10, right: 100, bottom: 5, left: 100 }"
     /> 
   </div>
 </template>
@@ -29,13 +29,14 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        if( this.$route.params.chartid ) {
+        // eslint-disable-next-line no-undef
+        const chart_id = this.$route.params.chartid || vpress_id
+        if( chart_id) {
           //Todo: validate with route /wp for wordpress api, and /st for storage
           // if(this.$store.getters['data/origin'] === 'api') {
-            const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', this.$route.params.chartid )
+            const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', chart_id)
             this.chartData = chart.chartData
             this.chartConfig = chart.chartConfig
-            // console.log(this.chartData)
           // } else {
             // const document = await this.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
             // this.chartConfig = document.chartValues;

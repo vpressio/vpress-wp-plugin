@@ -93,7 +93,7 @@ class Vpress_Admin {
 				'manage_options',
 				'vpress',
 				array( $this, 'vpress_html' ),
-				'',
+				'data:image/svg+xml;base64,' . base64_encode('<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.64 20"><defs><style>.cls-1{fill:#fff;isolation:isolate;}</style></defs><g id="Navigation_Bar" data-name="Navigation Bar"><g id="Grupo_1" data-name="Grupo 1"><path id="Trazado_204" data-name="Trazado 204" class="cls-1" d="M11.85,13.54,5.93,7.09H0l5.91,6.44L0,20H5.93Z"/><path id="Trazado_205" data-name="Trazado 205" class="cls-1" d="M6.79,6.45,12.71,0h5.92l-5.9,6.44,5.91,6.45H12.71Z"/></g></g></svg>'),
 				20
 		);
 	}
@@ -105,7 +105,6 @@ class Vpress_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts($hook) {
-
 		/**
 		 * This function is provided for demonstration purposes only.
 		 *

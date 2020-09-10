@@ -1,5 +1,6 @@
 <template>
   <v-card
+    v-if="!deletedCard"
     :loading="loading"
     class="mx-auto"
   >
@@ -43,7 +44,12 @@
         <v-col class="shrink">
           <v-btn color="primary" text @click="createChart">
             <v-icon small left>mdi-pencil</v-icon>
-            Editar
+          </v-btn>
+          <v-btn color="primary" text @click="shareChart">
+            <v-icon small left>mdi-share-variant</v-icon>
+          </v-btn>
+          <v-btn color="error1" text @click="deleteChart">
+            <v-icon small left>mdi-trash-can-outline</v-icon>
           </v-btn>
         </v-col>
       </v-row>
@@ -91,7 +97,8 @@ export default {
   },
   data: () => ({
     loading: false,
-    chartValues: {}
+    chartValues: {},
+    deletedCard: false
   }),
   created() {
     this.chartValues = JSON.parse(this.value)

@@ -11,9 +11,3 @@ export default {
   name: 'App'
 };
 </script>
-
-<style>
-.v-input input {
-  border: none;
-}
-</style>

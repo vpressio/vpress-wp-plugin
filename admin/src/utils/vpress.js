@@ -9,7 +9,6 @@ const queryByChart =  (chartValues, { newValue, mergeType } ) => {
       mutationType: mergeType,
       newValue: newValue
     }
-
     const callback = {
       filter: setFilters,
       orderBy: setOrder,
@@ -159,10 +158,11 @@ const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         return setOrder(payload)
       case 'invertAxis':
         return invertAxis(chartValues)
+      case 'labelAxis':
+        return labelAxis(payload)
       default:
         return setValue(payload)
     }
-
   } catch (error) {
       if (error instanceof VpressError) {
         throw new VpressError (
@@ -225,6 +225,15 @@ const invertAxis =  (chartValues) => {
     return chartValues
   } catch (error) {
     throw new VpressError( _ , error.message);
+  }
+}
+
+const labelAxis = ({ chartValues, newValue }) => {
+  try {
+    chartValues[newValue.axis].title = newValue.value
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
   }
 }
 

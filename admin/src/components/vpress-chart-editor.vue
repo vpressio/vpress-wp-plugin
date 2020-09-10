@@ -18,11 +18,15 @@
           </v-col>
           <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
             <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary" @click="saveChart"> 
+              <v-btn class="left-button" outlined color="primary" @click="saveChart">
                  <v-icon left color="primary">mdi-content-save</v-icon>
                 Guardar
               </v-btn>
-              <v-btn v-if="$store.getters['chartConfig/chart'].chart !== 'map'" class="middle-button" outlined color="primary" @click="downloadChartImg" >
+              <v-btn
+                v-if="$store.getters['chartConfig/chart'].chart !== 'map'"
+                class="middle-button" outlined color="primary"
+                @click="downloadChartImg"
+              >
                 <v-icon left color="primary">mdi-download</v-icon>
                 Descargar
               </v-btn>
@@ -54,9 +58,10 @@
                       <v-switch
                         dense
                         inset
-                        v-model="darkTheme"
-                        :color="isDarkThemeActivated"
+                        v-model="theme"
+                        :color="themeSwitchColor"
                         class="config-switch"
+                        :value-comparator="(e)=> console.log(e)"
                       />
                     </VpressInputControl>
                   </VpressExpansionPanel>
@@ -107,7 +112,7 @@ export default {
   data() {
     return {
       activeTab: 0,
-      darkTheme: false,
+      theme: false,
       openDialog: false,
       sideBarWidth: 45,
       dataSetFromUrl: {},
@@ -118,7 +123,7 @@ export default {
           buttonPrevious: 'Anterior',
           buttonNext: 'Siguiente',
           buttonStop: 'Terminar'
-        }      
+        }
       },
       tourFile: {
         error: 'Hubo un problema con el tutorial.'
@@ -205,6 +210,12 @@ export default {
       // this.$tours['vpress-tour'].start();
     }
   },
+  watch:{
+    theme(newTheme){
+      const chartTheme = newTheme ? 'dark': 'light'
+      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: chartTheme });
+    }
+  },
   computed: {
     cssProps() {
       return {
@@ -217,9 +228,8 @@ export default {
 
       return numberOfCols;
     },
-    isDarkThemeActivated() {
-      // this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: this.darkTheme ? 'dark': 'light' });
-      return this.$store.getters['chartConfig/theme'] === 'dark' ? 'black' : '';
+    themeSwitchColor() {
+      return this.theme  ? 'black' : '';
     },
     variables() {
       return this.$store.getters['data/dataType'];
@@ -235,8 +245,16 @@ export default {
     async saveChart() {
       try {
         await this.$store.dispatch('chartConfig/SAVE_CHART')
+        this.$store.dispatch('notifications/open', {
+          color: 'success',
+          text: 'Gráfica guardada con éxito'
+        })
       } catch (error) {
-        console.error(error.message);
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Error al guardar gráfica'
+        })
+        throw new Error(error.message)
       }
     },
     downloadChartImg() {
@@ -249,11 +267,19 @@ export default {
           const iframe = `[vpress id=${chartId}]`
           // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Gráfica guardada al portapapeles'
+          })
         } else {
+          this.$store.dispatch('notifications/open', {
+            color: 'warning',
+            text: 'Primero debes de guardar la gráfica'
+          })
           throw new Error('Gráfica no guardada.')
         }
       } catch (error) {
-        console.error(error.message);
+        throw new Error(error.message);
       }
     },
     mergeValue(slot, dataToMerge) {
@@ -321,7 +347,7 @@ export default {
         case 7:
           this.activeTab = 2
           break
-      } 
+      }
     }
   }
 };
