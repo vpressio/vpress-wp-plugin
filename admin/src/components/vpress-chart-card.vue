@@ -104,14 +104,14 @@ export default {
     this.chartValues = JSON.parse(this.value)
   },
   methods: {
-    async createChart () {    
+    async createChart () {
       try {
         this.loading = true
-        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)        
+        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
         this.$router.push({path: `/chart/${this.id}`})
       } catch (error) {
         this.loading = false
-      }                                  
+      }
     },
     async deleteChart() {
       try {
@@ -119,7 +119,7 @@ export default {
         const response = await this.$store.dispatch('chartConfig/DELETE_CHART', this.id)
         this.deletedCard = true
         this.loading = false
-        return response       
+        return response
       } catch (error) {
         this.loading = false
         throw new Error(error.message)
@@ -129,7 +129,8 @@ export default {
       try {
         const chartId = this.id
         if (chartId) {
-          const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
+          const iframe = `[vpress id=${chartId}]`
+          // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
           this.$store.dispatch('notifications/open', {
             color: 'success',

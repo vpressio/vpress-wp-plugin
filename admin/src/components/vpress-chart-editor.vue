@@ -264,7 +264,8 @@ export default {
       try {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
-          const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
+          const iframe = `[vpress id=${chartId}]`
+          // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
           this.$store.dispatch('notifications/open', {
             color: 'success',

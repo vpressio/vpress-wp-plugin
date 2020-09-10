@@ -4,11 +4,11 @@
 function vpress_shortcode($atts) {
   //set default attributes and values
   $values = shortcode_atts( array(
-    'url' => 'https://demo-stc.v-press.org',
+    'url' => "//" . $_SERVER['HTTP_HOST'],
     'id' => 1
   ), $atts );
 
-  return '<iframe src="' . esc_attr($values['url']) . '/#/shared/' . esc_attr($values['id']) . '" style="border:none;" height="420"></iframe>';
+  return '<div style="padding:72% 0 0 0;position:relative;"><iframe src="' . esc_attr($values['url']) . '/chart/' . esc_attr($values['id']) . '" frameborder="0" style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>';
 }
 
 add_shortcode('vpress', 'vpress_shortcode');
