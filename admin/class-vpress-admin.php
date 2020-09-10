@@ -105,7 +105,6 @@ class Vpress_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts($hook) {
-
 		/**
 		 * This function is provided for demonstration purposes only.
 		 *

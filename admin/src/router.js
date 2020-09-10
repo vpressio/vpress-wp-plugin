@@ -8,29 +8,47 @@ import VpressChartList from './components/vpress-chart-list.vue';
 
 Vue.use(Router);
 
-export default new Router({
-  routes: [
-    {
-      path: '*',
-      redirect: '/'
-    },
-    {
-      path: '/shared/:chartid',
-      component: Chart
-    },
-    {
-      path: '/',
-      component: Vpress,
-      props: true,
-      children: [
-        { path: '/', component: VpressChartEditor },
-        { path: '/chart/list', component: VpressChartList },
-        { path: '/chart/:chartid', component: VpressChartEditor }
+export default (strategy) => {
+  
+  const router = {
+    app: {
+      routes: [
+        {
+          path: '*',
+          redirect: '/'
+        },
+        {
+          path: '/',
+          component: Vpress,
+          props: true,
+          children: [
+            { path: '/', component: VpressChartEditor },
+            { path: '/chart/list', component: VpressChartList },
+            { path: '/chart/:chartid', component: VpressChartEditor }
+          ]
+        },
+        {
+          path: '/reunionDonantes',
+          component: reunionDonantes
+        }
       ]
-    },
-    {
-      path: '/reunionDonantes',
-      component: reunionDonantes
+    }, 
+    front: {
+      routes: [
+        {
+          path: '*',
+          redirect: '/'
+        },
+        {
+          path: '/',
+          component: Chart
+        },
+      ]
     }
-  ]
-});
+  }[strategy]
+
+  return new Router(router);
+}
+  
+  
+  

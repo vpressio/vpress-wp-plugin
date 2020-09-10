@@ -29,10 +29,12 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        if( this.$route.params.chartid ) {
+        // eslint-disable-next-line no-undef
+        const chart_id = this.$route.params.chartid || vpress_id
+        if( chart_id) {
           //Todo: validate with route /wp for wordpress api, and /st for storage
           // if(this.$store.getters['data/origin'] === 'api') {
-            const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', this.$route.params.chartid )
+            const chart = await this.$store.dispatch('chartConfig/GET_WP_CHART', chart_id)
             this.chartData = chart.chartData
             this.chartConfig = chart.chartConfig
           // } else {

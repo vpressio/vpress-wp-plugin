@@ -167,9 +167,9 @@ class Vpress {
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'admin_menu_vpress' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-
+		
 	}
-
+	
 	/**
 	 * Register all of the hooks related to the public-facing functionality
 	 * of the plugin.
@@ -178,11 +178,14 @@ class Vpress {
 	 * @access   private
 	 */
 	private function define_public_hooks() {
-
+		
 		$plugin_public = new Vpress_Public( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		
+		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_chart_query');
+		$this->loader->add_action('init', $plugin_public, 'add_chart_rule');
+		$this->loader->add_action( 'template_redirect', $plugin_public, 'include_html');
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
 
 	}
 

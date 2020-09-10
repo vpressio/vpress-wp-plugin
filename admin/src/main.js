@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import App from './App.vue';
-import router from './router';
+import routerStrategy from './router';
 import store from './store/store';
 import './registerServiceWorker';
 import VueTour from 'vue-tour';
@@ -10,8 +10,7 @@ import LogRocket from 'logrocket';
 
 LogRocket.init('vpress/vpress-wp-plugin');
 
-require('vue-tour/dist/vue-tour.css')
-
+import 'vue-tour/dist/vue-tour.css'
 Vue.config.productionTip = false;
 Vue.use(Vuex);
 Vue.use(VueTour)
@@ -25,11 +24,20 @@ if (window.userSettings && window.userSettings.uid) {
   LogRocket.identify(window.userSettings.uid, currentUser);
 }
 
+const selectRouter = () => {
+  if (document.getElementById('app')) {
+    return ['app' , routerStrategy('app')]
+  } else if (document.getElementById('front')) {
+    return ['front', routerStrategy('front')]
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  const [id , router] = selectRouter()
   new Vue({
     router,
     store,
     vuetify,
     render: h => h(App),
-  }).$mount('#app');
+  }).$mount(`#${id}`);
 });
