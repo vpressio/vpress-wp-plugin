@@ -97,10 +97,48 @@ export default {
     this.chartValues = JSON.parse(this.value)
   },
   methods: {
-    async createChart () {                                      
-      this.loading = true
-      await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
-      this.$router.push({path: `/chart/${this.id}`})
+    async createChart () {
+      try {
+        this.loading = true
+        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
+        this.$router.push({path: `/chart/${this.id}`})
+      } catch (error) {
+        this.loading = false
+      }
+    },
+    async deleteChart() {
+      try {
+        this.loading = true
+        const response = await this.$store.dispatch('chartConfig/DELETE_CHART', this.id)
+        this.deletedCard = true
+        this.loading = false
+        return response
+      } catch (error) {
+        this.loading = false
+        throw new Error(error.message)
+      }
+    },
+    shareChart() {
+      try {
+        const chartId = this.id
+        if (chartId) {
+          const iframe = `[vpress id=${chartId}]`
+          // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
+          navigator.clipboard.writeText(iframe);
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Gráfica guardada al portapapeles'
+          })
+        } else {
+          this.$store.dispatch('notifications/open', {
+            color: 'warning',
+            text: 'Primero debes de guardar la gráfica'
+          })
+          throw new Error('Gráfica no guardada.')
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
     requireImg(chartType) {
       try {
