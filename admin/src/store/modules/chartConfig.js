@@ -221,7 +221,7 @@ export default {
             newValue: newValue.value,
             mutationType: newValue.mutationType
           }
-        ) 
+        )
         commit('SET_VIZ_VALUES', newChartValues)
         commit('SET_CHART_ERROR', null)
         return newValue
@@ -251,7 +251,7 @@ export default {
     async GET_CHART_LIST(_, { page, perPage }) {
       try {
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list`,
+          `/wp-json/vpress/v1/chart/list`,
           { page, perPage }
         )
         return response.data
@@ -262,7 +262,7 @@ export default {
     async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {
         const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
+          `/wp-json/vpress/v1/chart/get/${chartId}`
         )
         console.log(response);
         const viz = response.data.data
@@ -310,7 +310,7 @@ export default {
     async GET_WP_CHART({ dispatch }, chartId) {
       try {
         const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
+          `/wp-json/vpress/v1/chart/get/${chartId}`
         )
         const viz = response.data.data
         const chartValues = JSON.parse(viz.value)
@@ -354,7 +354,7 @@ export default {
         }
         if (!id) {
           const saveResponse = await axios.post(
-            `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/create`,
+            `/wp-json/vpress/v1/chart/create`,
             { dataset_id: datasetMeta.id, ...body }
           )
           const savedChart = saveResponse.data
@@ -364,7 +364,7 @@ export default {
           commit('SET_WSP_CHART_ID', savedChart.data)
         } else {
           const updateResponse = await axios.post(
-            `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/update`,
+            `/wp-json/vpress/v1/chart/update`,
             { id, ...body }
           )
           if (updateResponse.data.error) {
@@ -373,12 +373,12 @@ export default {
         }
       } catch (error) {
         throw new Error(error.message)
-      } 
+      }
     },
     async DELETE_CHART(_, id) {
       try {
         const response = await axios.delete(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/delete`,
+          `/wp-json/vpress/v1/chart/delete`,
           { data: { id: id }}
         )
         return response.data
@@ -393,14 +393,14 @@ export default {
           .collection('charts')
           .doc(chartId)
           .get();
-        
+
         if (!document.exists) {
           throw new Error('Lo sentimos, no se encontró la gráfica.');
         }
         const chartValues = document
           .data()
           .chartValues
-        
+
         const viz = new VpressViz(chartValues);
         commit('RESET_WSP', viz)
         return document.data()
@@ -419,7 +419,7 @@ export default {
     xAxis: (_, { chart }) => {
       const mainAxis = chart.xAxis
       const oppsAxis = chart.yAxis
-      const mutationType = 'xAxis' 
+      const mutationType = 'xAxis'
       const slotVariables = []
       switch (chart.chart) {
         case 'bars':
@@ -452,13 +452,13 @@ export default {
         default:
           break;
       }
-      
+
       return slotVariables
     },
     yAxis: (_, { chart }) => {
       const mainAxis = chart.yAxis
       const oppsAxis = chart.xAxis
-      const mutationType = 'yAxis' 
+      const mutationType = 'yAxis'
       const slotVariables = []
       switch (chart.chart) {
         case 'bars':

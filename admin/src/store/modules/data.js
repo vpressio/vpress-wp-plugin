@@ -29,7 +29,7 @@ export default {
     async GET_QUERY_DATA(_, queryBody ) {
       try {
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/query`,
+          `/wp-json/vpress/v1/chart/query`,
           queryBody
         );
         if (response.data.error) {
@@ -73,7 +73,7 @@ export default {
     },
     async GET_WP_DATASETS() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/list`);
+        const response = await axios.get(`/wp-json/vpress/v1/dataset/list`);
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -85,7 +85,7 @@ export default {
     async GET_WP_DATASET_INFO( _ , { column, value  }) {
       try {
         const response = await axios.get(
-          `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/info/${column}/${value}`
+          `/wp-json/vpress/v1/dataset/info/${column}/${value}`
         )
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -109,7 +109,7 @@ export default {
       let { dataset, page, perPage } = payload
       if (!page) page = 1
       if (!perPage) perPage = 10
-      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/dataset/${dataset}/?page=${page}&perPage=${perPage}`
+      let url = `/wp-json/vpress/v1/dataset/${dataset}/?page=${page}&perPage=${perPage}`
       try {
         const response = await axios.get(url);
         return response.data
@@ -179,7 +179,7 @@ export default {
       if (!page) page = 1
       if (!itemsPerPage) itemsPerPage = 10
       if (!q) q = ''
-      let url = `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
+      let url = `/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
       try {
         const response = await axios.get(url);
         return response.data
