@@ -264,6 +264,7 @@ export default {
         const response = await axios.get(
           `${process.env.VUE_APP_API_URL_DOMAIN}/wp-json/vpress/v1/chart/get/${chartId}`
         )
+        console.log(response);
         const viz = response.data.data
         const chartValues = JSON.parse(viz.value)
         const info = await dispatch(

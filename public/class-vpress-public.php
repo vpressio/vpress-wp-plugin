@@ -59,7 +59,48 @@ class Vpress_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+
+	private function is_develop_serve()
+	{
+		$connection = @fsockopen('localhost', '8080');
+
+		if ( $connection ) {
+				return true;
+		}
+
+		return false;
+	}
+
+
+	public function include_html() {
+		global $gdata;
+
+		$gdata = get_query_var('chart');
+		if($gdata)
+    {
+
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/front.php';
+			exit();
+		}
+		return;
+	}
+
+	public function add_chart_query ( $vars ) {
+		$vars[] = 'chart';
+    return $vars;
+	}
+
+
+	public function add_chart_rule () {
+		add_rewrite_rule(
+			'chart/(\d+)/?$',
+			'index.php?chart=$matches[1]',
+			'top'
+		);
+		flush_rewrite_rules();
+	}
+
+	public function enqueue_styles($hook) {
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -74,7 +115,6 @@ class Vpress_Public {
 		 */
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/vpress-public.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -82,8 +122,7 @@ class Vpress_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
-
+	public function enqueue_scripts($hook) {
 		/**
 		 * This function is provided for demonstration purposes only.
 		 *
@@ -95,9 +134,8 @@ class Vpress_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-
+		
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-public.js', array( 'jquery' ), $this->version, false );
-
-	}
+		}	
 
 }
