@@ -1,7 +1,7 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
 import { firestore } from '../../plugins/firebase';
-import axios from 'axios';
+import api from '../../helpers/axios.js' 
 
 export default {
   namespaced: true,
@@ -250,10 +250,7 @@ export default {
     //CHART_CRUD
     async GET_CHART_LIST(_, { page, perPage }) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/chart/list`,
-          { page, perPage }
-        )
+      const response = await api.chart.list({ page, perPage })
         return response.data
       } catch (error) {
         throw new Error(error.message);
@@ -261,10 +258,7 @@ export default {
     },
     async SET_WP_CHART({ commit, dispatch }, chartId) {
       try {
-        const response = await axios.get(
-          `/wp-json/vpress/v1/chart/get/${chartId}`
-        )
-        console.log(response);
+        const response = await api.chart.get(chartId)
         const viz = response.data.data
         const chartValues = JSON.parse(viz.value)
         const info = await dispatch(
@@ -309,9 +303,7 @@ export default {
     },
     async GET_WP_CHART({ dispatch }, chartId) {
       try {
-        const response = await axios.get(
-          `/wp-json/vpress/v1/chart/get/${chartId}`
-        )
+        const response = await api.chart.get(chartId)
         const viz = response.data.data
         const chartValues = JSON.parse(viz.value)
         const info = await dispatch(
@@ -353,8 +345,7 @@ export default {
           img_url: img_url
         }
         if (!id) {
-          const saveResponse = await axios.post(
-            `/wp-json/vpress/v1/chart/create`,
+          const saveResponse = await api.chart.create(
             { dataset_id: datasetMeta.id, ...body }
           )
           const savedChart = saveResponse.data
@@ -363,10 +354,7 @@ export default {
           }
           commit('SET_WSP_CHART_ID', savedChart.data)
         } else {
-          const updateResponse = await axios.post(
-            `/wp-json/vpress/v1/chart/update`,
-            { id, ...body }
-          )
+          const updateResponse = await api.chart.update({ id, ...body })
           if (updateResponse.data.error) {
             throw new Error(updateResponse.data.error);
           }
@@ -377,10 +365,7 @@ export default {
     },
     async DELETE_CHART(_, id) {
       try {
-        const response = await axios.delete(
-          `/wp-json/vpress/v1/chart/delete`,
-          { data: { id: id }}
-        )
+        const response = await api.chart.delete({ data: { id: id }})
         return response.data
       } catch (error) {
         throw new Error(error.message)

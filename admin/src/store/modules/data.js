@@ -1,7 +1,8 @@
 import { storage } from '../../plugins/firebase';
 import { FReader } from '../../plugins/fileReader';
 import vpress from '../../utils/vpress.js';
-import axios from 'axios';
+import api from '../../helpers/axios.js'
+import axios from 'axios'
 
 export default {
   namespaced: true,
@@ -28,10 +29,7 @@ export default {
   actions: {
     async GET_QUERY_DATA(_, queryBody ) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/chart/query`,
-          queryBody
-        );
+        const response = await api.chart.query(queryBody);
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -73,7 +71,7 @@ export default {
     },
     async GET_WP_DATASETS() {
       try {
-        const response = await axios.get(`/wp-json/vpress/v1/dataset/list`);
+        const response = await api.dataset.list();
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -82,11 +80,9 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASET_INFO( _ , { column, value  }) {
+    async GET_WP_DATASET_INFO( _ , { column, value }) {
       try {
-        const response = await axios.get(
-          `/wp-json/vpress/v1/dataset/info/${column}/${value}`
-        )
+        const response = await api.dataset.info({ column, value })
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -109,9 +105,8 @@ export default {
       let { dataset, page, perPage } = payload
       if (!page) page = 1
       if (!perPage) perPage = 10
-      let url = `/wp-json/vpress/v1/dataset/${dataset}/?page=${page}&perPage=${perPage}`
       try {
-        const response = await axios.get(url);
+        const response = await api.dataset.data({ dataset, page, perPage });
         return response.data
       } catch (error) {
         throw new Error(error.message)
@@ -179,9 +174,8 @@ export default {
       if (!page) page = 1
       if (!itemsPerPage) itemsPerPage = 10
       if (!q) q = ''
-      let url = `/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
       try {
-        const response = await axios.get(url);
+        const response = await api.chart.list({ page, itemsPerPage, q });
         return response.data
       } catch (error) {
         throw new Error(error.message)
