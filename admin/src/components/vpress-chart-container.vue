@@ -7,7 +7,7 @@
         h3.generated-subtitle.mb-0 {{ chartTitle('subtitle', 'Subtítulo') }}
     .empty-chart( :id="this.id" )
       .vertical-align
-        p.tiny.label-font(v-show="!iframe") Arrastra algún valor a filas, columnas o color
+        p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
         div(
           v-show="iframe"
           class="progress--layer"
@@ -113,6 +113,9 @@ export default {
       })
     };
   },
+  beforeDestroy() {
+    this.removeChart()
+  },
   computed: {
     chartTitle() {
       return (chartValue, defaultValue) => this.chartConfig[chartValue] !== ''
@@ -213,7 +216,20 @@ export default {
             .select(this.$el)
             .select(`#${this.id}`)
             .node().offsetWidth || 1200;
-      this.height = this.width * 0.6 || 300;
+      console.log(this.width, 'width')
+      console.log(this.windowWidth, 'windowWidth')
+      console.log(
+        d3
+          .select(this.$el)
+          .select(`#${this.id}`)
+          .node().offsetHeight
+        , 'height'
+      )
+      this.height = d3
+          .select(this.$el)
+          .select(`#${this.id}`)
+          .node().offsetHeight
+        console.log( this.height,'heighto');
       /** Configure margins */
       if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
         this.margin.top = 30;
@@ -234,12 +250,7 @@ export default {
         this.margin.left = 15;
         this.margin.right = 15;
       }
-      d3.select(this.$el)
-        .select(`#${this.id}`)
-        .selectAll('*')
-        .remove();
-      d3.selectAll(`.d3-tip.tip-${vm._uid}`).remove();
-      d3.selectAll('.title-tip').remove();
+      this.removeChart()
 
       this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
         if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
@@ -360,7 +371,7 @@ export default {
           width: this.width,
           height: this.height,
           margin: this.margin,
-          legendTranslate: this.windowWidth >= tabletWidth ? 100 : 40 // Only for heatmap legend
+          legendTranslate: this.windowWidth >= 800 ? 100 : 40 // Only for heatmap legend
         },
         xAxis: {
           enabled:
@@ -378,11 +389,7 @@ export default {
           formatSuffix: this.chartConfig.suffix || '',
           text: this.chartConfig.xAxis.title,
           ticks: {
-            enabled:
-              this.chartConfig.chart === 'scatter' ||
-              (this.chartConfig.chart === 'bars' && this.chartConfig.xAxis.type === 'linear')
-                ? true
-                : false,
+            enabled: false,
             style: 'dashLine',
             ticks:
               this.chartConfig.chart === 'timeline' &&
@@ -991,6 +998,14 @@ export default {
       } else {
         return data;
       }
+    },
+    removeChart() {
+      d3.select(this.$el)
+        .select(`#${this.id}`)
+        .selectAll('*')
+        .remove();
+      d3.selectAll(`.d3-tip.tip-${this._uid}`).remove();
+      d3.selectAll('.title-tip').remove();
     }
   },
   mounted() {

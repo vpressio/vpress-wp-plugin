@@ -5,7 +5,7 @@
       :data="chartData"
       :chartConfig="chartConfig"
       iframe
-      :margin="{ top: 10, right: 100, bottom: 5, left: 100 }"
+      :margin="{ top: 10, right: 20, bottom: 10, left: 30 }"
     /> 
   </div>
 </template>
