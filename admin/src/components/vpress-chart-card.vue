@@ -3,11 +3,16 @@
     v-if="!deletedCard"
     :loading="loading"
     class="mx-auto"
+
   >
-    <v-img
-      height="250"
-      :src="requireImg(chartValues.chart)"
-    ></v-img>
+    <div style="background-color:#222A32">
+      <v-img
+        width="95%"
+        contain
+        color="#222A32"
+        :src="`/wp-content/uploads/vpress/images/${id}.png`"
+      ></v-img>
+    </div>
     <v-card-title>{{ chartValues.title }}</v-card-title>
     <v-card-text>
       <div>

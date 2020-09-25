@@ -10,6 +10,7 @@ define('LIST_CHART_ROUTE','/chart/list');
 define('CREATE_CHART_ROUTE','/chart/create');
 define('UPDATE_CHART_ROUTE','/chart/update');
 define('DELETE_CHART_ROUTE','/chart/delete');
+define('IMAGE_CHART_ROUTE','/chart/image');
 //EDITABLE
 define('QUERY_CHART_DATA', '/chart/query');
 define('GET_CHART_DATA_ROUTE','/chart/columns');
