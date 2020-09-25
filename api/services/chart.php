@@ -411,7 +411,7 @@ function update_chart( $request ) {
       '%s',
     ), 
     array( '%d' )
-);
+  );
 
   $response = array(
     'data' => $data,
