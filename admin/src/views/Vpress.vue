@@ -1,9 +1,6 @@
 <template>
 <div class="vpress-navigator">
   <div class="vpress-app-bar">
-    <div class="beta-banner-container">
-      <img class="beta-banner" src="../assets/images/vpress-beta.png" alt="beta">
-    </div>
     <VpressAppBar/>
   </div>
   <v-card class="vpress-sidebar" tile flat color="#222A32">
