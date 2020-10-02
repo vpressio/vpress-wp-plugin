@@ -12,8 +12,30 @@ export default {
 };
 </script>
 
-<style>
-.v-input input {
+<style lang="scss">
+.v-application {
+  margin-left: -20px;
+}
+.v-input {
+  input {
+    border: none;
+  }
+  input:focus {
+    border: none;
+    box-shadow: none;
+    outline: none;
+  }
+}
+a:focus, textarea:focus {
   border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+input.readonly,
+input[readonly],
+textarea.readonly,
+textarea[readonly] {
+  background-color: transparent;
 }
 </style>

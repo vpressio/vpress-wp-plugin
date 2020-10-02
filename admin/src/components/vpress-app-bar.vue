@@ -2,37 +2,30 @@
   <v-app-bar dense flat class="gradient v-step-0 v-step-3" :style="cssProps">
     <v-img
       :src="appBarLogo"
-      class="ml-5 vpress-image logo-margin"
+      class="ml-5 vpress-image"
       :max-width="`${this.cssProps['--logo-width']}px`"
       alt="Vpress logo"
     />
-    <span class="ml-10 grey--text">
-      Selecciona
-    </span>
-    <v-menu attach=".v-main">
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          color="white"
-          dark
-          v-bind="attrs"
-          v-on="on"
-          text
-        >
-          {{ currentRoute }}
-          <v-icon right dark>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item
-          v-for="(item, index) in items"
-          :key="index"
-          :to="item.path"
-          link
-        >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <v-img
+      :src="require(`../assets/images/btn-beta.png`)"
+      class="ml-1"
+      max-width="35px"
+      alt="Beta image"
+    />
+    <v-spacer></v-spacer>
+    <v-btn
+      v-for="(item, index) in items"
+      :key="index"
+      :to="item.path"
+      text
+      dark
+      small
+    >
+      <v-icon left dark>
+        {{ item.icon }}
+      </v-icon>
+      {{ item.title }}
+    </v-btn>
   </v-app-bar>
 </template>
 <script>
@@ -42,16 +35,19 @@ export default {
     items: [
       {
         title: 'Análisis',
-        path: '/'
+        path: '/',
+        icon: 'mdi-table-search'
       },
       {
         title: 'Gráficas',
-        path: '/chart/list'
+        path: '/chart/list',
+        icon: 'mdi-chart-bar'
       },
-      // {
-      //   title: 'Bases de datos',
-      //   path: '/dataset/list'
-      // },
+      {
+        title: 'Bases de datos',
+        path: '/dataset/list',
+        icon: 'mdi-database'
+      },
     ],
   }),
   computed: {
@@ -64,17 +60,6 @@ export default {
     },
     appBarLogo() {
       return require(`../assets/images/${this.cssProps['--logo']}`)
-    },
-    currentRoute() {
-      let name = '';
-      if (this.$route.path === '/' || this.$route.params.chartid) {
-        name = 'Análisis';
-      } else if (this.$route.path === '/chart/list') {
-        name = 'Gráficas';
-      } else if (this.$route.path === '/dataset/list') {
-        name = 'Bases de datos';
-      }
-      return name;
     }
   }
 };
@@ -82,8 +67,5 @@ export default {
 <style lang="scss">
 .gradient {
   background: var(--bg-linear-gradient);
-}
-.logo-margin {
-  margin: 0 0 10px 30px !important;
 }
 </style>

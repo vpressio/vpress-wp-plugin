@@ -186,7 +186,94 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-    }
+    },
+    async UPLOAD_DATASET(_, payload) {
+      try {
+        const response = await axios.post(
+          `/wp-json/vpress/v1/dataset/upload`,
+          payload,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async CREATE_DATASET(_, payload) {
+      try {
+        const response = await axios.post(
+          `/wp-json/vpress/v1/dataset/create`,
+          {
+            name: payload,
+            slug: payload,
+            permissions: "public",
+            owner_id: window.userSettings.uid
+          }
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async UPDATE_DATASET(_, payload) {
+      try {
+        const response = await axios.put(
+          `/wp-json/vpress/v1/dataset/update`,
+          {
+            id: payload.id,
+            name: payload.name,
+            description: payload.description,
+            tag: payload.tag,
+            source: payload.source,
+            permissions: payload.permissions,
+            owner_id: window.userSettings.uid
+          }
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async DELETE_DATASET(_, id) {
+      try {
+        const response = await axios.delete(
+          `/wp-json/vpress/v1/dataset/delete`,
+          { data: { id: id }}
+        )
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        return response.data.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
+    async GET_DATASET_LIST(_, payload) {
+      let { page, itemsPerPage, q } = payload
+      if (!page) page = 1
+      if (!itemsPerPage) itemsPerPage = 10
+      if (!q) q = ''
+      let url = `/wp-json/vpress/v1/datasets/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
+      try {
+        const response = await axios.get(url);
+        return response.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
   },
   getters: {
     dataType: state => state.dataVariables,
