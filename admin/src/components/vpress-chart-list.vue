@@ -9,7 +9,7 @@
         <v-col>
           <v-text-field
             name="search"
-            label="Buscar por título, descripción o etiqueta"
+            label="Buscar por título, descripción o etiquetas"
             solo
             clearable
             v-model="q"
@@ -17,11 +17,10 @@
             prepend-inner-icon="mdi-magnify"
           ></v-text-field>
         </v-col>
-        <v-col class="shrink">
+        <v-col class="shrink pl-0">
           <v-btn
             large
             color="primary"
-            class="mr-4"
             type="submit"
           >
             Buscar

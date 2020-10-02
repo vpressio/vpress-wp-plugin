@@ -371,6 +371,17 @@ export default {
         throw new Error(error.message)
       }
     },
+    async SAVE_IMAGE_CHART(_, payload) {
+      try {
+        const response = await axios.post(
+          `/wp-json/vpress/v1/chart/image`,
+          { string: payload }
+        )
+        return response.data
+      } catch (error) {
+        throw new Error(error.message)
+      }
+    },
     //Deprecated
     async GET_ST_CHART({ commit }, chartId) {
       try {

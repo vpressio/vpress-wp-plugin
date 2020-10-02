@@ -1,6 +1,6 @@
 <template>
     <div class="config__container" :style="cssProps">
-      <div style="width:100%;" class="pb-5">
+      <div style="width:100%;">
         <v-row class="ma-0" no-gutters>
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
             <v-tabs
@@ -96,7 +96,7 @@ import VpressInputControl from './vpress-config-input.vue';
 import VpressColorSelection from './vpress-config-color-selection.vue';
 import VpressSlotGroup from './vpress-slot-group.vue';
 
-import downloadChart from '../utils/downloadChart.js';
+import { downloadChart, stringChart } from '../utils/downloadChart.js';
 
 export default {
   name: 'Vpress',
@@ -244,7 +244,12 @@ export default {
   methods: {
     async saveChart() {
       try {
-        await this.$store.dispatch('chartConfig/SAVE_CHART')
+        await this.$store.dispatch('chartConfig/SAVE_CHART');
+        stringChart(
+          `#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`,
+          this.$store.getters['chartConfig/workspace'][this.$store.getters['chartConfig/activeVizIdx']].id
+        )
+        // await this.$store.dispatch('chartConfig/SAVE_IMAGE_CHART', stringImg);
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Gráfica guardada con éxito'

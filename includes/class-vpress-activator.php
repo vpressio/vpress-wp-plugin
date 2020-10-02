@@ -29,7 +29,7 @@ class Vpress_Activator {
 	 *
 	 * @since    1.0.0
 	 */
-	public static function activate() {
+	public static function create_tables() {
 		global $wpdb;
 
 		$table_datasets = $wpdb->prefix . 'vpresscore_datasets';
@@ -44,10 +44,10 @@ class Vpress_Activator {
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			permissions TINYTEXT NOT NULL,
 			name TINYTEXT NOT NULL,
-			description TEXT NOT NULL,
+			description TEXT NULL,
 			slug TINYTEXT NOT NULL,
-			tag TINYTEXT NOT NULL,
-			source TINYTEXT NOT NULL,
+			tag TINYTEXT NULL,
+			source TINYTEXT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -59,11 +59,11 @@ class Vpress_Activator {
 			dataset_id MEDIUMINT(9) NOT NULL,
 			value TEXT NOT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
-			tags TEXT NOT NULL,
-			title TEXT NOT NULL,
-			description TEXT NOT NULL,
+			tags TEXT NULL,
+			title TEXT NULL,
+			description TEXT NULL,
 			permissions TINYTEXT NOT NULL,
-			img_url TINYTEXT NOT NULL,
+			img_url TINYTEXT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
@@ -83,4 +83,23 @@ class Vpress_Activator {
 		
 	}
 
+	/**
+	 * Short Description. (use period)
+	 *
+	 * Long Description.
+	 *
+	 * @since    1.0.0
+	 */
+	public static function create_uploads_folder() {
+		$upload_dir = wp_upload_dir();
+    $upload_dir = $upload_dir['basedir'];
+		$datasets_dir = $upload_dir . '/vpress/datasets';
+		$images_dir = $upload_dir . '/vpress/images';
+    if ( ! is_dir( $datasets_dir ) ) {
+      wp_mkdir_p( $datasets_dir );
+		}
+		if ( ! is_dir( $images_dir ) ) {
+      wp_mkdir_p( $images_dir );
+		} 
+	}
 }

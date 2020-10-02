@@ -1,9 +1,21 @@
+import axios from 'axios';
 import { saveAs } from 'file-saver';
 
-const downloadChart = (chartId) => {
+export const stringChart = async (chartId, filename) => {
   const svgNode = document.querySelector(chartId).firstChild;
   const svgString = getSVGString(svgNode);
-  svgString2Image( svgString, 600, 400, 'png', ( dataBlob ) =>{
+  svgString2Image(svgString, 600, 400, 'png', (dataBlob) => {
+    axios.post(
+      `/wp-json/vpress/v1/chart/image`,
+      { string: dataBlob, name: filename }
+    )
+  });
+}
+
+export const downloadChart = (chartId) => {
+  const svgNode = document.querySelector(chartId).firstChild;
+  const svgString = getSVGString(svgNode);
+  svgString2Image(svgString, 600, 400, 'png', (dataBlob) => {
     saveAs(dataBlob, 'vpress-chart.png')
    })
 }
@@ -46,7 +58,7 @@ const getSVGString = (svgNode) => {
     let extractedCSSText = "";
     for (let i = 0; i < document.styleSheets.length; i++) {
       let s = document.styleSheets[i];
-      
+
       try {
           if(!s.cssRules) continue;
       } catch( e ) {
@@ -60,7 +72,7 @@ const getSVGString = (svgNode) => {
           extractedCSSText += cssRules[r].cssText;
       }
     }
-    
+
 
     return extractedCSSText;
 
@@ -72,7 +84,7 @@ const getSVGString = (svgNode) => {
 
   function appendCSS( cssText, element ) {
     let styleElement = document.createElement("style");
-    styleElement.setAttribute("type","text/css"); 
+    styleElement.setAttribute("type","text/css");
     styleElement.innerHTML = cssText;
     let refNode = element.hasChildNodes() ? element.children[0] : null;
     element.insertBefore( styleElement, refNode );
@@ -94,16 +106,14 @@ const svgString2Image = (svgString, width, height, format, callback) => {
   image.onload = function() {
     context.clearRect ( 0, 0, width, height );
     context.drawImage(image, 0, 0, width, height);
-
-    canvas.toBlob( function(blob) {
-      let filesize = Math.round( blob.length/1024 ) + ' KB';
-      if ( callback ) callback( blob, filesize );
-    });
-
-    
+    // canvas.toBlob( function(blob) {
+    //   let filesize = Math.round( blob.length/1024 ) + ' KB';
+    //   if (callback) callback(blob, filesize);
+    // });
+    var pngData = canvas.toDataURL('image/' + format);
+    callback(pngData);
   };
-
-image.src = imgsrc;
+  image.src = imgsrc;
 }
 
-export default downloadChart;
+export default { downloadChart, stringChart };

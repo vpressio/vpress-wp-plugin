@@ -22,7 +22,9 @@
       <v-label>{{ fileTypeDynamicMessage }}</v-label>
     </div>
     <div v-show="!showFilepond" class="vpress-filepond--content">
-      <v-card-title class="vpress-filepond--instruction">Arrastra y suelta tus datos</v-card-title>
+      <v-card-title class="vpress-filepond--instruction">
+        Arrastra y suelta tus datos
+      </v-card-title>
       <v-btn
         class="my-5"
         rounded
@@ -31,14 +33,18 @@
         height="50"
         @click="activateFileInput"
       >
-        <v-icon class="icon-upload" left>mdi-file-upload-outline</v-icon>Subir datos
+        <v-icon class="icon-upload" left>mdi-file-upload-outline</v-icon>
+        Subir datos
       </v-btn>
       <input v-show="false" type="file" ref="fileInput" id="fileInput" @input="fileInputAction" />
-      <v-label>Formatos permitidos xls - xlsx - csv</v-label>
+      <v-label>
+        Formatos permitidos - csv
+      </v-label>
     </div>
   </v-card>
 </template>
 <script>
+// import axios from 'axios'
 import vueFilePond from 'vue-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm';
 import 'filepond/dist/filepond.min.css';
@@ -62,17 +68,24 @@ export default {
     }
   },
   methods: {
-    handleFile(file) {
-      this.$refs.pond
-        .addFile(file)
-        .then(file => {
-          this.$emit('update:file', [file]);
+    async handleFile(file) {
+      let formData = new FormData();
+      formData.append('file', file);
+      try {
+        const table_name = await this.$store.dispatch('data/UPLOAD_DATASET', formData)
+        await this.$store.dispatch('data/CREATE_DATASET', table_name)
+        this.$emit('update:file', table_name);
+        this.$store.dispatch('notifications/open', {
+          color: 'success',
+          text: 'Dataset guardado con éxito'
         })
-        .catch(() => {
-          this.fileTypeMessage =
-            'Hubo un error al intentar abrir este archivo.';
-          this.showFilepond = true;
-        });
+      } catch (error) {
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Hubo un error al intentar guardar el dataset'
+        })
+        this.showFilepond = true;
+      }
     },
     activateFileInput() {
       this.$refs.fileInput.click();
@@ -91,6 +104,7 @@ export default {
   }
 };
 </script>
+
 <style lang="scss" scoped>
 .vpress-filepond {
   border: dashed #c3c3c3;
@@ -102,13 +116,11 @@ export default {
   border-bottom-right-radius: 30px !important;
   border-bottom-left-radius: 30px !important;
 }
-
 .vpress-filepond--content {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .vpress-filepond--instruction {
   font-size: 1.8rem;
   color: #42454c;
@@ -120,7 +132,6 @@ export default {
   padding-left: 21px;
   padding-right: 10px;
 }
-
 .filepond--width {
   width: 80%;
 }
