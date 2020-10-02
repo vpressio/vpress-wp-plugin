@@ -19,7 +19,7 @@ define('GET_CHART_DATA_ROUTE_TEST','/test/columns');
 //READABLE
 define('UPLOAD_DATASET','/dataset/upload');
 define('GET_DATASET_ROUTE','/dataset/get/(?P<id>[\d]+)');
-define('LIST_DATASET_ROUTE','/dataset/list');
+define('LIST_DATASET_ROUTE','/datasets/list');
 define('CREATE_DATASET_ROUTE','/dataset/create');
 define('UPDATE_DATASET_ROUTE','/dataset/update');
 define('DELETE_DATASET_ROUTE','/dataset/delete');

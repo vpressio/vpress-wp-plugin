@@ -190,16 +190,19 @@ function list_datasets( $request ) {
   $query_total = "SELECT COUNT(*) AS total FROM $table_name";
   $query = 
   "SELECT
-    created,
-    updated,
-    id,
-    name,
-    slug,
-    tag,
-    source,
-    owner_id,
-    permissions
-  FROM $table_name
+    d.*,
+    CASE 
+      WHEN (DATA_LENGTH + INDEX_LENGTH) >= 1048576
+        THEN  CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 1),' ' , 'MB')
+      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1048576 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
+        THEN CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024, 1),' ' , 'KB')
+      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1024 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
+        THEN CONCAT((DATA_LENGTH + INDEX_LENGTH),' ' , 'Bytes')
+    END AS size,
+    TABLE_ROWS AS rows
+  FROM $table_name as d
+  LEFT JOIN information_schema.tables as i
+  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)
   LIMIT $start_at, $per_page";
 
   $data = $wpdb->get_results($query);
@@ -262,7 +265,6 @@ function update_dataset( $request ) {
   $id = (int)$request->get_param('id');
   $permissions = $request->get_param('permissions');
   $name = $request->get_param('name');
-  $slug = $request->get_param('slug');
   $description = $request->get_param('description');
   $tag = $request->get_param('tag');
   $source = $request->get_param('source');
@@ -273,7 +275,6 @@ function update_dataset( $request ) {
     array( 
       'permissions' => $permissions,
       'name' => $name,
-      'slug' => $slug,
       'description' => $description,
       'tag' => $tag,
       'source' => $source,
@@ -281,7 +282,6 @@ function update_dataset( $request ) {
     ), 
     array( 'id' => $id ),
     array( 
-      '%s',
       '%s',
       '%s',
       '%s',
@@ -305,7 +305,10 @@ function delete_dataset( $request ) {
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_datasets';
 
+  $table = $wpdb->get_row("SELECT slug FROM $table_name WHERE id = $id");
+  $slug = "vpress_" . $table->slug;
   $data = $wpdb->delete( $table_name, array( 'id' => $id ), array( '%d' ) );
+  $remove = $wpdb->query( "DROP TABLE IF EXISTS $slug" );
 
   $response = array(
     'data' => $data,
