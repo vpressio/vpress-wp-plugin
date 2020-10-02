@@ -43,15 +43,15 @@
             {{ updated }}
           </span>
         </v-col>
-        <v-col class="shrink">
-          <v-btn color="primary" text @click="createChart">
-            <v-icon small left>mdi-pencil</v-icon>
+        <v-col class="d-flex justify-end">
+          <v-btn icon color="primary" @click="createChart">
+            <v-icon small>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn color="primary" text @click="shareChart">
-            <v-icon small left>mdi-share-variant</v-icon>
+          <v-btn icon color="primary" @click="shareChart">
+            <v-icon small>mdi-share-variant</v-icon>
           </v-btn>
-          <v-btn color="error1" text @click="deleteChart">
-            <v-icon small left>mdi-trash-can-outline</v-icon>
+          <v-btn icon color="error1" @click="deleteChart">
+            <v-icon small>mdi-trash-can-outline</v-icon>
           </v-btn>
         </v-col>
       </v-row>
