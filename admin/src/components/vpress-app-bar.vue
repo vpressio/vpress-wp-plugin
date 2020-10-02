@@ -48,10 +48,10 @@ export default {
         title: 'Gráficas',
         path: '/chart/list'
       },
-      // {
-      //   title: 'Bases de datos',
-      //   path: '/dataset/list'
-      // },
+      {
+        title: 'Bases de datos',
+        path: '/dataset/list'
+      },
     ],
   }),
   computed: {

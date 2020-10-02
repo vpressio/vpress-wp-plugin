@@ -29,7 +29,7 @@
     </v-row>
     <v-row v-show="uploadMethod === 'upload'" class="ma-0">
       <v-col class="py-0" cols="12">
-        <h3 class="dato-prueba">DATOS DE PRUEBA</h3>
+        <h3 class="dato-prueba">DATASETS</h3>
       </v-col>
       <v-col
         md="3"
@@ -68,7 +68,9 @@
           <v-card-subtitle
             class="px-3 pb-3"
             style="line-height:1"
-          >{{ dataSet.size }} - {{ intFromat(dataSet.rows) }} filas</v-card-subtitle>
+          >
+            {{ dataSet.size }} | ~{{ intFromat(dataSet.rows) }} filas
+          </v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -168,9 +170,11 @@ export default {
   },
   watch: {
     files(newFiles) {
-      if (newFiles.length >= 1){
+      if (Array.isArray(newFiles) && newFiles.length >= 1){
         this.datasetMeta.slug = this.files[0].file.name
         this.loadFile(this.files[0].file);
+      } else {
+        this.getWPDatasets();
       }
     },
     tourFile(newTourFile) {
@@ -272,7 +276,7 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    
+
     async loadFile(file) {
       try {
         const self = this;

@@ -1,6 +1,6 @@
 <template>
     <div class="config__container" :style="cssProps">
-      <div style="width:100%;" class="pb-5">
+      <div style="width:100%;">
         <v-row class="ma-0" no-gutters>
           <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
             <v-tabs
