@@ -27,7 +27,6 @@ export default (strategy) => {
             { path: '/', component: VpressChartEditor },
             { path: '/chart/list', component: VpressChartList },
             { path: '/dataset/list', component: VpressDatasetList },
-            { path: '/chart/:chartid', component: VpressChartEditor }
           ]
         },
         {

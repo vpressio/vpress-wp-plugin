@@ -747,11 +747,11 @@ export default {
       const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
-        .parseDate(vm.$store.getters['data/dateFormat'])
+        .parseDate(vm.$store.getters['workspace/dateFormat'])
         .tip(function(d) {
           let html = '';
           html += d.name + '<br>';
-          let format = vm.$store.getters['data/dateFormat'];
+          let format = vm.$store.getters['workspace/dateFormat'];
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
             if (typeof timeline.utils.format(d.y) === 'string') {

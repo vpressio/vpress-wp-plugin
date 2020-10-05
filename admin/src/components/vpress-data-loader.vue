@@ -65,10 +65,9 @@
             rounded
             outlined
             @click="cleanComponentData"
-            :disabled="data.length === 0 && datasetMeta.origin !== 'api'"
           >Limpiar</v-btn>
           <v-btn
-            :disabled="data.length === 0 && datasetMeta.origin !== 'api'"
+            :disabled="!datasetMeta.slug"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -109,9 +108,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-if="datasetMeta.slug" class="ma-0">
+    <v-row v-show="datasetMeta.slug" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable :datasetMeta="datasetMeta" :data="data"/>
+        <VpressDataTable/>
       </v-col>
     </v-row>
   </div>
@@ -119,6 +118,8 @@
 <script>
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
+import api from '../helpers/axios';
+import FReader from '../plugins/fileReader'
 
 export default {
   name: 'VpressDataLoader',
@@ -126,7 +127,7 @@ export default {
     VpressFilepond,
     VpressDataTable
   },
-  props: ['tabChange', 'tourFile'],
+  props: ['tabChange'],
   data() {
     return {
       data: [],
@@ -148,7 +149,6 @@ export default {
   watch: {
     files(newFiles) {
       if (Array.isArray(newFiles) && newFiles.length >= 1){
-        this.datasetMeta.slug = this.files[0].file.name
         this.loadFile(this.files[0].file);
       } else {
         this.getWPDatasets();
@@ -165,13 +165,14 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        if( this.$route.params.chartid && this.$store.getters['data/datasetMeta'].slug) {
-          this.datasetMeta = this.$store.getters['data/datasetMeta']
-          this.nextTab()
-        } else if (this.$route.params.chartid) {
-          const payload = await this.$store.dispatch('chartConfig/SET_WP_CHART', this.$route.params.chartid)
-          this.datasetMeta = payload.datasetMeta
-          this.data = []
+        const { dataset, chart } = this.$route.query
+        if(dataset) {
+         const { data } = await api.dataset.get(dataset)
+         
+         this.selectWPDataset(data.data)
+        }
+        if(dataset && chart) {
+          // const chartRes = await api.chart.get(chart)
           this.nextTab()
         }
       } catch (error) {
@@ -181,26 +182,20 @@ export default {
     },
     async getWPDatasets() {
       try {
-        const dataSets = await this.$store.dispatch(
-          'data/GET_DATASET_LIST',
-          { page: 1, itemsPerPage: 4 }
-          )
-        this.WPDataSets = dataSets.data;
-      } catch(error) {
-        this.errorMessage = error.message;
+        const response = await api.dataset.list({ page: 1, itemsPerPage: 4 });
+        if(response.data)
+        this.WPDataSets = response.data.data
+      } catch (error) {
+        throw new Error(error.message)
       }
     },
     async selectWPDataset(dataset) {
       try {
         this.data = []
-        const info = await this.$store.dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { id: dataset.id }
+        this.datasetMeta = await this.$store.dispatch(
+          'workspace/ADD_DATASET',
+          dataset,
         )
-        this.datasetMeta = {
-          ...info,
-          origin: 'api'
-        }
       } catch(error) {
         this.errorMessage = error.message;
       }
@@ -208,9 +203,8 @@ export default {
     async loadFile(file) {
       try {
         const self = this;
-        self.datasetMeta.origin = 'file'
         self.loading = true;
-        const content = await this.$store.dispatch('data/READ_FILE', file);
+        const content = await FReader.readCSV(file);
         self.headers = self.extractSampleHeaders(content[0]);
         self.data = content;
         setTimeout(() => {
@@ -279,20 +273,15 @@ export default {
         sortable: true
       }));
     },
-    cleanComponentData() {
+    async cleanComponentData() {
+      this.datasetMeta = await this.$store.dispatch('workspace/REMOVE_DATASET')
       this.data = [];
       this.headers = [];
-      this.datasetMeta.origin = 'file'
       this.files = [];
-      this.$store.dispatch('data/SAVE_DATA', { data: [], datasetMeta: {} });
     },
     nextTab() {
+       
       this.$emit('update:tabChange', 1);
-      if (this.datasetMeta.origin !== 'api') this.saveData(this.data, this.datasetMeta);
-    },
-    saveData(data, datasetMeta) {
-      this.$store.dispatch('chartConfig/RESET_WSP');
-      this.$store.dispatch('data/SAVE_DATA', { data: data, datasetMeta: datasetMeta});
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;

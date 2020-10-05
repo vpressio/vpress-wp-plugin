@@ -58,7 +58,6 @@
     </v-card-actions>
   </v-card>
 </template>
-
 <script>
 export default {
   name: 'VpressChartCard',
@@ -109,8 +108,11 @@ export default {
     async createChart () {
       try {
         this.loading = true
-        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
-        this.$router.push({path: `/chart/${this.id}`})
+        this.$router.push(
+          {
+            path: `/`,
+            query: { dataset: this.dataset_id, chart: this.id }}
+          )
       } catch (error) {
         this.loading = false
       }
@@ -146,13 +148,6 @@ export default {
         }
       } catch (error) {
         throw new Error(error.message);
-      }
-    },
-    requireImg(chartType) {
-      try {
-        return require(`../assets/images/${chartType}.png`);
-      } catch (error) {
-        return require('../assets/images/spineplot.png')
       }
     }
   }

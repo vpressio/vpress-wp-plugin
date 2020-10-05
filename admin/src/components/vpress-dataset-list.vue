@@ -56,9 +56,11 @@
       :loading="loading"
       hide-default-header
     >
-      <template v-slot:item.name="{ item }">
-        <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
-        <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
+      <template v-slot:item.name="{ item }" >
+        <div style="cursor:pointer" @click="selectDataset(item)">
+          <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
+          <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
+        </div>
       </template>
       <template v-slot:item.permissions="{ item }">
         <p
@@ -144,6 +146,8 @@
   </v-container>
 </template>
 <script>
+import api from '../helpers/axios'
+
 export default {
   name: 'VpressDatasetList',
   data: () => ({
@@ -194,23 +198,42 @@ export default {
     }
   },
   methods: {
-    async getDatasets() {
-      this.loading = true
-      const { page, itemsPerPage } = this.options
-      const obj = {
-        page,
-        itemsPerPage,
-        q: this.q
+    selectDataset(dataset) {
+      try {
+        this.loading = true
+        this.$router.push(
+          {
+            path: `/`,
+            query: { dataset: dataset.id}}
+          )
+      } catch (error) {
+        this.loading = false
       }
-      const data = await this.$store.dispatch('data/GET_DATASET_LIST', obj);
-      data.data.forEach(element => {
-        element.tags = element.tags
-          ? element.tags.split(', ')
-          : element.tags = []
-      });
-      this.items = data.data
-      this.total = data.total
-      this.loading = false
+    },
+    async getDatasets() {
+      try {
+        this.loading = true
+        const { page, itemsPerPage } = this.options
+        const obj = {
+          page,
+          itemsPerPage,
+          q: this.q
+        }
+
+        const { data } = await api.dataset.list(obj);
+        data.data.forEach(element => {
+          element.tags = element.tags
+            ? element.tags.split(', ')
+            : element.tags = []
+        });
+        this.items = data.data
+        this.total = data.total
+        this.loading = false
+        
+      } catch (error) {
+        
+        this.loading = false
+      }
     },
     intFromat(number) {
       return new Intl.NumberFormat().format(number)
@@ -229,19 +252,26 @@ export default {
     },
     async save () {
       if (this.editedIndex > -1) {
-        Object.assign(this.items[this.editedIndex], this.editedItem)
-        await this.$store.dispatch('data/UPDATE_DATASET', {
-          id: parseInt(this.editedItem.id),
-          name: this.editedItem.name,
-          description: this.editedItem.description,
-          tag: this.editedItem.tag,
-          source: this.editedItem.source,
-          permissions: this.editedItem.permissions
-        });
-        this.$store.dispatch('notifications/open', {
-          color: 'success',
-          text: 'Base de datos actualizada con éxito'
-        })
+        try {
+          Object.assign(this.items[this.editedIndex], this.editedItem)
+          const response = await api.dataset.update({
+            id: parseInt(this.editedItem.id),
+            name: this.editedItem.name,
+            description: this.editedItem.description,
+            tag: this.editedItem.tag,
+            source: this.editedItem.source,
+            permissions: this.editedItem.permissions
+          });
+          if (response.data.error) {
+            throw new Error(response.data.error);
+          }
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Base de datos actualizada con éxito'
+          })
+        } catch (error) {
+          throw new Error(error.message)
+        }
       } else {
         this.items.push(this.editedItem)
       }
@@ -250,7 +280,10 @@ export default {
     async deleteItem (item) {
       const index = this.items.indexOf(item)
       if (confirm('¿Esta seguro de eliminar esta base de datos?')) {
-        await this.$store.dispatch('data/DELETE_DATASET', parseInt(item.id));
+        const response = await api.dataset.delete({ data: { id: parseInt(item.id) }});
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
         this.items.splice(index, 1)
         this.$store.dispatch('notifications/open', {
           color: 'success',

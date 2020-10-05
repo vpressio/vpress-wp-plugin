@@ -1,6 +1,5 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
-import { firestore } from '../../plugins/firebase';
 import api from '../../helpers/axios.js' 
 
 export default {
@@ -197,7 +196,7 @@ export default {
         if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
           commit('SET_LOAD_STATE', true)
           const data = await dispatch(
-              'data/GET_CHART_DATA',
+              'workspace/GET_CHART_DATA',
               { chartValues: newChartValues, chartIndex: state.activeVizIdx },
               { root: true }
           )
@@ -247,58 +246,6 @@ export default {
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
 
     },
-    //CHART_CRUD
-    async GET_CHART_LIST(_, { page, perPage }) {
-      try {
-      const response = await api.chart.list({ page, perPage })
-        return response.data
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
-    async SET_WP_CHART({ commit, dispatch }, chartId) {
-      try {
-        const response = await api.chart.get(chartId)
-        const viz = response.data.data
-        const chartValues = JSON.parse(viz.value)
-        const info = await dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { column: 'id', value: viz.dataset_id },
-          { root: true }
-        )
-        const datasetMeta = { ...info, origin: 'api'}
-        const data = await dispatch(
-          'data/GET_CHART_DATA',
-          {
-            chartValues: chartValues,
-            dataSetSlug: datasetMeta.slug
-          },
-          { root: true }
-          )
-        await dispatch('data/SAVE_DATA', { data: data, datasetMeta: datasetMeta }, { root: true })
-        commit(
-          'RESET_WSP',
-          new VpressViz(
-            chartValues,
-            viz.id,
-            null,
-            viz.dataset_id,
-            data,
-            viz.description,
-            viz.permission,
-            viz.img_url,
-          )
-        )
-        const context = {
-          chartConfig: chartValues,
-          chartData: data,
-          datasetMeta: datasetMeta
-        }
-        return context
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
         const {
@@ -310,7 +257,7 @@ export default {
           img_url
         } = getters.viz
 
-        const datasetMeta = rootGetters['data/datasetMeta']
+        const datasetMeta = rootGetters['workspace/activeDataset']
         const body = {
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
@@ -355,28 +302,6 @@ export default {
         throw new Error(error.message)
       }
     },
-    //Deprecated
-    async GET_ST_CHART({ commit }, chartId) {
-      try {
-        const document = await firestore
-          .collection('charts')
-          .doc(chartId)
-          .get();
-
-        if (!document.exists) {
-          throw new Error('Lo sentimos, no se encontró la gráfica.');
-        }
-        const chartValues = document
-          .data()
-          .chartValues
-
-        const viz = new VpressViz(chartValues);
-        commit('RESET_WSP', viz)
-        return document.data()
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    }
   },
   getters: {
     workspace: state => state.workspace,

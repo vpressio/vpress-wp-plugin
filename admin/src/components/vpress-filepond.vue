@@ -44,7 +44,7 @@
   </v-card>
 </template>
 <script>
-// import axios from 'axios'
+import api from '../helpers/axios'
 import vueFilePond from 'vue-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm';
 import 'filepond/dist/filepond.min.css';
@@ -72,9 +72,22 @@ export default {
       let formData = new FormData();
       formData.append('file', file);
       try {
-        const table_name = await this.$store.dispatch('data/UPLOAD_DATASET', formData)
-        await this.$store.dispatch('data/CREATE_DATASET', table_name)
-        this.$emit('update:file', table_name);
+        const uploadRes = await api.dataset.upload(
+          formData
+        )
+        if (uploadRes.data.error) {
+          throw new Error(uploadRes.data.error);
+        }
+        const createRes = await api.dataset.create({
+          name: uploadRes.data.data,
+          slug: uploadRes.data.data,
+          permissions: "public",
+          owner_id: window.userSettings.uid
+        })
+        if (createRes.data.error) {
+          throw new Error(createRes.data.error);
+        }
+        this.$emit('update:file', uploadRes.data.data);
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Dataset guardado con éxito'

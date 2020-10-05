@@ -23,5 +23,4 @@ define('LIST_DATASET_ROUTE','/dataset/list');
 define('CREATE_DATASET_ROUTE','/dataset/create');
 define('UPDATE_DATASET_ROUTE','/dataset/update');
 define('DELETE_DATASET_ROUTE','/dataset/delete');
-define('GET_DATASET_LIST_INFO', '/dataset/info/(?P<id>(.|%20)+)');
 define('GET_DATASET_DATA','/dataset/data/(?P<dataset>(.|%20)+)');

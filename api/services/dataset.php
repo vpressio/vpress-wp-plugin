@@ -21,22 +21,6 @@ function get_dataset_data( $request ) {
   return $response;
 }
 
-function get_dataset_info( $request ) {
-  global $wpdb;
-  $id = $request['id'];
-  $table_name = $wpdb->prefix.'vpresscore_datasets';
-  $query = "SELECT * FROM $table_name WHERE id = %s";
-
-  $datasets = $wpdb->get_results($wpdb->prepare($query, $id ));
-  $response = array(
-    'datasets' => $datasets,
-    'query' => $query,
-    'error' => $wpdb->last_error ? $wpdb->last_error : false
-  );
-
-  return $response;
-}
-
 function upload_dataset( $request ) {
   $permittedExtension = 'csv';
   $permittedTypes = ['text/csv', 'text/plain'];
