@@ -1,8 +1,5 @@
-import { storage } from '../../plugins/firebase';
-import { FReader } from '../../plugins/fileReader';
 import vpress from '../../utils/vpress.js';
 import api from '../../helpers/axios.js'
-import axios from 'axios'
 
 export default {
   namespaced: true,
@@ -69,20 +66,9 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_WP_DATASETS() {
+    async GET_WP_DATASET_INFO( _ , payload) {
       try {
-        const response = await api.dataset.list();
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-        return response.data.data
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_WP_DATASET_INFO( _ , { column, value }) {
-      try {
-        const response = await api.dataset.info({ column, value })
+        const response = await api.dataset.info({ id: payload.id })
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -127,48 +113,6 @@ export default {
       }
 
     },
-    async GET_DATASET_BY_NAME(_context, { dataSetDir, file }) {
-      try {
-        const datasetUrl = await storage
-        .ref()
-        .child(`${dataSetDir}/${file}`)
-        .getDownloadURL()
-
-        const dataset = await axios.get(
-          datasetUrl,
-          {
-            responseType: 'blob',
-            timeout: 30000
-          }
-        );
-        return dataset.data;
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_DATASETS(_context, dataSetDir) {
-      try {
-       return await storage
-          .ref()
-          .child(dataSetDir)
-          .listAll();
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async READ_FILE(_context, file) {
-      try {
-        let content;
-        if (file.type === 'text/csv') {
-          content = await FReader.readCSV(file);
-        } else {
-          content = await FReader.readExcel(file);
-        }
-        return content
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
     async GET_CHART_LIST(_, payload) {
       let { page, itemsPerPage, q } = payload
       if (!page) page = 1
@@ -183,8 +127,7 @@ export default {
     },
     async UPLOAD_DATASET(_, payload) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/dataset/upload`,
+        const response = await api.dataset.upload(
           payload,
           {
             headers: {
@@ -202,8 +145,7 @@ export default {
     },
     async CREATE_DATASET(_, payload) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/dataset/create`,
+        const response = await api.dataset.create(
           {
             name: payload,
             slug: payload,
@@ -221,8 +163,7 @@ export default {
     },
     async UPDATE_DATASET(_, payload) {
       try {
-        const response = await axios.put(
-          `/wp-json/vpress/v1/dataset/update`,
+        const response = await api.dataset.update(
           {
             id: payload.id,
             name: payload.name,
@@ -243,8 +184,7 @@ export default {
     },
     async DELETE_DATASET(_, id) {
       try {
-        const response = await axios.delete(
-          `/wp-json/vpress/v1/dataset/delete`,
+        const response = await api.dataset.delete(
           { data: { id: id }}
         )
         if (response.data.error) {
@@ -260,9 +200,9 @@ export default {
       if (!page) page = 1
       if (!itemsPerPage) itemsPerPage = 10
       if (!q) q = ''
-      let url = `/wp-json/vpress/v1/datasets/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
       try {
-        const response = await axios.get(url);
+        const response = await api.dataset.list(payload);
+        if(response.data )
         return response.data
       } catch (error) {
         throw new Error(error.message)

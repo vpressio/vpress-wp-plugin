@@ -6,6 +6,7 @@ import reunionDonantes from './views/reunionDonantes.vue'
 import VpressChartEditor from './components/vpress-chart-editor.vue';
 import VpressChartList from './components/vpress-chart-list.vue';
 import VpressDatasetList from './components/vpress-dataset-list.vue';
+import Sandbox from './views/Sandbox.vue'
 
 Vue.use(Router);
 
@@ -32,6 +33,10 @@ export default (strategy) => {
         {
           path: '/reunionDonantes',
           component: reunionDonantes
+        },
+        {
+          path: '/sandbox',
+          component: Sandbox
         }
       ]
     },

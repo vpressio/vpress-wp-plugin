@@ -267,9 +267,6 @@ export default {
           { root: true }
         )
         const datasetMeta = { ...info, origin: 'api'}
-        const params = { dataset: datasetMeta.slug, page: 1, perPage: 1 }
-        const dataSample = await dispatch('data/GET_WP_DATASET_DATA', params, { root: true })
-        await dispatch('data/SAVE_DATA', { data: dataSample, datasetMeta: datasetMeta }, { root: true })
         const data = await dispatch(
           'data/GET_CHART_DATA',
           {
@@ -277,7 +274,8 @@ export default {
             dataSetSlug: datasetMeta.slug
           },
           { root: true }
-        )
+          )
+        await dispatch('data/SAVE_DATA', { data: data, datasetMeta: datasetMeta }, { root: true })
         commit(
           'RESET_WSP',
           new VpressViz(
@@ -296,30 +294,6 @@ export default {
           chartData: data,
           datasetMeta: datasetMeta
         }
-        return context
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_WP_CHART({ dispatch }, chartId) {
-      try {
-        const response = await api.chart.get(chartId)
-        const viz = response.data.data
-        const chartValues = JSON.parse(viz.value)
-        const info = await dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { column: 'id', value: viz.dataset_id },
-          { root: true }
-        )
-        const data = await dispatch(
-          'data/GET_CHART_DATA',
-          {
-            chartValues: chartValues,
-            dataSetSlug: info.slug
-          },
-          { root: true }
-        )
-        const context = { chartConfig: chartValues, chartData: data, datasetMeta: { ...info, origin: 'api' } }
         return context
       } catch (error) {
         throw new Error(error.message)
@@ -373,10 +347,9 @@ export default {
     },
     async SAVE_IMAGE_CHART(_, payload) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/chart/image`,
-          { string: payload }
-        )
+        const response = await api
+          .chart
+          .image({ string: payload })
         return response.data
       } catch (error) {
         throw new Error(error.message)

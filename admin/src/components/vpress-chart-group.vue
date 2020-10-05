@@ -14,18 +14,20 @@
         indeterminate
       />
     </div>
-    <div
-      v-for="(chart, chartIndex) in charts"
-      :key="`empty_chart_${chartIndex}`"
-      style="min-height:600px"
-    >
-      <VpressChartContainer
-        v-if="activeChartIndex === chartIndex && !loadingChart"
-        :id="`empty_chart_${chartIndex}`"
-        :data="charts[chartIndex].vizData()"
-        :chartConfig="charts[chartIndex].values()"
-        @chart_loaded="onChartIsLoaded"
-      />
+    <div style="min-height:600px;position:relative;">
+      <div
+        v-for="(chart, chartIndex) in charts"
+        :key="`empty_chart_${chartIndex}`"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;"
+      >
+        <VpressChartContainer
+          v-show="activeChartIndex === chartIndex && !loadingChart"
+          :id="`empty_chart_${chartIndex}`"
+          :data="charts[chartIndex].vizData()"
+          :chartConfig="charts[chartIndex].values()"
+          @chart_loaded="onChartIsLoaded"
+        />
+      </div>
     </div>
     <!-- <v-btn
       tile
@@ -125,7 +127,7 @@ export default {
       // this.charts = this.$store.getters['chartConfig/charts'];
     },
     removeChart(chartIndex) {
-      console.log(chartIndex);
+      chartIndex
       // this.$store.dispatch('chartConfig/REMOVE_CHART', chartIndex);
       //   this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX',0);
       //   this.activeChartIndex = 0

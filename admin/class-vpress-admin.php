@@ -154,7 +154,7 @@ class Vpress_Admin {
 		
 		// wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/vpress-admin.css', array(), $this->version, 'all' );
 		if ( $this->is_develop_serve() ) {
-			wp_enqueue_style( $this->plugin_name . '_dev', 'http://localhost:8080/css/app.css', [], $this->version, 'all' );
+			// wp_enqueue_style( $this->plugin_name . '_dev', 'http://localhost:8080/css/app.css', [], $this->version, 'all' );
 		} else {		
 			foreach( glob( plugin_dir_path( __FILE__). '../admin/dist/css/*.css' ) as $file ) {
 				$filename = substr($file, strrpos($file, '/') + 1);

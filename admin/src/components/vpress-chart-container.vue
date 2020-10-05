@@ -1,11 +1,11 @@
 <template lang="pug">
   .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
-    .layout-row.left-align.label-font.bold.layout-align-start-end
+    .layout-row.left-align.label-font.bold.layout-align-start-end(style="height:10%")
       .col-12.py-0
         h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
       .col-12.py-0
         h3.generated-subtitle.mb-0 {{ chartTitle('subtitle', 'Subtítulo') }}
-    .empty-chart( :id="this.id" )
+    .empty-chart( :id="this.id")
       .vertical-align
         p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
         div(
@@ -18,7 +18,7 @@
             color="primary"
             indeterminate
           )
-</template>
+</template>  
 
 <script>
 import * as d3 from 'd3';
@@ -67,10 +67,6 @@ export default {
       labels: Boolean
     },
     iframe: Boolean,
-    margin: {
-      type: Object,
-      default: () => ({ top: 10, right: 170, bottom: 50, left: 80 })
-    }
   },
   data() {
     return {
@@ -115,6 +111,9 @@ export default {
   },
   beforeDestroy() {
     this.removeChart()
+    if(this.chart && this.chart.destroy){
+      this.chart.destroy()
+    }
   },
   computed: {
     chartTitle() {
@@ -160,6 +159,7 @@ export default {
       }
     },
     linearAxis() { 
+
       const vm = this;
       if (
         vm.chartConfig.xAxis &&
@@ -205,8 +205,14 @@ export default {
      * Draw an interactive chart using dboxjs
      */
     configChart() {
+      // márgenes textos títulos integración
       const vm = this;
-      const tabletWidth = this.iframe ? 200 : 800; // Size in pixels
+      const editorMargin = { top: 10, right: 69, bottom: 48, left: 69 }
+      const iframeMargin = { top: 11, right: 10, bottom: 80, left: 200 }
+      vm.margin = vm.iframe
+        ? iframeMargin
+        : editorMargin
+      // const tabletWidth = this.iframe ? 200 : 800; // Size in pixels
       /**
        * Draw dbox charts according with selected options
        * (axes, groupby, collapseby, project) and selected chart
@@ -214,42 +220,69 @@ export default {
       /** Configure chart size */
       this.width =  d3
             .select(this.$el)
-            .select(`#${this.id}`)
-            .node().offsetWidth || 1200;
-      console.log(this.width, 'width')
-      console.log(this.windowWidth, 'windowWidth')
-      console.log(
-        d3
-          .select(this.$el)
-          .select(`#${this.id}`)
-          .node().offsetHeight
-        , 'height'
-      )
+            .node().offsetWidth ;
       this.height = d3
           .select(this.$el)
-          .select(`#${this.id}`)
-          .node().offsetHeight
-        console.log( this.height,'heighto');
-      /** Configure margins */
-      if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 40;
-          this.margin.right = 15;
+          .node().offsetHeight * 0.85
+
+      const marginRatio = (value, limit) => {
+        let margin = value
+        for (let i = 0; i < limit; i++) {
+          margin = margin / 1.61803398875
         }
-      } else if (this.chartConfig.chart === 'scatter') {
-        this.margin.top = 30;
-        if (this.windowWidth <= tabletWidth) {
-          this.margin.left = 80;
-          this.margin.right = 15;
-        }
-      } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
-        this.margin.top = 20;
-        this.margin.right = 100;
-      } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
-        this.margin.left = 15;
-        this.margin.right = 15;
+        return margin
       }
+
+      vm.margin = {
+          top: 10,
+          right: marginRatio(this.width, 5),
+          bottom: marginRatio(this.height, 5),
+          left:marginRatio(this.width, 5)
+      }
+      
+
+      // if (this.$vuetify.breakpoint.xs) {
+        
+      // } else if (this.$vuetify.breakpoint.xs) {
+        
+      // } if (this.$vuetify.breakpoint.xs) {
+        
+      // } else if (this.$vuetify.breakpoint.xs) {
+        
+      // } if (this.$vuetify.breakpoint.xs) {
+        
+      // } else if (this.$vuetify.breakpoint.xs) {
+        
+      // }
+
+      
+      // console.log(this.windowWidth, 'windowWidth')
+      // console.log(
+      //   d3
+      //     .select(this.$el)
+      //     .node().offsetHeight,
+      //    'offset height'
+      // )
+      /** Configure margins */
+      // if (this.chartConfig.chart === 'bars' || this.chartConfig.chart === 'timeline') {
+      //   this.margin.top = 30;
+      //   if (this.windowWidth <= tabletWidth) {
+      //     this.margin.left = 40;
+      //     this.margin.right = 15;
+      //   }
+      // } else if (this.chartConfig.chart === 'scatter') {
+      //   this.margin.top = 30;
+      //   if (this.windowWidth <= tabletWidth) {
+      //     this.margin.left = 80;
+      //     this.margin.right = 15;
+      //   }
+      // } else if (this.chartConfig.chart === 'heatmap' && this.windowWidth <= tabletWidth) {
+      //   this.margin.top = 20;
+      //   this.margin.right = 100;
+      // } else if (this.chartConfig.chart === 'spineplot' && this.windowWidth <= tabletWidth) {
+      //   this.margin.left = 15;
+      //   this.margin.right = 15;
+      // }
       this.removeChart()
 
       this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
@@ -322,8 +355,8 @@ export default {
           ) < 10)
       ) {
         // Too many labels, gonna be vertical
-        this.margin.bottom = 150;
       }
+        // this.margin.bottom = 150;
       this.drawChart();
     },
     /**
@@ -344,7 +377,7 @@ export default {
     },
     drawChart() {
       const vm = this;
-      const tabletWidth = this.iframe ? 200 : 800;
+      // const tabletWidth = this.iframe ? 200 : 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
       this.groupByOptions =
@@ -366,12 +399,13 @@ export default {
         formatPreffix: this.chartConfig.preffix || '',
         formatSuffix: this.chartConfig.suffix || '',
         decimals: this.chartConfig.decimals,
-        legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
+        // legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
+        legendEnabled: false,
         size: {
           width: this.width,
           height: this.height,
           margin: this.margin,
-          legendTranslate: this.windowWidth >= 800 ? 100 : 40 // Only for heatmap legend
+          legendTranslate: this.width >= 800 ? 40 : 40// Only for heatmap legend
         },
         xAxis: {
           enabled:
@@ -388,22 +422,23 @@ export default {
           formatPreffix: this.chartConfig.preffix || '',
           formatSuffix: this.chartConfig.suffix || '',
           text: this.chartConfig.xAxis.title,
-          ticks: {
-            enabled: false,
-            style: 'dashLine',
-            ticks:
-              this.chartConfig.chart === 'timeline' &&
-              this.selectedQuestion &&
-              this.selectedQuestion['minorFrequency'] !== 'anual'
-                ? d3.extent(this.xAxisValues.map(o => +o))[1] > 100000
-                  ? 5
-                  : 8
-                : 5,
-            format:
-              this.chartConfig.chart === 'timeline' && this.chartConfig.yAxis.type === 'date'
-                ? this.formatDatesForTimeline()
-                : undefined
-          }
+          // ticks: {
+          //     enabled: false,
+          //     strokeWidth: 5,
+          //     grid: 'straightLine',
+          //     ticks:
+          //       this.chartConfig.chart === 'timeline' &&
+          //       this.selectedQuestion &&
+          //       this.selectedQuestion['minorFrequency'] !== 'anual'
+          //         ? d3.extent(this.xAxisValues.map(o => +o))[1] > 100000
+          //           ? 5
+          //           : 8
+          //         : 5,
+          //     format:
+          //       this.chartConfig.chart === 'timeline' && this.chartConfig.yAxis.type === 'date'
+          //         ? this.formatDatesForTimeline()
+          //         : undefined
+          //   }
         },
         yAxis: {
           enabled:
@@ -412,16 +447,17 @@ export default {
               : false,
           scale: this.chartConfig.yAxis.type === 'linear' ? 'linear' : 'band',
           minZero: this.currentMinZero(this.chartConfig.yAxis),
+          labels: {
+            fontSize: 5
+          },
           formatPreffix: this.chartConfig.preffix || '',
           formatSuffix: this.chartConfig.suffix || '',
           text: this.chartConfig.yAxis.title,
-          ticks: {
-            enabled:
-              this.chartConfig.chart === 'bars' && this.chartConfig.yAxis.type !== 'linear'
-                ? false
-                : true,
-            style: 'dashLine'
-          }
+            // ticks: {
+            //   gridDashed: false,
+            //   enabled: false,
+            //   grid: 'straightLine'
+            // }
         },
         tooltip: {
           classed: `tip-${vm._uid}`
@@ -533,7 +569,72 @@ export default {
           break;
       }
 
-      this.chart.draw();
+      this.chart
+        .addStyle(
+          {
+          yAxis: {
+            enabled: true,
+            axis: {
+              strokeWidth: 3,
+              strokeColor: '#5F6C6C',
+              strokeOpacity: 0,
+              paddingTick: 0,
+            },
+            ticks: {
+              strokeWidth: 1,
+              strokeColor: '#929D9E',
+              grid: 'straight',
+              opacity: 0.6,
+              rotate: 30
+            },
+            labels: {
+              fontSize: 12,
+              fontWeight: 600,
+              textColor: '#666',
+              textAnchor: 'end',
+            },
+            title: {
+              fontSize: 17,
+              fontWeight: 600,
+              textColor: '#666',
+              textAnchor: 'middle',
+              // rotation
+              // text align or position
+            },
+          },
+          xAxis: {
+            enabled: true,
+            axis: {
+              strokeWidth: 3,
+              strokeColor: '#5F6C6C',
+              strokeOpacity: 1, //???
+              paddingTick: 5,
+            },
+            ticks: {
+              strokeWidth: 1,
+              strokeColor: '#5F6C6C',
+              // ticksize
+            },
+            labels: {
+              fontSize: 15,
+              fontWeight: 400,
+              textColor: '#666',
+              textAnchor: 'middle',
+            },
+            title: {
+              fontSize: 5,
+              fontWeight: 600,
+              textColor: '#666',
+              textAnchor: 'middle',
+              // text align
+            },
+          },
+          chart: {
+            backgroundColor: ''
+          }
+        },
+        )
+        .draw()
 
       // Update position for axes only for timeline
       if (this.chartConfig.chart === 'timeline') {
@@ -581,13 +682,12 @@ export default {
     },
     drawHeatmap() {
       const heatmap = this.chart.layer(dbox.heatmap);
-
       heatmap
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
         .fill(this.chartConfig.collapseBy.slug)
         .colorLegend(this.legendDisplay.title)
-        .borderRadius(10)
+        .borderRadius(2)
         .sortBy({ x: 'asc', y: 'desc' })
         .colors(this.chartConfig.colors.slice(0, 5));
     },
@@ -625,7 +725,7 @@ export default {
       scatter
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
-        .figure('square')
+        .figure()
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
 
       if (
@@ -756,7 +856,7 @@ export default {
           }
         },
         responsive: {
-          enabled: this.innerWidth <= mobileWidth ? true : false
+          enabled: false
         }
       };
 
@@ -1015,6 +1115,7 @@ export default {
       this.chartConfig.xAxis.slug !== '' &&
       this.chartConfig.yAxis.slug !== ''
     ) {
+      console.log(this);
       this.configChart();
     }
   }
@@ -1048,7 +1149,7 @@ export default {
 
 .generated-title,
 .edit-title {
-  font-size: 1.4em;
+  font-size: 0.9em;
   font-weight: bold;
   text-transform: uppercase;
   text-align: center;
@@ -1078,14 +1179,14 @@ export default {
 
 .chart-container {
   width: 100%;
-  min-height: 100%;
-  max-width: 1000px;
+  height: 100%;
   margin: 0 auto;
 }
 </style>
 <style>
 .empty-chart > svg {
   width: 100%;
+  min-height: 100%;
 }
 
 .d3-tip {
@@ -1101,10 +1202,6 @@ export default {
   width: 50px;
   margin: 0.2em;
   background-color: #57779c;
-}
-
-svg text {
-  fill: #666;
 }
 
 .d3-tip {

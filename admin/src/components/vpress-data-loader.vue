@@ -36,31 +36,11 @@
         lg="3"
         xl="2"
         class="pt-1 pb-0"
-        v-for="(dataSet, dataSetIndex) in storageDataSets"
-        :key="`STORAGE_${dataSetIndex}`"
-        :class="{'v-step-1': dataSetIndex === 0}"
-      >
-        <v-card dark class color="primary" @click="selectStorageDataset(dataSet.name)">
-          <v-card-title
-            class="px-3 pt-3 pb-5"
-            style="font-size:1rem;line-height:1"
-          >{{ dataSet.name.replace(/\.[^/.]+$/, "") }}</v-card-title>
-          <v-card-subtitle
-            class="px-3 pb-3"
-            style="line-height:1"
-          >{{ `.${dataSet.name.split('.').pop()}` }}</v-card-subtitle>
-        </v-card>
-      </v-col>
-      <v-col
-        md="3"
-        lg="3"
-        xl="2"
-        class="pt-1 pb-0"
         v-for="(dataSet, dataSetIndex) in WPDataSets"
         :key="`WP_${dataSetIndex}`"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
-        <v-card dark class color="primary" @click="selectWPDataset(dataSet.name)">
+        <v-card dark class color="primary" @click="selectWPDataset(dataSet)">
           <v-card-title
             class="px-3 pt-3 pb-5"
             style="font-size:1rem;line-height:1"
@@ -157,14 +137,11 @@ export default {
       loading: false,
       pastedData: '',
       showTable: true,
-      storageDataSets: [],
-      storageDataSetsDir: '/defaultDir',
       uploadMethod: 'upload',
       WPDataSets: []
     };
   },
   created() {
-    this.getStorageDatasets();
     this.getWPDatasets();
     this.getUrlParams();
   },
@@ -177,15 +154,6 @@ export default {
         this.getWPDatasets();
       }
     },
-    tourFile(newTourFile) {
-      if (!newTourFile.error){
-        this.datasetMeta.slug = newTourFile.fileName;
-        this.storageDataSetsDir = newTourFile.fileDir;
-        this.getStorageDatasets();
-        this.loadFile(newTourFile.file)
-        .then(() => this.saveData(this.data, this.datasetMeta));
-      }
-    }
   },
   computed: {
     cssProps() {
@@ -206,77 +174,37 @@ export default {
           this.data = []
           this.nextTab()
         }
-        // if( this.$route.params.chartid ) {
-        //   const document = await self.$store.dispatch(`chartConfig/GET_ST_CHART`, this.$route.params.chartid );
-        //   this.storageDataSetsDir = '/savedDatasets';
-        //   const dataSetData = await this.selectStorageDataset(document.dataSet);
-        //   await this.$store.dispatch('data/SAVE_DATA', { data: dataSetData, datasetMeta: this.datasetMeta.slug });
-        //   this.$emit('update:tabChange', 1);
-        // }
       } catch (error) {
         this.$router.push('/')
         throw new Error(error.message)
       }
     },
-    async getStorageDatasets() {
-      try {
-        if (Object.keys(this.$route.query).includes('datasets')) {
-          this.storageDataSetsDir = this.$route.query.datasets
-        }
-        const files  = await this.$store.dispatch('data/GET_DATASETS', this.storageDataSetsDir);
-        if (files.items.length === 0) {
-          console.warn(`${this.storageDataSetsDir} is empty`);
-        }
-        this.storageDataSets = files.items;
-      } catch (error){
-        console.error(error.message)
-        if(this.$route.path !== '/') this.$router.push('/');
-      }
-    },
-    async selectStorageDataset(fileName) {
-      try {
-        const self = this;
-        self.loading = true;
-        self.datasetMeta.slug = fileName;
-        const file = await this.$store.dispatch(
-          'data/GET_DATASET_BY_NAME',
-          { dataSetDir: this.storageDataSetsDir, file: this.datasetMeta.slug }
-        )
-        self.loading = false;
-        return await self.loadFile(file)
-      } catch (error) {
-        this.errorMessage = error.message;
-      }
-    },
     async getWPDatasets() {
       try {
-        const dataSets = await this.$store.dispatch('data/GET_WP_DATASETS')
-        this.WPDataSets = dataSets;
+        const dataSets = await this.$store.dispatch(
+          'data/GET_DATASET_LIST',
+          { page: 1, itemsPerPage: 4 }
+          )
+        this.WPDataSets = dataSets.data;
       } catch(error) {
         this.errorMessage = error.message;
       }
     },
-    async selectWPDataset(value, column = 'slug', datasetMeta) {
+    async selectWPDataset(dataset) {
       try {
         this.data = []
-        if (datasetMeta) {
-          this.datasetMeta = {
-            ...datasetMeta,
-            origin: 'api'
-          }
-        } else {
-          const info = await this.$store.dispatch('data/GET_WP_DATASET_INFO',  { column: column, value: value  })
-          this.datasetMeta = {
-            ...info,
-            origin: 'api'
-          }
+        const info = await this.$store.dispatch(
+          'data/GET_WP_DATASET_INFO',
+          { id: dataset.id }
+        )
+        this.datasetMeta = {
+          ...info,
+          origin: 'api'
         }
       } catch(error) {
-        console.error(error.message);
         this.errorMessage = error.message;
       }
     },
-
     async loadFile(file) {
       try {
         const self = this;
