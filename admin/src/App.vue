@@ -19,6 +19,7 @@ export default {
 .v-input {
   input {
     border: none;
+    min-height: unset;
   }
   input:focus {
     border: none;

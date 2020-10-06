@@ -73,6 +73,11 @@
       <template v-slot:item.rows="{ item }">
         ~{{ intFromat(item.rows) }} filas
       </template>
+      <template v-slot:item.tag="{ item }">
+        <v-chip color="primary" small class="mr-1" v-for="t in item.tag" :key="t">
+          {{ t }}
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-icon
           class="mr-2"
@@ -115,7 +120,13 @@
                 ></v-textarea>
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="editedItem.tag" label="Etiquetas"></v-text-field>
+                <v-combobox
+                  v-model="editedItem.tag"
+                  label="Etiquetas"
+                  multiple
+                  chips
+                  deletable-chips
+                ></v-combobox>
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="editedItem.source" label="Fuente"></v-text-field>
@@ -158,6 +169,7 @@ export default {
       { text: 'Permisos', value: 'permissions' },
       { text: 'Tamaño', value: 'size' },
       { text: 'Total', value: 'rows' },
+      { text: 'Etiquetas', value: 'tag' },
       { text: 'Actualizado', value: 'updated' },
       { text: 'Etiquetas', value: 'tags' },
       { text: 'Acciones', value: 'actions' },
@@ -204,9 +216,9 @@ export default {
       }
       const data = await this.$store.dispatch('data/GET_DATASET_LIST', obj);
       data.data.forEach(element => {
-        element.tags = element.tags
-          ? element.tags.split(', ')
-          : element.tags = []
+        element.tag = element.tag
+          ? element.tag.split(', ')
+          : element.tag = []
       });
       this.items = data.data
       this.total = data.total
@@ -234,7 +246,7 @@ export default {
           id: parseInt(this.editedItem.id),
           name: this.editedItem.name,
           description: this.editedItem.description,
-          tag: this.editedItem.tag,
+          tag: this.editedItem.tag.join(', '),
           source: this.editedItem.source,
           permissions: this.editedItem.permissions
         });
