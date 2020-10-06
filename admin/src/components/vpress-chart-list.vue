@@ -70,6 +70,7 @@
 </template>
 <script>
 import VpressChartCard from '@/components/vpress-chart-card.vue'
+import api from '../helpers/axios'
 
 export default {
   name: 'VpressChartList',
@@ -100,7 +101,7 @@ export default {
         itemsPerPage,
         q: this.q
       }
-      const data = await this.$store.dispatch('data/GET_CHART_LIST', obj);
+      const { data } = await api.chart.list(obj);
       data.data.forEach(element => {
         element.tags = element.tags
           ? element.tags.split(', ')

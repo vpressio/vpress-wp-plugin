@@ -1,7 +1,6 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
-import { firestore } from '../../plugins/firebase';
-import axios from 'axios';
+import api from '../../helpers/axios.js' 
 
 export default {
   namespaced: true,
@@ -197,7 +196,7 @@ export default {
         if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
           commit('SET_LOAD_STATE', true)
           const data = await dispatch(
-              'data/GET_CHART_DATA',
+              'workspace/GET_CHART_DATA',
               { chartValues: newChartValues, chartIndex: state.activeVizIdx },
               { root: true }
           )
@@ -247,92 +246,6 @@ export default {
       // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
 
     },
-    //CHART_CRUD
-    async GET_CHART_LIST(_, { page, perPage }) {
-      try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/chart/list`,
-          { page, perPage }
-        )
-        return response.data
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
-    async SET_WP_CHART({ commit, dispatch }, chartId) {
-      try {
-        const response = await axios.get(
-          `/wp-json/vpress/v1/chart/get/${chartId}`
-        )
-        console.log(response);
-        const viz = response.data.data
-        const chartValues = JSON.parse(viz.value)
-        const info = await dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { column: 'id', value: viz.dataset_id },
-          { root: true }
-        )
-        const datasetMeta = { ...info, origin: 'api'}
-        const params = { dataset: datasetMeta.slug, page: 1, perPage: 1 }
-        const dataSample = await dispatch('data/GET_WP_DATASET_DATA', params, { root: true })
-        await dispatch('data/SAVE_DATA', { data: dataSample, datasetMeta: datasetMeta }, { root: true })
-        const data = await dispatch(
-          'data/GET_CHART_DATA',
-          {
-            chartValues: chartValues,
-            dataSetSlug: datasetMeta.slug
-          },
-          { root: true }
-        )
-        commit(
-          'RESET_WSP',
-          new VpressViz(
-            chartValues,
-            viz.id,
-            null,
-            viz.dataset_id,
-            data,
-            viz.description,
-            viz.permission,
-            viz.img_url,
-          )
-        )
-        const context = {
-          chartConfig: chartValues,
-          chartData: data,
-          datasetMeta: datasetMeta
-        }
-        return context
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_WP_CHART({ dispatch }, chartId) {
-      try {
-        const response = await axios.get(
-          `/wp-json/vpress/v1/chart/get/${chartId}`
-        )
-        const viz = response.data.data
-        const chartValues = JSON.parse(viz.value)
-        const info = await dispatch(
-          'data/GET_WP_DATASET_INFO',
-          { column: 'id', value: viz.dataset_id },
-          { root: true }
-        )
-        const data = await dispatch(
-          'data/GET_CHART_DATA',
-          {
-            chartValues: chartValues,
-            dataSetSlug: info.slug
-          },
-          { root: true }
-        )
-        const context = { chartConfig: chartValues, chartData: data, datasetMeta: { ...info, origin: 'api' } }
-        return context
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
         const {
@@ -344,7 +257,7 @@ export default {
           img_url
         } = getters.viz
 
-        const datasetMeta = rootGetters['data/datasetMeta']
+        const datasetMeta = rootGetters['workspace/activeDataset']
         const body = {
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
@@ -353,8 +266,7 @@ export default {
           img_url: img_url
         }
         if (!id) {
-          const saveResponse = await axios.post(
-            `/wp-json/vpress/v1/chart/create`,
+          const saveResponse = await api.chart.create(
             { dataset_id: datasetMeta.id, ...body }
           )
           const savedChart = saveResponse.data
@@ -363,10 +275,7 @@ export default {
           }
           commit('SET_WSP_CHART_ID', savedChart.data)
         } else {
-          const updateResponse = await axios.post(
-            `/wp-json/vpress/v1/chart/update`,
-            { id, ...body }
-          )
+          const updateResponse = await api.chart.update({ id, ...body })
           if (updateResponse.data.error) {
             throw new Error(updateResponse.data.error);
           }
@@ -377,10 +286,7 @@ export default {
     },
     async DELETE_CHART(_, id) {
       try {
-        const response = await axios.delete(
-          `/wp-json/vpress/v1/chart/delete`,
-          { data: { id: id }}
-        )
+        const response = await api.chart.delete({ data: { id: id }})
         return response.data
       } catch (error) {
         throw new Error(error.message)
@@ -388,37 +294,14 @@ export default {
     },
     async SAVE_IMAGE_CHART(_, payload) {
       try {
-        const response = await axios.post(
-          `/wp-json/vpress/v1/chart/image`,
-          { string: payload }
-        )
+        const response = await api
+          .chart
+          .image({ string: payload })
         return response.data
       } catch (error) {
         throw new Error(error.message)
       }
     },
-    //Deprecated
-    async GET_ST_CHART({ commit }, chartId) {
-      try {
-        const document = await firestore
-          .collection('charts')
-          .doc(chartId)
-          .get();
-
-        if (!document.exists) {
-          throw new Error('Lo sentimos, no se encontró la gráfica.');
-        }
-        const chartValues = document
-          .data()
-          .chartValues
-
-        const viz = new VpressViz(chartValues);
-        commit('RESET_WSP', viz)
-        return document.data()
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    }
   },
   getters: {
     workspace: state => state.workspace,

@@ -6,13 +6,45 @@
   <v-card class="vpress-sidebar" tile flat color="#222A32">
     <v-card class="pa-2" tile height="50" color="#181D25" flat>
       <v-img src="../assets/images/logo.svg" />
+      <div class="my-4">
+        <v-btn
+          class="py-3 my-2"
+          v-for="dataset in datasets"
+          :key="dataset"
+          x-small
+          block
+          :color="
+            $store.getters['workspace/activeDataset'].slug === dataset 
+              ? 'secondary'
+              : 'primary'
+          "
+          @click="selectDataset(dataset)"
+        >
+          <v-tooltip
+            attach
+            right
+            offset-y
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-database
+              </v-icon>
+            </template>
+            <span> {{ dataset }} </span>
+          </v-tooltip>
+        </v-btn>
+      </div>
     </v-card>
   </v-card>
   <div class='vpress-navigation-view'>
     <router-view :key="$route.path"/>
     <v-snackbar
       dark
-      top
+      bottom
       right
       v-model="$store.state.notifications.show"
       :timeout="$store.state.notifications.timeout"
@@ -41,6 +73,31 @@ export default {
   components: {
     VpressAppBar
   },
+  data() {
+    return {
+      datasets: {}
+    }
+  },
+  created() {
+    this.unsubscribe = this.$store.subscribe(
+      mutation => {
+        if(
+          mutation.type === 'workspace/ADD_DATASET_META' ||
+          mutation.type === 'workspace/REMOVE_DATASET_META'
+        ) {
+          this.datasets = Object.keys(this.$store.getters['workspace/datasetMeta'])
+        }
+      }
+    )
+  },
+  beforeDestroy() {
+    this.unsubscribe();
+  },
+  methods: {
+    async selectDataset(dataset) {
+      this.$store.dispatch('workspace/UPDATE_ACTIVE_DATASET', dataset)
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>

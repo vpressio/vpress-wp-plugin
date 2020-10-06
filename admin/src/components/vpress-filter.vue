@@ -118,7 +118,7 @@ export default {
         }
 
         const filterParams = await this.$store.dispatch(
-          'data/GET_FILTER_PARAMS',
+          'workspace/GET_FILTER_PARAMS',
           { column: this.column, type: this.type }
         )
         if(this.type !== 'linear'){

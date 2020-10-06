@@ -3,7 +3,7 @@
     :class="{'data-table--container':$vuetify.breakpoint.xlOnly}"
   >
     <v-row>
-      <v-col cols="12" v-if="datasetMeta.origin === 'api'">
+      <v-col cols="12">
         <v-data-table
           :headers="headers"
           :items="items"
@@ -22,35 +22,15 @@
           </template>
         </v-data-table>
       </v-col>
-      <v-col cols="12" v-else>
-        <v-data-table
-
-          :headers="headers"
-          :items="data"
-          :item-key="headers[0] ? headers[0].value : ''"
-          class="elevation-1"
-        >
-          <template v-slot:item="props">
-            <tr class="eltr">
-              <td class="eltd" v-for="header in props.headers" :key="header.value">
-                {{ props.item[header.value] }}
-              </td>
-            </tr>
-          </template>
-        </v-data-table>
-      </v-col>
     </v-row>
   </v-container>
 </template>
-
 <script>
+import api from '../helpers/axios'
+
 export default {
   name:'VpressDataTable',
   props: {
-    datasetMeta: {
-      type: Object,
-      required: true
-    },
     data: {
       type: Array,
       required: false,
@@ -61,45 +41,51 @@ export default {
   },
   data() {
     return {
-      loading: true,
+      loading: false,
       total: 0,
       headers: [],
       items: [],
-      options: {}
+      options: {},
+      datasetMeta: {}
     }
   },
-  watch: {
-    datasetMeta(newval, oldval) {
-      if (oldval.origin == 'file') this.getDataFromApi()
-    },
-    data(val) {
-      if (val.length > 0) this.headers = this.extractHeaders(this.data[0]);
-    },
-    options: {
-      async handler () {
-        await this.getDataFromApi()
-      },
-      deep: true,
-    },
+  created() {
+    this.unsubscribe = this.$store.subscribe(
+      mutation => {
+        if(
+          mutation.type === 'workspace/SET_ACTIVE_DATASET'
+        ) {
+          this.datasetMeta = this.$store.getters['workspace/activeDataset']
+          this.getDataFromApi()
+        }
+      }
+    )
+  },
+  beforeDestroy() {
+    this.unsubscribe();
   },
   methods: {
     async getDataFromApi () {
-      this.loading = true
-      const { page, itemsPerPage } = this.options
-      const obj = {
-        page,
-        dataset: this.datasetMeta.slug,
-        itemsPerPage
+      try {
+        this.loading = true
+        const { page, itemsPerPage } = this.options
+        if(this.datasetMeta) {
+          const obj = {
+            page,
+            dataset: this.datasetMeta.slug,
+            itemsPerPage
+          }
+          const response = await api.dataset.data(obj);
+          const data = response.data
+          this.items = data.data
+          this.total = data.total
+          this.headers = this.extractHeaders(this.items[0]);
+        }
+          this.loading = false
+      } catch (error) {
+        this.loading = false
+        throw new Error(error.message)
       }
-      const data = await this.$store.dispatch('data/GET_WP_DATASET_DATA', obj);
-      this.items = data.data
-      this.total = data.total
-      this.headers = this.extractHeaders(this.items[0]);
-      if ( !this.$route.params.chartid ) {
-        this.$store.dispatch('chartConfig/RESET_WSP');
-      }
-      this.$store.dispatch('data/SAVE_DATA', { data: this.items, datasetMeta: this.datasetMeta});
-      this.loading = false
     },
     extractHeaders(data) {
       return Object.keys(data).map(o => ({

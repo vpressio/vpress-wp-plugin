@@ -8,9 +8,9 @@
       width="95%"
       contain
       color="#222A32"
-      :src="`/wp-content/uploads/vpress/images/${id}.png`"
+      :src="`/wordpress/wp-content/uploads/vpress/images/${id}.png`"
     ></v-img>
-    <v-card-title>{{ chartValues.title }}</v-card-title>
+    <v-card-title>{{id}}. {{ chartValues.title }}</v-card-title>
     <v-card-text>
       <div>
         {{ description }}
@@ -58,7 +58,6 @@
     </v-card-actions>
   </v-card>
 </template>
-
 <script>
 export default {
   name: 'VpressChartCard',
@@ -109,8 +108,11 @@ export default {
     async createChart () {
       try {
         this.loading = true
-        await this.$store.dispatch('chartConfig/SET_WP_CHART', this.id)
-        this.$router.push({path: `/chart/${this.id}`})
+        this.$router.push(
+          {
+            path: `/`,
+            query: { dataset: this.dataset_id, chart: this.id }}
+          )
       } catch (error) {
         this.loading = false
       }
@@ -132,7 +134,6 @@ export default {
         const chartId = this.id
         if (chartId) {
           const iframe = `[vpress id=${chartId}]`
-          // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
           this.$store.dispatch('notifications/open', {
             color: 'success',
@@ -147,14 +148,6 @@ export default {
         }
       } catch (error) {
         throw new Error(error.message);
-      }
-    },
-    requireImg(chartType) {
-      try {
-        return require(`../assets/images/${chartType}.png`);
-      } catch (error) {
-        console.error(error.message)
-        return require('../assets/images/spineplot.png')
       }
     }
   }

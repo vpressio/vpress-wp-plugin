@@ -3,7 +3,7 @@ import Vuex from 'vuex';
 import LogRocket from 'logrocket';
 import createPlugin from 'logrocket-vuex';
 
-import moduleData from './modules/data.js';
+import moduleWorkspace from './modules/workspace.js';
 import notifications from './modules/notifications.js';
 import moduleChartConfig from './modules/chartConfig.js';
 
@@ -13,7 +13,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
-    data: moduleData,
+    workspace: moduleWorkspace,
     notifications: notifications,
     chartConfig: moduleChartConfig
   },
