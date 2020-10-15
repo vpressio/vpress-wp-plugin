@@ -323,6 +323,7 @@ function list_charts( $request ) {
     created,
     dataset_id,
     description,
+    tags,
     id,
     img_url,
     owner_id,
@@ -389,7 +390,7 @@ function update_chart( $request ) {
   $table_name = $wpdb->prefix.'vpresscore_charts';
   $id = (int)$request->get_param('id');
   $value = $request->get_param('value');
-  $img_url = $request->get_param('img_url');
+  $tags = $request->get_param('tags');
   $description = $request->get_param('description');
   $permissions = $request->get_param('permissions');
 
@@ -399,8 +400,8 @@ function update_chart( $request ) {
     $table_name, 
     array( 
       'value' => $value,
-      'img_url' => $img_url,
       'description' => $description,
+      'tags' => $tags,
       'permissions' => $permissions
     ), 
     array( 'id' => $id ),

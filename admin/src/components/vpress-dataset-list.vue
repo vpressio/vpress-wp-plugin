@@ -94,7 +94,7 @@
         </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="initialize">Reset</v-btn>
+        <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
       </template>
     </v-data-table>
     <v-dialog v-model="dialog" max-width="500px" scrollable>
@@ -234,9 +234,9 @@ export default {
 
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
-          element.tags = element.tags
-            ? element.tags.split(', ')
-            : element.tags = []
+          element.tag = element.tag
+            ? element.tag.split(', ')
+            : element.tag = []
         });
         this.items = data.data
         this.total = data.total

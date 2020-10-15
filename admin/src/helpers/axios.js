@@ -45,7 +45,7 @@ const chart = {
   },
   get: chartId => instance.get(`/wp-json/vpress/v1/chart/get/${chartId}`),
   create: payload => instance.post(`/wp-json/vpress/v1/chart/create`, payload),
-  update: payload => instance.post(`/wp-json/vpress/v1/chart/update`,  payload ),
+  update: payload => instance.put(`/wp-json/vpress/v1/chart/update`,  payload ),
   query: query => instance.post(`/wp-json/vpress/v1/chart/query`, query),
   delete: payload => instance.delete(`/wp-json/vpress/v1/chart/delete`, payload),
   image: payload => instance.post(`/wp-json/vpress/v1/chart/image`, payload)
