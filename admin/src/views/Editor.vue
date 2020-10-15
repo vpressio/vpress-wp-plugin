@@ -23,7 +23,7 @@
                 Guardar
               </v-btn>
               <v-btn
-                v-if="$store.getters['chartConfig/chart'].chart !== 'map'"
+                v-if="$store.getters['editor/chart'].chart !== 'map'"
                 class="middle-button" outlined color="primary"
                 @click="downloadChartImg"
               >
@@ -40,7 +40,7 @@
             <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader :tabChange.sync="activeTab" :tourFile="tourFile"/>
+                  <VpressDataLoader :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
@@ -84,19 +84,17 @@
           </v-col>
         </v-row>
       </div>
-    <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
   </div>
 </template>
 <script>
-import VpressDataLoader from './vpress-data-loader.vue';
-import VpressVariableContainer from './vpress-variable-container.vue';
-import VpressExpansionPanel from './vpress-expansion-panel.vue';
-import VpressChartGroup from './vpress-chart-group.vue';
-import VpressInputControl from './vpress-config-input.vue';
-import VpressColorSelection from './vpress-config-color-selection.vue';
-import VpressSlotGroup from './vpress-slot-group.vue';
-
-import { downloadChart, stringChart } from '../utils/downloadChart.js';
+import VpressDataLoader from '../components/vpress-data-loader.vue'
+import VpressVariableContainer from '../components/vpress-variable-container.vue'
+import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
+import VpressChartGroup from '../components/vpress-chart-group.vue'
+import VpressInputControl from '../components/vpress-config-input.vue'
+import VpressColorSelection from '../components/vpress-config-color-selection.vue'
+import VpressSlotGroup from '../components/vpress-slot-group.vue'
+import { downloadChart, stringChart } from '../utils/downloadChart.js'
 
 export default {
   name: 'Vpress',
@@ -113,107 +111,16 @@ export default {
     return {
       activeTab: 0,
       theme: false,
-      openDialog: false,
-      sideBarWidth: 45,
-      dataSetFromUrl: {},
-      tourOptions: {
-        useKeyboardNavigation: true,
-        labels: {
-          buttonSkip: 'Omitir tutorial',
-          buttonPrevious: 'Anterior',
-          buttonNext: 'Siguiente',
-          buttonStop: 'Terminar'
-        }
-      },
-      tourFile: {
-        error: 'Hubo un problema con el tutorial.'
-      },
-      tourCallbacks: {
-        onNextStep: this.tourNext
-      },
-      tourSteps: [
-          {
-            target: '.v-step-0',
-            content: `Descubre lo que puedes hacer con Vpress`,
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-1',
-            content: 'Prueba con datos que hemos preparado para ti',
-            params: {
-              placement: 'top'
-            }
-          },
-          {
-            target: '.v-step-2',
-            content: 'Da click en siguiente para comenzar tu análisis',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-3',
-            content: 'Hagamos una gráfica juntos',
-            params: {
-              placement: 'top'
-            }
-          },
-          {
-            target: '.v-step-4',
-            content: 'Arrastra la observación "anillos" a la selección de Filas',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-5',
-            content: 'Arrastra la observación "Conteo de observaciones" a la selección de Columnas',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-6',
-            content: 'Hagamos algo más, arrastra la observación de "planeta" a la sección de Color',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-7',
-            content: 'Nos separó la gráfica por "planeta" y nos agrega la opción de poder Apilar la gráfica',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-8',
-            content: 'Dale estilo a tu gráfica cambiando colores',
-            params: {
-              placement: 'bottom'
-            }
-          },
-          {
-            target: '.v-step-9',
-            content: 'Selecciona entre un color plano o una gama de color más amplia. ¡ Disfruta de Vpress !',
-            params: {
-              placement: 'right'
-            }
-          }
-        ]
+      dataSetFromUrl: {}
     };
   },
-  mounted() {
-    if(!this.$route.params.chartid) {
-      // this.$tours['vpress-tour'].start();
-    }
+  created() {
+    console.log(this)
   },
   watch:{
     theme(newTheme){
       const chartTheme = newTheme ? 'dark': 'light'
-      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'theme', value: chartTheme });
+      this.$store.dispatch('editor/MERGE_CHART_VALUE',{ mutationType: 'theme', value: chartTheme });
     }
   },
   computed: {
@@ -244,12 +151,12 @@ export default {
   methods: {
     async saveChart() {
       try {
-        await this.$store.dispatch('chartConfig/SAVE_CHART');
+        await this.$store.dispatch('editor/SAVE_CHART');
         stringChart(
-          `#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`,
-          this.$store.getters['chartConfig/workspace'][this.$store.getters['chartConfig/activeVizIdx']].id
+          `#empty_chart_${this.$store.getters['editor/activeVizIdx']}`,
+          this.$store.getters['editor/workspace']()[this.$store.getters['editor/activeVizIdx']].id
         )
-        // await this.$store.dispatch('chartConfig/SAVE_IMAGE_CHART', stringImg);
+        // await this.$store.dispatch('editor/SAVE_IMAGE_CHART', stringImg);
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Gráfica guardada con éxito'
@@ -263,11 +170,11 @@ export default {
       }
     },
     downloadChartImg() {
-      downloadChart(`#empty_chart_${this.$store.getters['chartConfig/activeVizIdx']}`)
+      downloadChart(`#empty_chart_${this.$store.getters['editor/activeVizIdx']}`)
     },
     clipboardCopy() {
       try {
-        const chartId = this.$store.getters['chartConfig/viz'].id
+        const chartId = this.$store.getters['editor/viz'].id
         if (chartId) {
           const iframe = `[vpress id=${chartId}]`
           navigator.clipboard.writeText(iframe);
@@ -284,73 +191,6 @@ export default {
         }
       } catch (error) {
         throw new Error(error.message);
-      }
-    },
-    mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(
-        `chartConfig/DATA_QUERY`,
-        { value: dataToMerge, mutationType: slot}
-      )
-    },
-    tourNext(currentStep) {
-      const tourFileName = 'Monitoreo de despensas.csv';
-      const tourFileDir = 'stc';
-      switch(currentStep) {
-        case 0:
-          this.$store.dispatch(
-            'workspace/GET_DATASET_BY_NAME',
-            { dataSetDir:tourFileDir, file: tourFileName }
-          )
-            .then(file => this.tourFile = {
-              file: file,
-              fileName: tourFileName,
-              fileDir: tourFileDir
-              }
-            )
-            .catch(err => this.tourFile = { error: err })
-          break
-        case 2:
-          this.activeTab = 1
-          break
-        case 3:
-          this.mergeValue(
-            'xAxis',
-            {
-              slug: "anillos",
-              title: "anillos",
-              type: "ordinal"
-            }
-          );
-          break
-        case 4:
-          this.mergeValue(
-            'yAxis',
-            {
-              slug: "total_count",
-              title: "Conteo de observaciones",
-              type: "linear"
-            }
-          );
-          break
-        case 5:
-          this.mergeValue(
-            'aggregation',
-            {
-              slug: "planeta",
-              title: "planeta",
-              type: "ordinal"
-            }
-          );
-          break
-        case 6:
-          this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
-            { mutationType:'stackedBars', value: true }
-          );
-          break
-        case 7:
-          this.activeTab = 2
-          break
       }
     }
   }

@@ -108,9 +108,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-show="datasetMeta.slug" class="ma-0">
+    <v-row v-show="datasetMeta.slug && tabChange === 0" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable/>
+        <VpressDataTable v-if="tabChange === 0" />
       </v-col>
     </v-row>
   </div>
@@ -118,8 +118,8 @@
 <script>
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
-import api from '../helpers/axios';
-import FReader from '../plugins/fileReader'
+import api from '../utils/axios';
+import FReader from '../utils/fileReader'
 
 export default {
   name: 'VpressDataLoader',
@@ -143,8 +143,8 @@ export default {
     };
   },
   created() {
-    this.getWPDatasets();
     this.getUrlParams();
+    this.getWPDatasets();
   },
   watch: {
     files(newFiles) {
@@ -168,11 +168,9 @@ export default {
         const { dataset, chart } = this.$route.query
         if(dataset) {
          const { data } = await api.dataset.get(dataset)
-         
          this.selectWPDataset(data.data)
         }
         if(dataset && chart) {
-          // const chartRes = await api.chart.get(chart)
           this.nextTab()
         }
       } catch (error) {
@@ -183,22 +181,55 @@ export default {
     async getWPDatasets() {
       try {
         const response = await api.dataset.list({ page: 1, itemsPerPage: 4 });
-        if(response.data)
-        this.WPDataSets = response.data.data
+        if(response.data) this.WPDataSets = response.data.data
       } catch (error) {
         throw new Error(error.message)
       }
     },
     async selectWPDataset(dataset) {
+      //Load dataset
       try {
         this.data = []
-        this.datasetMeta = await this.$store.dispatch(
-          'workspace/ADD_DATASET',
-          dataset,
-        )
+        this.datasetMeta = await this.$store
+          .dispatch(
+            'workspace/ADD_DATASET',
+            dataset,
+          )
+        await this.$store
+          .dispatch(
+            'workspace/UPDATE_ACTIVE_DATASET',
+            this.datasetMeta.slug
+          )
+        await this.$store
+          .dispatch(
+            'editor/LOAD_VIZZES'
+          )
       } catch(error) {
         this.errorMessage = error.message;
       }
+    },
+    nextTab() {
+      this.$emit('update:tabChange', 1);
+    },
+    switchUploadMethod(method) {
+      this.uploadMethod = method;
+    },
+    intFromat(number) {
+      return new Intl.NumberFormat().format(number)
+    },
+    extractSampleHeaders(dataSample) {
+      return Object.keys(dataSample).map(o => ({
+        text: o,
+        value: o,
+        sortable: true
+      }));
+    },
+    async cleanComponentData() {
+      this.datasetMeta = await this.$store.dispatch('workspace/REMOVE_DATASET')
+      await this.$store.dispatch('editor/REMOVE_VIZZES')
+      this.data = [];
+      this.headers = [];
+      this.files = [];
     },
     async loadFile(file) {
       try {
@@ -265,29 +296,6 @@ export default {
       self.pastedData = '';
       self.loading = false;
       self.datasetMeta.slug = 'Dataset copiado';
-    },
-    extractSampleHeaders(dataSample) {
-      return Object.keys(dataSample).map(o => ({
-        text: o,
-        value: o,
-        sortable: true
-      }));
-    },
-    async cleanComponentData() {
-      this.datasetMeta = await this.$store.dispatch('workspace/REMOVE_DATASET')
-      this.data = [];
-      this.headers = [];
-      this.files = [];
-    },
-    nextTab() {
-       
-      this.$emit('update:tabChange', 1);
-    },
-    switchUploadMethod(method) {
-      this.uploadMethod = method;
-    },
-    intFromat(number) {
-      return new Intl.NumberFormat().format(number)
     }
   }
 };

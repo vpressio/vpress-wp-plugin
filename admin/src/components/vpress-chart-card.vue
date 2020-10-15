@@ -59,6 +59,8 @@
   </v-card>
 </template>
 <script>
+import api from '../utils/axios'
+
 export default {
   name: 'VpressChartCard',
   props: {
@@ -108,10 +110,21 @@ export default {
     async createChart () {
       try {
         this.loading = true
+          const { data } = await api.chart.get({
+            values: this.values,
+            id: this.id,
+            mapValues: this.mapValues,
+            dataset_id: this.dataset_id,
+            data: this.data,
+            description: this.description,
+            permission: this.permission,
+            img_url: this.img_url,
+          })
+        this.$store.dispatch('editor/LOAD_VIZZES', [ data.data ])
         this.$router.push(
           {
             path: `/`,
-            query: { dataset: this.dataset_id, chart: this.id }}
+            query: { dataset: this.dataset_id, chart: true }}
           )
       } catch (error) {
         this.loading = false
@@ -120,7 +133,7 @@ export default {
     async deleteChart() {
       try {
         this.loading = true
-        const response = await this.$store.dispatch('chartConfig/DELETE_CHART', this.id)
+        const response = await this.$store.dispatch('editor/DELETE_CHART', this.id)
         this.deletedCard = true
         this.loading = false
         return response

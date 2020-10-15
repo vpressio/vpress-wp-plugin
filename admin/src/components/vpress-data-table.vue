@@ -15,7 +15,11 @@
         >
           <template v-slot:item="props">
             <tr class="eltr">
-              <td class="eltd" v-for="header in props.headers" :key="header.value">
+              <td
+                class="eltd"
+                v-for="header in props.headers"
+                :key="header.value"
+              >
                 {{ props.item[header.value] }}
               </td>
             </tr>
@@ -26,7 +30,7 @@
   </v-container>
 </template>
 <script>
-import api from '../helpers/axios'
+import api from '../utils/axios'
 
 export default {
   name:'VpressDataTable',
@@ -50,6 +54,8 @@ export default {
     }
   },
   created() {
+    this.datasetMeta = this.$store.getters['workspace/activeDataset']
+    this.getDataFromApi()
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(
@@ -88,11 +94,13 @@ export default {
       }
     },
     extractHeaders(data) {
-      return Object.keys(data).map(o => ({
-        text: o,
-        value: o,
-        sortable: true
-      }));
+      return Object
+        .keys(data)
+        .map(o => ({
+          text: o,
+          value: o,
+          sortable: true
+        }));
     }
   },
 }

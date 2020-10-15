@@ -1,5 +1,5 @@
 import vpress from '../../utils/vpress.js';
-import api from '../../helpers/axios.js'
+import api from '../../utils/axios.js'
 
 export default {
   namespaced: true,
@@ -31,10 +31,10 @@ export default {
       }
     },
     async GET_CHART_DATA(
-      { state, dispatch },
+      { dispatch, getters },
       {
         chartValues,
-        dataSetSlug = state.datasetMeta.slug
+        dataSetSlug = getters['workspace/activeDataset'].slug
       }
     ) {
       try {
@@ -48,10 +48,10 @@ export default {
         throw new Error(error.message)
       }
     },
-    async GET_FILTER_PARAMS({ state, dispatch }, payload) {
+    async GET_FILTER_PARAMS({ getters, dispatch }, payload) {
       try {
         const body = {
-          dataset: `vpress_${state.datasetMeta.slug}`
+          dataset: `vpress_${getters['workspace/activeDataset'].slug}`
         }
         if (payload.type !== 'linear') {
           const ordinalBody = vpress.filterOrdinalParamsQuery(
@@ -70,7 +70,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    async ADD_DATASET({ commit, dispatch } , payload) {
+    async ADD_DATASET({ commit } , payload) {
       try {
         const datasetMeta = {
             id: payload.id,
@@ -80,8 +80,7 @@ export default {
             owner_id: payload.owner_id,
             permissions: payload.permissions,
             source: payload.source,
-            tags: payload.tag,
-            vizzes: []
+            tags: payload.tag
         }
         const { data } = await api.dataset.data(
           {
@@ -89,7 +88,7 @@ export default {
             dataset: payload.slug,
             itemsPerPage: 1
           }
-        );
+        )
         if (data.data && data.data.length > 0) {
           const {
             variables,
@@ -105,7 +104,6 @@ export default {
           throw new Error(data.error);
         }
         commit('ADD_DATASET_META', datasetMeta);
-        dispatch('UPDATE_ACTIVE_DATASET', datasetMeta.slug)
         return datasetMeta
       } catch (error) {
         throw new Error(error.message)
@@ -116,20 +114,20 @@ export default {
       const datasets = Object.values(state.datasetMeta)
       if (datasets.length > 0) {
         dispatch('UPDATE_ACTIVE_DATASET', datasets[0].slug)
-        return datasets[0] 
+        return datasets[0]
       } else {
         dispatch('UPDATE_ACTIVE_DATASET', null)
         return {}
       }
     },
-    UPDATE_ACTIVE_DATASET({commit}, dataset) {
+    UPDATE_ACTIVE_DATASET({ commit }, dataset) {
       commit('SET_ACTIVE_DATASET', dataset)
-    }
+    },
   },
   getters: {
     activeDataset: ({ datasetMeta, activeDataset }) => activeDataset
       ? datasetMeta[activeDataset]
-      : activeDataset,
+      : null,
     dataType: (_, { activeDataset }) => activeDataset
       ? activeDataset.variables
       : [],

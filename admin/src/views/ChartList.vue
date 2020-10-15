@@ -70,7 +70,7 @@
 </template>
 <script>
 import VpressChartCard from '@/components/vpress-chart-card.vue'
-import api from '../helpers/axios'
+import api from '../utils/axios'
 
 export default {
   name: 'VpressChartList',

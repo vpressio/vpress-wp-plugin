@@ -173,7 +173,7 @@ export default {
     selectFunc(func) {
       this.variable.func = func.type
       this.selectedFunc = func
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+      this.$store.dispatch(`editor/DATA_QUERY`, {
         mutationType: this.mutationType,
         value: this.variable
       });
@@ -192,7 +192,7 @@ export default {
           slug: '',
           func: ''
         }
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
+      this.$store.dispatch(`editor/DATA_QUERY`, {
         mutationType: this.mutationType,
         value: payload
       });

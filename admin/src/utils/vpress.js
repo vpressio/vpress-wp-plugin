@@ -307,7 +307,6 @@ const queryBody = (context, table_name) => {
     orderBy
   } = context;
   if (xAxis.type === 'linear' && yAxis.type === 'linear') {
-    console.log('linear-linear');
     if (xAxis.slug === 'total_count' && yAxis.slug === 'total_count') {
       throw new Error('Combinación de variables inválida.')
     }
@@ -379,7 +378,6 @@ const queryBody = (context, table_name) => {
     (xAxis.type === 'ordinal' || xAxis.type === 'date') &&
     (yAxis.type === 'ordinal' || yAxis.type === 'date')
   ) {
-    console.log('ordinal-ordinal');
     body['column_head'] = sanitizeSpaces(xAxis.slug)
     body['column_2'] = sanitizeSpaces(yAxis.slug)
     if (collapseBy.slug !== '') {
@@ -397,7 +395,6 @@ const queryBody = (context, table_name) => {
       (yAxis.type === 'linear' && (xAxis.type === 'ordinal' || xAxis.type === 'date'))
     )
   ) {
-    console.log('lineaar-ordinal');
     const linearAxis = xAxis.type === 'linear'
       ? xAxis
       : yAxis
@@ -494,6 +491,7 @@ const selectAggregateFunction = (func) => {
       ? '`' + columnName + '`'
       : columnName
   }
+  
   export default {
     queryByChart,
     mergeChartVal,

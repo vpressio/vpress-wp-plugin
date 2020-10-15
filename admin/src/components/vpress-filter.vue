@@ -136,7 +136,7 @@ export default {
     async applyFilter() {
       try {
          this.$store.dispatch(
-           'chartConfig/DATA_QUERY',
+           'editor/DATA_QUERY',
            {
               value: {
                   title: this.column,

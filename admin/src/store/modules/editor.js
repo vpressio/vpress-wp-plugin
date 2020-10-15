@@ -1,15 +1,13 @@
 import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
-import api from '../../helpers/axios.js' 
+import api from '../../utils/axios.js' 
 
 export default {
   namespaced: true,
   state: {
-    activeVizIdx: 0,
-    charts: [ new VpressViz().values() ],
-    workspace: [ new VpressViz() ],
+    openViz: 0,
+    vizzes: {},
     loadingChart: false,
-    error: {},
     availableGraphs: [
       {
         type: 'bars',
@@ -137,55 +135,43 @@ export default {
   },
   mutations: {
     SET_ACTIVE_CHART_INDEX(state, payload) {
-      state.activeVizIdx = payload
-    },
-    ADD_CHART(state, payload) {
-      state.charts = [...state.charts, payload]
-    },
-    SET_CHART(state, payload) {
-      state.charts[state.activeVizIdx] = payload
-    },
-    SET_CHART_VALUES(state, payload) {
-      state.chartValues = payload;
-    },
-    SET_AXIS_TITLE(state, { valueToUpdate, value }) {
-      state.chartValues[valueToUpdate].title = value;
-    },
-    SET_CHART_ERROR(state, payload) {
-      state.error = payload
-    },
-    SET_CHARTS_ARRAY(state, payload) {
-      state.charts = [...payload]
+      state.openViz = payload
     },
     SET_LOAD_STATE(state, payload) {
       state.loadingChart = payload ? true : false
     },
-    RESET_WSP(state, newViz = new VpressViz() ) {
-      state.workspace = [ newViz ]
+    SET_VIZ_VALUES(state, { values, dataset }) {
+       // eslint-disable-next-line no-debugger
+       debugger
+      state.vizzes[dataset][state.openViz].setChartValues(values)
     },
-    ADD_VIZ_TO_WSP(state, payload) {
-      state.workspace.push[payload]
-      state.charts = state.workspace.map(wsp => wsp.values())
+    SET_VIZ_DATA(state, { data, dataset }) {
+      state.vizzes[dataset][state.openViz].setData(data)
     },
-    SET_VIZ_VALUES(state, chartValues) {
-      state.workspace[state.activeVizIdx].setChartValues(chartValues)
-      state.charts = state.workspace.map(wsp => wsp.values());
+    SET_WSP_CHART_ID(state, { id, dataset }) {
+      state.vizzes[dataset][state.openViz].id = id
     },
-    SET_VIZ_DATA(state, data ) {
-      state.workspace[state.activeVizIdx].setData(data)
-      state.charts = state.workspace.map(wsp => wsp.values());
+    SET_VIZZES(state, { dataset, vizzes }) {
+      state.vizzes[dataset] = vizzes
     },
-    SET_WSP_CHART_ID(state, id) {
-      state.workspace[state.activeVizIdx].id = id
+    ADD_VIZZES(state, { dataset, vizzes }) {
+      state.vizzes[dataset] = [...state.vizzes[dataset], ...vizzes]
+    },
+    DELETE_VIZZES(state, datasetName) {
+      delete state.vizzes[datasetName]
+    },
+    OPEN_VIZ(state, idx) {
+      state.openViz = idx
     }
   },
   actions: {
-    UPDATE_ACTIVE_CHART_INDEX({ commit }, payload) {
-      commit('SET_ACTIVE_CHART_INDEX', payload)
-    },
-    async DATA_QUERY({ dispatch, state, commit }, { value, mutationType }) {
+    async DATA_QUERY(
+      { dispatch, state, commit, rootGetters },
+      { value, mutationType }
+    ) {
       try {
-        const activeChart = state.charts[state.activeVizIdx]
+        const dataset = rootGetters['workspace/activeDataset'].slug
+        const activeChart = state.vizzes[dataset][state.openViz].values()
         const newChartValues = vpress.queryByChart(
           activeChart,
           {
@@ -193,58 +179,95 @@ export default {
             mergeType: mutationType
           }
         )
-        if (newChartValues.xAxis.slug !== '' && newChartValues.yAxis.slug !== '') {
+        if (
+          newChartValues.xAxis.slug !== '' &&
+          newChartValues.yAxis.slug !== ''
+        ) {
           commit('SET_LOAD_STATE', true)
-          const data = await dispatch(
+          const date = await dispatch(
               'workspace/GET_CHART_DATA',
-              { chartValues: newChartValues, chartIndex: state.activeVizIdx },
+            {
+              chartValues: newChartValues,
+              chartIndex: state.openViz
+            },
               { root: true }
           )
-          commit('SET_VIZ_DATA', data)
+          commit('SET_VIZ_DATA', { date, dataset })
         }
-        commit('SET_VIZ_VALUES', newChartValues)
-        commit('SET_CHART_ERROR', null)
+        commit('SET_VIZ_VALUES', { values: newChartValues, dataset })
         commit('SET_LOAD_STATE', false)
       } catch (error) {
-        commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         commit('SET_LOAD_STATE', false)
         throw new Error(error.message);
       }
     },
-    async MERGE_CHART_VALUE({ state, commit }, payload) {
+    async MERGE_CHART_VALUE({ state, commit, rootGetters }, payload) {
       try {
+        const dataset = rootGetters['workspace/activeDataset'].slug
         const newValue = payload
         const newChartValues = vpress.mergeChartVal(
-          state.charts[state.activeVizIdx],
+          state.vizzes[dataset][state.openViz].values,
           {
             newValue: newValue.value,
             mutationType: newValue.mutationType
           }
         )
-        commit('SET_VIZ_VALUES', newChartValues)
-        commit('SET_CHART_ERROR', null)
+        commit('SET_VIZ_VALUES', { values: newChartValues, dataset })
         return newValue
       } catch (error) {
-        commit('SET_CHART_ERROR', { message: error.message, valueName: error.valueName })
         throw new Error(error.message);
       }
     },
-    RESET_WSP({ commit }, viz) {
-      commit('RESET_WSP', viz)
+    LOAD_VIZZES(
+      { state, commit, rootGetters },
+      { vizValues = [], dataset = rootGetters['workspace/activeDataset'] }
+    ) {
+      const datasetSlug = dataset.slug
+      const vizzes = vizValues
+            .map(viz => new VpressViz(
+              viz.values,
+              viz.id,
+              viz.mapValues,
+              viz.dataset_id,
+              viz.data,
+              viz.description,
+              viz.permission,
+              viz.img_url,
+            ))
+      const payload = vizzes.length > 0
+        ? vizzes
+        : [new VpressViz()]
+      const storedVizzes = state.vizzes[datasetSlug]
+      if (storedVizzes) {
+        commit('ADD_VIZZES', vizzes)
+        const lastIdx = vizzes.length - 1
+        commit('OPEN_VIZ', lastIdx)
+      } else if(vizzes.length < 0) {
+        commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
+        commit('OPEN_VIZ', 0)
+      }
     },
-    CREATE_CHART({ commit }) {
-      //todo bug create workspace or viz?
-      const viz = new VpressViz()
-      commit('ADD_VIZ_TO_WSP', viz)
-      // const chartValues = viz.values();
-      // commit('ADD_CHART', chartValues)
+    REMOVE_VIZZES(
+      { commit, rootGetters },
+      datasetName = rootGetters['workspace/activeDataset']
+      ) {
+        commit('DELETE_VIZZES', datasetName)
+        commit('OPEN_VIZ', 0)
     },
-    REMOVE_CHART({ commit, state }, removedWspIdx) {
-      const cleanedCharts = state.charts.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-      commit('SET_CHARTS_ARRAY', cleanedCharts)
-
-      // const filteredWsp = state.workspace.filter((_, chartIndex) => chartIndex !== removedWspIdx)
-
+    ADD_VIZ({ state, commit, rootGetters }, viz = new VpressViz()) {
+      const activeDataset = rootGetters['workspace/activeDataset']
+      const vizzes = state.vizzes[activeDataset].push(viz)
+      commit('SET_VIZZES', vizzes)
+      const newIdx = vizzes.length - 1
+      commit('OPEN_VIZ', newIdx)
+    },
+    REMOVE_VIZ({ state, commit, rootGetters }, vizIdx) {
+      const activeDataset = rootGetters['workspace/activeDataset']
+      const vizzes = state.vizzes[activeDataset].slice(vizIdx, 1)
+      commit('SET_VIZZES', vizzes)
+      if (vizIdx === state.openViz) {
+        commit('OPEN_VIZ', 0)
+      }
     },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
@@ -273,7 +296,8 @@ export default {
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
-          commit('SET_WSP_CHART_ID', savedChart.data)
+
+          commit('SET_WSP_CHART_ID', { id: savedChart.data, dataset: datasetMeta.slug })
         } else {
           const updateResponse = await api.chart.update({ id, ...body })
           if (updateResponse.data.error) {
@@ -304,9 +328,20 @@ export default {
     },
   },
   getters: {
-    workspace: state => state.workspace,
-    activeVizIdx: state => state.activeVizIdx,
-    viz: ({ workspace, activeVizIdx }) => workspace[activeVizIdx],
+    workspace: ({ vizzes }, _, __, rootGetters) => {
+      const activeDataset = rootGetters['workspace/activeDataset']
+        ? rootGetters['workspace/activeDataset'].slug
+        : ''
+      return (dataset = activeDataset) => vizzes[dataset]
+    },
+    activeVizIdx: state => state.openViz,
+    viz: ({ vizzes, openViz }, _, __, rootGetters) => {
+      const dataset = rootGetters['workspace/activeDataset']
+      if (!dataset || Object.keys(vizzes).length <= 0 ) return new VpressViz()
+      return !vizzes[dataset.slug] || vizzes[dataset.slug].length <= 0
+        ? new VpressViz()
+        : vizzes[dataset.slug][openViz]
+    },
     chart: (_, { viz }) => viz.values(),
     data: (_, { viz }) => viz.vizData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
@@ -385,24 +420,15 @@ export default {
       }
       return slotVariables
     },
-    groupBy: (_, { chart }) => {
-        return [{ variable: chart.groupBy, mutationType: 'groupBy' }]
-    },
-    collapseBy: (_, { chart }) => {
-      return [{ variable: chart.collapseBy, mutationType: 'collapseBy' }]
-    },
-    filter: (_, { chart }) => {
-      return chart.filters.map((filter) => {
-        return { variable: filter, mutationType: 'filter' }
-      })
-    },
+    groupBy: (_, { chart }) => [{ variable: chart.groupBy, mutationType: 'groupBy' }],
+    collapseBy: (_, { chart }) => [{ variable: chart.collapseBy, mutationType: 'collapseBy' }],
+    filter: (_, { chart }) =>  chart.filters.map((filter) => ({ variable: filter, mutationType: 'filter' })),
     theme: (_, { chart }) => chart.theme,
     chartType: (_, { chart }) => chart.chart,
     labels: (_, { chart }) => chart.labels,
     'groupBy.slug': (_, { chart }) => chart.groupBy.slug,
     stackedBars: (_, { chart }) => chart.stackedBars,
     order: (_, { chart }) => chart.orderBy.order,
-    error: state => state.error,
     availableColors: state => state.colorsEnum,
     getAvailableCharts: ({ availableGraphs }, { chart }) => {
       const requiredReduce = (acc, chartValue) => chartValue[chartValue]

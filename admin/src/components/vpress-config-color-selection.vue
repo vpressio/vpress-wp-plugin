@@ -39,11 +39,11 @@ export default {
     };
   },
   created() {
-    this.colorSchemes = this.$store.getters['chartConfig/availableColors'];
+    this.colorSchemes = this.$store.getters['editor/availableColors'];
   },
   methods: {
     selectColorScheme(scheme) {
-      this.$store.dispatch('chartConfig/MERGE_CHART_VALUE',{ mutationType: 'colors', value: scheme });
+      this.$store.dispatch('editor/MERGE_CHART_VALUE',{ mutationType: 'colors', value: scheme });
     }
   }
 };

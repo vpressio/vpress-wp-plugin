@@ -56,26 +56,26 @@
       :loading="loading"
       hide-default-header
     >
-      <template v-slot:item.name="{ item }" >
+      <template v-slot:[`item.name`]="{ item }" >
         <div style="cursor:pointer" @click="selectDataset(item)">
           <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
           <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
         </div>
       </template>
-      <template v-slot:item.permissions="{ item }">
+      <template v-slot:[`item.permissions`]="{ item }">
         <p
           class="text-uppercase"
           :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"        >
           {{ item.permissions }}
         </p>
       </template>
-      <template v-slot:item.size="{ item }">
+      <template v-slot:[`item.size`]="{ item }">
         {{ item.size }}
       </template>
-      <template v-slot:item.rows="{ item }">
+      <template v-slot:[`item.rows`]="{ item }">
         ~{{ intFromat(item.rows) }} filas
       </template>
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
         <v-icon
           class="mr-2"
           @click="editItem(item)"
@@ -146,7 +146,7 @@
   </v-container>
 </template>
 <script>
-import api from '../helpers/axios'
+import api from '../utils/axios'
 
 export default {
   name: 'VpressDatasetList',
@@ -199,6 +199,7 @@ export default {
   },
   methods: {
     selectDataset(dataset) {
+      //Load Dataset
       try {
         this.loading = true
         this.$router.push(

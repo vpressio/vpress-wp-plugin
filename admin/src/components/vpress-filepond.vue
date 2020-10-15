@@ -44,7 +44,7 @@
   </v-card>
 </template>
 <script>
-import api from '../helpers/axios'
+import api from '../utils/axios'
 import vueFilePond from 'vue-filepond';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm';
 import 'filepond/dist/filepond.min.css';

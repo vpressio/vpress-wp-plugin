@@ -1,5 +1,5 @@
 import { saveAs } from 'file-saver';
-import api from '../helpers/axios';
+import api from './axios';
 
 export const stringChart = async (chartId, filename) => {
   const svgNode = document.querySelector(chartId).firstChild;

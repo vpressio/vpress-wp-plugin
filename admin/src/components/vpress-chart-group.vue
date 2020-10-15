@@ -61,7 +61,7 @@
   </v-card>
 </template>
 <script>
-import * as _ from 'lodash';
+import * as _ from 'lodash'
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
@@ -74,11 +74,11 @@ export default {
   },
   data() {
     return {
-      chartConfig: this.$store.getters['chartConfig/chart'],
-      charts: this.$store.getters['chartConfig/workspace'],
-      loadingChart: this.$store.getters['chartConfig/loadingState'],
+      chartConfig: this.$store.getters['editor/chart'],
+      charts: this.$store.getters['editor/workspace'](),
+      loadingChart: this.$store.getters['editor/loadingState'],
       activeChartIndex:0,
-      availableCharts: this.$store.getters['chartConfig/getAvailableCharts'],
+      availableCharts: this.$store.getters['editor/getAvailableCharts'],
     };
   },
   created() {
@@ -86,23 +86,22 @@ export default {
       (mutation) => {
         if(
           (
-            mutation.type === 'chartConfig/SET_CHART_VALUES' ||
-            mutation.type === 'chartConfig/ADD_CHART'
+            mutation.type === 'editor/SET_VIZ_VALUES'
           )
         ) {
-          this.charts = this.$store.getters['chartConfig/workspace']
+          this.charts = this.$store.getters['editor/workspace']()
             .map( chart => _.cloneDeep(chart));
         }
         if (
-          mutation.type === 'chartConfig/SET_LOAD_STATE'
+          mutation.type === 'editor/SET_LOAD_STATE'
         ) {
-          this.loadingChart = this.$store.getters['chartConfig/loadingState']
+          this.loadingChart = this.$store.getters['editor/loadingState']
         }
-        this.availableCharts = this.$store.getters['chartConfig/getAvailableCharts']
+        this.availableCharts = this.$store.getters['editor/getAvailableCharts']
       }
     );
     this.unsubscribeAction = this.$store.subscribeAction( action => {
-      if(action.type === 'chartConfig/DATA_QUERY') this.loadingChart = true;
+      if(action.type === 'editor/DATA_QUERY') this.loadingChart = true;
     })
   },
   beforeDestroy() {
@@ -116,8 +115,7 @@ export default {
   },
   methods: {
     setActiveChart(chartIndex) {
-      this.$store.dispatch('chartConfig/UPDATE_ACTIVE_CHART_INDEX', chartIndex);
-      this.activeChartIndex = chartIndex;
+      chartIndex
     },
     addChart() {
     },
@@ -176,7 +174,7 @@ export default {
         '.input-edit-title',
         value => {
           this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+            'editor/MERGE_CHART_VALUE',
             { mutationType:'title' , value: value}
           );
         }
@@ -187,7 +185,7 @@ export default {
         '.input-edit-subtitle',
         value => {
           this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+            'editor/MERGE_CHART_VALUE',
             { mutationType:'subtitle' , value: value}
           );
         }
@@ -198,7 +196,7 @@ export default {
         '.input-edit-x-axis',
         value => {
           this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+            'editor/MERGE_CHART_VALUE',
             { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
           );
         }
@@ -209,7 +207,7 @@ export default {
         '.input-edit-y-axis',
         value => {
           this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+            'editor/MERGE_CHART_VALUE',
             { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
           );
         }
@@ -222,17 +220,17 @@ export default {
           /** Update current config with new value */
           if (vm.chartConfig.groupBy.slug) {
             this.$store.dispatch(
-              'chartConfig/MERGE_CHART_VALUE',
+              'editor/MERGE_CHART_VALUE',
               { mutationType: 'labelAxis', value:{ axis:'groupBy', value: value} }
             );
           } else if (vm.chartConfig.yAxis.type === 'ordinal') {
             this.$store.dispatch(
-              'chartConfig/MERGE_CHART_VALUE',
+              'editor/MERGE_CHART_VALUE',
               { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
             );
           } else if (vm.chartConfig.xAxis.type === 'ordinal') {
             this.$store.dispatch(
-              'chartConfig/MERGE_CHART_VALUE',
+              'editor/MERGE_CHART_VALUE',
               { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
             );
           }

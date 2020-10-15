@@ -121,7 +121,7 @@ export default {
   },
   computed: {
     storeVariables() {
-      return this.$store.getters[`chartConfig/${this.slotId}`];
+      return this.$store.getters[`editor/${this.slotId}`];
     },
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
@@ -142,7 +142,7 @@ export default {
     async mergeVariable(variable, mutationType) {
       try {
         const result = await this.$store.dispatch(
-          `chartConfig/DATA_QUERY`,
+          `editor/DATA_QUERY`,
           { 
             value: {
               slug: variable.slug,
@@ -169,7 +169,7 @@ export default {
       this.openFilterDialog = true;
     },
     changeCurrentFilter(event, index) {
-      const filterCard = this.$store.getters['chartConfig/chart'].filters[index]
+      const filterCard = this.$store.getters['editor/chart'].filters[index]
       const payload = {
         type: filterCard.type
       }

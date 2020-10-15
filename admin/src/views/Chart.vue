@@ -9,7 +9,7 @@
 <script>
 import VpressChartContainer from '../components/vpress-chart-container'
 import vpress from '../utils/vpress'
-import api from '../helpers/axios'
+import api from '../utils/axios'
 
 export default {
   name: 'Chart',
@@ -36,10 +36,10 @@ export default {
             const datasetRes = await api.dataset.get(chart.dataset_id)
             const dataset = datasetRes.data.data
             await this.$store.dispatch('workspace/ADD_DATASET', dataset)
-            const values = JSON.parse(chart.value)
             const obj = vpress.queryBody(values, dataset.slug)
             const dataResponse = await api.chart.query(obj)
             this.chartData = dataResponse.data.data
+            const values = JSON.parse(chart.value)
             this.chartConfig = values
         }
       } catch (error) {

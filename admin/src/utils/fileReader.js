@@ -141,4 +141,5 @@ const FReader = {
     return str;
   },
 };
-export { FReader };
+
+export default FReader
