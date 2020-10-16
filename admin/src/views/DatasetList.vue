@@ -73,7 +73,7 @@
         {{ item.size }}
       </template>
       <template v-slot:[`item.rows`]="{ item }">
-        ~{{ intFromat(item.rows) }} filas
+        ~{{ item.rows | intFromat }} filas
       </template>
       <template v-slot:[`item.actions`]="{ item }">
         <v-icon
@@ -147,9 +147,11 @@
 </template>
 <script>
 import api from '../utils/axios'
+import loaderMixin from '../mixins/loaderMixin.js'
 
 export default {
   name: 'VpressDatasetList',
+  mixins: [loaderMixin],
   data: () => ({
     q: null,
     total: 0,
@@ -198,10 +200,11 @@ export default {
     }
   },
   methods: {
-    selectDataset(dataset) {
+    async selectDataset(dataset) {
       //Load Dataset
       try {
         this.loading = true
+         await this.editorInit(dataset)
         this.$router.push(
           {
             path: `/`,
@@ -235,9 +238,6 @@ export default {
         
         this.loading = false
       }
-    },
-    intFromat(number) {
-      return new Intl.NumberFormat().format(number)
     },
     editItem (item) {
       this.editedIndex = this.items.indexOf(item)

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 import './utils/registerServiceWorker';
-// import './utils/LogRocket.js'
+import './utils/LogRocket.js'
 import {
   store,
   vuetify,

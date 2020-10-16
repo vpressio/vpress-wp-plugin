@@ -114,9 +114,6 @@ export default {
       dataSetFromUrl: {}
     };
   },
-  created() {
-    console.log(this)
-  },
   watch:{
     theme(newTheme){
       const chartTheme = newTheme ? 'dark': 'light'

@@ -14,6 +14,7 @@
           x-small
           block
           :color="
+            $store.getters['workspace/activeDataset'] &&
             $store.getters['workspace/activeDataset'].slug === dataset 
               ? 'secondary'
               : 'primary'
@@ -178,9 +179,9 @@ export default {
       }
     )
   },
-  mounted() {
+  // mounted() {
       // this.$tours['vpress-tour'].start();
-  },
+  // },
   beforeDestroy() {
     this.unsubscribe();
   },

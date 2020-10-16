@@ -19,57 +19,6 @@ export default {
     }
   },
   actions: {
-    async GET_QUERY_DATA(_, queryBody ) {
-      try {
-        const response = await api.chart.query(queryBody);
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-        return response.data.data
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_CHART_DATA(
-      { dispatch, getters },
-      {
-        chartValues,
-        dataSetSlug = getters['workspace/activeDataset'].slug
-      }
-    ) {
-      try {
-        const body = await vpress.queryBody(
-          chartValues,
-          dataSetSlug
-        );
-        const response = await dispatch('GET_QUERY_DATA', body)
-        return response
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async GET_FILTER_PARAMS({ getters, dispatch }, payload) {
-      try {
-        const body = {
-          dataset: `vpress_${getters['workspace/activeDataset'].slug}`
-        }
-        if (payload.type !== 'linear') {
-          const ordinalBody = vpress.filterOrdinalParamsQuery(
-            body,
-            payload.column
-          )
-          return await dispatch('GET_QUERY_DATA', ordinalBody)
-        } else {
-          const linearBody = vpress.filterLinearParamsQuery(
-            body,
-            payload.column
-          )
-          return await dispatch('GET_QUERY_DATA', linearBody)
-        }
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
     async ADD_DATASET({ commit } , payload) {
       try {
         const datasetMeta = {

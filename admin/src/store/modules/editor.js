@@ -1,4 +1,3 @@
-import vpress from '../../utils/vpress.js';
 import { VpressViz } from '../../utils/vpressViz.js';
 import api from '../../utils/axios.js' 
 
@@ -134,15 +133,7 @@ export default {
     ]
   },
   mutations: {
-    SET_ACTIVE_CHART_INDEX(state, payload) {
-      state.openViz = payload
-    },
-    SET_LOAD_STATE(state, payload) {
-      state.loadingChart = payload ? true : false
-    },
     SET_VIZ_VALUES(state, { values, dataset }) {
-       // eslint-disable-next-line no-debugger
-       debugger
       state.vizzes[dataset][state.openViz].setChartValues(values)
     },
     SET_VIZ_DATA(state, { data, dataset }) {
@@ -151,7 +142,7 @@ export default {
     SET_WSP_CHART_ID(state, { id, dataset }) {
       state.vizzes[dataset][state.openViz].id = id
     },
-    SET_VIZZES(state, { dataset, vizzes }) {
+    SET_VIZZES(state, { dataset, vizzes = [] }) {
       state.vizzes[dataset] = vizzes
     },
     ADD_VIZZES(state, { dataset, vizzes }) {
@@ -162,87 +153,37 @@ export default {
     },
     OPEN_VIZ(state, idx) {
       state.openViz = idx
+    },
+    SET_LOADING_STATUS(state, payload) {
+      state.loadingChart = payload
     }
   },
   actions: {
-    async DATA_QUERY(
-      { dispatch, state, commit, rootGetters },
-      { value, mutationType }
-    ) {
-      try {
-        const dataset = rootGetters['workspace/activeDataset'].slug
-        const activeChart = state.vizzes[dataset][state.openViz].values()
-        const newChartValues = vpress.queryByChart(
-          activeChart,
-          {
-            newValue: value,
-            mergeType: mutationType
-          }
-        )
-        if (
-          newChartValues.xAxis.slug !== '' &&
-          newChartValues.yAxis.slug !== ''
-        ) {
-          commit('SET_LOAD_STATE', true)
-          const date = await dispatch(
-              'workspace/GET_CHART_DATA',
-            {
-              chartValues: newChartValues,
-              chartIndex: state.openViz
-            },
-              { root: true }
-          )
-          commit('SET_VIZ_DATA', { date, dataset })
-        }
-        commit('SET_VIZ_VALUES', { values: newChartValues, dataset })
-        commit('SET_LOAD_STATE', false)
-      } catch (error) {
-        commit('SET_LOAD_STATE', false)
-        throw new Error(error.message);
-      }
-    },
-    async MERGE_CHART_VALUE({ state, commit, rootGetters }, payload) {
-      try {
-        const dataset = rootGetters['workspace/activeDataset'].slug
-        const newValue = payload
-        const newChartValues = vpress.mergeChartVal(
-          state.vizzes[dataset][state.openViz].values,
-          {
-            newValue: newValue.value,
-            mutationType: newValue.mutationType
-          }
-        )
-        commit('SET_VIZ_VALUES', { values: newChartValues, dataset })
-        return newValue
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
     LOAD_VIZZES(
       { state, commit, rootGetters },
       { vizValues = [], dataset = rootGetters['workspace/activeDataset'] }
     ) {
       const datasetSlug = dataset.slug
       const vizzes = vizValues
-            .map(viz => new VpressViz(
-              viz.values,
-              viz.id,
-              viz.mapValues,
-              viz.dataset_id,
-              viz.data,
-              viz.description,
-              viz.permission,
-              viz.img_url,
-            ))
+        .map(viz => new VpressViz(
+          viz.values,
+          viz.id,
+          viz.mapValues,
+          viz.dataset_id,
+          viz.data,
+          viz.description,
+          viz.permission,
+          viz.img_url,
+        ))
       const payload = vizzes.length > 0
         ? vizzes
         : [new VpressViz()]
       const storedVizzes = state.vizzes[datasetSlug]
       if (storedVizzes) {
-        commit('ADD_VIZZES', vizzes)
-        const lastIdx = vizzes.length - 1
+        commit('ADD_VIZZES', { vizzes: payload })
+        const lastIdx = payload.length - 1
         commit('OPEN_VIZ', lastIdx)
-      } else if(vizzes.length < 0) {
+      } else if(vizzes.length <= 0) {
         commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
         commit('OPEN_VIZ', 0)
       }

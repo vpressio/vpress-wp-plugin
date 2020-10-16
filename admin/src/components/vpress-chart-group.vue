@@ -61,7 +61,6 @@
   </v-card>
 </template>
 <script>
-import * as _ from 'lodash'
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
 import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
@@ -89,8 +88,9 @@ export default {
             mutation.type === 'editor/SET_VIZ_VALUES'
           )
         ) {
-          this.charts = this.$store.getters['editor/workspace']()
-            .map( chart => _.cloneDeep(chart));
+          this.charts = this.$store
+            .getters['editor/workspace']()
+            .map(viz => viz.values())
         }
         if (
           mutation.type === 'editor/SET_LOAD_STATE'
@@ -100,13 +100,9 @@ export default {
         this.availableCharts = this.$store.getters['editor/getAvailableCharts']
       }
     );
-    this.unsubscribeAction = this.$store.subscribeAction( action => {
-      if(action.type === 'editor/DATA_QUERY') this.loadingChart = true;
-    })
   },
   beforeDestroy() {
     this.unsubscribe();
-    this.unsubscribeAction();
   },
   computed: {
     showLoader() {

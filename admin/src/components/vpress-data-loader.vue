@@ -49,7 +49,7 @@
             class="px-3 pb-3"
             style="line-height:1"
           >
-            {{ dataSet.size }} | ~{{ intFromat(dataSet.rows) }} filas
+            {{ dataSet.size }} | ~{{ dataSet.rows | intFromat }} filas
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -120,6 +120,7 @@ import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
 import api from '../utils/axios';
 import FReader from '../utils/fileReader'
+import loaderMixin from '../mixins/loaderMixin.js'
 
 export default {
   name: 'VpressDataLoader',
@@ -127,6 +128,7 @@ export default {
     VpressFilepond,
     VpressDataTable
   },
+  mixins: [loaderMixin],
   props: ['tabChange'],
   data() {
     return {
@@ -187,23 +189,10 @@ export default {
       }
     },
     async selectWPDataset(dataset) {
-      //Load dataset
       try {
         this.data = []
-        this.datasetMeta = await this.$store
-          .dispatch(
-            'workspace/ADD_DATASET',
-            dataset,
-          )
-        await this.$store
-          .dispatch(
-            'workspace/UPDATE_ACTIVE_DATASET',
-            this.datasetMeta.slug
-          )
-        await this.$store
-          .dispatch(
-            'editor/LOAD_VIZZES'
-          )
+        const { datasetMeta } = await this.editorInit(dataset)
+        this.datasetMeta = datasetMeta
       } catch(error) {
         this.errorMessage = error.message;
       }
@@ -213,9 +202,6 @@ export default {
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;
-    },
-    intFromat(number) {
-      return new Intl.NumberFormat().format(number)
     },
     extractSampleHeaders(dataSample) {
       return Object.keys(dataSample).map(o => ({
