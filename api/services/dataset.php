@@ -105,6 +105,8 @@ function upload_dataset( $request ) {
 
   $sql = $wpdb->query($query);
 
+  wp_delete_file( $file );
+
   $response = array(
     'data' => $file_name,
     'query' => $query,
