@@ -31,6 +31,10 @@ export default {
   props: {
     id: String,
     data: Array,
+    dateFormat: {
+      type: String,
+      default: '%Y-%m-%d'
+    },
     chartConfig: {
       chart: String,
       xAxis: {
@@ -744,14 +748,15 @@ export default {
     },
     drawTimeline() {
       const vm = this;
+      console.log(this.dateFormat)
       const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
-        .parseDate(vm.$store.getters['workspace/dateFormat'])
+        .parseDate(vm.dateFormat)
         .tip(function(d) {
           let html = '';
           html += d.name + '<br>';
-          let format = vm.$store.getters['workspace/dateFormat'];
+          let format = vm.dateFormat;
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
             if (typeof timeline.utils.format(d.y) === 'string') {

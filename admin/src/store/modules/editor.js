@@ -148,8 +148,8 @@ export default {
     ADD_VIZZES(state, { dataset, vizzes }) {
       state.vizzes[dataset] = [...state.vizzes[dataset], ...vizzes]
     },
-    DELETE_VIZZES(state, datasetName) {
-      delete state.vizzes[datasetName]
+    RESET_VIZZES(state, vizzesGroup) {
+      state.vizzes = vizzesGroup
     },
     OPEN_VIZ(state, idx) {
       state.openViz = idx
@@ -166,33 +166,43 @@ export default {
       const datasetSlug = dataset.slug
       const vizzes = vizValues
         .map(viz => new VpressViz(
-          viz.values,
+          JSON.parse(viz.value),
           viz.id,
           viz.mapValues,
           viz.dataset_id,
           viz.data,
           viz.description,
-          viz.permission,
+          viz.permissions,
           viz.img_url,
         ))
-      const payload = vizzes.length > 0
-        ? vizzes
-        : [new VpressViz()]
+      
       const storedVizzes = state.vizzes[datasetSlug]
       if (storedVizzes) {
-        commit('ADD_VIZZES', { vizzes: payload })
-        const lastIdx = payload.length - 1
+        commit('ADD_VIZZES', { dataset: datasetSlug, vizzes: vizzes })
+        const lastIdx = storedVizzes.length > 0
+          ? storedVizzes.length - 1
+          : 0
         commit('OPEN_VIZ', lastIdx)
-      } else if(vizzes.length <= 0) {
+      } else if (vizzes.length >= 0) {
+        const payload = vizzes.length > 0
+          ? vizzes
+          : [ new VpressViz() ]
         commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
         commit('OPEN_VIZ', 0)
       }
+      
     },
     REMOVE_VIZZES(
-      { commit, rootGetters },
+      {
+        commit,
+        rootGetters,
+        state,
+      },
       datasetName = rootGetters['workspace/activeDataset']
-      ) {
-        commit('DELETE_VIZZES', datasetName)
+    ) {
+        const vizzesSubstract = { ...state.vizzes[datasetName] }
+        delete vizzesSubstract[datasetName]
+        commit('RESET_VIZZES',vizzesSubstract)
         commit('OPEN_VIZ', 0)
     },
     ADD_VIZ({ state, commit, rootGetters }, viz = new VpressViz()) {

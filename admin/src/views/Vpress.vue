@@ -3,8 +3,19 @@
   <div class="vpress-app-bar">
     <VpressAppBar/>
   </div>
-  <v-card class="vpress-sidebar" tile flat color="#222A32">
-    <v-card class="pa-2" tile height="50" color="#181D25" flat>
+  <v-card
+    class="vpress-sidebar"
+    tile
+    flat
+    color="#222A32"
+  >
+    <v-card 
+      class="pa-2"
+      tile
+      height="50"
+      color="#181D25"
+      flat
+    >
       <v-img src="../assets/images/logo.svg" />
       <div class="my-4">
         <v-btn
@@ -38,6 +49,31 @@
             <span> {{ dataset }} </span>
           </v-tooltip>
         </v-btn>
+        <v-btn
+          v-if="datasets.length > 0"
+          class="py-3 my-2"
+          x-small
+          block
+          color="primary"
+          @click="addDataset"
+        >
+          <v-tooltip
+            attach
+            right
+            offset-x
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                mdi-plus
+              </v-icon>
+            </template>
+            <span> Nuevo </span>
+          </v-tooltip>
+        </v-btn>
       </div>
     </v-card>
   </v-card>
@@ -63,7 +99,12 @@
         </v-btn>
       </template>
     </v-snackbar>
-    <v-tour name="vpress-tour" :steps="tourSteps" :options="tourOptions" :callbacks="tourCallbacks"/>
+    <v-tour
+      name="vpress-tour"
+      :steps="tourSteps"
+      :options="tourOptions"
+      :callbacks="tourCallbacks"
+    />
   </div>
 </div>
 </template>
@@ -188,6 +229,13 @@ export default {
   methods: {
     async selectDataset(dataset) {
       this.$store.dispatch('workspace/UPDATE_ACTIVE_DATASET', dataset)
+    },
+    async addDataset() {
+      await this.$store
+          .dispatch(
+            'workspace/UPDATE_ACTIVE_DATASET',
+            null
+          )
     },
     mergeValue(slot, dataToMerge) {
       this.$store.dispatch(

@@ -40,10 +40,10 @@
             <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader :tabChange.sync="activeTab"/>
+                  <VpressDataLoader v-if="activeTab === 0" :tabChange.sync="activeTab"/>
                 </v-tab-item>
                 <v-tab-item>
-                  <VpressExpansionPanel panelTitle="ARRASTRA LA SELECCIÓN">
+                  <VpressExpansionPanel v-if="activeTab === 1" panelTitle="ARRASTRA LA SELECCIÓN">
                     <v-col cols="12" class="pb-0 pt-1">
                       <v-img class="db-icon" src="../assets/images/db1.svg" />
                       <span class="db-titulo">{{ dataSetName }}</span>
@@ -53,21 +53,23 @@
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
-                  <VpressExpansionPanel panelTitle="TEMA">
-                    <VpressInputControl inputName="Tema">
-                      <v-switch
-                        dense
-                        inset
-                        v-model="theme"
-                        :color="themeSwitchColor"
-                        class="config-switch"
-                        :value-comparator="(e)=> console.log(e)"
-                      />
-                    </VpressInputControl>
-                  </VpressExpansionPanel>
-                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                    <VpressColorSelection />
-                  </VpressExpansionPanel>
+                  <div v-if="activeTab === 2">
+                    <VpressExpansionPanel panelTitle="TEMA">
+                      <VpressInputControl inputName="Tema">
+                        <v-switch
+                          dense
+                          inset
+                          v-model="theme"
+                          :color="themeSwitchColor"
+                          class="config-switch"
+                          :value-comparator="(e)=> console.log(e)"
+                        />
+                      </VpressInputControl>
+                    </VpressExpansionPanel>
+                    <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                      <VpressColorSelection />
+                    </VpressExpansionPanel>
+                  </div>
                 </v-tab-item>
               </v-tabs-items>
             </v-card>
@@ -80,7 +82,11 @@
             v-show="numberOfColsIftabIsNotZero !== '12'"
             :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressChartGroup v-if="variables.length !== 0"/>
+            <VpressChartGroup
+              v-if="
+                variables.length !== 0 
+              "
+            />
           </v-col>
         </v-row>
       </div>

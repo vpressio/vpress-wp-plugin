@@ -1,7 +1,19 @@
 import install from './install'
-import * as helpers from './helpers/index.js'
+import {
+  extractDataType,
+  queryByChart,
+  mergeChartVal,
+  queryBody,
+  filterOrdinalParamsQuery,
+  filterLinearParamsQuery
+} from './helpers/index.js'
 
 export default {
   install,
-  helpers
+  extractDataType,
+  queryByChart,
+  mergeChartVal,
+  queryBody,
+  filterOrdinalParamsQuery,
+  filterLinearParamsQuery
 }

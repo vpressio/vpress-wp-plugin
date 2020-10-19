@@ -25,6 +25,7 @@
           :id="`empty_chart_${chartIndex}`"
           :data="charts[chartIndex].vizData()"
           :chartConfig="charts[chartIndex].values()"
+
           @chart_loaded="onChartIsLoaded"
         />
       </div>
@@ -74,13 +75,15 @@ export default {
   data() {
     return {
       chartConfig: this.$store.getters['editor/chart'],
-      charts: this.$store.getters['editor/workspace'](),
+      charts: [],
       loadingChart: this.$store.getters['editor/loadingState'],
-      activeChartIndex:0,
+      activeChartIndex: 0,
       availableCharts: this.$store.getters['editor/getAvailableCharts'],
     };
   },
   created() {
+    this.charts = this.$store
+      .getters['editor/workspace']()
     this.unsubscribe = this.$store.subscribe(
       (mutation) => {
         if(
@@ -90,7 +93,6 @@ export default {
         ) {
           this.charts = this.$store
             .getters['editor/workspace']()
-            .map(viz => viz.values())
         }
         if (
           mutation.type === 'editor/SET_LOAD_STATE'

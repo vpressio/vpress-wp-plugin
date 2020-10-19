@@ -59,10 +59,12 @@
   </v-card>
 </template>
 <script>
+import loaderMixin from '../mixins/loaderMixin.js'
 import api from '../utils/axios'
 
 export default {
   name: 'VpressChartCard',
+  mixins: [loaderMixin],
   props: {
     id: {
       type: String,
@@ -110,22 +112,10 @@ export default {
     async createChart () {
       try {
         this.loading = true
-          const { data } = await api.chart.get({
-            values: this.values,
-            id: this.id,
-            mapValues: this.mapValues,
-            dataset_id: this.dataset_id,
-            data: this.data,
-            description: this.description,
-            permission: this.permission,
-            img_url: this.img_url,
-          })
-        this.$store.dispatch('editor/LOAD_VIZZES', [ data.data ])
-        this.$router.push(
-          {
-            path: `/`,
-            query: { dataset: this.dataset_id, chart: true }}
-          )
+        const chart = await api.chart.get(this.id)
+        const dataset = await api.dataset.get(this.dataset_id)
+        this.editorInit( dataset.data.data, [ chart.data.data ])
+        this.$router.push({ path: `/` })
       } catch (error) {
         this.loading = false
       }

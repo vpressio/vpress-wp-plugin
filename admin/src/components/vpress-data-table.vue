@@ -35,12 +35,8 @@ import api from '../utils/axios'
 export default {
   name:'VpressDataTable',
   props: {
-    data: {
-      type: Array,
-      required: false,
-      default: function () {
-        return []
-      }
+    dataset: {
+      type: Object,
     }
   },
   data() {
@@ -50,35 +46,27 @@ export default {
       headers: [],
       items: [],
       options: {},
-      datasetMeta: {}
     }
   },
-  created() {
-    this.datasetMeta = this.$store.getters['workspace/activeDataset']
-    this.getDataFromApi()
-    this.unsubscribe = this.$store.subscribe(
-      mutation => {
-        if(
-          mutation.type === 'workspace/SET_ACTIVE_DATASET'
-        ) {
-          this.datasetMeta = this.$store.getters['workspace/activeDataset']
-          this.getDataFromApi()
-        }
-      }
-    )
+  created(){
+    if(this.dataset){
+      this.getDataFromApi()
+    }
   },
-  beforeDestroy() {
-    this.unsubscribe();
+  watch:{
+    dataset() {
+      this.getDataFromApi()
+    }
   },
   methods: {
     async getDataFromApi () {
       try {
         this.loading = true
         const { page, itemsPerPage } = this.options
-        if(this.datasetMeta) {
+        if(this.dataset) {
           const obj = {
             page,
-            dataset: this.datasetMeta.slug,
+            dataset: this.dataset.slug,
             itemsPerPage
           }
           const response = await api.dataset.data(obj);
@@ -105,7 +93,6 @@ export default {
   },
 }
 </script>
-
 <style lang="scss" scoped>
 .data-table--container {
   max-width: 1785px !important;

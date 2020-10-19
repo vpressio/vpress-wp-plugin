@@ -1,11 +1,13 @@
 import api from '../utils/axios.js'
-import {
+import vpress from '../vpress/index.js'
+
+const {
   queryByChart,
   mergeChartVal,
   queryBody,
   filterOrdinalParamsQuery,
   filterLinearParamsQuery
-} from '../vpress/index.js'
+} = vpress
 
 export default {
   data() {

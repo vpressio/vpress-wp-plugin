@@ -1,4 +1,4 @@
-import vpress from '../../utils/vpress.js';
+import vpress from '../../vpress/index.js';
 import api from '../../utils/axios.js'
 
 export default {

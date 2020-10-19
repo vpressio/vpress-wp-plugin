@@ -40,7 +40,13 @@
         :key="`WP_${dataSetIndex}`"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
-        <v-card dark class color="primary" @click="selectWPDataset(dataSet)">
+        <v-card
+          dark
+          class
+          color="primary"
+          :disabled="fetchingDataset"
+          @click="selectWPDataset(dataSet)"
+        >
           <v-card-title
             class="px-3 pt-3 pb-5"
             style="font-size:1rem;line-height:1"
@@ -60,14 +66,16 @@
         <div class="dataTableContainer">
           <v-spacer />
           <v-btn
+            :disabled="!activeDataset"
             class="px-5 btn-datos-2"
             height="43"
             rounded
             outlined
+            color="error1"
             @click="cleanComponentData"
-          >Limpiar</v-btn>
+          >Remover</v-btn>
           <v-btn
-            :disabled="!datasetMeta.slug"
+            :disabled="!activeDataset"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -83,12 +91,12 @@
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
     </v-row>
-    <v-row v-if="uploadMethod === 'upload' && !datasetMeta.slug" class="ma-0">
+    <v-row v-if="uploadMethod === 'upload' && !activeDataset" class="ma-0">
       <v-col>
         <VpressFilepond :file.sync="files" />
       </v-col>
     </v-row>
-    <v-row v-if="uploadMethod === 'paste' && !datasetMeta.slug" class="ma-0">
+    <v-row v-if="uploadMethod === 'paste' && !activeDataset" class="ma-0">
       <v-col v-show="data.length === 0">
         <v-textarea
           class="pl-4 pt-4"
@@ -108,9 +116,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-show="datasetMeta.slug && tabChange === 0" class="ma-0">
+    <v-row v-show="activeDataset" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable v-if="tabChange === 0" />
+        <VpressDataTable :dataset="activeDataset"/>
       </v-col>
     </v-row>
   </div>
@@ -133,7 +141,7 @@ export default {
   data() {
     return {
       data: [],
-      datasetMeta: {},
+      activeDataset: this.$store.getters['workspace/activeDataset'],
       errorMessage: '',
       files: [],
       headers: [],
@@ -141,12 +149,25 @@ export default {
       pastedData: '',
       showTable: true,
       uploadMethod: 'upload',
-      WPDataSets: []
+      WPDataSets: [],
+      fetchingDataset: false
     };
   },
   created() {
     this.getUrlParams();
     this.getWPDatasets();
+    this.unsubscribe = this.$store.subscribe(
+      mutation => {
+        if(
+          mutation.type === 'workspace/SET_ACTIVE_DATASET'
+        ) {
+          this.activeDataset = this.$store.getters['workspace/activeDataset']
+        }
+      }
+    )
+  },
+  beforeDestroy() {
+    this.unsubscribe();
   },
   watch: {
     files(newFiles) {
@@ -182,7 +203,9 @@ export default {
     },
     async getWPDatasets() {
       try {
-        const response = await api.dataset.list({ page: 1, itemsPerPage: 4 });
+        const response = await api
+          .dataset
+          .list({ page: 1, itemsPerPage: 4 });
         if(response.data) this.WPDataSets = response.data.data
       } catch (error) {
         throw new Error(error.message)
@@ -190,10 +213,12 @@ export default {
     },
     async selectWPDataset(dataset) {
       try {
+        this.fetchingDataset = true
         this.data = []
-        const { datasetMeta } = await this.editorInit(dataset)
-        this.datasetMeta = datasetMeta
+        await this.editorInit(dataset)
+        this.fetchingDataset = false
       } catch(error) {
+        this.fetchingDataset = false
         this.errorMessage = error.message;
       }
     },
@@ -211,8 +236,8 @@ export default {
       }));
     },
     async cleanComponentData() {
-      this.datasetMeta = await this.$store.dispatch('workspace/REMOVE_DATASET')
       await this.$store.dispatch('editor/REMOVE_VIZZES')
+      await this.$store.dispatch('workspace/REMOVE_DATASET')
       this.data = [];
       this.headers = [];
       this.files = [];
@@ -281,7 +306,6 @@ export default {
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
-      self.datasetMeta.slug = 'Dataset copiado';
     }
   }
 };
