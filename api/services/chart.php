@@ -129,7 +129,6 @@ function query_chart_data($request) {
 
 }
 
-
 function get_data( $request ) {
   $body = $request->get_json_params();
   if ( empty($body['dataset']) || empty($body['chart_type']) ) {
@@ -184,46 +183,46 @@ function get_data( $request ) {
     }
   }
 
-if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
-  $union_column = (empty($column_2) ? $column_1 : $column_2);
-  $query_from .= ", (SELECT $union_column AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
-  $query_where .= "WHERE f1.$union_column = f2.union_column";
-  $query_select .= ", f2.$subquery_column";
+  if ( !empty($subquery_aggregate) && !empty($subquery_column) ) {
+    $union_column = (empty($column_2) ? $column_1 : $column_2);
+    $query_from .= ", (SELECT $union_column AS union_column, $subquery_aggregate($subquery_column) AS $subquery_column FROM $dataset GROUP BY union_column) AS f2";
+    $query_where .= "WHERE f1.$union_column = f2.union_column";
+    $query_select .= ", f2.$subquery_column";
   }
 
-if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
-  if(!empty($column_1)) {
-    $query_select = "SELECT f1.$column_1 ,f2.$subquery_column, f3.$subquery_column_2";
-    $query_from = "FROM $dataset AS f1,
-    (SELECT
-      $column_1,
-      $subquery_aggregate($subquery_column) AS $subquery_column
-    FROM $dataset
-    GROUP BY $column_1) AS f2, 
-    (SELECT
-      $column_1,
-      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
-    FROM $dataset
-    GROUP BY $column_1) AS f3";
-    $query_where = "WHERE f1.$column_1 = f2.$column_1 AND f1.$column_1 = f3.$column_1";
-  } else {
-    $alias = "";
-    $alias_2 = "";
-    if(!empty($subquery_column_alias) && !empty($subquery_column_alias_2)) {
-      $alias = "AS $subquery_column_alias";
-      $alias_2 = "AS $subquery_column_alias_2";
+  if(!empty($subquery_aggregate_2) && !empty($subquery_column_2) ) {
+    if(!empty($column_1)) {
+      $query_select = "SELECT f1.$column_1 ,f2.$subquery_column, f3.$subquery_column_2";
+      $query_from = "FROM $dataset AS f1,
+      (SELECT
+        $column_1,
+        $subquery_aggregate($subquery_column) AS $subquery_column
+      FROM $dataset
+      GROUP BY $column_1) AS f2, 
+      (SELECT
+        $column_1,
+        $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+      FROM $dataset
+      GROUP BY $column_1) AS f3";
+      $query_where = "WHERE f1.$column_1 = f2.$column_1 AND f1.$column_1 = f3.$column_1";
+    } else {
+      $alias = "";
+      $alias_2 = "";
+      if(!empty($subquery_column_alias) && !empty($subquery_column_alias_2)) {
+        $alias = "AS $subquery_column_alias";
+        $alias_2 = "AS $subquery_column_alias_2";
+      }
+      $query_select = "SELECT f1.$subquery_column $alias, f2.$subquery_column_2 $alias_2";
+      $query_from = "FROM
+      (SELECT
+        $subquery_aggregate($subquery_column) AS $subquery_column
+      FROM $dataset) AS f1, 
+      (SELECT
+        $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
+      FROM $dataset) AS f2";
+      $query_where = null;
     }
-    $query_select = "SELECT f1.$subquery_column $alias, f2.$subquery_column_2 $alias_2";
-    $query_from = "FROM
-    (SELECT
-      $subquery_aggregate($subquery_column) AS $subquery_column
-    FROM $dataset) AS f1, 
-    (SELECT
-      $subquery_aggregate_2($subquery_column_2) AS $subquery_column_2
-    FROM $dataset) AS f2";
-    $query_where = null;
   }
-}
   
   if ( !empty($where) ) {
     $where_array = [];
@@ -312,28 +311,25 @@ function get_chart( $request ) {
 
 function list_charts( $request ) {
   global $wpdb;
+  $q = strtolower($request->get_param('q'));
   $page = (int)$request->get_param('page');
   $per_page = (int)$request->get_param('perPage');
   $start_at = $per_page * ($page - 1);
   $table_name = $wpdb->prefix.'vpresscore_charts';
 
   $query_total = "SELECT COUNT(*) AS total FROM $table_name";
-  $query = 
-  "SELECT
-    created,
-    dataset_id,
-    description,
-    id,
-    img_url,
-    owner_id,
-    permissions,
-    updated,
-    value
-  FROM $table_name
-  LIMIT $start_at, $per_page";
+  $query = "SELECT * FROM $table_name";
+  
+  if ($q) {
+    $where .= " WHERE lower(value) like '%$q%' OR lower(description) like '%$q%' OR lower(tags) like '%$q%'";
+    $query_total .= $where;
+    $query .= $where;
+  }
 
-  $data = $wpdb->get_results($query);
+  $query .= " LIMIT $start_at, $per_page";
+
   $total = $wpdb->get_var($query_total);
+  $data = $wpdb->get_results($query);
 
   $response = array(
     'data' => $data,
@@ -389,18 +385,16 @@ function update_chart( $request ) {
   $table_name = $wpdb->prefix.'vpresscore_charts';
   $id = (int)$request->get_param('id');
   $value = $request->get_param('value');
-  $img_url = $request->get_param('img_url');
+  $tags = $request->get_param('tags');
   $description = $request->get_param('description');
   $permissions = $request->get_param('permissions');
-
-  $query = "UPDATE $table_name SET value = $value, description = $description, permissions = $permissions, img_url = $img_url";
 
   $data = $wpdb->update( 
     $table_name, 
     array( 
       'value' => $value,
-      'img_url' => $img_url,
       'description' => $description,
+      'tags' => $tags,
       'permissions' => $permissions
     ), 
     array( 'id' => $id ),

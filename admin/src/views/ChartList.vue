@@ -17,7 +17,7 @@
             prepend-inner-icon="mdi-magnify"
           ></v-text-field>
         </v-col>
-        <v-col class="shrink pl-0">
+        <v-col class="shrink">
           <v-btn
             large
             color="primary"
