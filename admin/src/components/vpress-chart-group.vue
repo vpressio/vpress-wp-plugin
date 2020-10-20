@@ -82,6 +82,7 @@ export default {
   created() {
     this.charts = this.$store
       .getters['editor/workspace']()
+    console.log(this.charts);
     this.unsubscribe = this.$store.subscribe(
       (mutation) => {
         if(

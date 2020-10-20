@@ -134,7 +134,7 @@
                         width="200px"
                         contain
                         color="#222A32"
-                        :src="`/wp-content/uploads/vpress/images/${chart.id}.png`"
+                        :src="`/wordpress/wp-content/uploads/vpress/images/${chart.id}.png`"
                       ></v-img>
                       <v-card-actions class="justify-center">
                         <v-btn
