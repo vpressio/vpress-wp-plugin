@@ -42,7 +42,13 @@ textarea[readonly] {
 
 @media (min-width: 1264px) {
   .container {
-    max-width: 1025px !important;
+    max-width: calc(1185px - 160px) !important;
+  }
+}
+
+@media (min-width: 1904px) {
+  .container {
+    max-width: calc(1785px - 160px) !important;
   }
 }
 </style>
