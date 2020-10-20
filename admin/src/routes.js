@@ -4,6 +4,7 @@ import Vpress from './views/Vpress.vue'
 import VpressChartList from './views/ChartList.vue'
 import VpressDatasetList from './views/DatasetList.vue'
 import VpressChartEditor from './views/Editor.vue'
+import VpressDataset from './components/vpress-dataset.vue';
 
 export const privateRouter = {
   routes: [
@@ -19,6 +20,7 @@ export const privateRouter = {
         { path: '/', component: VpressChartEditor },
         { path: '/chart/list', component: VpressChartList },
         { path: '/dataset/list', component: VpressDatasetList },
+        { path: '/dataset', component: VpressDataset },
       ]
     }
   ]
