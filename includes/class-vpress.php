@@ -125,7 +125,7 @@ class Vpress {
 		/**
 		 * Vpress Shortcode
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/vpress-shortcode.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/vpress-shortcode.php';
 
 		/**
 		 * Vpress API

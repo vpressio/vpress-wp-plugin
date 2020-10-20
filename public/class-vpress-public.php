@@ -79,7 +79,7 @@ class Vpress_Public {
 		if($gdata)
     {
 
-			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/front.php';
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/chart.php';
 			exit();
 		}
 		return;
