@@ -284,7 +284,7 @@ export default {
       //Load Dataset
       try {
         this.loading = true
-         await this.editorInit(dataset)
+        await this.editorInit(dataset)
         this.$router.push(
           {
             path: `/`,
@@ -374,10 +374,7 @@ export default {
     },
     async setDataset (dataset) {
       try {
-        this.datasetMeta = await this.$store.dispatch(
-          'workspace/ADD_DATASET',
-          dataset,
-        )
+        await this.editorInit(dataset)
         this.$router.push('/dataset')
       } catch(error) {
         this.errorMessage = error.message;

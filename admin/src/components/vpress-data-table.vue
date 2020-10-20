@@ -153,18 +153,6 @@ export default {
   },
   mounted() {
     if (this.dataset) this.getDataFromApi()
-    this.unsubscribe = this.$store.subscribe(
-      mutation => {
-        if(
-          mutation.type === 'workspace/SET_ACTIVE_DATASET'
-        ) {
-          if (this.dataset) this.getDataFromApi()
-        }
-      }
-    )
-  },
-  beforeDestroy() {
-    this.unsubscribe()
   },
   watch: {
     dialog(val) {
