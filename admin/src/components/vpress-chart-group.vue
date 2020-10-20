@@ -3,7 +3,7 @@
     min-height='600'
   >
     <VpressChartSelectButtons :availableCharts="availableCharts" />
-    <div
+    <!-- <div
       v-show="loadingChart"
       class="progress--layer"
     >
@@ -13,7 +13,7 @@
         color="primary"
         indeterminate
       />
-    </div>
+    </div> -->
     <div style="min-height:600px;position:relative;">
       <div
         v-for="(chart, chartIndex) in charts"
@@ -21,7 +21,7 @@
         style="position:absolute;top:0;left:0;width:100%;height:100%;"
       >
         <VpressChartContainer
-          v-show="activeChartIndex === chartIndex && !loadingChart"
+          v-show="activeChartIndex === chartIndex"
           :id="`empty_chart_${chartIndex}`"
           :data="charts[chartIndex].vizData()"
           :chartConfig="charts[chartIndex].values()"
@@ -30,14 +30,13 @@
         />
       </div>
     </div>
-    <!-- <v-btn
+    <v-btn
       tile
       depressed
       @click="addChart"
-      :disabled="charts.length > 5"
     >
       <v-icon color="grey">mdi-plus-thick</v-icon>
-    </v-btn> -->
+    </v-btn>
     <v-btn
       v-for="(chart, chartIndex) in charts"
       :key="`chart_tab_${chartIndex}`"
@@ -49,7 +48,6 @@
     >
       Gráfica {{ chartIndex + 1 }}
       <v-btn
-        v-show="charts.length > 1"
         class="ml-3 mr-2"
         x-small
         icon
@@ -88,18 +86,27 @@ export default {
       (mutation) => {
         if(
           (
-            mutation.type === 'editor/SET_VIZ_VALUES'
+            mutation.type === 'editor/SET_VIZ_VALUES' ||
+            mutation.type === 'editor/RESET_VIZZES' ||
+            mutation.type === 'editor/ADD_VIZZES' ||
+            mutation.type === 'workspace/SET_ACTIVE_DATASET' ||
+            mutation.type === 'workspace/SET_VIZZES'
           )
         ) {
-          this.charts = this.$store
-            .getters['editor/workspace']()
+          const workspace = this.$store.getters['editor/workspace']()
+          this.charts = []
+          this.charts = workspace
+          this.availableCharts = this.$store.getters['editor/getAvailableCharts']
+        }
+        if (mutation.type === 'workspace/SET_ACTIVE_DATASET') {
+          this.$store.dispatch('editor/UPDATE_OPEN_VIZ', 0)
+          this.activeChartIndex = 0
         }
         if (
           mutation.type === 'editor/SET_LOAD_STATE'
         ) {
           this.loadingChart = this.$store.getters['editor/loadingState']
         }
-        this.availableCharts = this.$store.getters['editor/getAvailableCharts']
       }
     );
   },
@@ -113,7 +120,8 @@ export default {
   },
   methods: {
     setActiveChart(chartIndex) {
-      chartIndex
+     this.activeChartIndex = chartIndex
+     this.$store.dispatch('editor/UPDATE_OPEN_VIZ',this.activeChartIndex)
     },
     addChart() {
     },

@@ -81,7 +81,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    async query_data(_, queryBody ) {
+    async query_data(queryBody ) {
       try {
         const response = await api.chart.query(queryBody);
         if (response.data.error) {
@@ -100,7 +100,7 @@ export default {
         const body = await queryBody(
           chartValues,
           dataSetSlug
-        );
+        )
         const data = await this.query_data(body)
         return data
       } catch (error) {

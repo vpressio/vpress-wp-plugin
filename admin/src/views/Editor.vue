@@ -2,7 +2,14 @@
     <div class="config__container" :style="cssProps">
       <div style="width:100%;">
         <v-row class="ma-0" no-gutters>
-          <v-col class="pa-0" :cols="$vuetify.breakpoint.lgAndDown ? 2 : 2">
+          <v-col
+            class="pa-0"
+            :cols="
+              $vuetify.breakpoint.lgAndDown
+                ? 2
+                : 2
+            "
+          >
             <v-tabs
               dark
               class="config-tabs"
@@ -11,27 +18,64 @@
               color="white"
               grow
             >
-              <v-tab>DATOS</v-tab>
-              <v-tab :disabled="variables.length === 0">CONFIGURA</v-tab>
-              <v-tab class="v-step-8" :disabled="variables.length === 0">ESTILO</v-tab>
+              <v-tab>
+                DATOS
+              </v-tab>
+              <v-tab :disabled="variables.length === 0">
+                CONFIGURA
+              </v-tab>
+              <v-tab
+                class="v-step-8"
+                :disabled="variables.length === 0"
+              >
+                ESTILO
+              </v-tab>
             </v-tabs>
           </v-col>
-          <v-col class="py-0" :cols="this.$vuetify.breakpoint.lgAndDown ? 10 : 10">
-            <div class="tributton-container" v-show="activeTab !== 0">
-              <v-btn class="left-button" outlined color="primary" @click="saveChart">
-                 <v-icon left color="primary">mdi-content-save</v-icon>
+          <v-col
+            class="py-0"
+            :cols="
+              this.$vuetify.breakpoint.lgAndDown
+                ? 10
+                : 10
+            "
+          >
+            <div
+              class="tributton-container"
+              v-show="activeTab !== 0"
+            >
+              <v-btn
+                class="left-button"
+                outlined
+                color="primary"
+                @click="saveChart"
+              >
+                <v-icon left color="primary">
+                  mdi-content-save
+                </v-icon>
                 Guardar
               </v-btn>
               <v-btn
-                v-if="$store.getters['editor/chart'].chart !== 'map'"
+                v-if="
+                  $store.getters['editor/chart'].chart !== 'map'
+                "
                 class="middle-button" outlined color="primary"
                 @click="downloadChartImg"
               >
-                <v-icon left color="primary">mdi-download</v-icon>
+                <v-icon left color="primary">
+                  mdi-download
+                </v-icon>
                 Descargar
               </v-btn>
-              <v-btn class="right-button" outlined color="primary" @click="clipboardCopy">
-                <v-icon left color="primary">mdi-share-variant</v-icon>
+              <v-btn
+                class="right-button"
+                outlined
+                color="primary"
+                @click="clipboardCopy"
+              >
+                <v-icon left color="primary">
+                  mdi-share-variant
+                </v-icon>
                 Compartir
               </v-btn>
             </div>
@@ -40,10 +84,16 @@
             <v-card class="pb-5">
               <v-tabs-items v-model="activeTab">
                 <v-tab-item>
-                  <VpressDataLoader v-if="activeTab === 0" :tabChange.sync="activeTab"/>
+                  <VpressDataLoader
+                    v-if="activeTab === 0"
+                    :tabChange.sync="activeTab"
+                  />
                 </v-tab-item>
                 <v-tab-item>
-                  <VpressExpansionPanel v-if="activeTab === 1" panelTitle="ARRASTRA LA SELECCIÓN">
+                  <VpressExpansionPanel
+                    v-if="activeTab === 1"
+                    panelTitle="ARRASTRA LA SELECCIÓN"
+                  >
                     <v-col cols="12" class="pb-0 pt-1">
                       <v-img class="db-icon" src="../assets/images/db1.svg" />
                       <span class="db-titulo">{{ dataSetName }}</span>
@@ -84,7 +134,8 @@
           >
             <VpressChartGroup
               v-if="
-                variables.length !== 0 
+                $store.getters['editor/workspace'] ||
+                $store.getters['editor/workspace']().length > 0
               "
             />
           </v-col>
@@ -123,7 +174,10 @@ export default {
   watch:{
     theme(newTheme){
       const chartTheme = newTheme ? 'dark': 'light'
-      this.$store.dispatch('editor/MERGE_CHART_VALUE',{ mutationType: 'theme', value: chartTheme });
+      this.$store.dispatch(
+        'editor/MERGE_CHART_VALUE'
+        ,{ mutationType: 'theme', value: chartTheme }
+      );
     }
   },
   computed: {
@@ -146,7 +200,9 @@ export default {
     },
     dataSetName() {
       if (this.activeTab === 1) {
-        return this.$store.getters['workspace/dataSetName'].replace(/\.[^/.]+$/, "")
+        return this.$store
+          .getters['workspace/dataSetName']
+          .replace(/\.[^/.]+$/, "")
       }
       return 'Dataset'
     }
@@ -157,7 +213,8 @@ export default {
         await this.$store.dispatch('editor/SAVE_CHART');
         stringChart(
           `#empty_chart_${this.$store.getters['editor/activeVizIdx']}`,
-          this.$store.getters['editor/workspace']()[this.$store.getters['editor/activeVizIdx']].id
+          this.$store.getters['editor/workspace']()[this.$store.getters['editor/activeVizIdx']]
+            .id
         )
         // await this.$store.dispatch('editor/SAVE_IMAGE_CHART', stringImg);
         this.$store.dispatch('notifications/open', {

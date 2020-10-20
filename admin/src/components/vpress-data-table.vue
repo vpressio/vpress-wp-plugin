@@ -62,6 +62,9 @@ export default {
     async getDataFromApi () {
       try {
         this.loading = true
+        this.items = []
+        this.total = 0
+        this.headers = []
         const { page, itemsPerPage } = this.options
         if(this.dataset) {
           const obj = {

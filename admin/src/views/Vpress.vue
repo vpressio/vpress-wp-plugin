@@ -110,12 +110,14 @@
 </template>
 <script>
 import VpressAppBar from '../components/vpress-app-bar.vue';
+import editorMixin from '../mixins/editorMixin.js'
 
 export default {
   name: 'Vpress',
   components: {
     VpressAppBar
   },
+  mixins: [editorMixin],
   data() {
     return {
       datasets: {},
@@ -237,11 +239,13 @@ export default {
             null
           )
     },
-    mergeValue(slot, dataToMerge) {
-      this.$store.dispatch(
-        `editor/DATA_QUERY`,
-        { value: dataToMerge, mutationType: slot}
-      )
+    async mergeValue(slot, dataToMerge) {
+      try {
+        const viz = await this.merge_query(dataToMerge, slot)
+        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
+      } catch (error) {
+        throw new Error(error)
+      }
     },
     tourNext(currentStep) {
       switch(currentStep) {

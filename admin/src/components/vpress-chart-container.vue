@@ -19,7 +19,6 @@
             indeterminate
           )
 </template>  
-
 <script>
 import * as d3 from 'd3';
 import * as _ from 'lodash';
@@ -114,10 +113,11 @@ export default {
     };
   },
   beforeDestroy() {
-    this.removeChart()
+    console.log('ayuda')
     if(this.chart && this.chart.destroy){
       this.chart.destroy()
     }
+    this.removeChart()
   },
   computed: {
     chartTitle() {
@@ -184,6 +184,7 @@ export default {
   },
   watch: {
     chartConfig() {
+      console.log('hola');
       if (
         !_.includes(
           ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map'],
@@ -747,8 +748,7 @@ export default {
       }
     },
     drawTimeline() {
-      const vm = this;
-      console.log(this.dateFormat)
+      const vm = this
       const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
@@ -1113,14 +1113,13 @@ export default {
       d3.selectAll('.title-tip').remove();
     }
   },
-  mounted() {
+  created() {
     if (
       this.data &&
       this.data.length > 0 &&
       this.chartConfig.xAxis.slug !== '' &&
       this.chartConfig.yAxis.slug !== ''
     ) {
-      console.log(this);
       this.configChart();
     }
   }

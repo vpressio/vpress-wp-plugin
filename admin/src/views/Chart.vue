@@ -1,9 +1,9 @@
 <template>
   <VpressChartContainer
     id="empty_chart_0"
+    iframe
     :data="chartData"
     :chartConfig="chartConfig"
-    iframe
     :dateFormat="dateFormat"
   />
 </template>
@@ -26,7 +26,7 @@ export default {
     return {
       chartConfig: {},
       chartData: [],
-      dateFormat: null
+      dateFormat: undefined
     }
   },
   created () {

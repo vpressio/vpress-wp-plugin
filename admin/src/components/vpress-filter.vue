@@ -76,8 +76,11 @@
   </div>
 </template>
 <script>
+import editorMixin from '../mixins/editorMixin'
 
 export default {
+  name: 'VpressFilter',
+  mixins: [editorMixin],
   props: {
     column: {
       type: String,
@@ -135,19 +138,17 @@ export default {
     },
     async applyFilter() {
       try {
-         this.$store.dispatch(
-           'editor/DATA_QUERY',
-           {
-              value: {
-                  title: this.column,
-                  slug: this.column,
-                  type: this.type,
-                  value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
-                  
-              }, 
-              mutationType: 'filter'
-           }
-         )
+        const viz = await this.merge_query(
+          {
+              title: this.column,
+              slug: this.column,
+              type: this.type,
+              value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
+              
+          },
+          'filter'
+        )
+        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
         this.closeDialog()
       } catch (error) {
         this.closeDialog()

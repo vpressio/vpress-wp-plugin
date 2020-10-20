@@ -64,6 +64,7 @@
       <v-col cols="12">
         <v-divider class="mb-4" />
         <div class="dataTableContainer">
+          <h3 class="dataset-name">{{ activeDataset | datasetName }}</h3>
           <v-spacer />
           <v-btn
             :disabled="!activeDataset"
@@ -168,6 +169,11 @@ export default {
   },
   beforeDestroy() {
     this.unsubscribe();
+  },
+  filters: {
+    datasetName(dataset) {
+      return dataset ? dataset.name : ''
+    }
   },
   watch: {
     files(newFiles) {
@@ -318,6 +324,14 @@ export default {
   font-size: 1rem;
   font-weight: 800;
   margin-top: 12px;
+}
+
+.dataset-name {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 12px;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.12);
+  padding-bottom: 1%
 }
 
 .selecteduploadMethod {

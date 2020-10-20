@@ -159,6 +159,9 @@ export default {
     }
   },
   actions: {
+    UPDATE_OPEN_VIZ({ commit }, vizIdx) {
+      commit('OPEN_VIZ', vizIdx)
+    },
     LOAD_VIZZES(
       { state, commit, rootGetters },
       { vizValues = [], dataset = rootGetters['workspace/activeDataset'] }
@@ -175,7 +178,6 @@ export default {
           viz.permissions,
           viz.img_url,
         ))
-      
       const storedVizzes = state.vizzes[datasetSlug]
       if (storedVizzes) {
         commit('ADD_VIZZES', { dataset: datasetSlug, vizzes: vizzes })
@@ -207,10 +209,22 @@ export default {
     },
     ADD_VIZ({ state, commit, rootGetters }, viz = new VpressViz()) {
       const activeDataset = rootGetters['workspace/activeDataset']
-      const vizzes = state.vizzes[activeDataset].push(viz)
+      const vizzes = state.vizzes[activeDataset.slug].push(viz)
       commit('SET_VIZZES', vizzes)
       const newIdx = vizzes.length - 1
       commit('OPEN_VIZ', newIdx)
+    },
+    UPDATE_VIZ(
+      { state, commit, rootGetters },
+      {
+        viz,
+        dataset = rootGetters['workspace/activeDataset']
+      }
+      ) {
+      const vizzes = [ ...state.vizzes[dataset.slug] ]
+      vizzes[state.openViz].setData(viz.data)
+      vizzes[state.openViz].setChartValues(viz.chartValues)
+      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
     },
     REMOVE_VIZ({ state, commit, rootGetters }, vizIdx) {
       const activeDataset = rootGetters['workspace/activeDataset']
@@ -288,15 +302,28 @@ export default {
     activeVizIdx: state => state.openViz,
     viz: ({ vizzes, openViz }, _, __, rootGetters) => {
       const dataset = rootGetters['workspace/activeDataset']
-      if (!dataset || Object.keys(vizzes).length <= 0 ) return new VpressViz()
-      return !vizzes[dataset.slug] || vizzes[dataset.slug].length <= 0
-        ? new VpressViz()
-        : vizzes[dataset.slug][openViz]
+      const vizPreset = new VpressViz()
+      if (
+        !dataset ||
+        Object.keys(vizzes).length === 0 ||
+        !vizzes[dataset.slug]
+        ) {
+        return vizPreset
+      } else if (vizzes[dataset.slug].length > 0) {
+        return vizzes[dataset.slug][openViz]
+          ? vizzes[dataset.slug][openViz]
+          : vizzes[dataset.slug][0]
+      } else {
+        return vizPreset
+      }
     },
-    chart: (_, { viz }) => viz.values(),
+    chart: (_, { viz }) => {
+      const payload= viz.values()
+      return payload
+    },
     data: (_, { viz }) => viz.vizData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
-    xAxis: (_, { chart }) => {
+    xAxis: (_, { chart}) => {
       const mainAxis = chart.xAxis
       const oppsAxis = chart.yAxis
       const mutationType = 'xAxis'
