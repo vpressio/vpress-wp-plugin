@@ -31,7 +31,11 @@ const dataset = {
     return instance.get(
       `/wp-json/vpress/v1/dataset/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
     )
-  }
+  },
+  charts: id => instance.get(`/wp-json/vpress/v1/dataset/charts/${id}`),
+  rename_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/rename`, payload),
+  delete_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/delete`, payload),
+  change_data_type_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/change_data_type`, payload),
 }
 
 const chart = {

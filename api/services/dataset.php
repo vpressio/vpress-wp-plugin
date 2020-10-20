@@ -270,3 +270,78 @@ function delete_dataset( $request ) {
   );
   return $response;
 }
+
+function datasets_charts( $request ) {
+  global $wpdb;
+  $id = (int)$request->get_param('id');
+  $table_name = $wpdb->prefix.'vpresscore_charts';
+
+  $query = 
+  "SELECT *
+  FROM $table_name 
+  WHERE dataset_id = $id";
+
+  $data = $wpdb->get_results($query);
+
+  $response = array(
+    'data' => $data,
+    'query' => $wpdb->last_query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function delete_column( $request ) {
+  global $wpdb;
+  $table_name = $request['dataset'];
+  $column = $request->get_param('column');
+
+  $query = "ALTER TABLE `vpress_$table_name` DROP COLUMN `$column`;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function rename_column( $request ) {
+  global $wpdb;
+  $table_name = $request['dataset'];
+  $new = $request->get_param('new');
+  $old = $request->get_param('old');
+
+  $query_type = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'vpress_$table_name' AND COLUMN_NAME = '$old';";
+  $type = $wpdb->get_var($query_type);
+
+  $query = "ALTER TABLE `vpress_$table_name` CHANGE `$old` `$new` $type;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function change_data_type_column( $request ) {
+  global $wpdb;
+  require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
+  $table_name = $request['dataset'];
+  $column = $request->get_param('column');
+  $type = $request->get_param('type');
+
+  $query = "ALTER TABLE `vpress_$table_name` CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}

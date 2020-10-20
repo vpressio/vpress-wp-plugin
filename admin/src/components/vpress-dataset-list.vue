@@ -54,6 +54,9 @@
       :options.sync="options"
       :server-items-length="total"
       :loading="loading"
+      :expanded.sync="expanded"
+      show-expand
+      single-expand
       hide-default-header
     >
       <template v-slot:item.name="{ item }" >
@@ -81,20 +84,75 @@
         </v-chip>
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon
-          class="mr-2"
-          @click="editItem(item)"
-        >
-          mdi-pencil
-        </v-icon>
-        <v-icon
-          @click="deleteItem(item)"
-        >
-          mdi-delete
-        </v-icon>
+        <v-btn icon color="primary" @click="editItem(item)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn icon color="error" @click="deleteItem(item)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
       </template>
       <template v-slot:no-data>
         <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
+      </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length">
+          <v-container>
+            <v-row>
+              <v-col cols="4" sm="2">
+                <div class="subtitle-2 mb-2">
+                  Base de datos
+                </div>
+                <v-btn
+                  small
+                  rounded
+                  class="mt-12"
+                  color="primary"
+                  @click="setDataset(item)"
+                >
+                  Ver datos
+                </v-btn>
+              </v-col>
+              <v-col cols="8" sm="10">
+                <div class="subtitle-2 mb-2">
+                  Gráficas hechas con la base de datos
+                </div>
+                <v-slide-group
+                  show-arrows
+                >
+                  <v-slide-item
+                    v-for="chart in charts"
+                    :key="chart.id"
+                    center-active
+                    v-slot:default="{}"
+                  >
+                    <v-card
+                      outlined
+                      class="justify-center"
+                      style="border: none;"
+                    >
+                      <v-img
+                        width="200px"
+                        contain
+                        color="#222A32"
+                        :src="`/wp-content/uploads/vpress/images/${chart.id}.png`"
+                      ></v-img>
+                      <v-card-actions class="justify-center">
+                        <v-btn
+                          small
+                          rounded
+                          class="mt-2"
+                          color="primary"
+                        >
+                          Entrar
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-slide-item>
+                </v-slide-group>
+              </v-col>
+            </v-row>
+          </v-container>
+        </td>
       </template>
     </v-data-table>
     <v-dialog v-model="dialog" max-width="500px" scrollable>
@@ -167,6 +225,7 @@ export default {
     options: {},
     loading: true,
     items: [],
+    expanded: [],
     dialog: false,
     headers: [
       { text: 'Nombre', value: 'name' },
@@ -192,6 +251,7 @@ export default {
       tag: null,
       permissions: 'public'
     },
+    charts: []
   }),
   computed: {
     formTitle () {
@@ -207,7 +267,15 @@ export default {
     },
     dialog (val) {
       val || this.close()
-    }
+    },
+    async expanded (val) {
+      if (val && val.length > 0) {
+        const { data } = await api.dataset.charts(val[0].id);
+        this.charts = data.data
+      } else {
+        this.charts = []
+      }
+    },
   },
   methods: {
     selectDataset(dataset) {
@@ -303,6 +371,17 @@ export default {
         })
       }
     },
+    async setDataset (dataset) {
+      try {
+        this.datasetMeta = await this.$store.dispatch(
+          'workspace/ADD_DATASET',
+          dataset,
+        )
+        this.$router.push('/dataset')
+      } catch(error) {
+        this.errorMessage = error.message;
+      }
+    }
   }
 }
 </script>

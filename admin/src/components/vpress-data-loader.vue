@@ -168,7 +168,7 @@ export default {
         const { dataset, chart } = this.$route.query
         if(dataset) {
          const { data } = await api.dataset.get(dataset)
-         
+
          this.selectWPDataset(data.data)
         }
         if(dataset && chart) {
@@ -280,7 +280,7 @@ export default {
       this.files = [];
     },
     nextTab() {
-       
+
       this.$emit('update:tabChange', 1);
     },
     switchUploadMethod(method) {

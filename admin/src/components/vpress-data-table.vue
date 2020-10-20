@@ -1,10 +1,10 @@
 <template>
-  <v-container
-    :class="{'data-table--container':$vuetify.breakpoint.xlOnly}"
-  >
+  <v-container>
     <v-row>
       <v-col cols="12">
         <v-data-table
+          disable-sort
+          calculate-widths
           :headers="headers"
           :items="items"
           :item-key="headers[0] ? headers[0].value : ''"
@@ -13,6 +13,66 @@
           :loading="loading"
           class="elevation-1"
         >
+          <template v-slot:[`header.${header.value}`]="props" v-for="header in headers" >
+            <div :key="header.value">
+              {{props.header.text}}
+              <v-menu
+                fixed
+                left
+                nudge-left="135"
+                :close-on-content-click="false"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    x-small
+                    icon
+                  >
+                    <v-icon dense>mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item @click="dialog = true; oldName = props.header.value">
+                    <v-list-item-title class="font-weight-regular">
+                      Renombrar
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-group>
+                    <template v-slot:activator>
+                      <v-list-item-title class="font-weight-regular">
+                        Cambiar tipo de dato
+                      </v-list-item-title>
+                    </template>
+                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'text')">
+                      <v-list-item-title class="font-weight-regular pl-4">
+                        String
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'int')">
+                      <v-list-item-title class="font-weight-regular pl-4">
+                        Number
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'date')">
+                      <v-list-item-title class="font-weight-regular pl-4">
+                        Date
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'boolean')">
+                      <v-list-item-title class="font-weight-regular pl-4">
+                        Boolean
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list-group>
+                  <v-list-item @click="deleteColumn(props.header)">
+                    <v-list-item-title class="font-weight-regular">
+                      Eliminar columna
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
+          </template>
           <template v-slot:item="props">
             <tr class="eltr">
               <td class="eltd" v-for="header in props.headers" :key="header.value">
@@ -23,6 +83,46 @@
         </v-data-table>
       </v-col>
     </v-row>
+    <v-dialog
+      v-model="dialog"
+      max-width="500px"
+    >
+      <v-card>
+        <v-card-title>
+          <span class="headline">Renombrar</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="newName"
+                  label="Nombre"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="dialog = false"
+          >
+            Cerrar
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="renameColumn"
+          >
+            Guardar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -41,15 +141,28 @@ export default {
   },
   data() {
     return {
+      dialog: false,
       loading: false,
       total: 0,
       headers: [],
       items: [],
       options: {},
-      datasetMeta: {}
+      datasetMeta: {},
+      newName: null,
+      oldName: null
     }
   },
-  created() {
+  watch: {
+    dialog(val) {
+      if (!val) {
+        this.newName = null;
+        this.oldName = null;
+      }
+    }
+  },
+  mounted() {
+    this.datasetMeta = this.$store.getters['workspace/activeDataset']
+    if (this.datasetMeta) this.getDataFromApi()
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(
@@ -93,18 +206,59 @@ export default {
         value: o,
         sortable: true
       }));
-    }
+    },
+    async renameColumn() {
+      const obj = {
+        dataset: this.datasetMeta.slug,
+        new: this.newName,
+        old: this.oldName
+      }
+      await api.dataset.rename_column(obj);
+      await this.getDataFromApi()
+      this.dialog = false;
+      this.$store.dispatch('notifications/open', {
+        color: 'success',
+        text: 'Columna renombrada con éxito'
+      })
+    },
+    async changeDataTypeColumn(column, type) {
+      const obj = {
+        dataset: this.datasetMeta.slug,
+        column: column,
+        type
+      }
+      await api.dataset.change_data_type_column(obj);
+      await this.getDataFromApi()
+      this.$store.dispatch('notifications/open', {
+        color: 'success',
+        text: 'Tipo de dato modificado con éxito'
+      })
+    },
+    async deleteColumn(column) {
+      const obj = {
+        dataset: this.datasetMeta.slug,
+        column: column.value
+      }
+      await api.dataset.delete_column(obj);
+      await this.getDataFromApi()
+      this.$store.dispatch('notifications/open', {
+        color: 'success',
+        text: 'Columna eliminada con éxito'
+      })
+    },
   },
 }
 </script>
 
 <style lang="scss" scoped>
-.data-table--container {
-  max-width: 1785px !important;
-}
 .table-title {
   align-items: center;
   display: inline-flex;
   width: 50%;
+}
+::v-deep .v-data-table-header {
+  th {
+    white-space: nowrap;
+  }
 }
 </style>

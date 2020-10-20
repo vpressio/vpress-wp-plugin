@@ -39,4 +39,10 @@ textarea.readonly,
 textarea[readonly] {
   background-color: transparent;
 }
+
+@media (min-width: 1264px) {
+  .container {
+    max-width: 1025px !important;
+  }
+}
 </style>
