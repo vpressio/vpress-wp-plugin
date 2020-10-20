@@ -215,6 +215,7 @@ export default {
           tags: this.editedItem.tags.join(', '),
           permissions: this.editedItem.permissions
         });
+        this.chartValues = this.editedItem.chartValues;
         if (response.data.error) {
           throw new Error(response.data.error);
         }

@@ -136,7 +136,7 @@ function list_datasets( $request ) {
   global $wpdb;
   $page = (int)$request->get_param('page');
   $per_page = (int)$request->get_param('perPage');
-  $q = $request->get_param('q');
+  $q = strtolower($request->get_param('q'));
   $start_at = $per_page * ($page - 1);
   $table_name = $wpdb->prefix.'vpresscore_datasets';
 
@@ -155,11 +155,18 @@ function list_datasets( $request ) {
     TABLE_ROWS AS rows
   FROM $table_name as d
   LEFT JOIN information_schema.tables as i
-  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)
-  LIMIT $start_at, $per_page";
+  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
 
-  $data = $wpdb->get_results($query);
+  if ($q) {
+    $where .= " WHERE lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
+    $query_total .= $where;
+    $query .= $where;
+  }
+
+  $query .= " LIMIT $start_at, $per_page";
+
   $total = $wpdb->get_var($query_total);
+  $data = $wpdb->get_results($query);
 
   $response = array(
     'data' => $data,
