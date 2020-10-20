@@ -1,38 +1,5 @@
 <?php
 
-function get_demo_datasets() {
-  global $wpdb;
-  $db_name = $wpdb->dbname;
-
-  $queryDatasets = 
-  "SELECT
-    SUBSTRING_INDEX(TABLE_NAME, '_', -1) AS name,
-    CASE 
-      WHEN (DATA_LENGTH + INDEX_LENGTH) >= 1048576
-        THEN  CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 1),' ' , 'MB')
-      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1048576 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
-        THEN CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024, 1),' ' , 'KB')
-      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1024 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
-        THEN CONCAT((DATA_LENGTH + INDEX_LENGTH),' ' , 'Bytes')
-    END AS size,
-    TABLE_ROWS AS rows,
-    CREATE_TIME AS created,
-    UPDATE_TIME AS updated
-  FROM information_schema.tables
-  WHERE TABLE_SCHEMA = %s
-    AND TABLE_NAME LIKE '%vpress\_%'
-  LIMIT 8";
-  $query = $wpdb->prepare($queryDatasets, $db_name);
-  $data = $wpdb->get_results($query);
-  
-  $response = array(
-    'data' => $data,
-    'query' => $query,
-    'error' => $wpdb->last_error ? $wpdb->last_error : false,
-  );
-  return $response;
-}
-
 function get_dataset_data( $request ) {
   global $wpdb;
   $table_name = $request['dataset'];
@@ -51,23 +18,6 @@ function get_dataset_data( $request ) {
     'total' => (int)$total[0]->total,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
-  return $response;
-}
-
-function get_dataset_info( $request ) {
-  global $wpdb;
-  $dataset_value = $request['value'];
-  $column = $request['column'];
-  $table_name = $wpdb->prefix.'vpresscore_datasets';
-  $query = "SELECT * FROM $table_name WHERE $column = %s";
-
-  $datasets = $wpdb->get_results($wpdb->prepare($query, $dataset_value ));
-  $response = array(
-    'datasets' => $datasets,
-    'query' => $query,
-    'error' => $wpdb->last_error ? $wpdb->last_error : false
-  );
-
   return $response;
 }
 
@@ -155,6 +105,8 @@ function upload_dataset( $request ) {
 
   $sql = $wpdb->query($query);
 
+  wp_delete_file( $file );
+
   $response = array(
     'data' => $file_name,
     'query' => $query,
@@ -184,6 +136,7 @@ function list_datasets( $request ) {
   global $wpdb;
   $page = (int)$request->get_param('page');
   $per_page = (int)$request->get_param('perPage');
+  $q = strtolower($request->get_param('q'));
   $start_at = $per_page * ($page - 1);
   $table_name = $wpdb->prefix.'vpresscore_datasets';
 
@@ -202,11 +155,18 @@ function list_datasets( $request ) {
     TABLE_ROWS AS rows
   FROM $table_name as d
   LEFT JOIN information_schema.tables as i
-  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)
-  LIMIT $start_at, $per_page";
+  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
 
-  $data = $wpdb->get_results($query);
+  if ($q) {
+    $where .= " WHERE lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
+    $query_total .= $where;
+    $query .= $where;
+  }
+
+  $query .= " LIMIT $start_at, $per_page";
+
   $total = $wpdb->get_var($query_total);
+  $data = $wpdb->get_results($query);
 
   $response = array(
     'data' => $data,
@@ -313,6 +273,81 @@ function delete_dataset( $request ) {
   $response = array(
     'data' => $data,
     'query' => $wpdb->last_query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function datasets_charts( $request ) {
+  global $wpdb;
+  $id = (int)$request->get_param('id');
+  $table_name = $wpdb->prefix.'vpresscore_charts';
+
+  $query = 
+  "SELECT *
+  FROM $table_name 
+  WHERE dataset_id = $id";
+
+  $data = $wpdb->get_results($query);
+
+  $response = array(
+    'data' => $data,
+    'query' => $wpdb->last_query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function delete_column( $request ) {
+  global $wpdb;
+  $table_name = $request['dataset'];
+  $column = $request->get_param('column');
+
+  $query = "ALTER TABLE `vpress_$table_name` DROP COLUMN `$column`;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function rename_column( $request ) {
+  global $wpdb;
+  $table_name = $request['dataset'];
+  $new = $request->get_param('new');
+  $old = $request->get_param('old');
+
+  $query_type = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'vpress_$table_name' AND COLUMN_NAME = '$old';";
+  $type = $wpdb->get_var($query_type);
+
+  $query = "ALTER TABLE `vpress_$table_name` CHANGE `$old` `$new` $type;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
+function change_data_type_column( $request ) {
+  global $wpdb;
+  require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
+  $table_name = $request['dataset'];
+  $column = $request->get_param('column');
+  $type = $request->get_param('type');
+
+  $query = "ALTER TABLE `vpress_$table_name` CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
+  $sql = $wpdb->query($query);
+
+  $response = array(
+    'data' => $sql,
+    'query' => $query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
   return $response;

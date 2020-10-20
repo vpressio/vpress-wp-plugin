@@ -232,11 +232,11 @@ export default {
       return this.theme  ? 'black' : '';
     },
     variables() {
-      return this.$store.getters['data/dataType'];
+      return this.$store.getters['workspace/dataType'];
     },
     dataSetName() {
       if (this.activeTab === 1) {
-        return this.$store.getters['data/dataSetName'].replace(/\.[^/.]+$/, "")
+        return this.$store.getters['workspace/dataSetName'].replace(/\.[^/.]+$/, "")
       }
       return 'Dataset'
     }
@@ -270,7 +270,6 @@ export default {
         const chartId = this.$store.getters['chartConfig/viz'].id
         if (chartId) {
           const iframe = `[vpress id=${chartId}]`
-          // const iframe = `<iframe src="${process.env.VUE_APP_IFRAME_URL}/#/shared/${chartId}" height="380" style="border:none;"></iframe>`
           navigator.clipboard.writeText(iframe);
           this.$store.dispatch('notifications/open', {
             color: 'success',
@@ -299,7 +298,7 @@ export default {
       switch(currentStep) {
         case 0:
           this.$store.dispatch(
-            'data/GET_DATASET_BY_NAME',
+            'workspace/GET_DATASET_BY_NAME',
             { dataSetDir:tourFileDir, file: tourFileName }
           )
             .then(file => this.tourFile = {

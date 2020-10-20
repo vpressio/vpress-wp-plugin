@@ -16,22 +16,7 @@ function register_dataset_routes(){
       } */
     )
   );
-  register_rest_route(
-    BASE_URL,
-    GET_DATASET_LIST_ROUTE,
-    array(
-      'methods' => WP_REST_SERVER::READABLE,
-      'callback' => 'get_demo_datasets'
-    )
-  );
-  register_rest_route(
-    BASE_URL,
-    GET_DATASET_LIST_INFO,
-    array(
-      'methods' => WP_REST_SERVER::READABLE,
-      'callback' => 'get_dataset_info'  
-    )
-  );
+
   register_rest_route(
     BASE_URL,
     GET_DATASET_DATA,
@@ -40,7 +25,6 @@ function register_dataset_routes(){
       'callback' => 'get_dataset_data'  
     )
   );
-
   register_rest_route(
     BASE_URL,
     GET_DATASET_ROUTE,
@@ -52,12 +36,22 @@ function register_dataset_routes(){
 
   register_rest_route(
     BASE_URL,
+    GET_DATASET_CHARTS_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::READABLE,
+      'callback' => 'datasets_charts'
+    )
+  );
+
+  register_rest_route(
+    BASE_URL,
     LIST_DATASET_ROUTE,
     array(
       'methods' => WP_REST_SERVER::READABLE,
       'callback' => 'list_datasets'
     )
   );
+
   register_rest_route(
     BASE_URL,
     CREATE_DATASET_ROUTE,
@@ -69,6 +63,7 @@ function register_dataset_routes(){
       } */
     )
   );
+
   register_rest_route(
     BASE_URL,
     UPDATE_DATASET_ROUTE,
@@ -80,6 +75,7 @@ function register_dataset_routes(){
       } */
     )
   );
+
   register_rest_route(
     BASE_URL,
     DELETE_DATASET_ROUTE,
@@ -88,6 +84,42 @@ function register_dataset_routes(){
       'callback' => 'delete_dataset',
       /* 'permission_callback' => function () {
         return current_user_can( 'delete_posts' );
+      } */
+    )
+  );
+
+  register_rest_route(
+    BASE_URL,
+    DELETE_COLUMN_DATASET_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'delete_column',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'publish_posts' );
+      } */
+    )
+  );
+
+  register_rest_route(
+    BASE_URL,
+    RENAME_COLUMN_DATASET_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'rename_column',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'publish_posts' );
+      } */
+    )
+  );
+
+  register_rest_route(
+    BASE_URL,
+    CHANGE_DATA_TYPE_COLUMN_DATASET_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'change_data_type_column',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'publish_posts' );
       } */
     )
   );

@@ -1,12 +1,11 @@
-import axios from 'axios';
 import { saveAs } from 'file-saver';
+import api from '../helpers/axios';
 
 export const stringChart = async (chartId, filename) => {
   const svgNode = document.querySelector(chartId).firstChild;
   const svgString = getSVGString(svgNode);
   svgString2Image(svgString, 600, 400, 'png', (dataBlob) => {
-    axios.post(
-      `/wp-json/vpress/v1/chart/image`,
+    api.chart.image(
       { string: dataBlob, name: filename }
     )
   });

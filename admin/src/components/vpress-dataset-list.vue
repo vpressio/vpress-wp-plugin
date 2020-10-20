@@ -54,11 +54,16 @@
       :options.sync="options"
       :server-items-length="total"
       :loading="loading"
+      :expanded.sync="expanded"
+      show-expand
+      single-expand
       hide-default-header
     >
-      <template v-slot:item.name="{ item }">
-        <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
-        <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
+      <template v-slot:item.name="{ item }" >
+        <div style="cursor:pointer" @click="selectDataset(item)">
+          <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
+          <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
+        </div>
       </template>
       <template v-slot:item.permissions="{ item }">
         <p
@@ -73,21 +78,81 @@
       <template v-slot:item.rows="{ item }">
         ~{{ intFromat(item.rows) }} filas
       </template>
+      <template v-slot:item.tag="{ item }">
+        <v-chip color="primary" small class="mr-1" v-for="t in item.tag" :key="t">
+          {{ t }}
+        </v-chip>
+      </template>
       <template v-slot:item.actions="{ item }">
-        <v-icon
-          class="mr-2"
-          @click="editItem(item)"
-        >
-          mdi-pencil
-        </v-icon>
-        <v-icon
-          @click="deleteItem(item)"
-        >
-          mdi-delete
-        </v-icon>
+        <v-btn icon color="primary" @click="editItem(item)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn icon color="error" @click="deleteItem(item)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="initialize">Reset</v-btn>
+        <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
+      </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length">
+          <v-container>
+            <v-row>
+              <v-col cols="4" sm="2">
+                <div class="subtitle-2 mb-2">
+                  Base de datos
+                </div>
+                <v-btn
+                  small
+                  rounded
+                  class="mt-12"
+                  color="primary"
+                  @click="setDataset(item)"
+                >
+                  Ver datos
+                </v-btn>
+              </v-col>
+              <v-col cols="8" sm="10">
+                <div class="subtitle-2 mb-2">
+                  Gráficas hechas con la base de datos
+                </div>
+                <v-slide-group
+                  show-arrows
+                >
+                  <v-slide-item
+                    v-for="chart in charts"
+                    :key="chart.id"
+                    center-active
+                    v-slot:default="{}"
+                  >
+                    <v-card
+                      outlined
+                      class="justify-center"
+                      style="border: none;"
+                    >
+                      <v-img
+                        width="200px"
+                        contain
+                        color="#222A32"
+                        :src="`/wp-content/uploads/vpress/images/${chart.id}.png`"
+                      ></v-img>
+                      <v-card-actions class="justify-center">
+                        <v-btn
+                          small
+                          rounded
+                          class="mt-2"
+                          color="primary"
+                        >
+                          Entrar
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-slide-item>
+                </v-slide-group>
+              </v-col>
+            </v-row>
+          </v-container>
+        </td>
       </template>
     </v-data-table>
     <v-dialog v-model="dialog" max-width="500px" scrollable>
@@ -115,7 +180,13 @@
                 ></v-textarea>
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="editedItem.tag" label="Etiquetas"></v-text-field>
+                <v-combobox
+                  v-model="editedItem.tag"
+                  label="Etiquetas"
+                  multiple
+                  chips
+                  deletable-chips
+                ></v-combobox>
               </v-col>
               <v-col cols="12">
                 <v-text-field v-model="editedItem.source" label="Fuente"></v-text-field>
@@ -144,6 +215,8 @@
   </v-container>
 </template>
 <script>
+import api from '../helpers/axios'
+
 export default {
   name: 'VpressDatasetList',
   data: () => ({
@@ -152,12 +225,14 @@ export default {
     options: {},
     loading: true,
     items: [],
+    expanded: [],
     dialog: false,
     headers: [
       { text: 'Nombre', value: 'name' },
       { text: 'Permisos', value: 'permissions' },
       { text: 'Tamaño', value: 'size' },
       { text: 'Total', value: 'rows' },
+      { text: 'Etiquetas', value: 'tag' },
       { text: 'Actualizado', value: 'updated' },
       { text: 'Etiquetas', value: 'tags' },
       { text: 'Acciones', value: 'actions' },
@@ -176,6 +251,7 @@ export default {
       tag: null,
       permissions: 'public'
     },
+    charts: []
   }),
   computed: {
     formTitle () {
@@ -191,26 +267,53 @@ export default {
     },
     dialog (val) {
       val || this.close()
-    }
+    },
+    async expanded (val) {
+      if (val && val.length > 0) {
+        const { data } = await api.dataset.charts(val[0].id);
+        this.charts = data.data
+      } else {
+        this.charts = []
+      }
+    },
   },
   methods: {
-    async getDatasets() {
-      this.loading = true
-      const { page, itemsPerPage } = this.options
-      const obj = {
-        page,
-        itemsPerPage,
-        q: this.q
+    selectDataset(dataset) {
+      try {
+        this.loading = true
+        this.$router.push(
+          {
+            path: `/`,
+            query: { dataset: dataset.id}}
+          )
+      } catch (error) {
+        this.loading = false
       }
-      const data = await this.$store.dispatch('data/GET_DATASET_LIST', obj);
-      data.data.forEach(element => {
-        element.tags = element.tags
-          ? element.tags.split(', ')
-          : element.tags = []
-      });
-      this.items = data.data
-      this.total = data.total
-      this.loading = false
+    },
+    async getDatasets() {
+      try {
+        this.loading = true
+        const { page, itemsPerPage } = this.options
+        const obj = {
+          page,
+          itemsPerPage,
+          q: this.q
+        }
+
+        const { data } = await api.dataset.list(obj);
+        data.data.forEach(element => {
+          element.tag = element.tag
+            ? element.tag.split(', ')
+            : element.tag = []
+        });
+        this.items = data.data
+        this.total = data.total
+        this.loading = false
+
+      } catch (error) {
+
+        this.loading = false
+      }
     },
     intFromat(number) {
       return new Intl.NumberFormat().format(number)
@@ -229,19 +332,26 @@ export default {
     },
     async save () {
       if (this.editedIndex > -1) {
-        Object.assign(this.items[this.editedIndex], this.editedItem)
-        await this.$store.dispatch('data/UPDATE_DATASET', {
-          id: parseInt(this.editedItem.id),
-          name: this.editedItem.name,
-          description: this.editedItem.description,
-          tag: this.editedItem.tag,
-          source: this.editedItem.source,
-          permissions: this.editedItem.permissions
-        });
-        this.$store.dispatch('notifications/open', {
-          color: 'success',
-          text: 'Base de datos actualizada con éxito'
-        })
+        try {
+          Object.assign(this.items[this.editedIndex], this.editedItem)
+          const response = await api.dataset.update({
+            id: parseInt(this.editedItem.id),
+            name: this.editedItem.name,
+            description: this.editedItem.description,
+            tag: this.editedItem.tag,
+            source: this.editedItem.source,
+            permissions: this.editedItem.permissions
+          });
+          if (response.data.error) {
+            throw new Error(response.data.error);
+          }
+          this.$store.dispatch('notifications/open', {
+            color: 'success',
+            text: 'Base de datos actualizada con éxito'
+          })
+        } catch (error) {
+          throw new Error(error.message)
+        }
       } else {
         this.items.push(this.editedItem)
       }
@@ -250,7 +360,10 @@ export default {
     async deleteItem (item) {
       const index = this.items.indexOf(item)
       if (confirm('¿Esta seguro de eliminar esta base de datos?')) {
-        await this.$store.dispatch('data/DELETE_DATASET', parseInt(item.id));
+        const response = await api.dataset.delete({ data: { id: parseInt(item.id) }});
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
         this.items.splice(index, 1)
         this.$store.dispatch('notifications/open', {
           color: 'success',
@@ -258,6 +371,17 @@ export default {
         })
       }
     },
+    async setDataset (dataset) {
+      try {
+        this.datasetMeta = await this.$store.dispatch(
+          'workspace/ADD_DATASET',
+          dataset,
+        )
+        this.$router.push('/dataset')
+      } catch(error) {
+        this.errorMessage = error.message;
+      }
+    }
   }
 }
 </script>
