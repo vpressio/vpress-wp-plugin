@@ -6,10 +6,9 @@
       class="mx-auto"
     >
       <v-img
-        width="95%"
         contain
         color="#222A32"
-        :src="`/wordpress/wp-content/uploads/vpress/images/${id}.png`"
+        :src="img_url"
       ></v-img>
       <v-card-title @click="createChart" class="link">
         {{ chartValues.title }}

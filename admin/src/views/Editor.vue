@@ -214,9 +214,9 @@ export default {
         stringChart(
           `#empty_chart_${this.$store.getters['editor/activeVizIdx']}`,
           this.$store.getters['editor/workspace']()[this.$store.getters['editor/activeVizIdx']]
-            .id
+            .id,
+          this.$store.getters['editor/viz'].id
         )
-        // await this.$store.dispatch('editor/SAVE_IMAGE_CHART', stringImg);
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Gráfica guardada con éxito'

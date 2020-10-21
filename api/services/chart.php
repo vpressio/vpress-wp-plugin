@@ -415,6 +415,32 @@ function update_chart( $request ) {
   return $response;
 }
 
+function update_image_url_chart( $request ) {
+  global $wpdb;
+  $table_name = $wpdb->prefix.'vpresscore_charts';
+  $id = (int)$request->get_param('id');
+  $image_url = $request->get_param('image_url');
+
+  $data = $wpdb->update( 
+    $table_name, 
+    array( 
+      'img_url' => $image_url
+    ), 
+    array( 'id' => $id ),
+    array( 
+      '%s',
+    ), 
+    array( '%d' )
+  );
+
+  $response = array(
+    'data' => $data,
+    'query' => $wpdb->last_query,
+    'error' => $wpdb->last_error ? $wpdb->last_error : false,
+  );
+  return $response;
+}
+
 function delete_chart( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
@@ -436,17 +462,9 @@ function image_chart( $request ) {
   $upload_dir = wp_upload_dir();
   $string = $request->get_param('string');
   $filename = $request->get_param('name');
-  // $string = str_replace('data:image/svg+xml;base64,', '', $string);
-  // $string = str_replace(' ', '+', $string);
   $data = base64_decode($string);
-  // $file = $upload_dir['basedir'].'/vpress/datasets/'.$_FILES['file']['name'];
-  $fileurl = $upload_dir['baseurl'].'/vpress/datasets/'. $filename . '.png';
+  $fileurl = $upload_dir['baseurl'].'/vpress/images/'. $filename . '.png';
   $file = $upload_dir['basedir'].'/vpress/images/'. $filename . '.png';
   $success = file_put_contents($file, file_get_contents($string));
-  // $source_img = imagecreatefromstring($data);
-  // $rotated_img = imagerotate($source_img, 90, 0); 
-  // $file = $upload_dir['basedir'].'/vpress/images/'.rand() . '.png';
-  // $imageSave = imagejpeg($rotated_img, $file, 10);
-  // imagedestroy($source_img);
   return $fileurl;
 }

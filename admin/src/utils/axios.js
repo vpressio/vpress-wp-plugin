@@ -52,7 +52,8 @@ const chart = {
   update: payload => instance.put(`/wp-json/vpress/v1/chart/update`,  payload ),
   query: query => instance.post(`/wp-json/vpress/v1/chart/query`, query),
   delete: payload => instance.delete(`/wp-json/vpress/v1/chart/delete`, payload),
-  image: payload => instance.post(`/wp-json/vpress/v1/chart/image`, payload)
+  image: payload => instance.post(`/wp-json/vpress/v1/chart/image`, payload),
+  update_image_url: payload => instance.post(`/wp-json/vpress/v1/chart/update_image_url`, payload),
 }
 
 export default {
