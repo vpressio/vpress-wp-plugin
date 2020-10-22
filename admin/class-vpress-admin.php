@@ -120,7 +120,7 @@ class Vpress_Admin {
 			return;
 		}
 
-		//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-admin.js', array(), $this->version, false );
 		if ( $this->is_develop_serve() ) {
 			wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
 			wp_enqueue_script( $this->plugin_name  . '_chunks', 'http://localhost:8080/js/chunk-vendors.js', array( 'wp-api' ), $this->version, false );
@@ -128,6 +128,11 @@ class Vpress_Admin {
 			wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'admin/dist/js/chunk-vendors.js', [], $this->version, false );
 			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'admin/dist/js/app.js', array( 'wp-api' ), $this->version, false );
 		}
+
+		$dataToBePassed = array(
+			'upload_max_filesize' => ini_get('upload_max_filesize'),
+		);
+		wp_localize_script( $this->plugin_name, 'php_vars', $dataToBePassed );
 	}
 
 	/**

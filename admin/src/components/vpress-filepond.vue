@@ -34,7 +34,9 @@
       </v-btn>
       <input v-show="false" type="file" ref="fileInput" id="fileInput" accept="text/csv" @input="fileInputAction" />
       <v-label>
-        Formatos permitidos - csv
+        Formatos permitidos: <strong>CSV</strong>
+        <br />
+        Tamaño máximo de archivo: <strong>{{ php_vars.upload_max_filesize }}</strong>
       </v-label>
     </div>
   </v-card>
@@ -61,6 +63,10 @@ export default {
   computed: {
     fileTypeDynamicMessage() {
       return this.fileTypeMessage;
+    },
+    php_vars() {
+      // eslint-disable-next-line no-undef
+      return php_vars;
     }
   },
   methods: {
