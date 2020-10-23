@@ -59,7 +59,7 @@ class Vpress_Admin {
 		$connection = @fsockopen('localhost', '8080');
 
 		if ( $connection ) {
-				return true;
+				return false;
 		}
 
 		return false;
@@ -120,7 +120,7 @@ class Vpress_Admin {
 			return;
 		}
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-admin.js', array(), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'js/vpress-admin.js', array(), $this->version, false );
 		if ( $this->is_develop_serve() ) {
 			wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
 			wp_enqueue_script( $this->plugin_name  . '_chunks', 'http://localhost:8080/js/chunk-vendors.js', array( 'wp-api' ), $this->version, false );

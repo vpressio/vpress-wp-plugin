@@ -1,5 +1,5 @@
 import { VpressViz } from '../../utils/vpressViz.js';
-import api from '../../utils/axios.js' 
+import api from '../../utils/axios.js'
 
 export default {
   namespaced: true,
@@ -265,7 +265,7 @@ export default {
         } else {
           return null
         }
-      } 
+      }
     },
     viz: ({ vizModel }) => {
       return vizModel
@@ -276,7 +276,7 @@ export default {
         : new VpressViz().getValues()
       return payload
     },
-    data: (_, { viz }) => viz.vizData(),
+    data: (_, { viz }) => viz.getData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
     xAxis: (_, { chart}) => {
       const mainAxis = chart.xAxis
