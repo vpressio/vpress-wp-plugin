@@ -98,6 +98,4 @@ const defaultMap = {
   }
 }
 
-module.exports = {
-  VpressViz
-}
+export default VpressViz

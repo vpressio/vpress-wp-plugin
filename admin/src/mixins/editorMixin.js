@@ -18,6 +18,7 @@ export default {
   methods: {
     async merge_value(payload) {
       try {
+        this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
         const newValue = payload
         const chartValues = mergeChartVal(
           this.$store.getters['editor/viz'].getValues(),
@@ -37,22 +38,23 @@ export default {
     async merge_query(value, mutationType) {
       try {
         const activeChart = this.$store.getters['editor/viz'].getValues()
-        const values = queryByChart(
+        const payload = {
+          values: {},
+          data: []
+        }
+        payload.values = queryByChart(
           activeChart,
           {
             newValue: value,
             mergeType: mutationType
           }
-        )
-        const payload = {
-          values,
-          data: []
-        }
+          )
         if (
-          values.xAxis.slug !== '' &&
-          values.yAxis.slug !== ''
-        ) {
-          payload.data = await this.createVizQuery(values)
+          payload.values.xAxis.slug !== '' &&
+          payload.values.yAxis.slug !== ''
+          ) {
+          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+          payload.data = await this.createVizQuery(payload.values)
         }
         await this.$store.dispatch(
           'editor/UPDATE_VIZ',
@@ -84,17 +86,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    async query_data(queryBody ) {
-      try {
-        const response = await api.chart.query(queryBody);
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-        return response.data.data
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
+    
     async createVizQuery(
         chartValues,
         dataSetSlug = this.$store.getters['workspace/activeDataset'].slug
@@ -106,6 +98,18 @@ export default {
         )
         const data = await this.query_data(body)
         return data
+      } catch (error) {
+        this.$store.dispatch('editor/UPDATE_LOADING_STATE', false)
+        throw new Error(error.message)
+      }
+    },
+    async query_data(queryBody ) {
+      try {
+        const response = await api.chart.query(queryBody);
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        return response.data.data
       } catch (error) {
         throw new Error(error.message)
       }

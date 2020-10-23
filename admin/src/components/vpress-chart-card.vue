@@ -4,13 +4,14 @@
       v-if="!deletedCard"
       :loading="loading"
       class="mx-auto"
+      @click="createChart"
     >
       <v-img
         contain
         color="#222A32"
         :src="img_url"
       ></v-img>
-      <v-card-title @click="createChart" class="link">
+      <v-card-title class="link">
         {{ chartValues.title }}
       </v-card-title>
       <v-card-text>
@@ -119,11 +120,12 @@
 <script>
 import * as _ from 'lodash'
 import loaderMixin from '../mixins/loaderMixin.js'
+import editorMixin from '../mixins/editorMixin.js'
 import api from '../utils/axios'
 
 export default {
   name: 'VpressChartCard',
-  mixins: [loaderMixin],
+  mixins: [loaderMixin, editorMixin],
   props: {
     id: {
       type: String,
@@ -188,9 +190,23 @@ export default {
         this.loading = true
         const chart = await api.chart.get(this.id)
         const dataset = await api.dataset.get(this.dataset_id)
-        this.editorInit( dataset.data.data, [ chart.data.data ])
+        await this.editorInit( dataset.data.data, [ chart.data.data ])
+        const values = JSON.parse(chart.data.data.value)
+        const data = await this.createVizQuery(
+          values
+        )
+        const payload = {
+          values: values,
+          data: data
+        }
+        await this.$store.dispatch(
+          'editor/UPDATE_VIZ',
+          payload
+        )
         this.$router.push({ path: `/` })
+        this.loading = false
       } catch (error) {
+        console.log(error);
         this.loading = false
       }
     },

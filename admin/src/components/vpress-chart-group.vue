@@ -1,18 +1,17 @@
 <template>
-  <div
-  >
-    <!-- <div
-      v-show="loadingViz"
-      class="progress--layer"
-    >
-      <v-progress-circular
-        :size="70"
-        :width="7"
-        color="primary"
-        indeterminate
-      />
-    </div> -->
+  <div>
     <div style="min-height:600px;position:relative;">
+      <div
+        v-show="loadingViz"
+        class="progress--layer"
+      >
+        <v-progress-circular
+          :size="70"
+          :width="7"
+          color="primary"
+          indeterminate
+        />
+      </div>
       <VpressChartContainer
         :id="`empty_chart_0`"
         :chartConfig="viz.getValues ? viz.getValues() : {}"
@@ -134,6 +133,7 @@ export default {
      */
     onChartIsLoaded($element) {
       const vm = this;
+      this.$store.dispatch('editor/UPDATE_LOADING_STATE', false)
       this.createInputToEditLabel(
         $element,
         '.generated-title',
@@ -202,8 +202,11 @@ export default {
 <style scoped>
 
 .progress--layer {
+  position:absolute;
+  z-index: 10;
   width:100%;
-  height:600px;
+  height:100%;
+  background-color: white;
   display:flex;
   justify-content:center;
   align-items:center

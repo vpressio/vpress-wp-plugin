@@ -1,4 +1,4 @@
-import { VpressViz } from '../../utils/vpressViz.js';
+import VpressViz from '../../utils/vpressViz.js';
 import api from '../../utils/axios.js'
 
 export default {
@@ -184,10 +184,10 @@ export default {
       {
         values,
         data,
-        dataset = rootGetters['workspace/activeDataset'].slug
+        dataset = rootGetters['workspace/activeDataset']
       }
-      ) {
-      const vizzes = [ ...state.vizzes[dataset] ]
+    ) {
+      const vizzes = [ ...state.vizzes[dataset.slug] ]
       vizzes[0].setData(data)
       vizzes[0].setValues(values)
       commit('SET_VIZZES', { dataset: dataset, vizzes })
@@ -195,6 +195,9 @@ export default {
     },
     SET_ACTIVE_VIZ({ commit }, viz = new VpressViz()) {
       commit('ACTIVE_VIZ', viz)
+    },
+    UPDATE_LOADING_STATE({ commit }, state) {
+      commit('SET_LOADING_STATUS' ,state)
     },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
@@ -207,7 +210,7 @@ export default {
           img_url
         } = getters.viz
 
-        const datasetMeta = rootGetters['workspace/activeDataset']
+        const dataset = rootGetters['workspace/activeDataset']
         const body = {
           value: JSON.stringify(chartValues),
           owner_id: owner_id,
@@ -217,38 +220,19 @@ export default {
         }
         if (!id) {
           const saveResponse = await api.chart.create(
-            { dataset_id: datasetMeta.id, ...body }
+            { dataset_id: dataset.id, ...body }
             )
           const savedChart = saveResponse.data
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
-
-          commit('SET_WSP_CHART_ID', { id: savedChart.data, dataset: datasetMeta.slug })
+          commit('SET_WSP_CHART_ID', { id: savedChart.data, dataset: dataset.slug })
         } else {
           const updateResponse = await api.chart.update({ id, ...body })
           if (updateResponse.data.error) {
             throw new Error(updateResponse.data.error);
           }
         }
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async DELETE_CHART(_, id) {
-      try {
-        const response = await api.chart.delete({ data: { id: id }})
-        return response.data
-      } catch (error) {
-        throw new Error(error.message)
-      }
-    },
-    async SAVE_IMAGE_CHART(_, payload) {
-      try {
-        const response = await api
-          .chart
-          .image({ string: payload })
-        return response.data
       } catch (error) {
         throw new Error(error.message)
       }
@@ -276,9 +260,8 @@ export default {
         : new VpressViz().getValues()
       return payload
     },
-    data: (_, { viz }) => viz.getData(),
     loadingState: ({ loadingChart }) =>  loadingChart,
-    xAxis: (_, { chart}) => {
+    xAxis: (_, { chart }) => {
       const mainAxis = chart.xAxis
       const oppsAxis = chart.yAxis
       const mutationType = 'xAxis'

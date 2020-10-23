@@ -633,7 +633,7 @@ export default {
               textAnchor: 'middle',
             },
             title: {
-              fontSize: 5,
+              fontSize: 10,
               fontWeight: 600,
               textColor: '#666',
               textAnchor: 'middle',

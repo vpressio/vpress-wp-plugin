@@ -120,8 +120,7 @@ export default {
           this.ordinalFilter = this.value.categories
         }
 
-        const filterParams = await this.$store.dispatch(
-          'workspace/GET_FILTER_PARAMS',
+        const filterParams = await this.filter_params(
           { column: this.column, type: this.type }
         )
         if(this.type !== 'linear'){

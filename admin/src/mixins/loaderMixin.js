@@ -10,6 +10,9 @@ export default {
     },
     viz() {
       return this.$store.getters['editor/viz']
+    },
+    loadingViz() {
+      return this.$store.getters['editor/loadingState']
     }
   },
   methods: {
