@@ -33,7 +33,7 @@ export default {
             'editor/LOAD_VIZZES',
             { vizValues }
         )
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ', vizzes[0])
+        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizzes: vizzes, vizIdx: 0 })
         
         return { datasetMeta }
       } catch (error) {
@@ -46,7 +46,7 @@ export default {
               'workspace/UPDATE_ACTIVE_DATASET',
               dataset
         )
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ', this.vizzes ? this.vizzes[0] : undefined)
+        this.$store.dispatch('editor/SET_ACTIVE_VIZ',{ vizzes: this.vizzes, vizIdx: 0 })
       } catch (error) {
         console.error(error);
       }

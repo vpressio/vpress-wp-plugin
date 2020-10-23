@@ -27,7 +27,7 @@
       <v-icon color="grey">mdi-plus-thick</v-icon>
     </v-btn>
     <v-btn
-      v-for="(chart, chartIndex) in vizzes"
+      v-for="(chart, chartIndex) in tabs"
       :key="`chart_tab_${chartIndex}`"
       :color="openTab === chartIndex ? 'primary' : ''"
       :text="openTab === chartIndex"
@@ -62,33 +62,53 @@ export default {
   mixins: [loaderMixin, editorMixin],
   data() {
     return {
-      openTab: 0,
+      openTab: this.$store.getters['editor/openViz'],
+      tabs: this.$store.getters['editor/vizzes'](),
     };
-  },
-  mounted() {
-    this.setActiveViz(0)
   },
   methods: {
     async addViz() {
       try {
-        console.log('add');
-
+        await this.$store.dispatch('editor/ADD_VIZ', {})
+        this.tabs = this.$store.getters['editor/vizzes']()
+        this.openTab = this.tabs.length - 1
+        console.log(this.openTab);
+        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizIdx: this.openTab })
       } catch (error) {
-        throw new console.error(error.message);
+        throw console.error(error.message);
       }
     },
     async removeViz(idx) {
       try {
-      console.log('remove', idx);
-
+        this.openTab = 0
+        await this.$store.dispatch('editor/REMOVE_VIZ', { idx })
+        console.log(this.$store.getters['editor/vizzes']());
+        this.tabs = this.$store.getters['editor/vizzes']()
+        await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizzes: this.tabs, idx })
       } catch (error) {
         throw new Error(error.message)
       }
     },
     async setActiveViz(idx) {
       this.openTab = idx
-      const payload = this.vizzes ? this.vizzes[this.openTab] : {}
-      this.$store.dispatch('editor/SET_ACTIVE_VIZ', payload)
+      const payload = {
+        values: this.$store.getters['editor/vizzes']()[this.openTab].getValues(),
+        data: [],
+        idx: idx
+      }
+      if(
+        payload.values.xAxis.slug !== '' &&
+        payload.values.yAxis.slug !== ''
+      ){
+        this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+        payload.data = await this.createVizQuery(
+          this.vizzes[this.openTab].getValues()
+        )
+      }
+      await this.$store.dispatch(
+        'editor/UPDATE_VIZ',
+        payload
+      )
      },
     /**
      * Appends an input to edit selected label

@@ -199,6 +199,9 @@ export default {
           values: values,
           data: data
         }
+        if(this.vizzes && this.vizzes.length > 0) {
+          payload.idx = this.vizzes.length - 1
+        }
         await this.$store.dispatch(
           'editor/UPDATE_VIZ',
           payload

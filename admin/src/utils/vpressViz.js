@@ -6,8 +6,7 @@ const VpressViz = function (
   data = [],
   description = "",
   permission = "Public",
-  img_url = "",
-  index = 0
+  img_url = ""
 ) {
   this.id = id,
   this.dataset_id = dataset_id
@@ -15,7 +14,6 @@ const VpressViz = function (
   this.description = description
   this.permission =  permission
   this.img_url = img_url
-  this.index = index
   this.chartValues = fillValues(chartValues, defaultChart)
   this.mapValues = fillValues(mapValues, defaultMap)
 }

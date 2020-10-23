@@ -4,6 +4,7 @@ import api from '../../utils/axios.js'
 export default {
   namespaced: true,
   state: {
+    openViz: 0,
     vizModel: {},
     vizzes: {},
     loadingChart: false,
@@ -108,13 +109,13 @@ export default {
   },
   mutations: {
     SET_VIZ_VALUES(state, { values, dataset }) {
-      state.vizzes[dataset][0].setValues(values)
+      state.vizzes[dataset][state.openViz].setValues(values)
     },
     SET_VIZ_DATA(state, { data, dataset }) {
-      state.vizzes[dataset][0].setData(data)
+      state.vizzes[dataset][state.openViz].setData(data)
     },
     SET_WSP_CHART_ID(state, { id, dataset }) {
-      state.vizzes[dataset][0].id = id
+      state.vizzes[dataset][state.openViz].id = id
     },
     SET_VIZZES(state, { dataset, vizzes = [] }) {
       state.vizzes[dataset] = vizzes
@@ -131,9 +132,9 @@ export default {
     SET_LOADING_STATUS(state, payload) {
       state.loadingChart = payload
     },
-    ACTIVE_VIZ(state, payload) {
+    ACTIVE_VIZ(state, payload = new VpressViz()) {
       state.vizModel = payload
-    }
+    },
   },
   actions: {
     UPDATE_OPEN_VIZ({ commit }, vizIdx) {
@@ -145,7 +146,7 @@ export default {
     ) {
       const datasetSlug = dataset.slug
       const vizzes = vizValues
-        .map((viz, vizIdx) => new VpressViz(
+        .map((viz) => new VpressViz(
           JSON.parse(viz.value),
           viz.id,
           viz.mapValues,
@@ -153,8 +154,7 @@ export default {
           viz.data,
           viz.description,
           viz.permissions,
-          viz.img_url,
-          vizIdx
+          viz.img_url
         ))
       const storedVizzes = state.vizzes[datasetSlug]
       if (storedVizzes) {
@@ -173,7 +173,7 @@ export default {
         rootGetters,
         state,
       },
-      datasetName = rootGetters['workspace/activeDataset']
+      datasetName = rootGetters['workspace/activeDataset'].slug
     ) {
       const vizzesSubstract = { ...state.vizzes }
       delete vizzesSubstract[datasetName.slug]
@@ -184,17 +184,37 @@ export default {
       {
         values,
         data,
-        dataset = rootGetters['workspace/activeDataset']
+        dataset = rootGetters['workspace/activeDataset'],
+        idx = state.openViz
       }
     ) {
-      const vizzes = [ ...state.vizzes[dataset.slug] ]
-      vizzes[0].setData(data)
-      vizzes[0].setValues(values)
-      commit('SET_VIZZES', { dataset: dataset, vizzes })
-      dispatch('SET_ACTIVE_VIZ', vizzes[0])
+      const vizzes = [...state.vizzes[dataset.slug]]
+      vizzes[idx].setData(data)
+      vizzes[idx].setValues(values)
+      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
+      dispatch('SET_ACTIVE_VIZ', { vizzes: vizzes, vizIdx: idx })
     },
-    SET_ACTIVE_VIZ({ commit }, viz = new VpressViz()) {
-      commit('ACTIVE_VIZ', viz)
+    async REMOVE_VIZ(
+      { state, commit, rootGetters },
+      { idx = 0, dataset = rootGetters['workspace/activeDataset'] }
+    ) {
+      const vizzes = [...state.vizzes[dataset.slug]]
+      vizzes.splice(idx, 1)
+      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
+    },
+    async ADD_VIZ(
+      { commit, rootGetters },
+      { dataset = rootGetters['workspace/activeDataset'] }
+    ) {
+      try {
+        commit('ADD_VIZZES', { dataset: dataset.slug, vizzes: [ new VpressViz]})
+      } catch (error) {
+        throw new Error(error.message)        
+      }
+    },
+    SET_ACTIVE_VIZ({ commit }, { vizzes = [ new VpressViz() ], vizIdx = 0 }) {
+      commit('ACTIVE_VIZ', vizzes ? vizzes[vizIdx] : undefined)
+      commit('OPEN_VIZ', vizIdx)
     },
     UPDATE_LOADING_STATE({ commit }, state) {
       commit('SET_LOADING_STATUS' ,state)
@@ -253,6 +273,9 @@ export default {
     },
     viz: ({ vizModel }) => {
       return vizModel
+    },
+    openViz: ({ openViz }) => {
+      return openViz
     },
     chart: (_, { viz }) => {
       const payload= viz.getValues
