@@ -462,7 +462,6 @@ function image_chart( $request ) {
   $upload_dir = wp_upload_dir();
   $string = $request->get_param('string');
   $filename = $request->get_param('name');
-  $data = base64_decode($string);
   $fileurl = $upload_dir['baseurl'].'/vpress/images/'. $filename . '.png';
   $file = $upload_dir['basedir'].'/vpress/images/'. $filename . '.png';
   $success = file_put_contents($file, file_get_contents($string));
