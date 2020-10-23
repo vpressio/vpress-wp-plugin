@@ -177,11 +177,10 @@ export default {
       try {
         this.variable.func = func.type
         this.selectedFunc = func
-        const viz = await this.merge_query(
+        await this.merge_query(
           this.variable,
           this.mutationType
         )
-        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
       } catch (error) { 
         throw new Error(error.message)
       }
@@ -201,11 +200,10 @@ export default {
             slug: '',
             func: ''
           }
-        const viz = await this.merge_query(
+        await this.merge_query(
           payload,
           this.mutationType,
         )
-        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
       } catch (error) {
         throw new Error(error.message)
       }

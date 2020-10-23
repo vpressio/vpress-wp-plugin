@@ -142,9 +142,12 @@
   </v-card>
 </template>
 <script>
+import editorMixin from '../mixins/editorMixin.js'
+
 export default {
   name: 'VpressChartSelectButtons',
   props: ['availableCharts'],
+  mixins: [editorMixin],
   data() {
     return {
       labels: false,
@@ -166,8 +169,7 @@ export default {
   },
   methods: {
     async setChartType(chartType) {
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType:'chart' , value: chartType}
       );
     },
@@ -180,15 +182,13 @@ export default {
     },
     toggleLabels() {
       this.labels = !this.labels;
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'labels' ,value: this.labels }
       );
     },
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'stackedBars' ,value: this.stackedBars
       });
     },
@@ -200,8 +200,7 @@ export default {
       } else {
         this.order = order[0]
       }
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'orderBy' ,value: this.order}
       );
     },
@@ -209,26 +208,22 @@ export default {
       const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
           );
         }
         if (chartValues.yAxis.type === 'ordinal' ) {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
 
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.$store.dispatch(
-          'editor/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
         );
       } else {
-        this.$store.dispatch(
-          'editor/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: '' }
         );
       }
@@ -237,32 +232,27 @@ export default {
       const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'linear' ) {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
           );
         }
         if (chartValues.yAxis.type === 'linear' ) {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
       } else if (chartValues.xAxis.type === 'linear') {
-        this.$store.dispatch(
-          'editor/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
         );
       } else {
-        this.$store.dispatch(
-          'editor/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: 'total_count' }
         );
       }
     },
     invertAxis() {
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'invertAxis' }
       );
     }

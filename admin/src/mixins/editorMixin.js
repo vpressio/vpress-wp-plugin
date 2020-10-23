@@ -10,52 +10,55 @@ const {
 } = vpress
 
 export default {
-  data() {
-    return {
-      editorLoading: false
+  computed: {
+    loadingViz() {
+      return this.$store.getters['editor/loadingState']
     }
-  },
+  }, 
   methods: {
     async merge_value(payload) {
       try {
         const newValue = payload
-        const newChartValues = mergeChartVal(
-          this.$store.getters['editor/viz'].values(),
+        const chartValues = mergeChartVal(
+          this.$store.getters['editor/viz'].getValues(),
           {
             newValue: newValue.value,
             mutationType: newValue.mutationType
           }
         )
-        return newChartValues
+        await this.$store.dispatch(
+          'editor/UPDATE_VIZ',
+          { values: chartValues }
+        )
       } catch (error) {
         throw new Error(error.message);
       }
     },
     async merge_query(value, mutationType) {
       try {
-        const activeChart = this.$store.getters['editor/viz'].values()
-        const newChartValues = queryByChart(
+        const activeChart = this.$store.getters['editor/viz'].getValues()
+        const values = queryByChart(
           activeChart,
           {
             newValue: value,
             mergeType: mutationType
           }
         )
-        const viz = {
-          chartValues: newChartValues,
+        const payload = {
+          values,
           data: []
         }
         if (
-          newChartValues.xAxis.slug !== '' &&
-          newChartValues.yAxis.slug !== ''
+          values.xAxis.slug !== '' &&
+          values.yAxis.slug !== ''
         ) {
-          this.editorLoading = true
-          viz.data = await this.createVizQuery(newChartValues)
-          this.editorLoading = false
+          payload.data = await this.createVizQuery(values)
         }
-        return viz
+        await this.$store.dispatch(
+          'editor/UPDATE_VIZ',
+          payload
+        )
       } catch (error) {
-        this.editorLoading = false
         throw new Error(error.message);
       }
     },

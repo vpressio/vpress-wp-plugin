@@ -1,5 +1,8 @@
 <template lang="pug">
-  .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
+  .chart-container.center-align(
+    :class="`${chartConfig ? chartConfig.theme : 'light'}-themed`"
+    style="position:absolute;top:0;left:0;width:100%;height:100%;"
+    )
     .layout-row.left-align.label-font.bold.layout-align-start-end(style="height:10%")
       .col-12.py-0
         h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
@@ -113,11 +116,10 @@ export default {
     };
   },
   beforeDestroy() {
-    console.log('ayuda')
-    if(this.chart && this.chart.destroy){
-      this.chart.destroy()
-    }
     this.removeChart()
+  },
+  mounted() {
+    this.vizInitValidator()
   },
   computed: {
     chartTitle() {
@@ -184,7 +186,6 @@ export default {
   },
   watch: {
     chartConfig() {
-      console.log('hola');
       if (
         !_.includes(
           ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map'],
@@ -195,6 +196,11 @@ export default {
           'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`, `map`'
         );
       }
+      this.vizInitValidator()
+    }
+  },
+  methods: {
+    vizInitValidator() {
       if (
         this.data &&
         this.data.length > 0 &&
@@ -202,10 +208,10 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart();
+      } else {
+        this.removeChart()
       }
-    }
-  },
-  methods: {
+    },
     /**
      * Draw an interactive chart using dboxjs
      */
@@ -1111,16 +1117,9 @@ export default {
         .remove();
       d3.selectAll(`.d3-tip.tip-${this._uid}`).remove();
       d3.selectAll('.title-tip').remove();
-    }
-  },
-  created() {
-    if (
-      this.data &&
-      this.data.length > 0 &&
-      this.chartConfig.xAxis.slug !== '' &&
-      this.chartConfig.yAxis.slug !== ''
-    ) {
-      this.configChart();
+      if(this.chart && this.chart.destroy){
+        this.chart.destroy()
+      }
     }
   }
 };

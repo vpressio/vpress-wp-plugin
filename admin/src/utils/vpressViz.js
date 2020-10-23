@@ -7,25 +7,27 @@ const VpressViz = function (
   description = "",
   permission = "Public",
   img_url = "",
+  index = 0
 ) {
-  this.id = id
+  this.id = id,
   this.dataset_id = dataset_id
   this.data = data
   this.description = description
   this.permission =  permission
   this.img_url = img_url
+  this.index = index
   this.chartValues = fillValues(chartValues, defaultChart)
   this.mapValues = fillValues(mapValues, defaultMap)
 }
 
 VpressViz.prototype = {
-  values() {
+  getValues() {
     return this.chartValues;
   },
-  vizData() {
+  getData() {
     return this.data;
   },
-  setChartValues(newValues) {
+  setValues(newValues) {
     try {
       this.chartValues = fillValues(newValues, defaultChart);
     } catch (error) {

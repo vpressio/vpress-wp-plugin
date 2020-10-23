@@ -4,7 +4,7 @@ import api from '../../utils/axios.js'
 export default {
   namespaced: true,
   state: {
-    openViz: 0,
+    vizModel: {},
     vizzes: {},
     loadingChart: false,
     availableGraphs: [
@@ -105,42 +105,16 @@ export default {
         ]
       },
     ],
-    colorsEnum: [
-      {
-        colorSchemeType: 'SECUENCIAL',
-        schemes: [
-          ['#40348c', '#842f8e', '#ba2982', '#e2346d', '#fc5353', '#ff7b33', '#ffa600'],
-          ['#7a0177', '#c51b8a', '#f768a1', '#fbb4b9', '#feebe2'],
-          ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
-          ['#54278f', '#756bb1', '#9e9ac8', '#cbc9e2', '#f2f0f7'],
-          ['#fcff9d', '#f6ca3b', '#f9901a', '#e85f2e', '#c63d46', '#9e2b5d', '#721968', '#4a0067', '#261045', '#00000e']
-        ]
-      },
-      {
-        colorSchemeType: 'DIVERGENTE',
-        schemes: [
-          ['#e66101', '#fdb863', '#f7f7f7', '#b2abd2', '#5e3c99'],
-          ['#d7191c', '#fdae61', '#ffffbf', '#abd9e9', '#2c7bb6']
-        ]
-      },
-      {
-        colorSchemeType: 'CUALITATIVO',
-        schemes: [
-          ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f'],
-          ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628']
-        ]
-      }
-    ]
   },
   mutations: {
     SET_VIZ_VALUES(state, { values, dataset }) {
-      state.vizzes[dataset][state.openViz].setChartValues(values)
+      state.vizzes[dataset][0].setValues(values)
     },
     SET_VIZ_DATA(state, { data, dataset }) {
-      state.vizzes[dataset][state.openViz].setData(data)
+      state.vizzes[dataset][0].setData(data)
     },
     SET_WSP_CHART_ID(state, { id, dataset }) {
-      state.vizzes[dataset][state.openViz].id = id
+      state.vizzes[dataset][0].id = id
     },
     SET_VIZZES(state, { dataset, vizzes = [] }) {
       state.vizzes[dataset] = vizzes
@@ -156,6 +130,9 @@ export default {
     },
     SET_LOADING_STATUS(state, payload) {
       state.loadingChart = payload
+    },
+    ACTIVE_VIZ(state, payload) {
+      state.vizModel = payload
     }
   },
   actions: {
@@ -168,7 +145,7 @@ export default {
     ) {
       const datasetSlug = dataset.slug
       const vizzes = vizValues
-        .map(viz => new VpressViz(
+        .map((viz, vizIdx) => new VpressViz(
           JSON.parse(viz.value),
           viz.id,
           viz.mapValues,
@@ -177,22 +154,18 @@ export default {
           viz.description,
           viz.permissions,
           viz.img_url,
+          vizIdx
         ))
       const storedVizzes = state.vizzes[datasetSlug]
       if (storedVizzes) {
         commit('ADD_VIZZES', { dataset: datasetSlug, vizzes: vizzes })
-        const lastIdx = storedVizzes.length > 0
-          ? storedVizzes.length - 1
-          : 0
-        commit('OPEN_VIZ', lastIdx)
       } else if (vizzes.length >= 0) {
         const payload = vizzes.length > 0
           ? vizzes
           : [ new VpressViz() ]
         commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
-        commit('OPEN_VIZ', 0)
       }
-      
+      return state.vizzes[datasetSlug]
     },
     REMOVE_VIZZES(
       {
@@ -202,37 +175,26 @@ export default {
       },
       datasetName = rootGetters['workspace/activeDataset']
     ) {
-        const vizzesSubstract = { ...state.vizzes[datasetName] }
-        delete vizzesSubstract[datasetName]
-        commit('RESET_VIZZES',vizzesSubstract)
-        commit('OPEN_VIZ', 0)
-    },
-    ADD_VIZ({ state, commit, rootGetters }, viz = new VpressViz()) {
-      const activeDataset = rootGetters['workspace/activeDataset']
-      const vizzes = state.vizzes[activeDataset.slug].push(viz)
-      commit('SET_VIZZES', vizzes)
-      const newIdx = vizzes.length - 1
-      commit('OPEN_VIZ', newIdx)
+      const vizzesSubstract = { ...state.vizzes }
+      delete vizzesSubstract[datasetName.slug]
+      commit('RESET_VIZZES', vizzesSubstract)
     },
     UPDATE_VIZ(
-      { state, commit, rootGetters },
+      { state, commit, rootGetters, dispatch },
       {
-        viz,
-        dataset = rootGetters['workspace/activeDataset']
+        values,
+        data,
+        dataset = rootGetters['workspace/activeDataset'].slug
       }
       ) {
-      const vizzes = [ ...state.vizzes[dataset.slug] ]
-      vizzes[state.openViz].setData(viz.data)
-      vizzes[state.openViz].setChartValues(viz.chartValues)
-      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
+      const vizzes = [ ...state.vizzes[dataset] ]
+      vizzes[0].setData(data)
+      vizzes[0].setValues(values)
+      commit('SET_VIZZES', { dataset: dataset, vizzes })
+      dispatch('SET_ACTIVE_VIZ', vizzes[0])
     },
-    REMOVE_VIZ({ state, commit, rootGetters }, vizIdx) {
-      const activeDataset = rootGetters['workspace/activeDataset']
-      const vizzes = state.vizzes[activeDataset].slice(vizIdx, 1)
-      commit('SET_VIZZES', vizzes)
-      if (vizIdx === state.openViz) {
-        commit('OPEN_VIZ', 0)
-      }
+    SET_ACTIVE_VIZ({ commit }, viz = new VpressViz()) {
+      commit('ACTIVE_VIZ', viz)
     },
     async SAVE_CHART({ commit, getters, rootGetters }) {
       try {
@@ -256,7 +218,7 @@ export default {
         if (!id) {
           const saveResponse = await api.chart.create(
             { dataset_id: datasetMeta.id, ...body }
-          )
+            )
           const savedChart = saveResponse.data
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
@@ -293,32 +255,25 @@ export default {
     },
   },
   getters: {
-    workspace: ({ vizzes }, _, __, rootGetters) => {
+    vizzes: ({ vizzes }, _, __, rootGetters) => {
       const activeDataset = rootGetters['workspace/activeDataset']
-        ? rootGetters['workspace/activeDataset'].slug
-        : ''
-      return (dataset = activeDataset) => vizzes[dataset]
+      return (dataset) => {
+        if (dataset) {
+          return vizzes[dataset]
+        } else if (activeDataset) {
+          return vizzes[activeDataset.slug]
+        } else {
+          return null
+        }
+      } 
     },
-    activeVizIdx: state => state.openViz,
-    viz: ({ vizzes, openViz }, _, __, rootGetters) => {
-      const dataset = rootGetters['workspace/activeDataset']
-      const vizPreset = new VpressViz()
-      if (
-        !dataset ||
-        Object.keys(vizzes).length === 0 ||
-        !vizzes[dataset.slug]
-        ) {
-        return vizPreset
-      } else if (vizzes[dataset.slug].length > 0) {
-        return vizzes[dataset.slug][openViz]
-          ? vizzes[dataset.slug][openViz]
-          : vizzes[dataset.slug][0]
-      } else {
-        return vizPreset
-      }
+    viz: ({ vizModel }) => {
+      return vizModel
     },
     chart: (_, { viz }) => {
-      const payload= viz.values()
+      const payload= viz.getValues
+        ? viz.getValues()
+        : new VpressViz().getValues()
       return payload
     },
     data: (_, { viz }) => viz.vizData(),
@@ -407,7 +362,6 @@ export default {
     'groupBy.slug': (_, { chart }) => chart.groupBy.slug,
     stackedBars: (_, { chart }) => chart.stackedBars,
     order: (_, { chart }) => chart.orderBy.order,
-    availableColors: state => state.colorsEnum,
     getAvailableCharts: ({ availableGraphs }, { chart }) => {
       const requiredReduce = (acc, chartValue) => chartValue[chartValue]
         ? chart[chartValue].slug === ''

@@ -1,10 +1,8 @@
 <template>
-  <v-card
-    min-height='600'
+  <div
   >
-    <VpressChartSelectButtons :availableCharts="availableCharts" />
     <!-- <div
-      v-show="loadingChart"
+      v-show="loadingViz"
       class="progress--layer"
     >
       <v-progress-circular
@@ -15,34 +13,26 @@
       />
     </div> -->
     <div style="min-height:600px;position:relative;">
-      <div
-        v-for="(chart, chartIndex) in charts"
-        :key="`empty_chart_${chartIndex}`"
-        style="position:absolute;top:0;left:0;width:100%;height:100%;"
-      >
-        <VpressChartContainer
-          v-show="activeChartIndex === chartIndex"
-          :id="`empty_chart_${chartIndex}`"
-          :data="charts[chartIndex].vizData()"
-          :chartConfig="charts[chartIndex].values()"
-
-          @chart_loaded="onChartIsLoaded"
-        />
-      </div>
+      <VpressChartContainer
+        :id="`empty_chart_0`"
+        :chartConfig="viz.getValues ? viz.getValues() : {}"
+        :data="viz.getData ? viz.getData() : []"
+        @chart_loaded="onChartIsLoaded"
+      />
     </div>
     <v-btn
       tile
       depressed
-      @click="addChart"
+      @click="addViz"
     >
       <v-icon color="grey">mdi-plus-thick</v-icon>
     </v-btn>
     <v-btn
-      v-for="(chart, chartIndex) in charts"
+      v-for="(chart, chartIndex) in vizzes"
       :key="`chart_tab_${chartIndex}`"
-      :color="activeChartIndex === chartIndex ? 'primary' : ''"
-      :text="activeChartIndex === chartIndex"
-      @click="setActiveChart(chartIndex)"
+      :color="openTab === chartIndex ? 'primary' : ''"
+      :text="openTab === chartIndex"
+      @click="setActiveViz(chartIndex)"
       tile
       depressed
     >
@@ -52,86 +42,55 @@
         x-small
         icon
         color="primary"
-        @click.stop.prevent="removeChart(chartIndex)"
+        @click.stop.prevent="removeViz(chartIndex)"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-btn>
-  </v-card>
+  </div>
 </template>
 <script>
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
-import VpressChartSelectButtons from './vpress-chart-select-buttons.vue';
+import loaderMixin from '../mixins/loaderMixin.js';
+import editorMixin from '../mixins/editorMixin.js'
 
 export default {
   name: 'VpressChartGroup',
   components: {
-    VpressChartContainer,
-    VpressChartSelectButtons
+    VpressChartContainer
   },
+  mixins: [loaderMixin, editorMixin],
   data() {
     return {
-      chartConfig: this.$store.getters['editor/chart'],
-      charts: [],
-      loadingChart: this.$store.getters['editor/loadingState'],
-      activeChartIndex: 0,
-      availableCharts: this.$store.getters['editor/getAvailableCharts'],
+      openTab: 0,
     };
   },
-  created() {
-    this.charts = this.$store
-      .getters['editor/workspace']()
-    console.log(this.charts);
-    this.unsubscribe = this.$store.subscribe(
-      (mutation) => {
-        if(
-          (
-            mutation.type === 'editor/SET_VIZ_VALUES' ||
-            mutation.type === 'editor/RESET_VIZZES' ||
-            mutation.type === 'editor/ADD_VIZZES' ||
-            mutation.type === 'workspace/SET_ACTIVE_DATASET' ||
-            mutation.type === 'workspace/SET_VIZZES'
-          )
-        ) {
-          const workspace = this.$store.getters['editor/workspace']()
-          this.charts = []
-          this.charts = workspace
-          this.availableCharts = this.$store.getters['editor/getAvailableCharts']
-        }
-        if (mutation.type === 'workspace/SET_ACTIVE_DATASET') {
-          this.$store.dispatch('editor/UPDATE_OPEN_VIZ', 0)
-          this.activeChartIndex = 0
-        }
-        if (
-          mutation.type === 'editor/SET_LOAD_STATE'
-        ) {
-          this.loadingChart = this.$store.getters['editor/loadingState']
-        }
-      }
-    );
-  },
-  beforeDestroy() {
-    this.unsubscribe();
-  },
-  computed: {
-    showLoader() {
-      return this.loadingChart
-    },
+  mounted() {
+    this.setActiveViz(0)
   },
   methods: {
-    setActiveChart(chartIndex) {
-     this.activeChartIndex = chartIndex
-     this.$store.dispatch('editor/UPDATE_OPEN_VIZ',this.activeChartIndex)
+    async addViz() {
+      try {
+        console.log('add');
+
+      } catch (error) {
+        throw new console.error(error.message);
+      }
     },
-    addChart() {
+    async removeViz(idx) {
+      try {
+      console.log('remove', idx);
+
+      } catch (error) {
+        throw new Error(error.message)
+      }
     },
-    removeChart(chartIndex) {
-      chartIndex
-    },
-    change() {
-      this.loadingChart = !this.loadingChart
-    },
+    async setActiveViz(idx) {
+      this.openTab = idx
+      const payload = this.vizzes ? this.vizzes[this.openTab] : {}
+      this.$store.dispatch('editor/SET_ACTIVE_VIZ', payload)
+     },
     /**
      * Appends an input to edit selected label
      */
@@ -180,8 +139,7 @@ export default {
         '.generated-title',
         '.input-edit-title',
         value => {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType:'title' , value: value}
           );
         }
@@ -191,8 +149,7 @@ export default {
         '.generated-subtitle',
         '.input-edit-subtitle',
         value => {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType:'subtitle' , value: value}
           );
         }
@@ -202,8 +159,7 @@ export default {
         '.x.axis .axis-title',
         '.input-edit-x-axis',
         value => {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
           );
         }
@@ -213,8 +169,7 @@ export default {
         '.y.axis .axis-title',
         '.input-edit-y-axis',
         value => {
-          this.$store.dispatch(
-            'editor/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
           );
         }
@@ -226,18 +181,15 @@ export default {
         value => {
           /** Update current config with new value */
           if (vm.chartConfig.groupBy.slug) {
-            this.$store.dispatch(
-              'editor/MERGE_CHART_VALUE',
+            this.merge_value(
               { mutationType: 'labelAxis', value:{ axis:'groupBy', value: value} }
             );
           } else if (vm.chartConfig.yAxis.type === 'ordinal') {
-            this.$store.dispatch(
-              'editor/MERGE_CHART_VALUE',
+            this.merge_value(
               { mutationType: 'labelAxis', value:{ axis:'yAxis', value: value} }
             );
           } else if (vm.chartConfig.xAxis.type === 'ordinal') {
-            this.$store.dispatch(
-              'editor/MERGE_CHART_VALUE',
+            this.merge_value(
               { mutationType: 'labelAxis', value:{ axis:'xAxis', value: value} }
             );
           }

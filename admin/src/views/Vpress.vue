@@ -110,14 +110,15 @@
 </template>
 <script>
 import VpressAppBar from '../components/vpress-app-bar.vue';
-import editorMixin from '../mixins/editorMixin.js'
+import editorMixin from '../mixins/editorMixin.js' 
+import loaderMixin from '../mixins/loaderMixin.js'
 
 export default {
   name: 'Vpress',
   components: {
     VpressAppBar
   },
-  mixins: [editorMixin],
+  mixins: [editorMixin, loaderMixin],
   data() {
     return {
       datasets: {},
@@ -210,7 +211,9 @@ export default {
         ]
     }
   },
-  created() {
+  mounted() {
+    // this.$tours['vpress-tour'].start();
+    this.datasets = Object.keys(this.$store.getters['workspace/datasetMeta'])
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(
@@ -222,27 +225,19 @@ export default {
       }
     )
   },
-  // mounted() {
-      // this.$tours['vpress-tour'].start();
-  // },
   beforeDestroy() {
     this.unsubscribe();
   },
   methods: {
     async selectDataset(dataset) {
-      this.$store.dispatch('workspace/UPDATE_ACTIVE_DATASET', dataset)
+      this.updateActiveDataset( dataset)
     },
     async addDataset() {
-      await this.$store
-          .dispatch(
-            'workspace/UPDATE_ACTIVE_DATASET',
-            null
-          )
+      await this.updateActiveDataset(null)
     },
     async mergeValue(slot, dataToMerge) {
       try {
-        const viz = await this.merge_query(dataToMerge, slot)
-        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
+        await this.merge_query(dataToMerge, slot)
       } catch (error) {
         throw new Error(error)
       }
@@ -296,8 +291,7 @@ export default {
           // );
           break
         case 6:
-          // this.$store.dispatch(
-          //   'editor/MERGE_CHART_VALUE',
+          // this.merge_value(
           //   { mutationType:'stackedBars', value: true }
           // );
           break

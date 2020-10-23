@@ -138,7 +138,7 @@ export default {
     },
     async applyFilter() {
       try {
-        const viz = await this.merge_query(
+        await this.merge_query(
           {
               title: this.column,
               slug: this.column,
@@ -148,7 +148,6 @@ export default {
           },
           'filter'
         )
-        this.$store.dispatch('editor/UPDATE_VIZ', { viz })
         this.closeDialog()
       } catch (error) {
         this.closeDialog()

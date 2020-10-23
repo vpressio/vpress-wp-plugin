@@ -123,7 +123,6 @@ export default {
   },
   computed: {
     storeVariables() {
-      console.log(this.$store.getters[`editor/${this.slotId}`])
       return this.$store.getters[`editor/${this.slotId}`]
     },
     iconSrc() {
@@ -144,7 +143,7 @@ export default {
     },
     async mergeVariable(variable, mutationType) {
       try {
-        const result = await this.merge_query(
+        await this.merge_query(
           {
             slug: variable.slug,
             title: variable.title,
@@ -152,16 +151,12 @@ export default {
           },
           mutationType
         )
-        this
-          .$store
-          .dispatch('editor/UPDATE_VIZ', { viz: result })
         this.error = false
-        return result;
       } catch (error) {
         this.error = true
         setTimeout(() => {
           this.error = false
-        }, 3000);
+        }, 7000);
         this.errorMsg = error.message
         throw new Error(error.message)
       }

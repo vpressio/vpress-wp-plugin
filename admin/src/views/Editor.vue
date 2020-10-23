@@ -91,19 +91,19 @@
                 </v-tab-item>
                 <v-tab-item>
                   <VpressExpansionPanel
-                    v-if="activeTab === 1"
+                    v-if="activeTab !== 0"
                     panelTitle="ARRASTRA LA SELECCIÓN"
                   >
                     <v-col cols="12" class="pb-0 pt-1">
                       <v-img class="db-icon" src="../assets/images/db1.svg" />
-                      <span class="db-titulo">{{ dataSetName }}</span>
+                      <span class="db-titulo">{{ activeDataset | name }}</span>
                       <hr class="v-divider theme--light hr-divider" />
                     </v-col>
                     <VpressVariableContainer :variables="variables"/>
                   </VpressExpansionPanel>
                 </v-tab-item>
                 <v-tab-item>
-                  <div v-if="activeTab === 2">
+                  <div v-if="activeTab !== 0">
                     <VpressExpansionPanel panelTitle="TEMA">
                       <VpressInputControl inputName="Tema">
                         <v-switch
@@ -124,20 +124,30 @@
               </v-tabs-items>
             </v-card>
           </v-col>
-          <v-col lg="2" v-show="activeTab === 1" class="pa-0 pl-2">
+          <v-col
+            lg="2"
+            v-if="
+              activeTab !== 0
+              
+            "
+            v-show="activeTab === 1"
+            class="pa-0 pl-2"
+          >
             <VpressSlotGroup/>
           </v-col>
           <v-col
             class="py-0 px-2"
+             v-if="
+              activeTab !== 0
+            "
             v-show="numberOfColsIftabIsNotZero !== '12'"
             :md="activeTab === 1 ? 8 : 10"
           >
-            <VpressChartGroup
-              v-if="
-                $store.getters['editor/workspace'] ||
-                $store.getters['editor/workspace']().length > 0
-              "
-            />
+            <v-card>
+              <VpressChartSelectButtons :availableCharts="availableCharts" />
+              <VpressChartGroup
+              />
+            </v-card>
           </v-col>
         </v-row>
       </div>
@@ -147,11 +157,13 @@
 import VpressDataLoader from '../components/vpress-data-loader.vue'
 import VpressVariableContainer from '../components/vpress-variable-container.vue'
 import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
+import VpressChartSelectButtons from '../components/vpress-chart-select-buttons.vue';
 import VpressChartGroup from '../components/vpress-chart-group.vue'
 import VpressInputControl from '../components/vpress-config-input.vue'
 import VpressColorSelection from '../components/vpress-config-color-selection.vue'
 import VpressSlotGroup from '../components/vpress-slot-group.vue'
 import { downloadChart, stringChart } from '../utils/downloadChart.js'
+import editorMixin from '../mixins/editorMixin.js'
 
 export default {
   name: 'Vpress',
@@ -162,25 +174,32 @@ export default {
     VpressChartGroup,
     VpressInputControl,
     VpressColorSelection,
+    VpressChartSelectButtons,
     VpressSlotGroup
   },
+  mixins: [editorMixin],
   data() {
     return {
       activeTab: 0,
       theme: false,
-      dataSetFromUrl: {}
     };
+  },
+  filters: {
+    name(dataset){ 
+      return dataset ? dataset.name : ''
+    }
   },
   watch:{
     theme(newTheme){
       const chartTheme = newTheme ? 'dark': 'light'
-      this.$store.dispatch(
-        'editor/MERGE_CHART_VALUE'
-        ,{ mutationType: 'theme', value: chartTheme }
+      this.merge_value({ mutationType: 'theme', value: chartTheme }
       );
     }
   },
   computed: {
+    availableCharts() {
+      return this.$store.getters['editor/getAvailableCharts']
+    },
     cssProps() {
       return {
         '--secondary': this.$vuetify.theme.themes.light.secondary
@@ -198,13 +217,11 @@ export default {
     variables() {
       return this.$store.getters['workspace/dataType'];
     },
-    dataSetName() {
-      if (this.activeTab === 1) {
-        return this.$store
-          .getters['workspace/dataSetName']
-          .replace(/\.[^/.]+$/, "")
-      }
-      return 'Dataset'
+    activeDataset() {
+      const dataset = this.$store.getters['workspace/activeDataset']
+      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+      if (!dataset) this.activeTab = 0
+      return dataset
     }
   },
   methods: {
@@ -212,9 +229,7 @@ export default {
       try {
         await this.$store.dispatch('editor/SAVE_CHART');
         stringChart(
-          `#empty_chart_${this.$store.getters['editor/activeVizIdx']}`,
-          this.$store.getters['editor/workspace']()[this.$store.getters['editor/activeVizIdx']]
-            .id,
+          `#empty_chart_0`,
           this.$store.getters['editor/viz'].id
         )
         this.$store.dispatch('notifications/open', {
@@ -230,7 +245,7 @@ export default {
       }
     },
     downloadChartImg() {
-      downloadChart(`#empty_chart_${this.$store.getters['editor/activeVizIdx']}`)
+      downloadChart(`#empty_chart_0`)
     },
     clipboardCopy() {
       try {
