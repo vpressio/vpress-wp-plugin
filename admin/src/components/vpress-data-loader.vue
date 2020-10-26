@@ -194,13 +194,9 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        const { dataset, chart } = this.$route.query
-        if(dataset) {
-         const { data } = await api.dataset.get(dataset)
-         this.selectWPDataset(data.data)
-        }
-        if(dataset && chart) {
-          this.nextTab()
+        const { tab } = this.$route.query
+        if(tab === 1) {
+          this.nextTab(null, tab)
         }
       } catch (error) {
         this.$router.push('/')
@@ -228,8 +224,8 @@ export default {
         this.errorMessage = error.message;
       }
     },
-    nextTab() {
-      this.$emit('update:tabChange', 1);
+    nextTab(e, tab = 1) {
+      this.$emit('update:tabChange', tab);
     },
     switchUploadMethod(method) {
       this.uploadMethod = method;

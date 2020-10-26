@@ -72,7 +72,6 @@ export default {
         await this.$store.dispatch('editor/ADD_VIZ', {})
         this.tabs = this.$store.getters['editor/vizzes']()
         this.openTab = this.tabs.length - 1
-        console.log(this.openTab);
         this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizIdx: this.openTab })
       } catch (error) {
         throw console.error(error.message);
@@ -82,7 +81,6 @@ export default {
       try {
         this.openTab = 0
         await this.$store.dispatch('editor/REMOVE_VIZ', { idx })
-        console.log(this.$store.getters['editor/vizzes']());
         this.tabs = this.$store.getters['editor/vizzes']()
         await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizzes: this.tabs, idx })
       } catch (error) {

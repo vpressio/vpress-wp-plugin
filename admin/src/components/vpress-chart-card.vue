@@ -70,7 +70,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-text>
           <v-container>
             <v-row>
@@ -107,7 +107,7 @@
             </v-row>
           </v-container>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="close">Cancelar</v-btn>
@@ -188,25 +188,10 @@ export default {
     async createChart () {
       try {
         this.loading = true
-        const chart = await api.chart.get(this.id)
+        const viz = await api.chart.get(this.id)
         const dataset = await api.dataset.get(this.dataset_id)
-        await this.editorInit( dataset.data.data, [ chart.data.data ])
-        const values = JSON.parse(chart.data.data.value)
-        const data = await this.createVizQuery(
-          values
-        )
-        const payload = {
-          values: values,
-          data: data
-        }
-        if(this.vizzes && this.vizzes.length > 0) {
-          payload.idx = this.vizzes.length - 1
-        }
-        await this.$store.dispatch(
-          'editor/UPDATE_VIZ',
-          payload
-        )
-        this.$router.push({ path: `/` })
+        await this.loadSavedViz(viz.data.data, dataset.data.data)
+        this.$router.push({ path: `/`, query: { tab: 1 } })
         this.loading = false
       } catch (error) {
         console.log(error);
@@ -252,7 +237,7 @@ export default {
         const chartId = this.id
         if (chartId) {
           const iframe = `[vpress id=${chartId}]`
-          navigator.clipboard.writeText(iframe);
+          navigator.clipboard.writeText(iframe)
           this.$store.dispatch('notifications/open', {
             color: 'success',
             text: 'Gráfica guardada al portapapeles'

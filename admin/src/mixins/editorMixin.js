@@ -89,12 +89,13 @@ export default {
     
     async createVizQuery(
         chartValues,
-        dataSetSlug = this.$store.getters['workspace/activeDataset'].slug
+        dataSetSlug = this.$store.getters['workspace/activeDataset']
     ) {
+      const dataSetSlugo = dataSetSlug ?  dataSetSlug.slug : ''
       try {
         const body = await queryBody(
           chartValues,
-          dataSetSlug
+          dataSetSlugo
         )
         const data = await this.query_data(body)
         return data

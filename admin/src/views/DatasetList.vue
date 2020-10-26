@@ -120,8 +120,8 @@
                   show-arrows
                 >
                   <v-slide-item
-                    v-for="chart in charts"
-                    :key="chart.id"
+                    v-for="viz in datasetVizzes"
+                    :key="viz.id"
                     center-active
                     v-slot:default="{}"
                   >
@@ -134,7 +134,7 @@
                         width="200px"
                         contain
                         color="#222A32"
-                        :src="chart.img_url"
+                        :src="viz.img_url"
                       ></v-img>
                       <v-card-actions class="justify-center">
                         <v-btn
@@ -142,6 +142,7 @@
                           rounded
                           class="mt-2"
                           color="primary"
+                          @click="loadViz(viz.id, viz.dataset_id)"
                         >
                           Entrar
                         </v-btn>
@@ -217,10 +218,11 @@
 <script>
 import api from '../utils/axios'
 import loaderMixin from '../mixins/loaderMixin.js'
+import editorMixin from '../mixins/editorMixin.js'
 
 export default {
   name: 'VpressDatasetList',
-  mixins: [loaderMixin],
+  mixins: [loaderMixin, editorMixin],
   data: () => ({
     q: null,
     total: 0,
@@ -253,7 +255,7 @@ export default {
       tag: null,
       permissions: 'public'
     },
-    charts: []
+    datasetVizzes: []
   }),
   computed: {
     formTitle () {
@@ -273,13 +275,19 @@ export default {
     async expanded (val) {
       if (val && val.length > 0) {
         const { data } = await api.dataset.charts(val[0].id);
-        this.charts = data.data
+        this.datasetVizzes = data.data
       } else {
-        this.charts = []
+        this.datasetVizzes = []
       }
     },
   },
   methods: {
+    async loadViz(id, dataset_id) {
+      const viz = await api.chart.get(id)
+      const dataset = await api.dataset.get(dataset_id)
+      await this.loadSavedViz(viz.data.data, dataset.data.data)
+      this.$router.push({ path: `/`, query: { tab: 1 } })
+    },
     async selectDataset(dataset) {
       //Load Dataset
       try {

@@ -43,37 +43,69 @@ export default {
     async updateActiveDataset(dataset) {
       try {
         await this.$store.dispatch(
-              'workspace/UPDATE_ACTIVE_DATASET',
-              dataset
+          'workspace/UPDATE_ACTIVE_DATASET',
+          dataset
         )
         this.$store.dispatch('editor/SET_ACTIVE_VIZ',{ vizzes: this.vizzes, vizIdx: 0 })
       } catch (error) {
         console.error(error);
       }
+    },
+    async loadSavedViz(viz, dataset) {
+      const currentVizzes = this.vizzes
+        ? this.vizzes
+        : []
+      const { includes, idx } = currentVizzes.reduce((acc, savedViz, index) => {
+        if (savedViz.id === viz.id) {
+          acc = {
+            includes: true,
+            idx: index
+          }
+        }
+        return acc
+      }, { includes: false, idx: null })
+      if (!includes) {
+        const values = JSON.parse(viz.value)
+        const data = await this.createVizQuery(
+          values
+        )
+        const payload = {
+          values: values,
+          data: data
+        }
+        await this.editorInit(dataset, [viz])
+        if (this.vizzes && this.vizzes.length > 0) {
+          payload.idx = this.vizzes.length - 1
+        }
+        await this.$store.dispatch(
+          'editor/UPDATE_VIZ',
+          payload
+        )
+      } else {
+        const payload = {
+          values: this.vizzes[idx].getValues(),
+          data: [],
+          idx: idx,
+          dataset: dataset
+        }
+        if (
+          payload.values.xAxis.slug !== '' &&
+          payload.values.yAxis.slug !== ''
+        ) {
+          console.log(dataset);
+          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+          payload.data = await this.createVizQuery(
+            this.vizzes[idx].getValues(),
+            dataset
+
+          )
+          
+          await this.$store.dispatch(
+            'editor/UPDATE_VIZ',
+            payload
+          )
+        }
+      }
     }
   }
 }
-// function loadDataset() {
-
-// }
-// function deleteDataset() {
-
-// }
-// function addChart() {
-
-// }
-// function removeChart() {
-
-// }
-// function deleteChart() {
-
-// }
-// function saveChart() {
-
-// }
-// function saveDatasetCharts() {
-
-// }
-// function shareChart() {
-
-// }
