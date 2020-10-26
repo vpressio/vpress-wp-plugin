@@ -34,14 +34,14 @@ function is_develop_serve()
     <?php
       if (is_develop_serve() ) {
         echo '<link rel="stylesheet" href="http://localhost:8080/css/app.css" />';
-      } else {		
+      } else {
         // foreach( glob( plugin_dir_path( __FILE__). 'admin/dist/css/*.css' ) as $file ) {
         //   $filename = substr($file, strrpos($file, '/') + 1);
         //   echo $filename;
         //   echo '<link rel="stylesheet" href="'. plugin_dir_url( __DIR__ ).'admin/dist/css/'.$filename .'"/>';
         // } 
-        echo '<link rel="stylesheet" href="'. plugin_dir_url( __DIR__ ).'admin/dist/css/chunk-vendors.css"/>';
-        echo '<link rel="stylesheet" href="'. plugin_dir_url( __DIR__ ).'admin/dist/css/app.css"/>';
+        echo '<link rel="stylesheet" href="'. plugin_dir_url( '/' ).'vpress/admin/dist/css/chunk-vendors.css"/>';
+        echo '<link rel="stylesheet" href="'. plugin_dir_url( '/' ).'vpress/admin/dist/css/app.css"/>';
       }
     ?>
   </head>
@@ -52,15 +52,12 @@ function is_develop_serve()
       <div id="front"></div>
       <?php
         if (is_develop_serve() ) {
-              echo '<script src="http://localhost:8080/js/app.js"></script>';
-              echo '<script src="http://localhost:8080/js/chunk-vendors.js"></script>';
-          		
-          	} else {
-              echo '<script src="'.plugin_dir_url( __DIR__ ) . 'admin/dist/js/chunk-vendors.js'.'"></script>';
-              echo '<script src="'.plugin_dir_url( __DIR__ ) . 'admin/dist/js/app.js'.'"></script>';
-            }
-            
-        
+          echo '<script src="http://localhost:8080/js/app.js"></script>';
+          echo '<script src="http://localhost:8080/js/chunk-vendors.js"></script>';
+        } else {
+          echo '<script src="'.plugin_dir_url( '/' ) . 'vpress/admin/dist/js/chunk-vendors.js'.'"></script>';
+          echo '<script src="'.plugin_dir_url( '/' ) . 'vpress/admin/dist/js/app.js'.'"></script>';
+        }
       ?>
       <script type="text/javascript"> var vpress_id = <?= $gdata ?> ;</script>
     <!-- built files will be auto injected -->
