@@ -28,12 +28,11 @@ export default {
             'workspace/UPDATE_ACTIVE_DATASET',
             datasetMeta.slug
           )
-        const vizzes =await this.$store
+        await this.$store
           .dispatch(
             'editor/LOAD_VIZZES',
             { vizValues }
         )
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizzes: vizzes, vizIdx: 0 })
         
         return { datasetMeta }
       } catch (error) {
@@ -46,7 +45,7 @@ export default {
           'workspace/UPDATE_ACTIVE_DATASET',
           dataset
         )
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ',{ vizzes: this.vizzes, vizIdx: 0 })
+        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: 0 })
       } catch (error) {
         throw new Error(error.message)
       }

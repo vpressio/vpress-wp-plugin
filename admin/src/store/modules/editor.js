@@ -1,4 +1,4 @@
-import { Viz } from '../../models/index.js';
+import { Viz, Vizzes } from '../../models/index.js';
 import api from '../../utils/axios.js'
 
 export default {
@@ -108,26 +108,14 @@ export default {
     ],
   },
   mutations: {
-    SET_VIZ_VALUES(state, { values, dataset }) {
-      state.vizzes[dataset][state.openViz].setValues(values)
-    },
-    SET_VIZ_DATA(state, { data, dataset }) {
-      state.vizzes[dataset][state.openViz].setData(data)
-    },
     SET_WSP_CHART_ID(state, { id, dataset }) {
-      state.vizzes[dataset][state.openViz].id = id
+      state.vizzes[dataset].activeViz.id = id
     },
-    SET_VIZZES(state, { dataset, vizzes = [] }) {
+    SET_VIZZES(state, { dataset, vizzes }) {
       state.vizzes[dataset] = vizzes
-    },
-    ADD_VIZZES(state, { dataset, vizzes }) {
-      state.vizzes[dataset] = [...state.vizzes[dataset], ...vizzes]
     },
     RESET_VIZZES(state, vizzesGroup) {
       state.vizzes = vizzesGroup
-    },
-    OPEN_VIZ(state, idx) {
-      state.openViz = idx
     },
     SET_LOADING_STATUS(state, payload) {
       state.loadingChart = payload
@@ -137,35 +125,22 @@ export default {
     },
   },
   actions: {
-    UPDATE_OPEN_VIZ({ commit }, vizIdx) {
-      commit('OPEN_VIZ', vizIdx)
-    },
     LOAD_VIZZES(
       { state, commit, rootGetters },
       { vizValues = [], dataset = rootGetters['workspace/activeDataset'] }
     ) {
       const datasetSlug = dataset.slug
-      const vizzes = vizValues
-        .map((viz) => new Viz(
-          JSON.parse(viz.value),
-          viz.id,
-          viz.mapValues,
-          viz.dataset_id,
-          viz.data,
-          viz.description,
-          viz.permissions,
-          viz.img_url
-        ))
       const storedVizzes = state.vizzes[datasetSlug]
+      let vizzes
       if (storedVizzes) {
-        commit('ADD_VIZZES', { dataset: datasetSlug, vizzes: vizzes })
-      } else if (vizzes.length >= 0) {
-        const payload = vizzes.length > 0
-          ? vizzes
-          : [ new Viz() ]
-        commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
+        storedVizzes.add(vizValues)
+        vizzes = storedVizzes
+      } else {
+        vizzes = new Vizzes(vizValues, datasetSlug)
       }
-      return state.vizzes[datasetSlug]
+      commit('ACTIVE_VIZ', vizzes.activeViz)
+      commit('SET_VIZZES', { dataset: datasetSlug, vizzes })
+      return storedVizzes
     },
     REMOVE_VIZZES(
       {
@@ -180,41 +155,55 @@ export default {
       commit('RESET_VIZZES', vizzesSubstract)
     },
     UPDATE_VIZ(
-      { state, commit, rootGetters, dispatch },
+      { state, commit, rootGetters },
       {
         values,
         data,
-        dataset = rootGetters['workspace/activeDataset'],
-        idx = state.openViz
+        dataset = rootGetters['workspace/activeDataset']
       }
     ) {
-      const vizzes = [...state.vizzes[dataset.slug]]
-      vizzes[idx].setData(data)
-      vizzes[idx].setValues(values)
-      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
-      dispatch('SET_ACTIVE_VIZ', { vizzes: vizzes, vizIdx: idx })
+      const datasetSlug = dataset.slug
+      const storedVizzes = state.vizzes[datasetSlug]
+      const activeViz = storedVizzes.activeViz
+      activeViz.setData(data)
+      activeViz.setValues(values)
+      commit('SET_VIZZES', { dataset: datasetSlug, vizzes: storedVizzes })
     },
     async REMOVE_VIZ(
       { state, commit, rootGetters },
       { idx = 0, dataset = rootGetters['workspace/activeDataset'] }
     ) {
-      const vizzes = [...state.vizzes[dataset.slug]]
-      vizzes.splice(idx, 1)
-      commit('SET_VIZZES', { dataset: dataset.slug, vizzes })
+      const datasetSlug = dataset.slug
+      const storedVizzes = state.vizzes[datasetSlug]
+      storedVizzes.delete(idx)
+      commit('SET_VIZZES', { dataset: dataset.slug, vizzes: storedVizzes })
     },
     async ADD_VIZ(
-      { commit, rootGetters },
+      { state, commit, rootGetters },
       { dataset = rootGetters['workspace/activeDataset'] }
     ) {
       try {
-        commit('ADD_VIZZES', { dataset: dataset.slug, vizzes: [ new Viz]})
+        const datasetSlug = dataset.slug
+        const storedVizzes = state.vizzes[datasetSlug]
+        storedVizzes.new()
+        commit('SET_VIZZES', { dataset: dataset.slug, vizzes: storedVizzes })
+        return storedVizzes.open
       } catch (error) {
         throw new Error(error.message)        
       }
     },
-    SET_ACTIVE_VIZ({ commit }, { vizzes = [ new Viz() ], vizIdx = 0 }) {
-      commit('ACTIVE_VIZ', vizzes ? vizzes[vizIdx] : undefined)
-      commit('OPEN_VIZ', vizIdx)
+    SET_ACTIVE_VIZ(
+      { state, commit, rootGetters },
+      { idx = 0, dataset = rootGetters['workspace/activeDataset'] }
+    ) {
+      try {
+        const datasetSlug = dataset.slug
+        const storedVizzes = state.vizzes[datasetSlug]
+        const activeViz = storedVizzes.activate(idx)
+        commit('ACTIVE_VIZ', activeViz)
+      } catch (error) {
+        throw new Error(error.message)  
+      }
     },
     UPDATE_LOADING_STATE({ commit }, state) {
       commit('SET_LOADING_STATUS' ,state)
@@ -241,18 +230,21 @@ export default {
         if (!id) {
           const saveResponse = await api.chart.create(
             { dataset_id: dataset.id, ...body }
-            )
+          )
           const savedChart = saveResponse.data
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
+          console.log(1);
           commit('SET_WSP_CHART_ID', { id: savedChart.data, dataset: dataset.slug })
-        } else {
-          const updateResponse = await api.chart.update({ id, ...body })
-          if (updateResponse.data.error) {
-            throw new Error(updateResponse.data.error);
+          console.log(2);
+          } else {
+            const updateResponse = await api.chart.update({ id, ...body })
+            if (updateResponse.data.error) {
+              throw new Error(updateResponse.data.error);
+            }
           }
-        }
+          
       } catch (error) {
         throw new Error(error.message)
       }
@@ -263,9 +255,9 @@ export default {
       const activeDataset = rootGetters['workspace/activeDataset']
       return (dataset) => {
         if (dataset) {
-          return vizzes[dataset]
+          return vizzes[dataset].vizzes
         } else if (activeDataset) {
-          return vizzes[activeDataset.slug]
+          return vizzes[activeDataset.slug].vizzes
         } else {
           return null
         }

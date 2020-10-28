@@ -62,34 +62,58 @@ export default {
   data() {
     return {
       openTab: this.$store.getters['editor/openViz'],
-      tabs: this.$store.getters['editor/vizzes'](),
+      tabs: [],
     };
+  },
+  mounted() {
+    this.tabs = this.$store.getters['editor/vizzes']()
+    this.unsubscribe = this.$store.subscribe(
+      mutation => {
+        if(
+          mutation.type === 'workspace/SET_ACTIVE_DATASET'
+        ) {
+          this.tabs = this.$store.getters['editor/vizzes']()
+        }
+      }
+    )
+  },
+  beforeDestroy() {
+    this.unsubscribe();
   },
   methods: {
     async addViz() {
       try {
-        await this.$store.dispatch('editor/ADD_VIZ', {})
-        this.tabs = this.$store.getters['editor/vizzes']()
-        this.openTab = this.tabs.length - 1
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizIdx: this.openTab })
+        this.openTab = await this.$store.dispatch('editor/ADD_VIZ', {})
+        await this.$store.dispatch(
+          'editor/SET_ACTIVE_VIZ',
+          { idx: this.vizzes.length - 1}
+        )
+        this.tabs = this.vizzes
       } catch (error) {
-        throw console.error(error.message);
+        throw new Error(error.message);
       }
     },
     async removeViz(idx) {
       try {
         this.openTab = 0
+        await this.$store.dispatch(
+          'editor/SET_ACTIVE_VIZ',
+          { idx: 0 }
+        )
         await this.$store.dispatch('editor/REMOVE_VIZ', { idx })
-        this.tabs = this.$store.getters['editor/vizzes']()
-        await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { vizzes: this.tabs, idx })
+        this.tabs = this.vizzes
       } catch (error) {
         throw new Error(error.message)
       }
     },
     async setActiveViz(idx) {
       this.openTab = idx
+      await this.$store.dispatch(
+        'editor/SET_ACTIVE_VIZ',
+        { idx: idx }
+      )
       const payload = {
-        values: this.$store.getters['editor/vizzes']()[this.openTab].getValues(),
+        values: this.$store.getters['editor/chart'],
         data: [],
         idx: idx
       }
@@ -99,7 +123,7 @@ export default {
       ){
         this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
         payload.data = await this.createVizQuery(
-          this.vizzes[this.openTab].getValues()
+          payload.values
         )
       }
       await this.$store.dispatch(

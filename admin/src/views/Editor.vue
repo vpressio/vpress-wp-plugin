@@ -228,6 +228,7 @@ export default {
     async saveChart() {
       try {
         await this.$store.dispatch('editor/SAVE_CHART');
+        console.log(this.$store.getters['editor/viz']);
         stringChart(
           `#empty_chart_0`,
           this.$store.getters['editor/viz'].id

@@ -7,7 +7,7 @@ const Dataset = function (id, name, slug, description, owner_id, permissions, so
   this.permissions = permissions,
   this.source = source,
   this.tags = tag,
-   this.variables = variables
+  this.variables = variables
   this.dateFormat = dateFormat
 }
 

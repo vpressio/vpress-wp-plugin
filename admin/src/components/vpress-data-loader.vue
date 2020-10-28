@@ -13,7 +13,7 @@
           text
           @click="switchUploadMethod('upload')"
         >Sube tus datos</v-btn>
-        <v-btn
+        <!-- <v-btn
           color="primary"
           :class="
             {
@@ -23,7 +23,7 @@
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('paste')"
-        >Pega tus datos</v-btn>
+        >Pega tus datos</v-btn> -->
         <v-spacer />
       </v-toolbar>
     </v-row>
