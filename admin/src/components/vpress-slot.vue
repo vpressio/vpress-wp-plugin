@@ -95,7 +95,7 @@
 <script>
 import VpressVariableCard from './vpress-variable-card';
 import VpressSlotFilter from './vpress-filter';
-import editorMixin from '../mixins/editorMixin'
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressSlot',

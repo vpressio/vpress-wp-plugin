@@ -119,8 +119,7 @@
 </template>
 <script>
 import * as _ from 'lodash'
-import loaderMixin from '../mixins/loaderMixin.js'
-import editorMixin from '../mixins/editorMixin.js'
+import { loaderMixin, editorMixin } from '../mixins/index.js'
 import api from '../utils/axios'
 
 export default {

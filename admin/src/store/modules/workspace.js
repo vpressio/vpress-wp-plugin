@@ -1,3 +1,4 @@
+import { Dataset } from '../../models/index.js'
 import vpress from '../../vpress/index.js';
 import api from '../../utils/axios.js'
 
@@ -21,16 +22,6 @@ export default {
   actions: {
     async ADD_DATASET({ commit } , payload) {
       try {
-        const datasetMeta = {
-            id: payload.id,
-            slug: payload.slug,
-            name: payload.name,
-            description: payload.description,
-            owner_id: payload.owner_id,
-            permissions: payload.permissions,
-            source: payload.source,
-            tags: payload.tag
-        }
         const { data } = await api.dataset.data(
           {
             page: 1,
@@ -38,22 +29,39 @@ export default {
             itemsPerPage: 1
           }
         )
+        let datasetVariables, datasetDateFormat;
+        
         if (data.data && data.data.length > 0) {
           const {
             variables,
             dateFormat
           } = vpress.extractDataType(data.data[0])
-          datasetMeta.variables= variables,
-          datasetMeta.dateFormat= dateFormat
+          datasetVariables = variables
+          datasetDateFormat = dateFormat
         } else {
-          datasetMeta.variables= [],
-          datasetMeta.dateFormat= ''
+          datasetVariables = []
+          datasetDateFormat = ''
         }
+
+        const dataset = new Dataset(
+          payload.id,
+          payload.name,
+          payload.slug,
+          payload.description,
+          payload.owner_id,
+          payload.permissions,
+          payload.source,
+          payload.tag,
+          datasetVariables,
+          datasetDateFormat
+        )
+
+        
         if (data.error) {
           throw new Error(data.error);
         }
-        commit('ADD_DATASET_META', datasetMeta);
-        return datasetMeta
+        commit('ADD_DATASET_META', dataset);
+        return dataset
       } catch (error) {
         throw new Error(error.message)
       }

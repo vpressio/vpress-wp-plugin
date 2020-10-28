@@ -51,8 +51,7 @@
 <script>
 import * as d3 from 'd3';
 import VpressChartContainer from '../components/vpress-chart-container.vue';
-import loaderMixin from '../mixins/loaderMixin.js';
-import editorMixin from '../mixins/editorMixin.js'
+import { loaderMixin, editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressChartGroup',

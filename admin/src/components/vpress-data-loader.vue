@@ -129,7 +129,7 @@ import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
 import api from '../utils/axios';
 import FReader from '../utils/fileReader'
-import loaderMixin from '../mixins/loaderMixin.js'
+import { loaderMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressDataLoader',

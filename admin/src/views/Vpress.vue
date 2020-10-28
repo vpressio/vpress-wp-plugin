@@ -110,8 +110,7 @@
 </template>
 <script>
 import VpressAppBar from '../components/vpress-app-bar.vue';
-import editorMixin from '../mixins/editorMixin.js' 
-import loaderMixin from '../mixins/loaderMixin.js'
+import { editorMixin, loaderMixin } from '../mixins/index.js'
 
 export default {
   name: 'Vpress',
@@ -121,7 +120,7 @@ export default {
   mixins: [editorMixin, loaderMixin],
   data() {
     return {
-      datasets: {},
+      datasets: [],
       tourOptions: {
         useKeyboardNavigation: true,
         labels: {

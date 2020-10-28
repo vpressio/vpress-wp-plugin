@@ -22,7 +22,7 @@ export default {
           .dispatch(
             'workspace/ADD_DATASET',
             dataset,
-          )
+        )
         await this.$store
           .dispatch(
             'workspace/UPDATE_ACTIVE_DATASET',

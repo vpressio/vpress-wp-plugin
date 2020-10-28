@@ -1,4 +1,4 @@
-import VpressViz from '../../utils/vpressViz.js';
+import { Viz } from '../../models/index.js';
 import api from '../../utils/axios.js'
 
 export default {
@@ -132,7 +132,7 @@ export default {
     SET_LOADING_STATUS(state, payload) {
       state.loadingChart = payload
     },
-    ACTIVE_VIZ(state, payload = new VpressViz()) {
+    ACTIVE_VIZ(state, payload = new Viz()) {
       state.vizModel = payload
     },
   },
@@ -146,7 +146,7 @@ export default {
     ) {
       const datasetSlug = dataset.slug
       const vizzes = vizValues
-        .map((viz) => new VpressViz(
+        .map((viz) => new Viz(
           JSON.parse(viz.value),
           viz.id,
           viz.mapValues,
@@ -162,7 +162,7 @@ export default {
       } else if (vizzes.length >= 0) {
         const payload = vizzes.length > 0
           ? vizzes
-          : [ new VpressViz() ]
+          : [ new Viz() ]
         commit('SET_VIZZES', { dataset: datasetSlug, vizzes: payload })
       }
       return state.vizzes[datasetSlug]
@@ -207,12 +207,12 @@ export default {
       { dataset = rootGetters['workspace/activeDataset'] }
     ) {
       try {
-        commit('ADD_VIZZES', { dataset: dataset.slug, vizzes: [ new VpressViz]})
+        commit('ADD_VIZZES', { dataset: dataset.slug, vizzes: [ new Viz]})
       } catch (error) {
         throw new Error(error.message)        
       }
     },
-    SET_ACTIVE_VIZ({ commit }, { vizzes = [ new VpressViz() ], vizIdx = 0 }) {
+    SET_ACTIVE_VIZ({ commit }, { vizzes = [ new Viz() ], vizIdx = 0 }) {
       commit('ACTIVE_VIZ', vizzes ? vizzes[vizIdx] : undefined)
       commit('OPEN_VIZ', vizIdx)
     },
@@ -280,7 +280,7 @@ export default {
     chart: (_, { viz }) => {
       const payload= viz.getValues
         ? viz.getValues()
-        : new VpressViz().getValues()
+        : new Viz().getValues()
       return payload
     },
     loadingState: ({ loadingChart }) =>  loadingChart,

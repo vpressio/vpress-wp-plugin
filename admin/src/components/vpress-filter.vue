@@ -76,7 +76,7 @@
   </div>
 </template>
 <script>
-import editorMixin from '../mixins/editorMixin'
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressFilter',

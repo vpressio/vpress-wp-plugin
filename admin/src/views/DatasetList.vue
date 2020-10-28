@@ -217,8 +217,7 @@
 </template>
 <script>
 import api from '../utils/axios'
-import loaderMixin from '../mixins/loaderMixin.js'
-import editorMixin from '../mixins/editorMixin.js'
+import { loaderMixin, editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressDatasetList',

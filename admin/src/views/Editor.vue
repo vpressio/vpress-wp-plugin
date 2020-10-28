@@ -163,7 +163,7 @@ import VpressInputControl from '../components/vpress-config-input.vue'
 import VpressColorSelection from '../components/vpress-config-color-selection.vue'
 import VpressSlotGroup from '../components/vpress-slot-group.vue'
 import { downloadChart, stringChart } from '../utils/downloadChart.js'
-import editorMixin from '../mixins/editorMixin.js'
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'Vpress',

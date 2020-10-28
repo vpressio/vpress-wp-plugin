@@ -142,7 +142,7 @@
   </v-card>
 </template>
 <script>
-import editorMixin from '../mixins/editorMixin.js'
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressChartSelectButtons',
