@@ -37,7 +37,7 @@ export default {
         
         return { datasetMeta }
       } catch (error) {
-        console.error(error)
+        throw new Error(error.message)
       }
     },
     async updateActiveDataset(dataset) {
@@ -48,7 +48,7 @@ export default {
         )
         this.$store.dispatch('editor/SET_ACTIVE_VIZ',{ vizzes: this.vizzes, vizIdx: 0 })
       } catch (error) {
-        console.error(error);
+        throw new Error(error.message)
       }
     },
     async loadSavedViz(viz, dataset) {
@@ -73,7 +73,7 @@ export default {
           values: values,
           data: data
         }
-        await this.editorInit(dataset, [viz])
+        await this.editorInit(dataset, [ viz ])
         if (this.vizzes && this.vizzes.length > 0) {
           payload.idx = this.vizzes.length - 1
         }
@@ -92,7 +92,6 @@ export default {
           payload.values.xAxis.slug !== '' &&
           payload.values.yAxis.slug !== ''
         ) {
-          console.log(dataset);
           this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
           payload.data = await this.createVizQuery(
             this.vizzes[idx].getValues(),
