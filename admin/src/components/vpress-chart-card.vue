@@ -193,8 +193,8 @@ export default {
         this.$router.push({ path: `/`, query: { tab: 1 } })
         this.loading = false
       } catch (error) {
-        console.log(error);
         this.loading = false
+        throw new Error(error.message);
       }
     },
     async deleteChart() {

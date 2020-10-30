@@ -4,7 +4,6 @@ import api from '../../utils/axios.js'
 export default {
   namespaced: true,
   state: {
-    openViz: 0,
     vizModel: {},
     vizzes: {},
     loadingChart: false,
@@ -133,7 +132,7 @@ export default {
       const storedVizzes = state.vizzes[datasetSlug]
       let vizzes
       if (storedVizzes) {
-        storedVizzes.add(vizValues)
+        storedVizzes.add( new Vizzes(vizValues, datasetSlug).vizzes )
         vizzes = storedVizzes
       } else {
         vizzes = new Vizzes(vizValues, datasetSlug)
@@ -165,8 +164,8 @@ export default {
       const datasetSlug = dataset.slug
       const storedVizzes = state.vizzes[datasetSlug]
       const activeViz = storedVizzes.activeViz
-      activeViz.setData(data)
-      activeViz.setValues(values)
+      activeViz.setData(data || activeViz.getData())
+      activeViz.setValues(values || activeViz.getValues())
       commit('SET_VIZZES', { dataset: datasetSlug, vizzes: storedVizzes })
     },
     async REMOVE_VIZ(
@@ -235,9 +234,7 @@ export default {
           if (saveResponse.data.error) {
             throw new Error(saveResponse.data.error);
           }
-          console.log(1);
           commit('SET_WSP_CHART_ID', { id: savedChart.data, dataset: dataset.slug })
-          console.log(2);
           } else {
             const updateResponse = await api.chart.update({ id, ...body })
             if (updateResponse.data.error) {
@@ -254,10 +251,10 @@ export default {
     vizzes: ({ vizzes }, _, __, rootGetters) => {
       const activeDataset = rootGetters['workspace/activeDataset']
       return (dataset) => {
-        if (dataset) {
-          return vizzes[dataset].vizzes
-        } else if (activeDataset) {
-          return vizzes[activeDataset.slug].vizzes
+        if (dataset && vizzes[dataset]) {
+          return vizzes[dataset]
+        } else if (!dataset && activeDataset) {
+          return vizzes[activeDataset.slug]
         } else {
           return null
         }
@@ -265,9 +262,6 @@ export default {
     },
     viz: ({ vizModel }) => {
       return vizModel
-    },
-    openViz: ({ openViz }) => {
-      return openViz
     },
     chart: (_, { viz }) => {
       const payload= viz.getValues

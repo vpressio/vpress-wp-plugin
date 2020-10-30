@@ -11,8 +11,4 @@ const Dataset = function (id, name, slug, description, owner_id, permissions, so
   this.dateFormat = dateFormat
 }
 
-Dataset.prototype = {
-  
-}
-
 export default Dataset

@@ -49,13 +49,7 @@ export default {
             mergeType: mutationType
           }
           )
-        if (
-          payload.values.xAxis.slug !== '' &&
-          payload.values.yAxis.slug !== ''
-          ) {
-          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
-          payload.data = await this.createVizQuery(payload.values)
-        }
+        payload.data = await this.createVizQuery(payload.values)
         await this.$store.dispatch(
           'editor/UPDATE_VIZ',
           payload
@@ -93,12 +87,20 @@ export default {
     ) {
       const dataSetSlugo = dataSetSlug ?  dataSetSlug.slug : ''
       try {
-        const body = await queryBody(
-          chartValues,
-          dataSetSlugo
-        )
-        const data = await this.query_data(body)
-        return data
+        if (
+          chartValues.xAxis.slug !== '' &&
+          chartValues.yAxis.slug !== ''
+        ) {
+          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+          const body = await queryBody(
+            chartValues,
+            dataSetSlugo
+          )
+          const data = await this.query_data(body)
+          return data
+        } else {
+          return []
+        }
       } catch (error) {
         this.$store.dispatch('editor/UPDATE_LOADING_STATE', false)
         throw new Error(error.message)

@@ -1,3 +1,5 @@
+import { vizzesIncludes } from '../helpers/index.js'
+
 export default {
   filters: {
     intFromat(number) {
@@ -7,6 +9,8 @@ export default {
   computed: {
     vizzes() {
       return this.$store.getters['editor/vizzes']()
+      ? this.$store.getters['editor/vizzes']().vizzes
+      : this.$store.getters['editor/vizzes']()
     },
     viz() {
       return this.$store.getters['editor/viz']
@@ -51,59 +55,34 @@ export default {
       }
     },
     async loadSavedViz(viz, dataset) {
-      const currentVizzes = this.vizzes
-        ? this.vizzes
-        : []
-      const { includes, idx } = currentVizzes.reduce((acc, savedViz, index) => {
-        if (savedViz.id === viz.id) {
-          acc = {
-            includes: true,
-            idx: index
-          }
-        }
-        return acc
-      }, { includes: false, idx: null })
-      if (!includes) {
-        const values = JSON.parse(viz.value)
-        const data = await this.createVizQuery(
-          values
-        )
+      const storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
+        ? this.$store.getters['editor/vizzes'](dataset.slug).vizzes
+        : this.$store.getters['editor/vizzes'](dataset.slug)
+      const parsedViz = JSON.parse(viz.value)
+      if (storedVizzes) {
+        const { includes, idx } = vizzesIncludes(viz.id, storedVizzes)
         const payload = {
-          values: values,
-          data: data
+          values: null,
+          data: null,
+          index: null
         }
-        await this.editorInit(dataset, [ viz ])
-        if (this.vizzes && this.vizzes.length > 0) {
-          payload.idx = this.vizzes.length - 1
+        if (includes) {
+          payload.values = storedVizzes[idx].getValues()
+          payload.index = idx
+        } else {
+          payload.values = parsedViz
+          payload.index = storedVizzes.length
+          await this.editorInit(dataset, [ viz ])
         }
-        await this.$store.dispatch(
-          'editor/UPDATE_VIZ',
-          payload
-        )
+        payload.data = await this.createVizQuery(payload.values, dataset)
+        const { values, data, index } = payload
+        await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: index })
+        await this.$store.dispatch('editor/UPDATE_VIZ', { values, data, dataset})
       } else {
-        const payload = {
-          values: this.vizzes[idx].getValues(),
-          data: [],
-          idx: idx,
-          dataset: dataset
-        }
-        if (
-          payload.values.xAxis.slug !== '' &&
-          payload.values.yAxis.slug !== ''
-        ) {
-          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
-          payload.data = await this.createVizQuery(
-            this.vizzes[idx].getValues(),
-            dataset
-
-          )
-          
-          await this.$store.dispatch(
-            'editor/UPDATE_VIZ',
-            payload
-          )
-        }
+        await this.editorInit(dataset, [ viz ])
+        const data = await this.createVizQuery(parsedViz, dataset)
+        await this.$store.dispatch('editor/UPDATE_VIZ', { data, dataset})
       }
-    }
+    },
   }
 }

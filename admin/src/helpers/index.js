@@ -17,3 +17,18 @@ export const fillValues = (incomingChart, defaultChart) =>{
     return defaultChart
   }
 }
+
+export const vizzesIncludes = (id, vizzes) => {
+  const currentVizzes = vizzes
+    ? vizzes
+    : []
+  const acc = { includes: false, idx: null }
+  const reducer = (acc, savedViz, index) => {
+    if (savedViz.id === id) {
+      acc.includes = true
+      acc.idx = index
+    }
+    return acc
+  }
+  return currentVizzes.reduce(reducer, acc)
+}

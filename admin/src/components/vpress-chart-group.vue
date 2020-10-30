@@ -61,18 +61,22 @@ export default {
   mixins: [loaderMixin, editorMixin],
   data() {
     return {
-      openTab: this.$store.getters['editor/openViz'],
+      openTab: this.$store.getters['editor/vizzes']()
+        ? this.$store.getters['editor/vizzes']().open
+        : this.$store.getters['editor/vizzes'](),
       tabs: [],
     };
   },
   mounted() {
     this.tabs = this.$store.getters['editor/vizzes']()
+      ? this.$store.getters['editor/vizzes']().vizzes
+      : this.$store.getters['editor/vizzes']()
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(
           mutation.type === 'workspace/SET_ACTIVE_DATASET'
         ) {
-          this.tabs = this.$store.getters['editor/vizzes']()
+          this.tabs = this.$store.getters['editor/vizzes']().vizzes
         }
       }
     )
@@ -117,15 +121,9 @@ export default {
         data: [],
         idx: idx
       }
-      if(
-        payload.values.xAxis.slug !== '' &&
-        payload.values.yAxis.slug !== ''
-      ){
-        this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
-        payload.data = await this.createVizQuery(
-          payload.values
-        )
-      }
+      payload.data = await this.createVizQuery(
+        payload.values
+      )
       await this.$store.dispatch(
         'editor/UPDATE_VIZ',
         payload
