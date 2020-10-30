@@ -1,43 +1,23 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import App from './App.vue';
-import routerStrategy from './router';
-import store from './store/store';
-import './registerServiceWorker';
-import VueTour from 'vue-tour';
-import vuetify from './plugins/vuetify';
-// import LogRocket from 'logrocket';
+import './utils/registerServiceWorker';
+import './utils/LogRocket.js'
+import {
+  store,
+  vuetify,
+  useDOMRouter,
+  vpress
+} from './plugins/index.js'
 
-// LogRocket.init('vpress/vpress-wp-plugin');
-
-import 'vue-tour/dist/vue-tour.css'
-Vue.config.productionTip = false;
-Vue.use(Vuex);
-Vue.use(VueTour)
-
-// if (window.userSettings && window.userSettings.uid) {
-//   if (window.userSettings.uid == 2) {
-//     var currentUser = {
-//       name: 'savethechildren'
-//     };
-//   }
-//   LogRocket.identify(window.userSettings.uid, currentUser);
-// }
-
-const selectRouter = () => {
-  if (document.getElementById('app')) {
-    return ['app' , routerStrategy('app')]
-  } else if (document.getElementById('front')) {
-    return ['front', routerStrategy('front')]
-  }
-}
+Vue.config.productionTip = false
 
 document.addEventListener('DOMContentLoaded', () => {
-  const [id , router] = selectRouter()
+  const [id , router] = useDOMRouter()
   new Vue({
     router,
     store,
     vuetify,
+    vpress,
     render: h => h(App),
-  }).$mount(`#${id}`);
-});
+  }).$mount(`#${id}`)
+})

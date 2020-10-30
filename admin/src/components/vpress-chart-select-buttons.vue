@@ -59,7 +59,7 @@
         </v-menu>
       </v-col>
     </v-row>
-    <v-row v-show="$store.getters['chartConfig/chart'].chart !== 'map'">
+    <v-row v-show="$store.getters['editor/chart'].chart !== 'map'">
       <v-col class="ml-5 v-step-7">
         <v-btn
           class="mr-2"
@@ -142,32 +142,34 @@
   </v-card>
 </template>
 <script>
+import { editorMixin } from '../mixins/index.js'
+
 export default {
   name: 'VpressChartSelectButtons',
   props: ['availableCharts'],
+  mixins: [editorMixin],
   data() {
     return {
       labels: false,
       stackedBars: false,
-      order: this.$store.getters['chartConfig/order'],
+      order: this.$store.getters['editor/order'],
     };
   },
   created() {
-    this.labels = this.$store.getters['chartConfig/labels'];
-    this.stackedBars = this.$store.getters['chartConfig/stackedBars'];
+    this.labels = this.$store.getters['editor/labels'];
+    this.stackedBars = this.$store.getters['editor/stackedBars'];
   },
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.getters['chartConfig/chart'].chart === 'bars' &&
-        this.$store.getters['chartConfig/groupBy.slug'].length !== 0
+        this.$store.getters['editor/chart'].chart === 'bars' &&
+        this.$store.getters['editor/groupBy.slug'].length !== 0
       );
     }
   },
   methods: {
     async setChartType(chartType) {
-      this.$store.dispatch(
-        'chartConfig/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType:'chart' , value: chartType}
       );
     },
@@ -180,15 +182,13 @@ export default {
     },
     toggleLabels() {
       this.labels = !this.labels;
-      this.$store.dispatch(
-        'chartConfig/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'labels' ,value: this.labels }
       );
     },
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
-      this.$store.dispatch(
-        'chartConfig/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'stackedBars' ,value: this.stackedBars
       });
     },
@@ -200,69 +200,59 @@ export default {
       } else {
         this.order = order[0]
       }
-      this.$store.dispatch(
-        'chartConfig/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'orderBy' ,value: this.order}
       );
     },
     orderByAlphabetical() {
-      const chartValues = this.$store.getters['chartConfig/chart'];
+      const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
-          this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
           );
         }
         if (chartValues.yAxis.type === 'ordinal' ) {
-          this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
 
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.$store.dispatch(
-          'chartConfig/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
         );
       } else {
-        this.$store.dispatch(
-          'chartConfig/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: '' }
         );
       }
     },
     orderByNumerical() {
-      const chartValues = this.$store.getters['chartConfig/chart'];
+      const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'linear' ) {
-          this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
           );
         }
         if (chartValues.yAxis.type === 'linear' ) {
-          this.$store.dispatch(
-            'chartConfig/MERGE_CHART_VALUE',
+          this.merge_value(
             { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
           );
         }
       } else if (chartValues.xAxis.type === 'linear') {
-        this.$store.dispatch(
-          'chartConfig/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
         );
       } else {
-        this.$store.dispatch(
-          'chartConfig/MERGE_CHART_VALUE',
+        this.merge_value(
           { mutationType: 'orderBy' ,value: 'total_count' }
         );
       }
     },
     invertAxis() {
-      this.$store.dispatch(
-        'chartConfig/MERGE_CHART_VALUE',
+      this.merge_value(
         { mutationType: 'invertAxis' }
       );
     }

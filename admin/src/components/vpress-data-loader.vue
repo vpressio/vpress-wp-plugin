@@ -13,7 +13,7 @@
           text
           @click="switchUploadMethod('upload')"
         >Sube tus datos</v-btn>
-        <v-btn
+        <!-- <v-btn
           color="primary"
           :class="
             {
@@ -23,7 +23,7 @@
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('paste')"
-        >Pega tus datos</v-btn>
+        >Pega tus datos</v-btn> -->
         <v-spacer />
       </v-toolbar>
     </v-row>
@@ -40,7 +40,13 @@
         :key="`WP_${dataSetIndex}`"
         :class="{'v-step-1': dataSetIndex === 0}"
       >
-        <v-card dark class color="primary" @click="selectWPDataset(dataSet)">
+        <v-card
+          dark
+          class
+          color="primary"
+          :disabled="fetchingDataset"
+          @click="selectWPDataset(dataSet)"
+        >
           <v-card-title
             class="px-3 pt-3 pb-5"
             style="font-size:1rem;line-height:1"
@@ -49,7 +55,7 @@
             class="px-3 pb-3"
             style="line-height:1"
           >
-            {{ dataSet.size }} | ~{{ intFromat(dataSet.rows) }} filas
+            {{ dataSet.size }} | ~{{ dataSet.rows | intFromat }} filas
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -58,16 +64,19 @@
       <v-col cols="12">
         <v-divider class="mb-4" />
         <div class="dataTableContainer">
+          <h3 class="dataset-name">{{ activeDataset | datasetName }}</h3>
           <v-spacer />
           <v-btn
+            :disabled="!activeDataset"
             class="px-5 btn-datos-2"
             height="43"
             rounded
             outlined
+            color="error1"
             @click="cleanComponentData"
-          >Limpiar</v-btn>
+          >Remover</v-btn>
           <v-btn
-            :disabled="!datasetMeta.slug"
+            :disabled="!activeDataset"
             height="43"
             color="primary"
             class="btn-datos float-right ml-1 px-5  v-step-2"
@@ -83,12 +92,12 @@
       </v-col>
       <v-progress-linear class="mx-5 px-5" v-show="loading" indeterminate color="primary" />
     </v-row>
-    <v-row v-if="uploadMethod === 'upload' && !datasetMeta.slug" class="ma-0">
+    <v-row v-if="uploadMethod === 'upload' && !activeDataset" class="ma-0">
       <v-col>
         <VpressFilepond :file.sync="files" />
       </v-col>
     </v-row>
-    <v-row v-if="uploadMethod === 'paste' && !datasetMeta.slug" class="ma-0">
+    <v-row v-if="uploadMethod === 'paste' && !activeDataset" class="ma-0">
       <v-col v-show="data.length === 0">
         <v-textarea
           class="pl-4 pt-4"
@@ -108,9 +117,9 @@
         >Procesar</v-btn>
       </v-col>
     </v-row>
-    <v-row v-show="datasetMeta.slug" class="ma-0">
+    <v-row v-show="activeDataset" class="ma-0">
       <v-col class="pa-0" cols="12">
-        <VpressDataTable/>
+        <VpressDataTable :dataset="activeDataset"/>
       </v-col>
     </v-row>
   </div>
@@ -118,8 +127,9 @@
 <script>
 import VpressFilepond from './vpress-filepond.vue';
 import VpressDataTable from './vpress-data-table.vue';
-import api from '../helpers/axios';
-import FReader from '../plugins/fileReader'
+import api from '../utils/axios';
+import FReader from '../utils/fileReader'
+import { loaderMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressDataLoader',
@@ -127,11 +137,12 @@ export default {
     VpressFilepond,
     VpressDataTable
   },
+  mixins: [loaderMixin],
   props: ['tabChange'],
   data() {
     return {
       data: [],
-      datasetMeta: {},
+      activeDataset: this.$store.getters['workspace/activeDataset'],
       errorMessage: '',
       files: [],
       headers: [],
@@ -139,12 +150,30 @@ export default {
       pastedData: '',
       showTable: true,
       uploadMethod: 'upload',
-      WPDataSets: []
+      WPDataSets: [],
+      fetchingDataset: false
     };
   },
   created() {
-    this.getWPDatasets();
     this.getUrlParams();
+    this.getWPDatasets();
+    this.unsubscribe = this.$store.subscribe(
+      mutation => {
+        if(
+          mutation.type === 'workspace/SET_ACTIVE_DATASET'
+        ) {
+          this.activeDataset = this.$store.getters['workspace/activeDataset']
+        }
+      }
+    )
+  },
+  beforeDestroy() {
+    this.unsubscribe();
+  },
+  filters: {
+    datasetName(dataset) {
+      return dataset ? dataset.name : ''
+    }
   },
   watch: {
     files(newFiles) {
@@ -165,15 +194,9 @@ export default {
   methods: {
     async getUrlParams() {
       try {
-        const { dataset, chart } = this.$route.query
-        if(dataset) {
-         const { data } = await api.dataset.get(dataset)
-
-         this.selectWPDataset(data.data)
-        }
-        if(dataset && chart) {
-          // const chartRes = await api.chart.get(chart)
-          this.nextTab()
+        const { tab } = this.$route.query
+        if(tab === 1) {
+          this.nextTab(null, tab)
         }
       } catch (error) {
         this.$router.push('/')
@@ -182,23 +205,44 @@ export default {
     },
     async getWPDatasets() {
       try {
-        const response = await api.dataset.list({ page: 1, itemsPerPage: 4 });
-        if(response.data)
-        this.WPDataSets = response.data.data
+        const response = await api
+          .dataset
+          .list({ page: 1, itemsPerPage: 4 });
+        if(response.data) this.WPDataSets = response.data.data
       } catch (error) {
         throw new Error(error.message)
       }
     },
     async selectWPDataset(dataset) {
       try {
+        this.fetchingDataset = true
         this.data = []
-        this.datasetMeta = await this.$store.dispatch(
-          'workspace/ADD_DATASET',
-          dataset,
-        )
+        await this.editorInit(dataset)
+        this.fetchingDataset = false
       } catch(error) {
+        this.fetchingDataset = false
         this.errorMessage = error.message;
       }
+    },
+    nextTab(e, tab = 1) {
+      this.$emit('update:tabChange', tab);
+    },
+    switchUploadMethod(method) {
+      this.uploadMethod = method;
+    },
+    extractSampleHeaders(dataSample) {
+      return Object.keys(dataSample).map(o => ({
+        text: o,
+        value: o,
+        sortable: true
+      }));
+    },
+    async cleanComponentData() {
+      await this.$store.dispatch('editor/REMOVE_VIZZES')
+      await this.$store.dispatch('workspace/REMOVE_DATASET')
+      this.data = [];
+      this.headers = [];
+      this.files = [];
     },
     async loadFile(file) {
       try {
@@ -264,30 +308,6 @@ export default {
       /** Reset pastedData */
       self.pastedData = '';
       self.loading = false;
-      self.datasetMeta.slug = 'Dataset copiado';
-    },
-    extractSampleHeaders(dataSample) {
-      return Object.keys(dataSample).map(o => ({
-        text: o,
-        value: o,
-        sortable: true
-      }));
-    },
-    async cleanComponentData() {
-      this.datasetMeta = await this.$store.dispatch('workspace/REMOVE_DATASET')
-      this.data = [];
-      this.headers = [];
-      this.files = [];
-    },
-    nextTab() {
-
-      this.$emit('update:tabChange', 1);
-    },
-    switchUploadMethod(method) {
-      this.uploadMethod = method;
-    },
-    intFromat(number) {
-      return new Intl.NumberFormat().format(number)
     }
   }
 };
@@ -300,6 +320,14 @@ export default {
   font-size: 1rem;
   font-weight: 800;
   margin-top: 12px;
+}
+
+.dataset-name {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 12px;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.12);
+  padding-bottom: 1%
 }
 
 .selecteduploadMethod {

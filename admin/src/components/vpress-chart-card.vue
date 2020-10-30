@@ -4,14 +4,14 @@
       v-if="!deletedCard"
       :loading="loading"
       class="mx-auto"
+      @click="createChart"
     >
       <v-img
-        width="95%"
         contain
         color="#222A32"
-        :src="`/wp-content/uploads/vpress/images/${id}.png`"
+        :src="img_url"
       ></v-img>
-      <v-card-title @click="createChart" class="link">
+      <v-card-title class="link">
         {{ chartValues.title }}
       </v-card-title>
       <v-card-text>
@@ -70,7 +70,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-text>
           <v-container>
             <v-row>
@@ -107,7 +107,7 @@
             </v-row>
           </v-container>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="close">Cancelar</v-btn>
@@ -118,11 +118,13 @@
   </div>
 </template>
 <script>
-import _ from 'lodash'
-import api from '../helpers/axios'
+import * as _ from 'lodash'
+import { loaderMixin, editorMixin } from '../mixins/index.js'
+import api from '../utils/axios'
 
 export default {
   name: 'VpressChartCard',
+  mixins: [loaderMixin, editorMixin],
   props: {
     id: {
       type: String,
@@ -185,13 +187,14 @@ export default {
     async createChart () {
       try {
         this.loading = true
-        this.$router.push(
-          {
-            path: `/`,
-            query: { dataset: this.dataset_id, chart: this.id }}
-          )
+        const viz = await api.chart.get(this.id)
+        const dataset = await api.dataset.get(this.dataset_id)
+        await this.loadSavedViz(viz.data.data, dataset.data.data)
+        this.$router.push({ path: `/`, query: { tab: 1 } })
+        this.loading = false
       } catch (error) {
         this.loading = false
+        throw new Error(error.message);
       }
     },
     async deleteChart() {
@@ -233,7 +236,7 @@ export default {
         const chartId = this.id
         if (chartId) {
           const iframe = `[vpress id=${chartId}]`
-          navigator.clipboard.writeText(iframe);
+          navigator.clipboard.writeText(iframe)
           this.$store.dispatch('notifications/open', {
             color: 'success',
             text: 'Gráfica guardada al portapapeles'

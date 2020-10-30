@@ -118,8 +118,11 @@
   </div>
 </template>
 <script>
+import { editorMixin } from '../mixins/index.js'
+
 export default {
   name: 'VpressVariableCard',
+  mixins: [editorMixin],
   props: {
     mutationType: String,
     variable: Object,
@@ -170,32 +173,41 @@ export default {
       const payload = JSON.stringify(this.variable);
       dataTransfer.setData('variableJson', payload);
     },
-    selectFunc(func) {
-      this.variable.func = func.type
-      this.selectedFunc = func
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
-        mutationType: this.mutationType,
-        value: this.variable
-      });
+    async selectFunc(func) {
+      try {
+        this.variable.func = func.type
+        this.selectedFunc = func
+        await this.merge_query(
+          this.variable,
+          this.mutationType
+        )
+      } catch (error) { 
+        throw new Error(error.message)
+      }
     },
-    removeCard() {
-      const payload = this.mutationType === 'filter'
-      ? {
-          title: this.variable.title,
-          type: this.variable.type,
-          slug: this.variable.slug,
-          value: 'remove'
-        }
-      : {
-          title: '',
-          type: '',
-          slug: '',
-          func: ''
-        }
-      this.$store.dispatch(`chartConfig/DATA_QUERY`, {
-        mutationType: this.mutationType,
-        value: payload
-      });
+    async removeCard() {
+      try {
+        const payload = this.mutationType === 'filter'
+        ? {
+            title: this.variable.title,
+            type: this.variable.type,
+            slug: this.variable.slug,
+            value: 'remove'
+          }
+        : {
+            title: '',
+            type: '',
+            slug: '',
+            func: ''
+          }
+        await this.merge_query(
+          payload,
+          this.mutationType,
+        )
+      } catch (error) {
+        throw new Error(error.message)
+      }
+      
     }    
   }
 };

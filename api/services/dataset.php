@@ -1,5 +1,11 @@
 <?php
 
+function clean_string($string) {
+  $string = str_replace(' ', '', $string);
+  $string = preg_replace('/[^A-Za-z0-9]/', '', $string);
+  return strtolower($string);
+}
+
 function get_dataset_data( $request ) {
   global $wpdb;
   $table_name = $request['dataset'];
@@ -70,8 +76,7 @@ function upload_dataset( $request ) {
   require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
   $file_name = explode('.', $file['name'])[0];
-  $table_name = preg_replace('/[^A-Za-z0-9]/', '', $file_name);
-  $table_name = "vpress_" . $table_name;
+  $table_name = "vpress_" . clean_string($file_name);
 
   while ( ( $data = fgetcsv( $handle, 1000, ',' ) ) !== FALSE ) {
     if ( $headerFlag ) {
@@ -79,7 +84,8 @@ function upload_dataset( $request ) {
       $headerFlag = false;
       $sql_create_dataset = "CREATE TABLE IF NOT EXISTS $table_name (";
       foreach ($data as $value) {
-        $sql_create_dataset .= "`$value` TEXT NULL, ";
+        $clean_string = clean_string($value);
+        $sql_create_dataset .= "`$clean_string` TEXT NULL, ";
       }
       $sql_create_dataset .= "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ";
       $sql_create_dataset .= "updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
@@ -101,7 +107,7 @@ function upload_dataset( $request ) {
     print_r('Failed to move uploaded file.');
   }
   
-  $query = "LOAD DATA INFILE '" . $file . "' INTO TABLE " . $table_name . " FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES;";
+  $query = "LOAD DATA LOCAL INFILE '" . $file . "' INTO TABLE " . $table_name . " CHARACTER SET utf8 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES;";
 
   $sql = $wpdb->query($query);
 
@@ -109,6 +115,7 @@ function upload_dataset( $request ) {
 
   $response = array(
     'data' => $file_name,
+    'upload_max_filesize' => ini_get('upload_max_filesize'),
     'query' => $query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false
   );
@@ -193,7 +200,7 @@ function create_dataset( $request ) {
     array( 
       'permissions' => $permissions, 
       'name' => $name,
-      'slug' => $slug,
+      'slug' => clean_string($slug),
       'description' => $description,
       'tag' => $tag,
       'source' => $source,

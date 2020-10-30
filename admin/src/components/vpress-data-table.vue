@@ -75,7 +75,11 @@
           </template>
           <template v-slot:item="props">
             <tr class="eltr">
-              <td class="eltd" v-for="header in props.headers" :key="header.value">
+              <td
+                class="eltd"
+                v-for="header in props.headers"
+                :key="header.value"
+              >
                 {{ props.item[header.value] }}
               </td>
             </tr>
@@ -126,17 +130,13 @@
   </v-container>
 </template>
 <script>
-import api from '../helpers/axios'
+import api from '../utils/axios'
 
 export default {
   name:'VpressDataTable',
   props: {
-    data: {
-      type: Array,
-      required: false,
-      default: function () {
-        return []
-      }
+    dataset: {
+      type: Object,
     }
   },
   data() {
@@ -147,10 +147,12 @@ export default {
       headers: [],
       items: [],
       options: {},
-      datasetMeta: {},
       newName: null,
       oldName: null
     }
+  },
+  mounted() {
+    if (this.dataset) this.getDataFromApi()
   },
   watch: {
     dialog(val) {
@@ -158,34 +160,23 @@ export default {
         this.newName = null;
         this.oldName = null;
       }
+    },
+    dataset() {
+      this.getDataFromApi()
     }
-  },
-  mounted() {
-    this.datasetMeta = this.$store.getters['workspace/activeDataset']
-    if (this.datasetMeta) this.getDataFromApi()
-    this.unsubscribe = this.$store.subscribe(
-      mutation => {
-        if(
-          mutation.type === 'workspace/SET_ACTIVE_DATASET'
-        ) {
-          this.datasetMeta = this.$store.getters['workspace/activeDataset']
-          this.getDataFromApi()
-        }
-      }
-    )
-  },
-  beforeDestroy() {
-    this.unsubscribe();
   },
   methods: {
     async getDataFromApi () {
       try {
         this.loading = true
+        this.items = []
+        this.total = 0
+        this.headers = []
         const { page, itemsPerPage } = this.options
-        if(this.datasetMeta) {
+        if(this.dataset) {
           const obj = {
             page,
-            dataset: this.datasetMeta.slug,
+            dataset: this.dataset.slug,
             itemsPerPage
           }
           const response = await api.dataset.data(obj);
@@ -209,7 +200,7 @@ export default {
     },
     async renameColumn() {
       const obj = {
-        dataset: this.datasetMeta.slug,
+        dataset: this.dataset.slug,
         new: this.newName,
         old: this.oldName
       }
@@ -223,7 +214,7 @@ export default {
     },
     async changeDataTypeColumn(column, type) {
       const obj = {
-        dataset: this.datasetMeta.slug,
+        dataset: this.dataset.slug,
         column: column,
         type
       }
@@ -236,7 +227,7 @@ export default {
     },
     async deleteColumn(column) {
       const obj = {
-        dataset: this.datasetMeta.slug,
+        dataset: this.dataset.slug,
         column: column.value
       }
       await api.dataset.delete_column(obj);
@@ -249,7 +240,6 @@ export default {
   },
 }
 </script>
-
 <style lang="scss" scoped>
 .table-title {
   align-items: center;

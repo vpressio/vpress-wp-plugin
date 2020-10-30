@@ -8,16 +8,12 @@
     @dragover.prevent
   >
     <div v-show="showFilepond" class="filepond--width">
-      <FilePond
+      <file-pond
         v-model="inPondFiles"
         :onremovefile="hideFilepond"
         :labelFileProcessingError="'Algo salió mal, vuelve a intentarlo.'"
         ref="pond"
-        accepted-file-types="
-          text/csv,
-          application/vnd.ms-excel,
-          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        "
+        accepted-file-types="text/csv"
       />
       <v-label>{{ fileTypeDynamicMessage }}</v-label>
     </div>
@@ -36,18 +32,20 @@
         <v-icon class="icon-upload" left>mdi-file-upload-outline</v-icon>
         Subir datos
       </v-btn>
-      <input v-show="false" type="file" ref="fileInput" id="fileInput" @input="fileInputAction" />
+      <input v-show="false" type="file" ref="fileInput" id="fileInput" accept="text/csv" @input="fileInputAction" />
       <v-label>
-        Formatos permitidos - csv
+        Formatos permitidos: <strong>CSV</strong>
+        <br />
+        Tamaño máximo de archivo: <strong>{{ php_vars.upload_max_filesize }}</strong>
       </v-label>
     </div>
   </v-card>
 </template>
 <script>
-import api from '../helpers/axios'
+import api from '../utils/axios'
 import vueFilePond from 'vue-filepond';
-import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.esm';
 import 'filepond/dist/filepond.min.css';
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 
 export default {
   name: 'VpressFileDrop',
@@ -65,6 +63,10 @@ export default {
   computed: {
     fileTypeDynamicMessage() {
       return this.fileTypeMessage;
+    },
+    php_vars() {
+      // eslint-disable-next-line no-undef
+      return php_vars;
     }
   },
   methods: {

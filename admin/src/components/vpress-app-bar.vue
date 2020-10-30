@@ -53,7 +53,7 @@ export default {
   computed: {
     cssProps() {
       return {
-        '--logo':this.$vuetify.theme.themes.light.logo.file_name,
+        '--logo': this.$vuetify.theme.themes.light.logo.file_name,
         '--logo-width': this.$vuetify.theme.themes.light.logo.width,
         '--bg-linear-gradient': this.$vuetify.theme.themes.light.gradient.bg
       }

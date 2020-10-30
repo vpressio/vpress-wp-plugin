@@ -1,5 +1,8 @@
 <template lang="pug">
-  .chart-container.center-align(:class="`${chartConfig ? chartConfig.theme : 'light'}-themed`")
+  .chart-container.center-align(
+    :class="`${chartConfig ? chartConfig.theme : 'light'}-themed`"
+    style="position:absolute;top:0;left:0;width:100%;height:100%;"
+    )
     .layout-row.left-align.label-font.bold.layout-align-start-end(style="height:10%")
       .col-12.py-0
         h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
@@ -19,7 +22,6 @@
             indeterminate
           )
 </template>  
-
 <script>
 import * as d3 from 'd3';
 import * as _ from 'lodash';
@@ -31,6 +33,10 @@ export default {
   props: {
     id: String,
     data: Array,
+    dateFormat: {
+      type: String,
+      default: '%Y-%m-%d'
+    },
     chartConfig: {
       chart: String,
       xAxis: {
@@ -111,9 +117,9 @@ export default {
   },
   beforeDestroy() {
     this.removeChart()
-    if(this.chart && this.chart.destroy){
-      this.chart.destroy()
-    }
+  },
+  mounted() {
+    this.vizInitValidator()
   },
   computed: {
     chartTitle() {
@@ -190,6 +196,11 @@ export default {
           'Gráficas aceptadas: `bars`, `heatmap`, `spineplot`, `scatter`, `timeline`, `map`'
         );
       }
+      this.vizInitValidator()
+    }
+  },
+  methods: {
+    vizInitValidator() {
       if (
         this.data &&
         this.data.length > 0 &&
@@ -197,10 +208,10 @@ export default {
         this.chartConfig.yAxis.slug !== ''
       ) {
         this.configChart();
+      } else {
+        this.removeChart()
       }
-    }
-  },
-  methods: {
+    },
     /**
      * Draw an interactive chart using dboxjs
      */
@@ -622,7 +633,7 @@ export default {
               textAnchor: 'middle',
             },
             title: {
-              fontSize: 5,
+              fontSize: 10,
               fontWeight: 600,
               textColor: '#666',
               textAnchor: 'middle',
@@ -743,15 +754,15 @@ export default {
       }
     },
     drawTimeline() {
-      const vm = this;
+      const vm = this
       const timeline = vm.chart
         .layer(dbox.timeline)
         .curve(d3.curveLinear)
-        .parseDate(vm.$store.getters['workspace/dateFormat'])
+        .parseDate(vm.dateFormat)
         .tip(function(d) {
           let html = '';
           html += d.name + '<br>';
-          let format = vm.$store.getters['workspace/dateFormat'];
+          let format = vm.dateFormat;
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
             if (typeof timeline.utils.format(d.y) === 'string') {
@@ -1106,17 +1117,9 @@ export default {
         .remove();
       d3.selectAll(`.d3-tip.tip-${this._uid}`).remove();
       d3.selectAll('.title-tip').remove();
-    }
-  },
-  mounted() {
-    if (
-      this.data &&
-      this.data.length > 0 &&
-      this.chartConfig.xAxis.slug !== '' &&
-      this.chartConfig.yAxis.slug !== ''
-    ) {
-      console.log(this);
-      this.configChart();
+      if(this.chart && this.chart.destroy){
+        this.chart.destroy()
+      }
     }
   }
 };

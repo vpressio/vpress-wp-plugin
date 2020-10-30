@@ -76,8 +76,11 @@
   </div>
 </template>
 <script>
+import { editorMixin } from '../mixins/index.js'
 
 export default {
+  name: 'VpressFilter',
+  mixins: [editorMixin],
   props: {
     column: {
       type: String,
@@ -117,8 +120,7 @@ export default {
           this.ordinalFilter = this.value.categories
         }
 
-        const filterParams = await this.$store.dispatch(
-          'workspace/GET_FILTER_PARAMS',
+        const filterParams = await this.filter_params(
           { column: this.column, type: this.type }
         )
         if(this.type !== 'linear'){
@@ -135,19 +137,16 @@ export default {
     },
     async applyFilter() {
       try {
-         this.$store.dispatch(
-           'chartConfig/DATA_QUERY',
-           {
-              value: {
-                  title: this.column,
-                  slug: this.column,
-                  type: this.type,
-                  value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
-                  
-              }, 
-              mutationType: 'filter'
-           }
-         )
+        await this.merge_query(
+          {
+              title: this.column,
+              slug: this.column,
+              type: this.type,
+              value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
+              
+          },
+          'filter'
+        )
         this.closeDialog()
       } catch (error) {
         this.closeDialog()

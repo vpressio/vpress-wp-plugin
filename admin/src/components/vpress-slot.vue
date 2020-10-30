@@ -95,6 +95,7 @@
 <script>
 import VpressVariableCard from './vpress-variable-card';
 import VpressSlotFilter from './vpress-filter';
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressSlot',
@@ -102,6 +103,7 @@ export default {
     VpressVariableCard,
     VpressSlotFilter
   },
+  mixins: [editorMixin],
   props: {
     slotId: String,
     icon: String,
@@ -121,7 +123,7 @@ export default {
   },
   computed: {
     storeVariables() {
-      return this.$store.getters[`chartConfig/${this.slotId}`];
+      return this.$store.getters[`editor/${this.slotId}`]
     },
     iconSrc() {
       return require(`../assets/images/${this.slotIcon}.svg`);
@@ -141,21 +143,20 @@ export default {
     },
     async mergeVariable(variable, mutationType) {
       try {
-        const result = await this.$store.dispatch(
-          `chartConfig/DATA_QUERY`,
-          { 
-            value: {
-              slug: variable.slug,
-              title: variable.title,
-              type: variable.type
-            },
-            mutationType: mutationType
-          }
-        );
+        await this.merge_query(
+          {
+            slug: variable.slug,
+            title: variable.title,
+            type: variable.type
+          },
+          mutationType
+        )
         this.error = false
-        return result;
       } catch (error) {
         this.error = true
+        setTimeout(() => {
+          this.error = false
+        }, 7000);
         this.errorMsg = error.message
         throw new Error(error.message)
       }
@@ -169,7 +170,7 @@ export default {
       this.openFilterDialog = true;
     },
     changeCurrentFilter(event, index) {
-      const filterCard = this.$store.getters['chartConfig/chart'].filters[index]
+      const filterCard = this.$store.getters['editor/chart'].filters[index]
       const payload = {
         type: filterCard.type
       }

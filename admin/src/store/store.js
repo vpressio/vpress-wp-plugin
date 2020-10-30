@@ -5,7 +5,7 @@ import createPlugin from 'logrocket-vuex';
 
 import moduleWorkspace from './modules/workspace.js';
 import notifications from './modules/notifications.js';
-import moduleChartConfig from './modules/chartConfig.js';
+import moduleEditor from './modules/editor.js';
 
 const logrocketPlugin = createPlugin(LogRocket);
 
@@ -15,7 +15,7 @@ export default new Vuex.Store({
   modules: {
     workspace: moduleWorkspace,
     notifications: notifications,
-    chartConfig: moduleChartConfig
+    editor: moduleEditor
   },
   plugins: [logrocketPlugin]
 });

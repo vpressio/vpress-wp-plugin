@@ -98,4 +98,15 @@ function register_chart_routes() {
       } */
     )
   );
+  register_rest_route(
+    BASE_URL,
+    UPDATE_IMAGE_URL_CHART_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'update_image_url_chart',
+      /* 'permission_callback' => function () {
+        return current_user_can( 'publish_posts' );
+      } */
+    )
+  );
 }

@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     chartType () {
-      return this.$store.getters['chartConfig/chartType']
+      return this.$store.getters['editor/chartType']
     }
   }
 };
