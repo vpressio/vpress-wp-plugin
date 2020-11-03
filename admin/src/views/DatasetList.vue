@@ -60,15 +60,43 @@
       hide-default-header
     >
       <template v-slot:[`item.name`]="{ item }" >
-        <div style="cursor:pointer" @click="selectDataset(item)">
-          <p class="text-subtitle-1 font-weight-medium mb-0">{{ item.name }}</p>
-          <p class="text-subtitle-2 font-weight-regular mt-0">{{ item.description }}</p>
+        <div>
+          <v-text-field
+            solo
+            flat
+            dense
+            hide-details
+            :loading="loading"
+            label="Agregar título"
+            v-model.trim="item.name"
+            background-color="transparent"
+            @keyup.enter="editItem(item); save()"
+          >
+          </v-text-field>
+          <v-textarea
+            solo
+            flat
+            dense
+            rows="2"
+            no-resize
+            single-line
+            hide-details
+            :loading="loading"
+            label="Agregar descripción"
+            v-model.trim="item.description"
+            background-color="transparent"
+            @keydown.enter.prevent=""
+            @keyup.enter="editItem(item); save()"
+          >
+          </v-textarea>
         </div>
       </template>
       <template v-slot:[`item.permissions`]="{ item }">
         <p
-          class="text-uppercase"
-          :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"        >
+          @click="editItem(item); editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+          class="link text-uppercase font-weight-bold"
+          :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"
+        >
           {{ item.permissions }}
         </p>
       </template>
@@ -84,9 +112,9 @@
         </v-chip>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon color="primary" @click="editItem(item)">
+        <!-- <v-btn icon color="primary" @click="editItem(item)">
           <v-icon>mdi-pencil</v-icon>
-        </v-btn>
+        </v-btn> -->
         <v-btn icon color="error" @click="deleteItem(item)">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
@@ -330,7 +358,7 @@ export default {
     editItem (item) {
       this.editedIndex = this.items.indexOf(item)
       this.editedItem = Object.assign({}, item)
-      this.dialog = true
+      // this.dialog = true
     },
     close () {
       this.dialog = false
@@ -391,3 +419,26 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.link {
+  cursor: pointer
+}
+a:hover {
+  text-decoration: underline;
+}
+::v-deep.v-text-field > .v-input__control > .v-input__slot {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+::v-deep.v-text-field .v-input__append-inner {
+  display: none !important;
+}
+::v-deep.v-input input {
+  background-color: transparent !important;
+}
+::v-deep.v-textarea textarea {
+  line-height: normal;
+  background-color: transparent !important;
+}
+</style>
