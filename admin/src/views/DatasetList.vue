@@ -112,10 +112,10 @@
         </v-chip>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <!-- <v-btn icon color="primary" @click="editItem(item)">
+        <v-btn icon color="primary" @click="editItem(item)">
           <v-icon>mdi-pencil</v-icon>
-        </v-btn> -->
-        <v-btn icon color="error" @click="deleteItem(item)">
+        </v-btn>
+        <v-btn icon color="error" @click="confirmDeletion(item)">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>
@@ -241,6 +241,33 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
+      <v-card>
+        <v-toolbar dark flat color="primary">
+          <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="closeDialogConfirmDeletion">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                ¿Está seguro de eliminar la base de datos? Se eliminarán <strong>{{ totalDelete }}</strong> gráficas
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="closeDialogConfirmDeletion">Cancelar</v-btn>
+          <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -259,6 +286,7 @@ export default {
     items: [],
     expanded: [],
     dialog: false,
+    dialogConfirmDeletion: false,
     headers: [
       { text: 'Nombre', value: 'name' },
       { text: 'Permisos', value: 'permissions' },
@@ -283,7 +311,9 @@ export default {
       tag: null,
       permissions: 'public'
     },
-    datasetVizzes: []
+    datasetVizzes: [],
+    totalDelete: 0,
+    itemToDelete: null
   }),
   computed: {
     formTitle () {
@@ -317,7 +347,6 @@ export default {
       this.$router.push({ path: `/`, query: { tab: 1 } })
     },
     async selectDataset(dataset) {
-      //Load Dataset
       try {
         this.loading = true
         await this.editorInit(dataset)
@@ -358,7 +387,6 @@ export default {
     editItem (item) {
       this.editedIndex = this.items.indexOf(item)
       this.editedItem = Object.assign({}, item)
-      // this.dialog = true
     },
     close () {
       this.dialog = false
@@ -366,6 +394,9 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       })
+    },
+    closeDialogConfirmDeletion() {
+      this.dialogConfirmDeletion = false
     },
     async save () {
       if (this.editedIndex > -1) {
@@ -394,19 +425,26 @@ export default {
       }
       this.close()
     },
-    async deleteItem (item) {
-      const index = this.items.indexOf(item)
-      if (confirm('¿Esta seguro de eliminar esta base de datos?')) {
-        const response = await api.dataset.delete({ data: { id: parseInt(item.id) }});
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-        this.items.splice(index, 1)
-        this.$store.dispatch('notifications/open', {
-          color: 'success',
-          text: 'Base de datos eliminada con éxito'
-        })
+    async confirmDeletion(item) {
+      this.itemToDelete = item
+      const { data } = await api.dataset.charts(parseInt(this.itemToDelete.id));
+      this.totalDelete = data.total
+      this.dialogConfirmDeletion = true
+    },
+    async deleteItem () {
+      const index = this.items.indexOf(this.itemToDelete)
+      const response = await api.dataset.delete({ data: { id: parseInt(this.itemToDelete.id) }});
+      if (response.data.error) {
+        throw new Error(response.data.error);
       }
+      this.items.splice(index, 1)
+      this.$store.dispatch('notifications/open', {
+        color: 'success',
+        text: 'Base de datos eliminada con éxito'
+      })
+      this.totalDelete = 0
+      this.itemToDelete = null
+      this.dialogConfirmDeletion = false
     },
     async setDataset (dataset) {
       try {

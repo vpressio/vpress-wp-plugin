@@ -177,8 +177,8 @@ function list_datasets( $request ) {
 
   $response = array(
     'data' => $data,
-    'query' => $wpdb->last_query,
     'total' => (int)$total,
+    'query' => $wpdb->last_query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
   return $response;
@@ -275,6 +275,7 @@ function delete_dataset( $request ) {
   $table = $wpdb->get_row("SELECT slug FROM $table_name WHERE id = $id");
   $slug = "vpress_" . $table->slug;
   $data = $wpdb->delete( $table_name, array( 'id' => $id ), array( '%d' ) );
+  $charts = $wpdb->delete( $wpdb->prefix.'vpresscore_charts', array( 'dataset_id' => $id ), array( '%d' ) );
   $remove = $wpdb->query( "DROP TABLE IF EXISTS $slug" );
 
   $response = array(
@@ -290,15 +291,15 @@ function datasets_charts( $request ) {
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_charts';
 
-  $query = 
-  "SELECT *
-  FROM $table_name 
-  WHERE dataset_id = $id";
+  $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id";
+  $query = "SELECT * FROM $table_name WHERE dataset_id = $id";
 
+  $total = $wpdb->get_var($query_total);
   $data = $wpdb->get_results($query);
 
   $response = array(
     'data' => $data,
+    'total' => (int)$total,
     'query' => $wpdb->last_query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );
