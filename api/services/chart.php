@@ -389,7 +389,7 @@ function update_chart( $request ) {
   $description = $request->get_param('description');
   $permissions = $request->get_param('permissions');
 
-  $data = $wpdb->update( 
+  $data = $wpdb->update(
     $table_name, 
     array( 
       'value' => $value,
@@ -449,6 +449,10 @@ function delete_chart( $request ) {
   $query = "DELETE FROM $table_name WHERE id = $id";
 
   $data = $wpdb->delete( $table_name, array( 'id' => $id ), array( '%d' ) );
+
+  $upload_dir = wp_upload_dir();
+  $file = $upload_dir['basedir'].'/vpress/images/' . $id . '.png';
+  wp_delete_file( $file );
 
   $response = array(
     'data' => $data,

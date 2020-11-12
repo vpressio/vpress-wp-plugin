@@ -4,42 +4,73 @@
       v-if="!deletedCard"
       :loading="loading"
       class="mx-auto"
-      @click="createChart"
     >
       <v-img
         contain
         color="#222A32"
+        class="link"
         :src="img_url"
+        @click="createChart"
       ></v-img>
       <v-card-title class="link">
-        {{ chartValues.title }}
+        <v-text-field
+          solo
+          flat
+          dense
+          hide-details
+          label="Agregar título"
+          v-model.trim="editedItem.chartValues.title"
+          :loading="loading"
+          @keyup.enter="save"
+          @click="editedTitle = true"
+          :readonly="!editedTitle"
+        >
+        </v-text-field>
       </v-card-title>
       <v-card-text>
-        <div>
-          {{ editedItem.description }}
-        </div>
+        <v-textarea
+          solo
+          flat
+          dense
+          rows="2"
+          no-resize
+          single-line
+          hide-details
+          label="Agregar descripción"
+          v-model.trim="editedItem.description"
+          :loading="loading"
+          @keydown.enter.prevent=""
+          @keyup.enter="save"
+          @click="editedDescription = true"
+          :readonly="!editedDescription"
+        >
+        </v-textarea>
       </v-card-text>
       <v-divider class="mx-4"></v-divider>
       <v-card-text>
-        <v-chip-group
-          active-class="deep-purple accent-4 white--text"
-          column
-        >
-          <v-chip
-            v-for="item in editedItem.tags"
-            :key="item"
-            color="primary"
-          >
-            {{ item }}
-          </v-chip>
-        </v-chip-group>
+        <v-combobox
+          solo
+          flat
+          chips
+          multiple
+          hide-details
+          deletable-chips
+          color="primary"
+          label="Agregar etiquetas"
+          v-model="editedItem.tags"
+          :loading="loading"
+          @keyup.enter="save"
+          @click="editedTags = true"
+        ></v-combobox>
       </v-card-text>
       <v-card-actions>
         <v-row class="px-4" align="center">
           <v-col>
             <span
-              class="text-uppercase mr-2 font-weight-bold"
-              :class="{ 'green--text': permissions === 'public', 'red--text': permissions !== 'public' }">
+              @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+              class="link text-uppercase mr-2 font-weight-bold"
+              :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
+            >
               {{ editedItem.permissions }}
             </span>
             <span class="grey--text">
@@ -48,7 +79,7 @@
             </span>
           </v-col>
           <v-col class="d-flex justify-end">
-            <v-btn icon color="primary" @click="dialog = true">
+            <v-btn v-if="false" icon color="primary" @click="dialog = true">
               <v-icon small>mdi-pencil</v-icon>
             </v-btn>
             <v-btn icon color="primary" @click="shareChart">
@@ -79,10 +110,10 @@
               </v-col>
               <v-col cols="12">
                 <v-textarea
-                  v-model="editedItem.description"
                   rows="2"
-                  auto-grow
+                  no-resize
                   label="Descripción"
+                  v-model="editedItem.description"
                 ></v-textarea>
               </v-col>
               <v-col cols="12">
@@ -165,6 +196,9 @@ export default {
     loading: false,
     chartValues: {},
     deletedCard: false,
+    editedTitle: false,
+    editedTags: false,
+    editedDescription: false,
     editedItem: {
       chartValues: {
         title: '',
@@ -211,6 +245,7 @@ export default {
     },
     async save () {
       try {
+        this.loading = true
         const response = await api.chart.update({
           id: parseInt(this.id),
           value: JSON.stringify(this.editedItem.chartValues),
@@ -229,6 +264,10 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
+      this.editedTitle = false
+      this.editedDescription = false
+      this.editedTags = false
+      this.loading = false
       this.close()
     },
     shareChart() {
@@ -262,5 +301,18 @@ export default {
 <style lang="scss" scoped>
 .link {
   cursor: pointer
+}
+a:hover {
+  text-decoration: underline;
+}
+::v-deep.v-text-field > .v-input__control > .v-input__slot {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+::v-deep.v-text-field .v-input__append-inner {
+  display: none !important;
+}
+::v-deep.v-textarea textarea {
+  line-height: normal;
 }
 </style>
