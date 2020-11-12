@@ -112,9 +112,9 @@
         </v-chip>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon color="primary" @click="editItem(item)">
+        <!-- <v-btn icon color="primary" @click="editItem(item)">
           <v-icon>mdi-pencil</v-icon>
-        </v-btn>
+        </v-btn> -->
         <v-btn icon color="error" @click="confirmDeletion(item)">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
