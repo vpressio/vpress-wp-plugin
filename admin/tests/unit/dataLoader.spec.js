@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils'
-import dataLoader from '../../src/components/vpress-data-loader.vue'
+// import { mount } from '@vue/test-utils'
+// import dataLoader from '../../src/components/vpress-data-loader.vue'
 
 describe('dataLoader', () => {
   test('Get list of datasets', () => {})

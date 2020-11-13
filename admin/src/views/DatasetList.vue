@@ -343,7 +343,7 @@ export default {
       const viz = await api.chart.get(id)
       const dataset = await api.dataset.get(dataset_id)
       await this.loadSavedViz(viz.data.data, dataset.data.data)
-      this.$router.push({ path: `/`, query: { tab: 1 } })
+      this.$router.push({ path: `/editor`, query: { tab: 1 } })
     },
     async selectDataset(dataset) {
       try {

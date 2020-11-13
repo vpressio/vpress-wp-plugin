@@ -3,50 +3,72 @@
     <v-card
       v-if="!deletedCard"
       :loading="loading"
-      class="mx-auto"
+      class="mx-auto pt-4 pb-2 px-5"
     >
       <v-img
+        class="link mb-3"
         contain
-        color="#222A32"
-        class="link"
-        :src="img_url"
         @click="createChart"
-      ></v-img>
-      <v-card-title class="link">
+        color="#222A32"
+        :src="img_url"
+      />
+      <v-divider/>
+      <div class="link text-truncate viz-card-title">
+        <span
+          v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
+          class="link add-text-toggle"
+          @click="toggleInput('editTitle', 'title-input')"
+        >
+          Agregar Título
+        </span>
+        <span
+          v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
+          class="link"
+          @click="toggleInput('editTitle', 'title-input')"
+        >
+          {{ editedItem.chartValues.title }}
+        </span>
         <v-text-field
+          ref="title-input"
+          v-show="editTitle"
+          dense
           solo
           flat
-          dense
-          hide-details
-          label="Agregar título"
-          v-model.trim="editedItem.chartValues.title"
-          :loading="loading"
-          @keyup.enter="save"
-          @click="editedTitle = true"
-          :readonly="!editedTitle"
+          v-model="editedItem.chartValues.title"
+          @keydown.enter.exact.prevent
+          @keyup.enter.exact="save"
+        />
+      </div>
+      <div class="viz-card-textarea">
+        <span
+          v-if="editedItem.description.trim().length === 0 && !editDescription"
+          class="link add-text-toggle"
+          @click="toggleInput('editDescription', 'description-input')"
         >
-        </v-text-field>
-      </v-card-title>
-      <v-card-text>
+          Agregar descripción
+        </span>
+        <span
+          v-if="editedItem.description.trim().length !== 0 && !editDescription"
+          class="link"
+          @click="toggleInput('editDescription', 'description-input')"
+        >
+          {{ editedItem.description }}
+        </span>
         <v-textarea
+          ref="description-input"
+          v-show="editDescription"
+          dense
+          height="90"
           solo
           flat
-          dense
-          rows="2"
-          no-resize
-          single-line
+          maxlength="140"
           hide-details
-          label="Agregar descripción"
-          v-model.trim="editedItem.description"
-          :loading="loading"
-          @keydown.enter.prevent=""
-          @keyup.enter="save"
-          @click="editedDescription = true"
-          :readonly="!editedDescription"
-        >
-        </v-textarea>
-      </v-card-text>
-      <v-divider class="mx-4"></v-divider>
+          v-model="editedItem.description"
+          @keydown.enter.exact.prevent
+          @keyup.enter.exact="save"
+        />
+      </div>
+      <v-divider class="my-1"/>
       <v-card-text>
         <v-combobox
           solo
@@ -196,9 +218,9 @@ export default {
     loading: false,
     chartValues: {},
     deletedCard: false,
-    editedTitle: false,
+    editTitle: false,
     editedTags: false,
-    editedDescription: false,
+    editDescription: false,
     editedItem: {
       chartValues: {
         title: '',
@@ -218,13 +240,25 @@ export default {
     }
   },
   methods: {
+    toggleInput(editFlag, inputRef) {
+      this[editFlag] = true
+      setTimeout(() => {
+        this.$refs[inputRef]
+          .$el
+          .firstChild
+          .firstChild
+          .firstChild
+          .firstChild
+          .focus()
+      });
+    },
     async createChart () {
       try {
         this.loading = true
         const viz = await api.chart.get(this.id)
         const dataset = await api.dataset.get(this.dataset_id)
         await this.loadSavedViz(viz.data.data, dataset.data.data)
-        this.$router.push({ path: `/`, query: { tab: 1 } })
+        this.$router.push({ path: `/editor`, query: { tab: 1 } })
         this.loading = false
       } catch (error) {
         this.loading = false
@@ -264,8 +298,8 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      this.editedTitle = false
-      this.editedDescription = false
+      this.editTitle = false
+      this.editDescription = false
       this.editedTags = false
       this.loading = false
       this.close()
@@ -315,4 +349,25 @@ a:hover {
 ::v-deep.v-textarea textarea {
   line-height: normal;
 }
+
+.viz-card-textarea {
+  margin-top: 6px;
+  height: 90px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.viz-card-title {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-top: 2%;
+  height: 35px;
+}
+
+.add-text-toggle{
+  color: #21A7F3;
+  font-weight: 400;
+}
+
 </style>

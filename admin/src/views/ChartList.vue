@@ -1,35 +1,34 @@
 <template>
-  <v-container>
-    <v-form
-      ref="form"
-      @submit.prevent="getCharts"
-      lazy-validation
-    >
-      <v-row justify="space-between">
-        <v-col>
+  <v-container style="height:100%">
+    <v-row class="search-bar-container">
+      <v-col xs=6 sm=8 md=9 lg=10>
+        <v-form
+          class="list-search-bar"
+          ref="form"
+          @submit.prevent="getCharts"
+          lazy-validation
+        >
           <v-text-field
             name="search"
             label="Buscar por título, descripción o etiquetas"
-            solo
+            outlined
             clearable
             v-model="q"
             hide-details
-            prepend-inner-icon="mdi-magnify"
+            append-icon="mdi-magnify"
           ></v-text-field>
-        </v-col>
-        <v-col class="shrink">
-          <v-btn
-            large
-            color="primary"
-            type="submit"
-          >
-            Buscar
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-form>
-    <v-divider class="my-6"></v-divider>
-    <v-row v-show="loading" justify="center" align-content="center" style="height:300px;">
+        </v-form>
+      </v-col>
+      <v-col xs=6 sm=4 md=3 lg=2>
+        <v-btn class="new-viz-btn" depressed color="primary">
+          Nueva Gráfica
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row
+      justify="center"
+      align-content="center"
+    >
       <v-progress-circular
         :size="70"
         :width="7"
@@ -37,35 +36,27 @@
         indeterminate
       />
     </v-row>
-    <v-data-iterator
-      v-show="!loading"
-      :items="items"
-      :options.sync="options"
-      :server-items-length="total"
-      :loading="loading"
-    >
-      <template v-slot:default="props">
-        <v-row>
-          <v-col
-            v-for="item in props.items"
-            :key="item.id"
-            cols="12"
-            sm="4"
-          >
-            <vpress-chart-card
-              :id="item.id"
-              :dataset_id="item.dataset_id"
-              :description="item.description"
-              :permissions="item.permissions"
-              :img_url="item.img_url"
-              :updated="item.updated"
-              :value="item.value"
-              :tags="item.tags"
-            />
-          </v-col>
-        </v-row>
-      </template>
-    </v-data-iterator>
+    <v-row>
+      <v-col
+        v-for="item in items"
+        :key="item.id"
+        lg="4"
+        md="6"
+        sm="6"
+        xs="12"
+      >
+        <vpress-chart-card
+          :id="item.id"
+          :dataset_id="item.dataset_id"
+          :description="item.description"
+          :permissions="item.permissions"
+          :img_url="item.img_url"
+          :updated="item.updated"
+          :value="item.value"
+          :tags="item.tags"
+        />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script>
@@ -84,13 +75,8 @@ export default {
     loading: true,
     items: []
   }),
-  watch: {
-    options: {
-      async handler () {
-        await this.getCharts()
-      },
-      deep: true,
-    },
+  created() {
+    this.getCharts()
   },
   methods: {
     async getCharts() {
@@ -114,3 +100,32 @@ export default {
   }
 }
 </script>
+<style scoped>
+  .search-bar-container {
+    padding: 4% 0;
+  }
+
+  .new-viz-btn {
+    height: 56px !important;
+    width:100%;
+    text-transform: capitalize;
+  }
+
+  .list-search-bar {
+    background-color: #fff;
+  }
+  * >>> .list-search-bar
+  > .v-input
+  > .v-input__control{
+    color: #CFCFCF;
+  }
+  * >>> .list-search-bar
+  > .v-input
+  > .v-input__control
+  > .v-input__slot
+  > .v-text-field__slot
+  > .v-label{
+    color: #a19f9f;
+    font-weight : 300; 
+  }
+</style>
