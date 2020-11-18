@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { fillValues } from '../helpers/index.js'
 
 const instance = axios.create(
   { baseURL: process.env.VUE_APP_API_URI || '/'}
@@ -24,10 +25,9 @@ const dataset = {
   create: payload => instance.post(`/wp-json/vpress/v1/dataset/create`, payload),
   update: payload => instance.put(`/wp-json/vpress/v1/dataset/update`, payload),
   delete: payload => instance.delete(`/wp-json/vpress/v1/dataset/delete`, payload),
-  list: ({ page, itemsPerPage, q }) => {
-    if (!page) page = 1
-    if (!itemsPerPage) itemsPerPage = 10
-    if (!q) q = ''
+  list: (payload) => {
+    const defaultPayload =  { page: 1, itemsPerPage: 2, q: '' }
+    const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
     return instance.get(
       `/wp-json/vpress/v1/dataset/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
     )
@@ -39,10 +39,9 @@ const dataset = {
 }
 
 const chart = {
-  list: ({ page, itemsPerPage, q }) => {
-    if (!page) page = 1
-    if (!itemsPerPage) itemsPerPage = 10
-    if (!q) q = ''
+  list: (payload) => {
+    const defaultPayload =  { page: 1, itemsPerPage: 6, q: '' }
+    const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
     return instance.get(
       `/wp-json/vpress/v1/chart/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`
     )

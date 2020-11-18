@@ -1,10 +1,9 @@
 <template>
-  <div>
-    <v-card
-      v-if="!deletedCard"
-      :loading="loading"
-      class="mx-auto pt-4 pb-2 px-5"
-    >
+  <v-card
+    :loading="loading"
+    class="mx-auto"
+  >
+    <div class="mx-5 pt-4">
       <v-img
         class="link mb-3"
         contain
@@ -12,7 +11,9 @@
         color="#222A32"
         :src="img_url"
       />
-      <v-divider/>
+    </div>
+    <v-divider/>
+    <div class="mx-5">
       <div class="link text-truncate viz-card-title">
         <span
           v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
@@ -69,106 +70,45 @@
         />
       </div>
       <v-divider class="my-1"/>
-      <v-card-text>
-        <v-combobox
-          solo
-          flat
-          chips
-          multiple
-          hide-details
-          deletable-chips
-          color="primary"
-          label="Agregar etiquetas"
-          v-model="editedItem.tags"
-          :loading="loading"
-          @keyup.enter="save"
-          @click="editedTags = true"
-        ></v-combobox>
-      </v-card-text>
+      <v-combobox
+        solo
+        flat
+        chips
+        multiple
+        hide-details
+        deletable-chips
+        color="primary"
+        label="Agregar etiquetas"
+        v-model="editedItem.tags"
+        :loading="loading"
+        @keyup.enter="save"
+        @click="editedTags = true"
+      ></v-combobox>
       <v-card-actions>
-        <v-row class="px-4" align="center">
-          <v-col>
-            <span
-              @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
-              class="link text-uppercase mr-2 font-weight-bold"
-              :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
-            >
-              {{ editedItem.permissions }}
-            </span>
-            <span class="grey--text">
-              <v-icon small>mdi-clock-outline</v-icon>
-              {{ updated }}
-            </span>
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <v-btn v-if="false" icon color="primary" @click="dialog = true">
-              <v-icon small>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn icon color="primary" @click="shareChart">
-              <v-icon small>mdi-share-variant</v-icon>
-            </v-btn>
-            <v-btn icon color="error1" @click="deleteChart">
-              <v-icon small>mdi-delete</v-icon>
-            </v-btn>
-          </v-col>
+        <v-row align="center">
+          <span
+            @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+            class="link text-uppercase mr-2 font-weight-bold"
+            :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
+          >
+            {{ editedItem.permissions }}
+          </span>
+          <v-spacer/>
+          <span class="grey--text">
+            <v-icon small>mdi-clock-outline</v-icon>
+            {{ updated }}
+          </span>
+          <v-spacer/>
+          <v-btn icon color="primary" @click="shareChart">
+            <v-icon>mdi-share-variant-outline</v-icon>
+          </v-btn>
+          <v-btn icon color="primary" @click="deleteChart">
+            <v-icon>mdi-trash-can-outline</v-icon>
+          </v-btn>
         </v-row>
       </v-card-actions>
-    </v-card>
-    <v-dialog v-model="dialog" max-width="500px" scrollable eager>
-      <v-card>
-        <v-toolbar dark flat color="primary">
-          <v-toolbar-title>Editar</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon dark @click="close">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-divider/>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="editedItem.chartValues.title" label="Nombre"></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  rows="2"
-                  no-resize
-                  label="Descripción"
-                  v-model="editedItem.description"
-                ></v-textarea>
-              </v-col>
-              <v-col cols="12">
-                <v-combobox
-                  v-model="editedItem.tags"
-                  label="Etiquetas"
-                  multiple
-                  chips
-                  deletable-chips
-                ></v-combobox>
-              </v-col>
-              <v-col cols="12">
-                <v-select
-                  v-model="editedItem.permissions"
-                  :items="[
-                    { value: 'public', text: 'Público' },
-                    { value: 'private', text: 'Privado' },
-                  ]"
-                  label="Permisos"
-                ></v-select>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider/>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="close">Cancelar</v-btn>
-          <v-btn color="primary" @click="save">Guardar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+    </div>
+  </v-card>
 </template>
 <script>
 import * as _ from 'lodash'
@@ -217,7 +157,6 @@ export default {
     dialog: false,
     loading: false,
     chartValues: {},
-    deletedCard: false,
     editTitle: false,
     editedTags: false,
     editDescription: false,
@@ -240,17 +179,17 @@ export default {
     }
   },
   methods: {
-    toggleInput(editFlag, inputRef) {
-      this[editFlag] = true
-      setTimeout(() => {
-        this.$refs[inputRef]
+    async toggleInput(field, element) {
+      this[field] = true
+      await this.$nextTick();
+      //Focus on the deepest node (input) of the vuetify element
+      this.$refs[element]
           .$el
           .firstChild
           .firstChild
           .firstChild
           .firstChild
           .focus()
-      });
     },
     async createChart () {
       try {
@@ -269,7 +208,7 @@ export default {
       try {
         this.loading = true
         const response = await api.chart.delete({ data: { id: parseInt(this.id) }});
-        this.deletedCard = true
+        this.$emit('onDeleted')
         this.loading = false
         return response
       } catch (error) {
@@ -283,7 +222,7 @@ export default {
         const response = await api.chart.update({
           id: parseInt(this.id),
           value: JSON.stringify(this.editedItem.chartValues),
-          description: this.editedItem.description,
+          description: this.editedItem.description.trim(),
           tags: this.editedItem.tags.join(', '),
           permissions: this.editedItem.permissions
         });

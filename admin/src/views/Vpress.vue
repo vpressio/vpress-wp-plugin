@@ -314,7 +314,8 @@ export default {
 }
 
 .vpress-navigation-view {
-  width:100%;
+  width: 100%;
+  height:calc(100% - 48px);
   background-color:#F8F8F8;
 }
 .vpress-sidebar {

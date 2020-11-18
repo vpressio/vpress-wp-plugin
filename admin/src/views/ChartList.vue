@@ -1,33 +1,15 @@
 <template>
-  <v-container style="height:100%">
-    <v-row class="search-bar-container">
-      <v-col xs=6 sm=8 md=9 lg=10>
-        <v-form
-          class="list-search-bar"
-          ref="form"
-          @submit.prevent="getCharts"
-          lazy-validation
-        >
-          <v-text-field
-            name="search"
-            label="Buscar por título, descripción o etiquetas"
-            outlined
-            clearable
-            v-model="q"
-            hide-details
-            append-icon="mdi-magnify"
-          ></v-text-field>
-        </v-form>
-      </v-col>
-      <v-col xs=6 sm=4 md=3 lg=2>
-        <v-btn class="new-viz-btn" depressed color="primary">
-          Nueva Gráfica
-        </v-btn>
-      </v-col>
-    </v-row>
+  <v-container>
+    <VpressSearchBar
+      @onSearch="handleSearch"
+      btnLabel="Nueva gráfica"
+      btnRoute="/editor"
+    />
     <v-row
+      class="min-height-container"
       justify="center"
       align-content="center"
+      v-show="loading"
     >
       <v-progress-circular
         :size="70"
@@ -36,96 +18,122 @@
         indeterminate
       />
     </v-row>
-    <v-row>
-      <v-col
-        v-for="item in items"
-        :key="item.id"
-        lg="4"
-        md="6"
-        sm="6"
-        xs="12"
-      >
-        <vpress-chart-card
-          :id="item.id"
-          :dataset_id="item.dataset_id"
-          :description="item.description"
-          :permissions="item.permissions"
-          :img_url="item.img_url"
-          :updated="item.updated"
-          :value="item.value"
-          :tags="item.tags"
-        />
+    <v-row
+      class="min-height-container"
+      v-show="!loading && items.length === 0"
+      justify-center
+    > 
+      <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+        <h1 class="initial-msg-title">Te damos la bienvenida a Vpress</h1>
+        <span class="initial-msg">
+          Aquí se mostrarán tus visualizaciones, una vez que se hayan creado.
+        </span>
       </v-col>
     </v-row>
+    <VpressPagination
+      v-show="!loading && total > 0"
+      :total="total"
+      :perPage="perPage"
+      @onPageChange="handlePageChange"
+    >
+      <v-row>
+        <v-col
+          v-for="item in items"
+          :key="item.id"
+          lg="4"
+          md="6"
+          sm="6"
+          xs="12"
+        >
+          <vpress-chart-card
+            :id="item.id"
+            :dataset_id="item.dataset_id"
+            :description="item.description"
+            :permissions="item.permissions"
+            :img_url="item.img_url"
+            :updated="item.updated"
+            :value="item.value"
+            :tags="item.tags"
+            @onDeleted="getCharts"
+          />
+        </v-col>
+      </v-row>
+    </VpressPagination>
   </v-container>
 </template>
 <script>
 import VpressChartCard from '@/components/vpress-chart-card.vue'
+import VpressSearchBar from '@/components/vpress-search-bar.vue'
+import VpressPagination from '@/components/vpress-paginator.vue'
 import api from '../utils/axios'
 
 export default {
   name: 'VpressChartList',
   components: {
     VpressChartCard,
+    VpressSearchBar,
+    VpressPagination
   },
   data: () => ({
-    q: null,
-    total: 0,
-    options: {},
+    query: '',
+    perPage: 6,
+    page: 1,
+    total: 1,
     loading: true,
     items: []
   }),
-  created() {
+  mounted() {
     this.getCharts()
   },
   methods: {
+    handlePageChange(page) {
+      this.page = page
+      this.getCharts()
+    },
+    handleSearch(query) {
+      this.query = query
+      this.getCharts()
+    },
     async getCharts() {
-      this.loading = true
-      const { page, itemsPerPage } = this.options
-      const obj = {
-        page,
-        itemsPerPage,
-        q: this.q
+      try {
+        this.loading = true
+        const obj = {
+          page: this.page,
+          itemsPerPage: this.perPage,
+          q: this.query
+        }
+        const { data } = await api.chart.list(obj);
+        data.data.forEach(element => {
+          element.tags = element.tags
+            ? element.tags.split(', ')
+            : element.tags = []
+        });
+        this.items = data.data
+        this.total = data.total
+        this.loading = false
+      } catch (error) {
+        console.error(error.message);
+        this.loading = false
       }
-      const { data } = await api.chart.list(obj);
-      data.data.forEach(element => {
-        element.tags = element.tags
-          ? element.tags.split(', ')
-          : element.tags = []
-      });
-      this.items = data.data
-      this.total = data.total
-      this.loading = false
     }
   }
 }
 </script>
 <style scoped>
-  .search-bar-container {
-    padding: 4% 0;
+  .min-height-container {
+    min-height: 450px;
+  }
+  .initial-msg-title {
+    display: flex;
+    justify-content: center;
+    text-align: center;
   }
 
-  .new-viz-btn {
-    height: 56px !important;
-    width:100%;
-    text-transform: capitalize;
-  }
-
-  .list-search-bar {
-    background-color: #fff;
-  }
-  * >>> .list-search-bar
-  > .v-input
-  > .v-input__control{
-    color: #CFCFCF;
-  }
-  * >>> .list-search-bar
-  > .v-input
-  > .v-input__control
-  > .v-input__slot
-  > .v-text-field__slot
-  > .v-label{
+  .initial-msg {
+    display: flex;
+    justify-content: center;
+    font-size: 1.2rem;
+    text-align: center;
     color: #a19f9f;
-    font-weight : 300; 
   }
 </style>

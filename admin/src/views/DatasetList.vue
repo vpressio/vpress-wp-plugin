@@ -1,44 +1,10 @@
 <template>
   <v-container>
-    <v-form
-      ref="form"
-      @submit.prevent="getDatasets"
-      lazy-validation
-    >
-      <v-row justify="space-between">
-        <v-col>
-          <v-text-field
-            name="search"
-            label="Buscar por nombre, descripción o etiquetas"
-            solo
-            clearable
-            v-model="q"
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-          ></v-text-field>
-        </v-col>
-        <v-col class="shrink">
-          <v-btn
-            large
-            color="primary"
-            type="submit"
-          >
-            Buscar
-          </v-btn>
-        </v-col>
-        <!-- <v-col class="shrink">
-          <v-btn
-            large
-            color="primary"
-            type="submit"
-            @click="dialog = true"
-          >
-            Agregar
-          </v-btn>
-        </v-col> -->
-      </v-row>
-    </v-form>
-    <v-divider class="my-6"></v-divider>
+    <VpressSearchBar
+      @onSearch="handleSearch"
+      btnLabel="Nueva Base de datos"
+      btnRoute="/editor"
+    />
     <v-row v-show="loading" justify="center" align-content="center" style="height:300px;">
       <v-progress-circular
         :size="70"
@@ -47,143 +13,146 @@
         indeterminate
       />
     </v-row>
-    <v-data-table
-      v-show="!loading"
-      :headers="headers"
-      :items="items"
-      :options.sync="options"
-      :server-items-length="total"
-      :loading="loading"
-      :expanded.sync="expanded"
-      show-expand
-      single-expand
-      hide-default-header
+    <VpressPaginator
+      :total="total"
+      :perPage="perPage"
+      @onPageChange="handlePageChange"
     >
-      <template v-slot:[`item.name`]="{ item }" >
-        <div>
-          <v-text-field
-            solo
-            flat
-            dense
-            hide-details
-            :loading="loading"
-            label="Agregar título"
-            v-model.trim="item.name"
-            background-color="transparent"
-            @keyup.enter="editItem(item); save()"
+      <v-data-table
+        v-show="!loading"
+        :headers="headers"
+        :items="items"
+        :options.sync="options"
+        :server-items-length="total"
+        :loading="loading"
+        :expanded.sync="expanded"
+        show-expand
+        single-expand
+        hide-default-header
+      >
+        <template v-slot:[`item.name`]="{ item }" >
+          <div>
+            <v-text-field
+              solo
+              flat
+              dense
+              hide-details
+              :loading="loading"
+              label="Agregar título"
+              v-model.trim="item.name"
+              background-color="transparent"
+              @keyup.enter="editItem(item); save()"
+            >
+            </v-text-field>
+            <v-textarea
+              solo
+              flat
+              dense
+              rows="2"
+              no-resize
+              single-line
+              hide-details
+              :loading="loading"
+              label="Agregar descripción"
+              v-model.trim="item.description"
+              background-color="transparent"
+              @keydown.enter.prevent=""
+              @keyup.enter="editItem(item); save()"
+            >
+            </v-textarea>
+          </div>
+        </template>
+        <template v-slot:[`item.permissions`]="{ item }">
+          <p
+            @click="editItem(item); editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+            class="link text-uppercase font-weight-bold"
+            :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"
           >
-          </v-text-field>
-          <v-textarea
-            solo
-            flat
-            dense
-            rows="2"
-            no-resize
-            single-line
-            hide-details
-            :loading="loading"
-            label="Agregar descripción"
-            v-model.trim="item.description"
-            background-color="transparent"
-            @keydown.enter.prevent=""
-            @keyup.enter="editItem(item); save()"
-          >
-          </v-textarea>
-        </div>
-      </template>
-      <template v-slot:[`item.permissions`]="{ item }">
-        <p
-          @click="editItem(item); editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
-          class="link text-uppercase font-weight-bold"
-          :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"
-        >
-          {{ item.permissions }}
-        </p>
-      </template>
-      <template v-slot:[`item.size`]="{ item }">
-        {{ item.size }}
-      </template>
-      <template v-slot:[`item.rows`]="{ item }">
-        ~{{ item.rows | intFromat }} filas
-      </template>
-      <template v-slot:[`item.tag`]="{ item }">
-        <v-chip color="primary" small class="mr-1" v-for="t in item.tag" :key="t">
-          {{ t }}
-        </v-chip>
-      </template>
-      <template v-slot:[`item.actions`]="{ item }">
-        <!-- <v-btn icon color="primary" @click="editItem(item)">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn> -->
-        <v-btn icon color="error" @click="confirmDeletion(item)">
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-      </template>
-      <template v-slot:no-data>
-        <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
-      </template>
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-container>
-            <v-row>
-              <v-col cols="4" sm="2">
-                <div class="subtitle-2 mb-2">
-                  Base de datos
-                </div>
-                <v-btn
-                  small
-                  rounded
-                  class="mt-12"
-                  color="primary"
-                  @click="setDataset(item)"
-                >
-                  Ver datos
-                </v-btn>
-              </v-col>
-              <v-col cols="8" sm="10">
-                <div class="subtitle-2 mb-2">
-                  Gráficas hechas con la base de datos
-                </div>
-                <v-slide-group
-                  show-arrows
-                >
-                  <v-slide-item
-                    v-for="viz in datasetVizzes"
-                    :key="viz.id"
-                    center-active
-                    v-slot:default="{}"
+            {{ item.permissions }}
+          </p>
+        </template>
+        <template v-slot:[`item.size`]="{ item }">
+          {{ item.size }}
+        </template>
+        <template v-slot:[`item.rows`]="{ item }">
+          ~{{ item.rows | intFromat }} filas
+        </template>
+        <template v-slot:[`item.tag`]="{ item }">
+          <v-chip color="primary" small class="mr-1" v-for="t in item.tag" :key="t">
+            {{ t }}
+          </v-chip>
+        </template>
+        <template v-slot:[`item.actions`]="{ item }">
+          <v-btn icon color="error" @click="confirmDeletion(item)">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </template>
+        <template v-slot:no-data>
+          <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
+        </template>
+        <template v-slot:expanded-item="{ headers, item }">
+          <td :colspan="headers.length">
+            <v-container>
+              <v-row>
+                <v-col cols="4" sm="2">
+                  <div class="subtitle-2 mb-2">
+                    Base de datos
+                  </div>
+                  <v-btn
+                    small
+                    rounded
+                    class="mt-12"
+                    color="primary"
+                    @click="setDataset(item)"
                   >
-                    <v-card
-                      outlined
-                      class="justify-center"
-                      style="border: none;"
+                    Ver datos
+                  </v-btn>
+                </v-col>
+                <v-col cols="8" sm="10">
+                  <div class="subtitle-2 mb-2">
+                    Gráficas hechas con la base de datos
+                  </div>
+                  <v-slide-group
+                    show-arrows
+                  >
+                    <v-slide-item
+                      v-for="viz in datasetVizzes"
+                      :key="viz.id"
+                      center-active
+                      v-slot:default="{}"
                     >
-                      <v-img
-                        width="200px"
-                        contain
-                        color="#222A32"
-                        :src="viz.img_url"
-                      ></v-img>
-                      <v-card-actions class="justify-center">
-                        <v-btn
-                          small
-                          rounded
-                          class="mt-2"
-                          color="primary"
-                          @click="loadViz(viz.id, viz.dataset_id)"
-                        >
-                          Entrar
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-slide-item>
-                </v-slide-group>
-              </v-col>
-            </v-row>
-          </v-container>
-        </td>
-      </template>
-    </v-data-table>
+                      <v-card
+                        outlined
+                        class="justify-center"
+                        style="border: none;"
+                      >
+                        <v-img
+                          width="200px"
+                          contain
+                          color="#222A32"
+                          :src="viz.img_url"
+                        ></v-img>
+                        <v-card-actions class="justify-center">
+                          <v-btn
+                            small
+                            rounded
+                            class="mt-2"
+                            color="primary"
+                            @click="loadViz(viz.id, viz.dataset_id)"
+                          >
+                            Entrar
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-slide-item>
+                  </v-slide-group>
+                </v-col>
+              </v-row>
+            </v-container>
+          </td>
+        </template>
+      </v-data-table>
+    </VpressPaginator>
     <v-dialog v-model="dialog" max-width="500px" scrollable>
       <v-card>
         <v-toolbar dark flat color="primary">
@@ -218,7 +187,7 @@
                 ></v-combobox>
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="editedItem.source" label="Fuente"></v-text-field>
+                <v-text-field v-model="editedItem.source" label="Fuente"/>
               </v-col>
               <v-col cols="12">
                 <v-select
@@ -233,9 +202,9 @@
             </v-row>
           </v-container>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer/>
           <v-btn color="primary" text @click="close">Cancelar</v-btn>
           <v-btn color="primary" @click="save">Guardar</v-btn>
         </v-card-actions>
@@ -245,12 +214,12 @@
       <v-card>
         <v-toolbar dark flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
-          <v-spacer></v-spacer>
+          <v-spacer/>
           <v-btn icon dark @click="closeDialogConfirmDeletion">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-text>
           <v-container>
             <v-row>
@@ -260,9 +229,9 @@
             </v-row>
           </v-container>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer/>
           <v-btn color="primary" text @click="closeDialogConfirmDeletion">Cancelar</v-btn>
           <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
         </v-card-actions>
@@ -271,16 +240,24 @@
   </v-container>
 </template>
 <script>
+import VpressSearchBar from '../components/vpress-search-bar.vue'
+import VpressPaginator from '../components/vpress-paginator.vue'
 import api from '../utils/axios'
 import { loaderMixin, editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressDatasetList',
   mixins: [loaderMixin, editorMixin],
+  components: {
+    VpressSearchBar,
+    VpressPaginator
+  },
   data: () => ({
-    q: null,
-    total: 0,
     options: {},
+    query: '',
+    perPage: 10,
+    page: 1,
+    total: 1,
     loading: true,
     items: [],
     expanded: [],
@@ -320,15 +297,6 @@ export default {
     },
   },
   watch: {
-    options: {
-      async handler () {
-        await this.getDatasets()
-      },
-      deep: true,
-    },
-    dialog (val) {
-      val || this.close()
-    },
     async expanded (val) {
       if (val && val.length > 0) {
         const { data } = await api.dataset.charts(val[0].id);
@@ -337,6 +305,9 @@ export default {
         this.datasetVizzes = []
       }
     },
+  },
+  mounted() {
+    this.getDatasets()
   },
   methods: {
     async loadViz(id, dataset_id) {
@@ -358,16 +329,22 @@ export default {
         this.loading = false
       }
     },
+    handlePageChange(page) {
+      this.page = page
+      this.getDatasets()
+    },
+    handleSearch(query) {
+      this.query = query
+      this.getDatasets()
+    },
     async getDatasets() {
       try {
         this.loading = true
-        const { page, itemsPerPage } = this.options
         const obj = {
-          page,
-          itemsPerPage,
-          q: this.q
+          page: this.page ,
+          itemsPerPage: this.perPage,
+          q: this.query
         }
-
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
           element.tag = element.tag
@@ -377,9 +354,8 @@ export default {
         this.items = data.data
         this.total = data.total
         this.loading = false
-
       } catch (error) {
-
+        console.error(error.message);
         this.loading = false
       }
     },
