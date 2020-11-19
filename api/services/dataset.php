@@ -169,7 +169,7 @@ function list_datasets( $request ) {
     $query_total .= $where;
     $query .= $where;
   }
-
+  $query .= " ORDER BY updated DESC";
   $query .= " LIMIT $start_at, $per_page";
 
   $total = $wpdb->get_var($query_total);
@@ -293,7 +293,8 @@ function datasets_charts( $request ) {
 
   $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id";
   $query = "SELECT * FROM $table_name WHERE dataset_id = $id";
-
+  $query .= " ORDER BY updated DESC";
+  $query .= " LIMIT 10";
   $total = $wpdb->get_var($query_total);
   $data = $wpdb->get_results($query);
 
