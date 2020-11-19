@@ -6,10 +6,10 @@
       btnRoute="/editor"
     />
     <v-row
+      v-show="loading"
       class="min-height-container"
       justify="center"
       align-content="center"
-      v-show="loading"
     >
       <v-progress-circular
         :size="70"
@@ -20,7 +20,7 @@
     </v-row>
     <v-row
       class="min-height-container"
-      v-show="!loading && items.length === 0"
+      v-show="!loading && total === 0"
       justify-center
     > 
       <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
@@ -78,7 +78,7 @@ export default {
     query: '',
     perPage: 6,
     page: 1,
-    total: 1,
+    total: 0,
     loading: true,
     items: []
   }),

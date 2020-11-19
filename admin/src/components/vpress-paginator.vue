@@ -35,7 +35,6 @@ export default {
   watch: {
     total(newTotal) {
       this.length = Math.ceil(newTotal / this.perPage);
-      console.log(newTotal, this.perPage)
     }
   },
   methods: {

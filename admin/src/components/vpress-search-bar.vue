@@ -11,6 +11,7 @@
         label="Buscar por título, descripción o etiquetas"
         outlined
         clearable
+        @click:clear="clear"
         v-model="query"
         hide-details
         append-icon="mdi-magnify"
@@ -56,6 +57,10 @@ export default {
   },
   methods: {
     search() {
+      this.$emit('onSearch', this.query)
+    },
+    clear() {
+      this.query = ''
       this.$emit('onSearch', this.query)
     }
   }
