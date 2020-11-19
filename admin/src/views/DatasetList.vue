@@ -96,33 +96,6 @@
           <v-btn color="primary" @click="save">Guardar</v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
-    <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
-      <v-card>
-        <v-toolbar dark flat color="primary">
-          <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
-          <v-spacer/>
-          <v-btn icon dark @click="closeDialogConfirmDeletion">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-divider/>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                ¿Está seguro de eliminar la base de datos? Se eliminarán <strong>{{ totalDelete }}</strong> gráficas
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider/>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn color="primary" text @click="closeDialogConfirmDeletion">Cancelar</v-btn>
-          <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
-        </v-card-actions>
-      </v-card>
     </v-dialog> -->
   </v-container>
 </template>
@@ -131,59 +104,25 @@ import VpressDatasetPanel from '../components/vpress-dataset-panel.vue'
 import VpressSearchBar from '../components/vpress-search-bar.vue'
 import VpressPaginator from '../components/vpress-paginator.vue'
 import api from '../utils/axios'
-import { loaderMixin, editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressDatasetList',
-  mixins: [loaderMixin, editorMixin],
   components: {
     VpressDatasetPanel,
     VpressSearchBar,
     VpressPaginator
   },
   data: () => ({
-    options: {},
     query: '',
-    perPage: 10,
+    perPage: 12,
     page: 1,
     total: 0,
     loading: true,
     items: [],
-    expanded: [],
-    dialog: false,
     dialogConfirmDeletion: false,
-    headers: [
-      { text: 'Nombre', value: 'name' },
-      { text: 'Permisos', value: 'permissions' },
-      { text: 'Tamaño', value: 'size' },
-      { text: 'Total', value: 'rows' },
-      { text: 'Etiquetas', value: 'tag' },
-      { text: 'Actualizado', value: 'updated' },
-      { text: 'Etiquetas', value: 'tags' },
-      { text: 'Acciones', value: 'actions' },
-    ],
-    editedIndex: -1,
-    editedItem: {
-      name: null,
-      description: null,
-      tag: null,
-      source: null,
-      permissions: null
-    },
-    defaultItem: {
-      name: null,
-      description: null,
-      tag: null,
-      permissions: 'public'
-    },
     totalDelete: 0,
     itemToDelete: null
   }),
-  computed: {
-    formTitle () {
-      return this.editedIndex === -1 ? 'Agregar' : 'Editar'
-    },
-  },
   mounted() {
     this.getDatasets()
   },
@@ -218,45 +157,8 @@ export default {
         this.loading = false
       }
     },
-    editItem (item) {
-      this.editedIndex = this.items.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-    },
-    close () {
-      this.dialog = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
-    },
     closeDialogConfirmDeletion() {
       this.dialogConfirmDeletion = false
-    },
-    async save () {
-      if (this.editedIndex > -1) {
-        try {
-          Object.assign(this.items[this.editedIndex], this.editedItem)
-          const response = await api.dataset.update({
-            id: parseInt(this.editedItem.id),
-            name: this.editedItem.name,
-            description: this.editedItem.description,
-            tag: this.editedItem.tag,
-            source: this.editedItem.source,
-            permissions: this.editedItem.permissions
-          });
-          if (response.data.error) {
-            throw new Error(response.data.error);
-          }
-          this.$store.dispatch('notifications/open', {
-            color: 'success',
-            text: 'Base de datos actualizada con éxito'
-          })
-        } catch (error) {
-          throw new Error(error.message)
-        }
-      } else {
-        this.items.push(this.editedItem)
-      }
     },
     async confirmDeletion(item) {
       this.itemToDelete = item
@@ -265,12 +167,10 @@ export default {
       this.dialogConfirmDeletion = true
     },
     async deleteItem () {
-      const index = this.items.indexOf(this.itemToDelete)
       const response = await api.dataset.delete({ data: { id: parseInt(this.itemToDelete.id) }});
       if (response.data.error) {
         throw new Error(response.data.error);
       }
-      this.items.splice(index, 1)
       this.$store.dispatch('notifications/open', {
         color: 'success',
         text: 'Base de datos eliminada con éxito'
@@ -282,7 +182,6 @@ export default {
   }
 }
 </script>
-
 <style lang="scss" scoped>
 .min-height-container {
   min-height: 450px;
@@ -294,26 +193,5 @@ export default {
   font-size: 1.2rem;
   text-align: center;
   color: #a19f9f;
-}
-
-.link {
-  cursor: pointer
-}
-a:hover {
-  text-decoration: underline;
-}
-::v-deep.v-text-field > .v-input__control > .v-input__slot {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-::v-deep.v-text-field .v-input__append-inner {
-  display: none !important;
-}
-::v-deep.v-input input {
-  background-color: transparent !important;
-}
-::v-deep.v-textarea textarea {
-  line-height: normal;
-  background-color: transparent !important;
 }
 </style>

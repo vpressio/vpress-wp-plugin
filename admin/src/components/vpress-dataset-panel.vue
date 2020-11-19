@@ -68,37 +68,7 @@
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </template>
-        <template v-slot:no-data>
-          <v-btn color="primary" @click="getDatasets">Reiniciar</v-btn>
-        </template>
-        <template v-slot:expanded-item="{ headers, item }">
-          <td :colspan="headers.length">
-            <v-container>
-              <v-row>
-                <v-col cols="4" sm="2">
-                  <div class="subtitle-2 mb-2">
-                    Base de datos
-                  </div>
-                  <v-btn
-                    small
-                    rounded
-                    class="mt-12"
-                    color="primary"
-                    @click="setDataset(item)"
-                  >
-                    Ver datos
-                  </v-btn>
-                </v-col>
-                <v-col cols="8" sm="10">
-                  <div class="subtitle-2 mb-2">
-                    Gráficas hechas con la base de datos
-                  </div>
-                  
-                </v-col>
-              </v-row>
-            </v-container>
-          </td>
-        </template>
+        
       </v-data-table> -->
   <v-expansion-panels flat>
     <v-expansion-panel
@@ -113,7 +83,18 @@
         class="pa-0 subtitle-1"
         color="#F8F8F8"
       >
-        {{ item.name }}
+        <VpressDatasetCard
+          :id="item.id"
+          :permissions="item.permissions"
+          :name="item.name"
+          :slug="item.slug"
+          :description="item.description"
+          :tag="item.tag"
+          :source="item.source"
+          :size="item.size"
+          :rows="item.rows"
+          :updated="item.updated"
+        />
       </v-expansion-panel-header>
       <v-expansion-panel-content
         class="pa-0"
@@ -208,12 +189,16 @@
   </v-expansion-panels>
 </template>
 <script>
+import VpressDatasetCard from './vpress-dataset-card.vue'
 import { loaderMixin, editorMixin } from '../mixins/index.js'
 import api from '../utils/axios.js'
 
 export default {
   name: 'VpressDatasetPanel',
   mixins: [loaderMixin, editorMixin],
+  components: {
+    VpressDatasetCard
+  },
   props: {
     items: {
       type: Array,
@@ -238,7 +223,7 @@ export default {
         this.loading = false
       } catch (error) {
         this.loading = false
-        console.error(error);
+        this.errorMessage = error.message;
       }
     },
     async loadViz(id, dataset_id) {
@@ -254,7 +239,7 @@ export default {
       } catch(error) {
         this.errorMessage = error.message;
       }
-    }
+    },
   }
 }
 </script>

@@ -40,6 +40,7 @@
         <v-col
           v-for="item in items"
           :key="item.id"
+          xl="3"
           lg="4"
           md="6"
           sm="6"
@@ -76,7 +77,7 @@ export default {
   },
   data: () => ({
     query: '',
-    perPage: 6,
+    perPage: 12,
     page: 1,
     total: 0,
     loading: true,

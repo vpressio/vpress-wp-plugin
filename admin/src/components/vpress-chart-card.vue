@@ -24,7 +24,7 @@
         </span>
         <span
           v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
-          class="link"
+          class="edit"
           @click="toggleInput('editTitle', 'title-input')"
         >
           {{ editedItem.chartValues.title }}
@@ -38,6 +38,7 @@
           v-model="editedItem.chartValues.title"
           @keydown.enter.exact.prevent
           @keyup.enter.exact="save"
+          @blur="save"
         />
       </div>
       <div class="viz-card-textarea">
@@ -50,14 +51,17 @@
         </span>
         <span
           v-if="editedItem.description.trim().length !== 0 && !editDescription"
-          class="link"
+          class="edit"
           @click="toggleInput('editDescription', 'description-input')"
         >
           {{ editedItem.description }}
         </span>
         <v-textarea
           ref="description-input"
+          counter="5"
+          :allow-overflow="false"
           v-show="editDescription"
+          item-color="primary"
           dense
           height="90"
           solo
@@ -67,6 +71,7 @@
           v-model="editedItem.description"
           @keydown.enter.exact.prevent
           @keyup.enter.exact="save"
+          @blur="save"
         />
       </div>
       <v-divider class="my-1"/>
@@ -82,6 +87,7 @@
         v-model="editedItem.tags"
         :loading="loading"
         @keyup.enter="save"
+        @blur="save"
         @click="editedTags = true"
       ></v-combobox>
       <v-card-actions>
@@ -154,7 +160,6 @@ export default {
     }
   },
   data: () => ({
-    dialog: false,
     loading: false,
     chartValues: {},
     editTitle: false,
@@ -219,13 +224,14 @@ export default {
     async save () {
       try {
         this.loading = true
-        const response = await api.chart.update({
+        const body = {
           id: parseInt(this.id),
           value: JSON.stringify(this.editedItem.chartValues),
           description: this.editedItem.description.trim(),
           tags: this.editedItem.tags.join(', '),
           permissions: this.editedItem.permissions
-        });
+        }
+        const response = await api.chart.update(body);
         this.chartValues = this.editedItem.chartValues;
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -241,7 +247,6 @@ export default {
       this.editDescription = false
       this.editedTags = false
       this.loading = false
-      this.close()
     },
     shareChart() {
       try {
@@ -264,14 +269,14 @@ export default {
         throw new Error(error.message);
       }
     },
-    close () {
-      this.dialog = false
-    },
   }
 }
 </script>
-
 <style lang="scss" scoped>
+.edit {
+  cursor: text
+}
+
 .link {
   cursor: pointer
 }
