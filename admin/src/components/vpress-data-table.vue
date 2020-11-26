@@ -1,92 +1,98 @@
 <template>
   <div>
-    <v-row>
-      <v-col cols="12">
-        <v-data-table
-          disable-sort
-          calculate-widths
-          :headers="headers"
-          :items="items"
-          :item-key="headers[0] ? headers[0].value : ''"
-          :options.sync="options"
-          :server-items-length="total"
-          :loading="loading"
-          class="elevation-0"
-        >
-          <template v-slot:[`header.${header.value}`]="props" v-for="header in headers" >
-            <div :key="header.value">
-              {{props.header.text}}
-              <v-menu
-                fixed
-                left
-                nudge-left="135"
-                :close-on-content-click="false"
+    <div class="px-9">
+      <span class="text-h6">
+        {{ this.dataset ? this.dataset.name : null}}
+        <v-divider class="mb-5"/>
+      </span>
+    </div>
+    <v-data-table
+      disable-sort
+      calculate-widths
+      :headers="headers"
+      :items="items"
+      :item-key="headers[0] ? headers[0].value : ''"
+      :options.sync="options"
+      :server-items-length="total"
+      :loading="loading"
+      class="elevation-0"
+      :mobile-breakpoint='0'
+    >
+      <template v-slot:[`header.${header.value}`]="props" v-for="header in headers">
+        <div :key="header.value" class="thead-container">
+          <div class="header-text">
+            {{ props.header.text }}
+          </div>
+          <v-spacer/>
+          <v-menu
+            fixed
+            left
+            nudge-left="135"
+            :close-on-content-click="false"
+          >
+            <template v-slot:activator="{ on }">
+              <v-btn
+                v-on="on"
+                x-small
+                icon
               >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-on="on"
-                    x-small
-                    icon
-                  >
-                    <v-icon dense>mdi-dots-vertical</v-icon>
-                  </v-btn>
+                <v-icon dense>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item @click="dialog = true; oldName = props.header.value">
+                <v-list-item-title class="font-weight-regular">
+                  Renombrar
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-group>
+                <template v-slot:activator>
+                  <v-list-item-title class="font-weight-regular">
+                    Cambiar tipo de dato
+                  </v-list-item-title>
                 </template>
-                <v-list>
-                  <v-list-item @click="dialog = true; oldName = props.header.value">
-                    <v-list-item-title class="font-weight-regular">
-                      Renombrar
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-group>
-                    <template v-slot:activator>
-                      <v-list-item-title class="font-weight-regular">
-                        Cambiar tipo de dato
-                      </v-list-item-title>
-                    </template>
-                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'text')">
-                      <v-list-item-title class="font-weight-regular pl-4">
-                        String
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'int')">
-                      <v-list-item-title class="font-weight-regular pl-4">
-                        Number
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'date')">
-                      <v-list-item-title class="font-weight-regular pl-4">
-                        Date
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="changeDataTypeColumn(props.header.value, 'boolean')">
-                      <v-list-item-title class="font-weight-regular pl-4">
-                        Boolean
-                      </v-list-item-title>
-                    </v-list-item>
-                  </v-list-group>
-                  <v-list-item @click="deleteColumn(props.header)">
-                    <v-list-item-title class="font-weight-regular">
-                      Eliminar columna
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </div>
-          </template>
-          <template v-slot:item="props">
-            <tr class="eltr">
-              <td
-                class="eltd"
-                v-for="header in props.headers"
-                :key="header.value"
-              >
-                {{ props.item[header.value] }}
-              </td>
-            </tr>
-          </template>
-        </v-data-table>
-      </v-col>
-    </v-row>
+                <v-list-item @click="changeDataTypeColumn(props.header.value, 'text')">
+                  <v-list-item-title class="font-weight-regular pl-4">
+                    String
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="changeDataTypeColumn(props.header.value, 'int')">
+                  <v-list-item-title class="font-weight-regular pl-4">
+                    Number
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="changeDataTypeColumn(props.header.value, 'date')">
+                  <v-list-item-title class="font-weight-regular pl-4">
+                    Date
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="changeDataTypeColumn(props.header.value, 'boolean')">
+                  <v-list-item-title class="font-weight-regular pl-4">
+                    Boolean
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list-group>
+              <v-list-item @click="deleteColumn(props.header)">
+                <v-list-item-title class="font-weight-regular">
+                  Eliminar columna
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </template>
+      <template v-slot:item="props">
+        <tr class="eltr">
+          <td
+            class="eltd"
+            v-for="header in props.headers"
+            :key="header.value"
+          >
+            {{ props.item[header.value] }}
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
     <v-dialog
       v-model="dialog"
       max-width="500px"
@@ -249,6 +255,21 @@ export default {
 ::v-deep .v-data-table-header {
   th {
     white-space: nowrap;
+    border-bottom: solid  1.5px !important;
+    background-color: #F3F3F3;
   }
+
 }
+
+.thead-container {
+  display: flex;
+  align-items: center;
+}
+
+.header-text {
+  min-height: 60px;
+  display: flex;  
+  align-items: center;
+}
+
 </style>

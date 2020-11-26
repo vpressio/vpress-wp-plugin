@@ -3,7 +3,7 @@ import Chart from './views/Chart.vue'
 import Vpress from './views/Vpress.vue'
 import VpressChartList from './views/ChartList.vue'
 import VpressDatasetList from './views/DatasetList.vue'
-import VpressChartEditor from './views/Editor.vue'
+import VpressEditor from './views/EditorModule.vue'
 import VpressDataModule from './views/DataModule.vue'
 
 export const privateRouter = {
@@ -33,7 +33,9 @@ export const privateRouter = {
       ]
     },
     {
-      path: '/editor', component: VpressChartEditor
+      path: '/editor/:section',
+      component: VpressEditor,
+      props: true
     }
   ]
 }

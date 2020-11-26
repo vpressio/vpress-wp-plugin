@@ -114,7 +114,6 @@
           </v-col>
         </v-row>
       </v-expansion-panel-content>
-      <v-divider/>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
@@ -162,7 +161,7 @@ export default {
         const viz = await api.chart.get(id)
         const dataset = await api.dataset.get(dataset_id)
         await this.loadSavedViz(viz.data.data, dataset.data.data)
-        this.$router.push({ path: `/editor`, query: { tab: 1 } })
+        this.$router.push({ path: `/editor/config`})
       } catch (error) {
         console.error(error);
       }
@@ -170,7 +169,7 @@ export default {
     async setDataset (dataset) {
       try {
         await this.editorInit(dataset)
-        this.$router.push('/editor')
+        this.$router.push('/data')
       } catch(error) {
         this.errorMessage = error.message;
       }

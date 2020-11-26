@@ -1,8 +1,8 @@
 <template>
   <v-row>
     <v-col  cols="12">
-      <VpressDataModuleSearch/>
-      <h2 class="px-10 font-weight-medium">Selecciona una base de datos para generar tus gráficas</h2>
+      <VpressDataModuleSearch @onSearch="handleSearch"/>
+      <h2 class="px-10 text-h5 font-weight-medium">Selecciona una base de datos para generar tus gráficas</h2>
       <VpressPaginator>
         <v-card  flat
           v-for="(item, idx) in items"
@@ -56,6 +56,10 @@ export default {
     this.getDatasets()
   },
   methods: {
+    handleSearch(query) {
+      this.query = query
+      this.getDatasets()
+    },
     async getDatasets() {
       try {
         this.loading = true

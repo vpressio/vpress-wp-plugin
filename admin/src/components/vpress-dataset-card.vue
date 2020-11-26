@@ -118,6 +118,7 @@
         </v-col>
       </v-row>
     </v-card>
+    <v-divider/>
     <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
       <v-card>
         <v-toolbar dark flat color="primary">

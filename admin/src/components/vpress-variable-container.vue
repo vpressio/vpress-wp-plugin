@@ -75,13 +75,10 @@ export default {
   components: {
     VpressVariableCard
   },
-  props: {
-    variables: {
-      type: Array,
-      required: true,
-    }
-  },
   computed: {
+    variables() {
+      return this.$store.getters['workspace/dataType'];
+    },
     linearVariables() {
       return this.variables.filter(variable => variable.type === 'linear')
     },

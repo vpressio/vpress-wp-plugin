@@ -8,27 +8,31 @@
   <v-row>
     <v-col cols="9" class="px-5">
       <v-form
-        @submit.prevent>
+        @submit.prevent="search"
+        lazy-validation
+      >
         <v-text-field
+          v-model="query"
           class="search-bar"
           hide-details
           outlined
           clearable
           placeholder="Buscar por título, descripción o etiquetas."
           append-icon="mdi-magnify"
+          @click:clear="clear"
         >
         </v-text-field>
       </v-form>
     </v-col>
     <v-col cols="3" style="display: flex;">
-      <v-spacer/>
-      <v-simple-checkbox
-      />
-      <v-spacer/>
-      <v-simple-checkbox/>
+      <!-- <v-simple-checkbox
+      /> -->
+      <!-- <v-spacer/>
       <v-spacer/>
       <v-simple-checkbox/>
       <v-spacer/>
+      <v-simple-checkbox/>
+      <v-spacer/> -->
     </v-col>
     </v-row>
   </v-toolbar>
@@ -38,7 +42,16 @@ export default {
   name: "VpressDataModuleSearch",
   data() {
     return {
-
+      query: '',
+    }
+  },
+  methods: {
+    search() {
+      this.$emit('onSearch', this.query)
+    },
+    clear() {
+      this.query = ''
+      this.$emit('onSearch', this.query)
     }
   }
 }

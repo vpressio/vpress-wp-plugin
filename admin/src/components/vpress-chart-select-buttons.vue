@@ -146,7 +146,6 @@ import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressChartSelectButtons',
-  props: ['availableCharts'],
   mixins: [editorMixin],
   data() {
     return {
@@ -165,7 +164,10 @@ export default {
         this.$store.getters['editor/chart'].chart === 'bars' &&
         this.$store.getters['editor/groupBy.slug'].length !== 0
       );
-    }
+    },
+    availableCharts() {
+      return this.$store.getters['editor/getAvailableCharts']
+    },
   },
   methods: {
     async setChartType(chartType) {
