@@ -89,6 +89,7 @@ export default {
         if (createRes.data.error) {
           throw new Error(createRes.data.error);
         }
+        console.log(uploadRes.data);
         this.$emit('update:file', uploadRes.data.data);
         this.$store.dispatch('notifications/open', {
           color: 'success',

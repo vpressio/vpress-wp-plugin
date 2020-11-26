@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <div>
     <v-row>
       <v-col cols="12">
         <v-data-table
@@ -11,7 +11,7 @@
           :options.sync="options"
           :server-items-length="total"
           :loading="loading"
-          class="elevation-1"
+          class="elevation-0"
         >
           <template v-slot:[`header.${header.value}`]="props" v-for="header in headers" >
             <div :key="header.value">
@@ -127,7 +127,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 <script>
 import api from '../utils/axios'

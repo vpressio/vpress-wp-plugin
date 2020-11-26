@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div :style="cssProps">
     <v-card
       flat
-      color="#F8F8F8"
+      :color="cardColor"
       :loading="loading"
     >
       <v-row>
-        <v-col :xs="12" :sm="12" :md="5" :lg="6" :xl="6">
+        <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
           <div class="text-truncate dataset-name">
             <span
               v-if="editedDataset.name.trim().length === 0 && !editTitle"
@@ -67,7 +67,7 @@
             />
           </div>
         </v-col>
-        <v-col :xs="12" :sm="12" :md="7" :lg="6" :xl="6">
+        <v-col :cols="12" :sm="12" :md="7" :lg="6" :xl="6">
           <v-row align="center">
             <v-col cols="10" style="display:flex;">
               <span
@@ -83,16 +83,16 @@
               </span>
               <v-spacer/>
               <span class="dataset-label">
-                ~{{ rows }} filas
+                ~{{ rows | intFormat }} filas
               </span>
               <v-spacer/>
               <span class="dataset-label ">
-                {{ updated }}
+                {{ updated | dateFormat }}
               </span>
             </v-col>
             <v-col cols="2">
               <v-spacer/>
-              <v-btn icon color="primary">
+              <v-btn icon color="primary" @click.stop="confirmDeletion">
                 <v-icon>mdi-trash-can-outline</v-icon>
               </v-btn>
             </v-col>
@@ -100,7 +100,7 @@
           <v-combobox
             class="tags-input"
             ref="tags-input"
-            background-color="#F8F8F8"
+            background-color="cardColor"
             solo
             flat
             chips
@@ -118,7 +118,33 @@
         </v-col>
       </v-row>
     </v-card>
-    
+    <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
+      <v-card>
+        <v-toolbar dark flat color="primary">
+          <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="closeDialogConfirmDeletion">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                ¿Está seguro de eliminar la base de datos? Se eliminarán <strong>{{ totalDelete }}</strong> gráficas
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="closeDialogConfirmDeletion">Cancelar</v-btn>
+          <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script>
@@ -166,6 +192,10 @@ export default {
     updated: {
       type: String,
       required: true
+    },
+    cardColor: {
+      type: String,
+      default: '#F8F8F8'
     }
   },
   data() {
@@ -174,6 +204,8 @@ export default {
       editDescription: false,
       editTitle: false,
       editedTags: false,
+      dialogConfirmDeletion: false,
+      totalDelete: 0,
       editedDataset: {
         permissions: _.clone(this.permissions),
         name: _.clone(this.name),
@@ -190,18 +222,28 @@ export default {
       tag: _.clone(this.tag),
     }
   },
+  computed: {
+    cssProps() {
+      return {
+        '--background': this.cardColor
+      }
+    }
+  },
+  filters: {
+    intFormat(number) {
+      return new Intl.NumberFormat().format(number)
+    },
+    dateFormat(update) {
+      const date = new Date(update)
+      return date.toDateString()
+    }
+  },
   methods: {
     async toggleInput(field, element) {
       this[field] = true
       await this.$nextTick();
       // Focus on the deepest node (input) of the vuetify element
-      this.$refs[element]
-          .$el
-          .firstChild
-          .firstChild
-          .firstChild
-          .firstChild
-          .focus()
+      this.$refs[element].focus()
     },
     async save () {
       try {
@@ -215,7 +257,6 @@ export default {
           tag: this.editedDataset.tag.join(', '),
           permissions: this.editedDataset.permissions
         }
-        console.log(body);
         const response = await api.dataset.update(body);
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -231,6 +272,28 @@ export default {
         throw new Error(error.message)
       }
     },
+    closeDialogConfirmDeletion() {
+      this.dialogConfirmDeletion = false
+    },
+    async confirmDeletion() {
+      const { data } = await api.dataset.charts(parseInt(this.id));
+      this.totalDelete = data.total
+      this.dialogConfirmDeletion = true
+    },
+    async deleteItem () {
+      const response = await api.dataset.delete({ data: { id: parseInt(this.id) }});
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
+      this.$store.dispatch('notifications/open', {
+        color: 'success',
+        text: 'Base de datos eliminada con éxito'
+      })
+      this.totalDelete = 0
+      this.itemToDelete = null
+      this.dialogConfirmDeletion = false
+      this.$emit('on-dataset-delete')
+    }
   }
 }
 </script>
@@ -286,7 +349,7 @@ export default {
 > .v-select__selections
 > input
 {
-  background-color: #F8F8F8 !important;
+  background-color:var(--background) !important;
 }
 
 </style>

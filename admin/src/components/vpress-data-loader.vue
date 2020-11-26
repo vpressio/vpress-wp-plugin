@@ -12,8 +12,10 @@
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('upload')"
-        >Sube tus datos</v-btn>
-        <!-- <v-btn
+        >
+          Sube tus datos
+        </v-btn>
+        <v-btn
           color="primary"
           :class="
             {
@@ -23,7 +25,9 @@
           class="uploadMethodButton"
           text
           @click="switchUploadMethod('paste')"
-        >Pega tus datos</v-btn> -->
+        >
+          Pega tus datos
+        </v-btn>
         <v-spacer />
       </v-toolbar>
     </v-row>
@@ -55,7 +59,7 @@
             class="px-3 pb-3"
             style="line-height:1"
           >
-            {{ dataSet.size }} | ~{{ dataSet.rows | intFromat }} filas
+            {{ dataSet.size }} | ~{{ dataSet.rows | intFormat }} filas
           </v-card-subtitle>
         </v-card>
       </v-col>

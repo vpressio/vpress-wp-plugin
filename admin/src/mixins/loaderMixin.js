@@ -2,7 +2,7 @@ import { vizzesIncludes } from '../helpers/index.js'
 
 export default {
   filters: {
-    intFromat(number) {
+    intFormat(number) {
       return new Intl.NumberFormat().format(number)
     },
   },

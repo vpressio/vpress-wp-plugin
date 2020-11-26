@@ -1,5 +1,6 @@
 <template>
-  <div class="config__container" :style="cssProps">
+  <div :style="cssProps">
+    <VpressAppBar/>
     <div style="width:100%;">
       <v-row class="ma-0" no-gutters>
         <v-col
@@ -96,7 +97,9 @@
                 >
                   <v-col cols="12" class="pb-0 pt-1">
                     <v-img class="db-icon" src="../assets/images/db1.svg" />
-                    <span class="db-titulo">{{ activeDataset | name }}</span>
+                    <span class="db-titulo">
+                      {{ activeDataset | name }}
+                    </span>
                     <hr class="v-divider theme--light hr-divider" />
                   </v-col>
                   <VpressVariableContainer :variables="variables"/>
@@ -154,6 +157,7 @@
   </div>
 </template>
 <script>
+import VpressAppBar from '..//components/vpress-app-bar.vue'
 import VpressDataLoader from '../components/vpress-data-loader.vue'
 import VpressVariableContainer from '../components/vpress-variable-container.vue'
 import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
@@ -168,6 +172,7 @@ import { editorMixin } from '../mixins/index.js'
 export default {
   name: 'Vpress',
   components: {
+    VpressAppBar,
     VpressDataLoader,
     VpressVariableContainer,
     VpressExpansionPanel,
@@ -272,9 +277,6 @@ export default {
 };
 </script>
 <style  scoped>
-.config__container {
-  display:flex;
-}
 
 .fill-height {
   height: 100%;
