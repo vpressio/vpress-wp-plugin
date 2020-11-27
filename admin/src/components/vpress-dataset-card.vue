@@ -7,9 +7,21 @@
     >
       <v-row>
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
-          <div class="text-truncate dataset-name">
+          <div v-if="readonly" class="text-truncate dataset-name">
             <span
-              v-if="editedDataset.name.trim().length === 0 && !editTitle"
+              v-if="(editedDataset.name.trim().length === 0 && !editTitle) "
+            >
+              Sin Título
+            </span>
+            <span
+              v-if="editedDataset.name.trim().length !== 0 && !editTitle"
+            >
+              {{ editedDataset.name }}
+            </span>
+          </div>
+          <div v-else class="text-truncate dataset-name">
+            <span
+              v-if="(editedDataset.name.trim().length === 0 && !editTitle) "
               class="link add-text-toggle"
               @click.stop="toggleInput('editTitle', 'title-input')"
             >
@@ -35,7 +47,19 @@
               @click.stop
             />
           </div>
-          <div>
+          <div v-if="readonly">
+            <span
+              v-if="editedDataset.description.trim().length === 0 && !editDescription"
+            >
+              Sin descripción
+            </span>
+            <span
+              v-if="editedDataset.description.trim().length !== 0 && !editDescription"
+            >
+              {{ editedDataset.description }}
+            </span>
+          </div>
+          <div v-else>
             <span
               v-if="editedDataset.description.trim().length === 0 && !editDescription"
               class="link add-text-toggle"
@@ -92,7 +116,7 @@
             </v-col>
             <v-col cols="2">
               <v-spacer/>
-              <v-btn icon color="primary" @click.stop="confirmDeletion">
+              <v-btn v-if="!readonly" icon color="primary" @click.stop="confirmDeletion">
                 <v-icon>mdi-trash-can-outline</v-icon>
               </v-btn>
             </v-col>
@@ -100,6 +124,7 @@
           <v-combobox
             class="tags-input"
             ref="tags-input"
+            :readonly="readonly"
             background-color="cardColor"
             solo
             flat
@@ -197,6 +222,10 @@ export default {
     cardColor: {
       type: String,
       default: '#F8F8F8'
+    },
+    readonly: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -241,10 +270,10 @@ export default {
   },
   methods: {
     async toggleInput(field, element) {
-      this[field] = true
-      await this.$nextTick();
-      // Focus on the deepest node (input) of the vuetify element
-      this.$refs[element].focus()
+        this[field] = true
+        await this.$nextTick();
+        // Focus on the deepest node (input) of the vuetify element
+        this.$refs[element].focus()
     },
     async save () {
       try {
@@ -341,6 +370,12 @@ export default {
   font-size: 0.8rem;
   text-transform: uppercase;
 
+}
+
+* >>> .tags-input
+> .v-input__control 
+> .v-input__slot {
+  background-color:var(--background) !important;
 }
 
 * >>> .tags-input

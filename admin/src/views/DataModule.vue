@@ -6,19 +6,19 @@
         cols="12"
         sm="12"
         md="4"
-        lg="3"
-        xl="3"
+        lg="2"
+        xl="2"
         class="pb-0"
       >
-        <VpressSectionBar/>
+        <VpressSectionBar :disableEditor="activeDataset === null" />
       </v-col>
       <v-col
         v-show="($vuetify.breakpoint.smAndDown && !activeDataset) || !$vuetify.breakpoint.smAndDown"
         cols="12"
         :sm="activeDataset ? 12 : 4"
         md="8"
-        lg="9"
-        xl="9"
+        lg="10"
+        xl="10"
         class="pb-0"
       >
         <v-tabs
@@ -133,20 +133,28 @@
             <v-tab-item
               :value="'upload'"
             > 
-            <div class="pa-10">
+            <div class="pa-10" style="height:100%;">
               <VpressFilepond/>
             </div>
             </v-tab-item>
             <v-tab-item
               :value="'paste'"
             > 
-              <div class="pa-10">
-                <v-textarea
-                  id="excel_data"
-                  name="excel_data"
-                  outlined
-                  placeholder="Pega tus datos desde Excel"
-                />
+              <div class="pa-10" style="height:100%;">
+                <div class="paste-area mb-4">
+                  <v-textarea
+                    id="excel_data"
+                    name="excel_data"
+                    height="400px"
+                    solo
+                    flat
+                    hide-details
+                    placeholder="Pegue aquí sus datos desde otras aplicaciones."
+                  />
+                </div>
+                <span class="text-subtitle-1 font-weight-medium">
+                  Copie y pegue sus datos de otras aplicaciones o sitios web. Puede utilizar datos tabulares formato CSV
+                </span>
               </div>
             </v-tab-item>
           </v-tabs-items>
@@ -188,7 +196,7 @@ export default {
   },
   created() {
     this.datasets = this.$store.getters['workspace/datasetMeta']
-    if(Object.keys(this.datasets).length > 0) this.proxyScreen = true;
+    if(this.datasetsRefs.length > 0) this.proxyScreen = true;
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(
@@ -201,13 +209,18 @@ export default {
           mutation.type === 'workspace/REMOVE_DATASET_META'
         ) {
           this.datasets = this.$store.getters['workspace/datasetMeta']
-          if(Object.keys(this.datasets).length > 0) this.proxyScreen = true;
+          if(this.datasetsRefs.length > 0) this.proxyScreen = true;
         }
       }
     )
   },
   beforeDestroy() {
     this.unsubscribe()
+  },
+  computed: {
+    datasetsRefs() {
+      return Object.keys(this.datasets)
+    }
   },
   methods: {
     async selectDataset(dataset) {
@@ -238,6 +251,17 @@ export default {
 }
 .dis-text-transform {
   text-transform: none;
+}
+.paste-area {
+  border: dashed #c3c3c3 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-left-radius: 30px !important ;
+  border-top-right-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+  border-bottom-left-radius: 30px !important;
+  overflow: hidden;
 }
 
 </style>

@@ -3,7 +3,10 @@
     <VpressAppBar/>
     <v-row class="px-5">
       <v-col
-        cols="3"
+        cols="12"
+        sm="12"
+        md="6"
+        lg="2"
         class="pb-0"
       >
         <VpressSectionBar/>
@@ -36,7 +39,11 @@
         </v-card>
       </v-col>
       <v-col
-        cols="3"
+        v-show="$vuetify.breakpoint.mdAndUp"
+        cols="0"
+        sm="0"
+        md="6"
+        lg="2"
         class="pb-0"
       >
         <v-toolbar class="text-center" color="primary" dark flat height="58">
@@ -50,7 +57,7 @@
           <VpressSlotGroup/>
         </v-card>
       </v-col>
-      <v-col>
+      <v-col cols="12" sm="12" md="12" lg="8">
             <VpressChartSelectButtons/>
           <v-card>
             <VpressChartGroup/>
@@ -84,6 +91,11 @@ export default {
     VpressColorSelection
 
   },
+  data() {
+    return {
+       theme: false,
+    }
+  },
   filters: {
     name(dataset){ 
       return dataset ? dataset.name : ''
@@ -95,7 +107,10 @@ export default {
       // eslint-disable-next-line vue/no-side-effects-in-computed-properties
       if (!dataset) this.activeTab = 0
       return dataset
-    }
+    },
+    themeSwitchColor() {
+      return this.theme  ? 'black' : '';
+    },
   }
 }
 
@@ -118,4 +133,6 @@ export default {
   font-size: 0.8rem;
   font-family: Roboto;
 }
+
+
 </style>

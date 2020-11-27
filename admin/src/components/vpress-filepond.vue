@@ -123,7 +123,7 @@ export default {
 
 <style lang="scss" scoped>
 .vpress-filepond {
-  border: dashed #c3c3c3;
+  border: dashed #c3c3c3 2px;
   display: flex;
   align-items: center;
   justify-content: center;

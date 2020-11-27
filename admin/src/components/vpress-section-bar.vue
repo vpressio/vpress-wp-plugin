@@ -19,6 +19,7 @@
         min-width="30"
         :to="link.path"
         active-class="nav-btn__active"
+        :disabled="disabledValidation(link)"
       >
         <v-icon>{{ link.icon }}</v-icon>
       </v-btn>
@@ -28,13 +29,24 @@
 <script>
 export default {
   name: 'VpressSectionBar',
+  props: {
+    disableEditor: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       links: [
-        { icon: 'mdi-database', path: '/data'},
-        { icon: 'mdi-database-settings', path: '/editor/config'},
-        { icon: 'mdi-brush', path: '/editor/style'},
+        { icon: 'mdi-database', path: '/data', name: 'data'},
+        { icon: 'mdi-database-settings', path: '/editor/config', name:"config"},
+        { icon: 'mdi-brush', path: '/editor/style', name: "style"},
       ]
+    }
+  },
+  methods: {
+    disabledValidation(link) {
+      return this.disableEditor && (link.name === 'config' || link.name === 'style')
     }
   }
 }
