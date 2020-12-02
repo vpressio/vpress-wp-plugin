@@ -325,9 +325,8 @@ function list_charts( $request ) {
     $query_total .= $where;
     $query .= $where;
   }
-
+  $query .= " ORDER BY updated DESC";
   $query .= " LIMIT $start_at, $per_page";
-
   $total = $wpdb->get_var($query_total);
   $data = $wpdb->get_results($query);
 

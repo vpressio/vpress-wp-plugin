@@ -12,7 +12,7 @@
       max-width="35px"
       alt="Beta image"
     />
-    <v-spacer></v-spacer>
+    <v-spacer/>
     <v-btn
       v-for="(item, index) in items"
       :key="index"
@@ -34,18 +34,13 @@ export default {
   data: () => ({
     items: [
       {
-        title: 'Análisis',
-        path: '/',
-        icon: 'mdi-table-search'
-      },
-      {
         title: 'Gráficas',
-        path: '/chart/list',
+        path: '/',
         icon: 'mdi-chart-bar'
       },
       {
         title: 'Bases de datos',
-        path: '/dataset/list',
+        path: '/datasets',
         icon: 'mdi-database'
       },
     ],

@@ -246,9 +246,9 @@ export default {
 
       vm.margin = {
           top: 10,
-          right: marginRatio(this.width, 5),
-          bottom: marginRatio(this.height, 5),
-          left:marginRatio(this.width, 5)
+          right: marginRatio(this.width, 4),
+          bottom: marginRatio(this.height, 4),
+          left:marginRatio(this.width, 4)
       }
       
 
@@ -401,7 +401,7 @@ export default {
               )
             )
           : [];
-
+      console.log(this.width);
       const config = {
         regression:
           this.chartConfig.xAxis.type === 'linear' &&
@@ -416,7 +416,8 @@ export default {
           width: this.width,
           height: this.height,
           margin: this.margin,
-          legendTranslate: this.width >= 800 ? 40 : 40// Only for heatmap legend
+          // legendTranslate: this.width >= 800 ? 40 : 40// Only for heatmap legend
+          legendTranslate: this.width >= 800 ? 60 : 40// Only for heatmap legend
         },
         xAxis: {
           enabled:

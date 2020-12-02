@@ -1,112 +1,112 @@
 <template>
-<div class="vpress-navigator">
-  <div class="vpress-app-bar">
-    <VpressAppBar/>
-  </div>
-  <v-card
-    class="vpress-sidebar"
-    tile
-    flat
-    color="#222A32"
-  >
-    <v-card 
-      class="pa-2"
+  <div class="vpress-navigator">
+    <div class="vpress-app-bar">
+      <VpressAppBar/>
+    </div>
+    <!-- <v-card
+      class="vpress-sidebar"
       tile
-      height="50"
-      color="#181D25"
       flat
+      color="#222A32"
     >
-      <v-img src="../assets/images/logo.svg" />
-      <div class="my-4">
-        <v-btn
-          class="py-3 my-2"
-          v-for="dataset in datasets"
-          :key="dataset"
-          x-small
-          block
-          :color="
-            $store.getters['workspace/activeDataset'] &&
-            $store.getters['workspace/activeDataset'].slug === dataset 
-              ? 'secondary'
-              : 'primary'
-          "
-          @click="selectDataset(dataset)"
-        >
-          <v-tooltip
-            attach
-            right
-            offset-x
+      <v-card 
+        class="pa-2"
+        tile
+        height="50"
+        color="#181D25"
+        flat
+      >
+        <v-img src="../assets/images/logo.svg" />
+        <div class="my-4">
+          <v-btn
+            class="py-3 my-2"
+            v-for="dataset in datasets"
+            :key="dataset"
+            x-small
+            block
+            :color="
+              $store.getters['workspace/activeDataset'] &&
+              $store.getters['workspace/activeDataset'].slug === dataset 
+                ? 'secondary'
+                : 'primary'
+            "
+            @click="selectDataset(dataset)"
           >
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon
-                small
-                v-bind="attrs"
-                v-on="on"
-              >
-                mdi-database
-              </v-icon>
-            </template>
-            <span> {{ dataset }} </span>
-          </v-tooltip>
-        </v-btn>
-        <v-btn
-          v-if="datasets.length > 0"
-          class="py-3 my-2"
-          x-small
-          block
-          color="primary"
-          @click="addDataset"
-        >
-          <v-tooltip
-            attach
-            right
-            offset-x
+            <v-tooltip
+              attach
+              right
+              offset-x
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-icon
+                  small
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-database
+                </v-icon>
+              </template>
+              <span> {{ dataset }} </span>
+            </v-tooltip>
+          </v-btn>
+          <v-btn
+            v-if="datasets.length > 0"
+            class="py-3 my-2"
+            x-small
+            block
+            color="primary"
+            @click="addDataset"
           >
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon
-                small
-                v-bind="attrs"
-                v-on="on"
-              >
-                mdi-plus
-              </v-icon>
-            </template>
-            <span> Nuevo </span>
-          </v-tooltip>
-        </v-btn>
-      </div>
-    </v-card>
-  </v-card>
-  <div class='vpress-navigation-view'>
-    <router-view :key="$route.path"/>
-    <v-snackbar
-      dark
-      bottom
-      right
-      v-model="$store.state.notifications.show"
-      :timeout="$store.state.notifications.timeout"
-      :color="$store.state.notifications.color"
-    >
-      {{ $store.state.notifications.text }}
-      <template v-slot:action="{ attrs }">
-        <v-btn
-          color="white"
-          text
-          v-bind="attrs"
-          @click="snackbar = $store.dispatch('notifications/close')"
-        >
-          Cerrar
-        </v-btn>
-      </template>
-    </v-snackbar>
-    <v-tour
-      name="vpress-tour"
-      :steps="tourSteps"
-      :options="tourOptions"
-      :callbacks="tourCallbacks"
-    />
+            <v-tooltip
+              attach
+              right
+              offset-x
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-icon
+                  small
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  mdi-plus
+                </v-icon>
+              </template>
+              <span> Nuevo </span>
+            </v-tooltip>
+          </v-btn>
+        </div>
+      </v-card>
+    </v-card> -->
+    <div class='vpress-navigation-view'>
+      <router-view :key="$route.path"/>
+      <v-snackbar
+        dark
+        bottom
+        right
+        v-model="$store.state.notifications.show"
+        :timeout="$store.state.notifications.timeout"
+        :color="$store.state.notifications.color"
+      >
+        {{ $store.state.notifications.text }}
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="white"
+            text
+            v-bind="attrs"
+            @click="snackbar = $store.dispatch('notifications/close')"
+          >
+            Cerrar
+          </v-btn>
+        </template>
+      </v-snackbar>
+      <v-tour
+        name="vpress-tour"
+        :steps="tourSteps"
+        :options="tourOptions"
+        :callbacks="tourCallbacks"
+      />
+    </div>
   </div>
-</div>
 </template>
 <script>
 import VpressAppBar from '../components/vpress-app-bar.vue';
@@ -304,37 +304,28 @@ export default {
 </script>
 <style lang="scss" scoped>
 .vpress-navigator {
-  display: grid;
+  width:100%;
   height:100%;
-  grid-template-columns: 45px 1fr;
-  grid-template-rows: 45px 1fr;
 }
 
 .vpress-app-bar {
-  grid-area: 1/1/2/3;
+  height: 48px;
+  width: 100%
 }
 
 .vpress-navigation-view {
-  grid-area: 2/2;
+  width: 100%;
+  height:calc(100% - 48px);
+  background-color:#F8F8F8;
 }
 .vpress-sidebar {
-  grid-area: 2/1/2/2;
-}
-.beta-banner-container {
-  position: absolute;
-  z-index: 3;
-  margin-left: calc(100% - 100px);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.beta-banner {
-  width: 100px
+  grid-area: 1/1/2/2;
 }
 
 .v-input input {
   border: none;
 }
+
 .v-snack:not(.v-snack--absolute) {
   z-index: 99999 !important;
 }

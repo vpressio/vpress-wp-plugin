@@ -4,7 +4,7 @@
 function vpress_shortcode($atts) {
   //set default attributes and values
   $values = shortcode_atts( array(
-    'url' => "//" . $_SERVER['HTTP_HOST'],
+    'url' => get_home_url(),
     'id' => $atts['id']
   ), $atts );
   return '

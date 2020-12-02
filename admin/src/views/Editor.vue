@@ -1,156 +1,156 @@
 <template>
-    <div class="config__container" :style="cssProps">
-      <div style="width:100%;">
-        <v-row class="ma-0" no-gutters>
-          <v-col
-            class="pa-0"
-            :cols="
-              $vuetify.breakpoint.lgAndDown
-                ? 2
-                : 2
-            "
+  <div class="config__container" :style="cssProps">
+    <div style="width:100%;">
+      <v-row class="ma-0" no-gutters>
+        <v-col
+          class="pa-0"
+          :cols="
+            $vuetify.breakpoint.lgAndDown
+              ? 2
+              : 2
+          "
+        >
+          <v-tabs
+            dark
+            class="config-tabs"
+            v-model="activeTab"
+            background-color="primary"
+            color="white"
+            grow
           >
-            <v-tabs
-              dark
-              class="config-tabs"
-              v-model="activeTab"
-              background-color="primary"
-              color="white"
-              grow
+            <v-tab>
+              DATOS
+            </v-tab>
+            <v-tab :disabled="variables.length === 0">
+              CONFIGURA
+            </v-tab>
+            <v-tab
+              class="v-step-8"
+              :disabled="variables.length === 0"
             >
-              <v-tab>
-                DATOS
-              </v-tab>
-              <v-tab :disabled="variables.length === 0">
-                CONFIGURA
-              </v-tab>
-              <v-tab
-                class="v-step-8"
-                :disabled="variables.length === 0"
-              >
-                ESTILO
-              </v-tab>
-            </v-tabs>
-          </v-col>
-          <v-col
-            class="py-0"
-            :cols="
-              this.$vuetify.breakpoint.lgAndDown
-                ? 10
-                : 10
-            "
+              ESTILO
+            </v-tab>
+          </v-tabs>
+        </v-col>
+        <v-col
+          class="py-0"
+          :cols="
+            this.$vuetify.breakpoint.lgAndDown
+              ? 10
+              : 10
+          "
+        >
+          <div
+            class="tributton-container"
+            v-show="activeTab !== 0"
           >
-            <div
-              class="tributton-container"
-              v-show="activeTab !== 0"
+            <v-btn
+              class="left-button"
+              outlined
+              color="primary"
+              @click="saveChart"
             >
-              <v-btn
-                class="left-button"
-                outlined
-                color="primary"
-                @click="saveChart"
-              >
-                <v-icon left color="primary">
-                  mdi-content-save
-                </v-icon>
-                Guardar
-              </v-btn>
-              <v-btn
-                v-if="
-                  $store.getters['editor/chart'].chart !== 'map'
-                "
-                class="middle-button" outlined color="primary"
-                @click="downloadChartImg"
-              >
-                <v-icon left color="primary">
-                  mdi-download
-                </v-icon>
-                Descargar
-              </v-btn>
-              <v-btn
-                class="right-button"
-                outlined
-                color="primary"
-                @click="clipboardCopy"
-              >
-                <v-icon left color="primary">
-                  mdi-share-variant
-                </v-icon>
-                Compartir
-              </v-btn>
-            </div>
-          </v-col>
-          <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
-            <v-card class="pb-5">
-              <v-tabs-items v-model="activeTab">
-                <v-tab-item>
-                  <VpressDataLoader
-                    v-if="activeTab === 0"
-                    :tabChange.sync="activeTab"
-                  />
-                </v-tab-item>
-                <v-tab-item>
-                  <VpressExpansionPanel
-                    v-if="activeTab !== 0"
-                    panelTitle="ARRASTRA LA SELECCIÓN"
-                  >
-                    <v-col cols="12" class="pb-0 pt-1">
-                      <v-img class="db-icon" src="../assets/images/db1.svg" />
-                      <span class="db-titulo">{{ activeDataset | name }}</span>
-                      <hr class="v-divider theme--light hr-divider" />
-                    </v-col>
-                    <VpressVariableContainer :variables="variables"/>
+              <v-icon left color="primary">
+                mdi-content-save
+              </v-icon>
+              Guardar
+            </v-btn>
+            <v-btn
+              v-if="
+                $store.getters['editor/chart'].chart !== 'map'
+              "
+              class="middle-button" outlined color="primary"
+              @click="downloadChartImg"
+            >
+              <v-icon left color="primary">
+                mdi-download
+              </v-icon>
+              Descargar
+            </v-btn>
+            <v-btn
+              class="right-button"
+              outlined
+              color="primary"
+              @click="clipboardCopy"
+            >
+              <v-icon left color="primary">
+                mdi-share-variant
+              </v-icon>
+              Compartir
+            </v-btn>
+          </div>
+        </v-col>
+        <v-col class="pa-0" :cols="numberOfColsIftabIsNotZero">
+          <v-card class="pb-5">
+            <v-tabs-items v-model="activeTab">
+              <v-tab-item>
+                <VpressDataLoader
+                  v-if="activeTab === 0"
+                  :tabChange.sync="activeTab"
+                />
+              </v-tab-item>
+              <v-tab-item>
+                <VpressExpansionPanel
+                  v-if="activeTab !== 0"
+                  panelTitle="ARRASTRA LA SELECCIÓN"
+                >
+                  <v-col cols="12" class="pb-0 pt-1">
+                    <v-img class="db-icon" src="../assets/images/db1.svg" />
+                    <span class="db-titulo">{{ activeDataset | name }}</span>
+                    <hr class="v-divider theme--light hr-divider" />
+                  </v-col>
+                  <VpressVariableContainer :variables="variables"/>
+                </VpressExpansionPanel>
+              </v-tab-item>
+              <v-tab-item>
+                <div v-if="activeTab !== 0">
+                  <VpressExpansionPanel panelTitle="TEMA">
+                    <VpressInputControl inputName="Tema">
+                      <v-switch
+                        dense
+                        inset
+                        v-model="theme"
+                        :color="themeSwitchColor"
+                        class="config-switch"
+                        :value-comparator="(e)=> console.log(e)"
+                      />
+                    </VpressInputControl>
                   </VpressExpansionPanel>
-                </v-tab-item>
-                <v-tab-item>
-                  <div v-if="activeTab !== 0">
-                    <VpressExpansionPanel panelTitle="TEMA">
-                      <VpressInputControl inputName="Tema">
-                        <v-switch
-                          dense
-                          inset
-                          v-model="theme"
-                          :color="themeSwitchColor"
-                          class="config-switch"
-                          :value-comparator="(e)=> console.log(e)"
-                        />
-                      </VpressInputControl>
-                    </VpressExpansionPanel>
-                    <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-                      <VpressColorSelection />
-                    </VpressExpansionPanel>
-                  </div>
-                </v-tab-item>
-              </v-tabs-items>
-            </v-card>
-          </v-col>
-          <v-col
-            lg="2"
+                  <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+                    <VpressColorSelection />
+                  </VpressExpansionPanel>
+                </div>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card>
+        </v-col>
+        <v-col
+          lg="2"
+          v-if="
+            activeTab !== 0
+            
+          "
+          v-show="activeTab === 1"
+          class="pa-0 pl-2"
+        >
+          <VpressSlotGroup/>
+        </v-col>
+        <v-col
+          class="py-0 px-2"
             v-if="
-              activeTab !== 0
-              
-            "
-            v-show="activeTab === 1"
-            class="pa-0 pl-2"
-          >
-            <VpressSlotGroup/>
-          </v-col>
-          <v-col
-            class="py-0 px-2"
-             v-if="
-              activeTab !== 0
-            "
-            v-show="numberOfColsIftabIsNotZero !== '12'"
-            :md="activeTab === 1 ? 8 : 10"
-          >
-            <v-card>
-              <VpressChartSelectButtons :availableCharts="availableCharts" />
-              <VpressChartGroup
-              />
-            </v-card>
-          </v-col>
-        </v-row>
-      </div>
+            activeTab !== 0
+          "
+          v-show="numberOfColsIftabIsNotZero !== '12'"
+          :md="activeTab === 1 ? 8 : 10"
+        >
+          <v-card>
+            <VpressChartSelectButtons :availableCharts="availableCharts" />
+            <VpressChartGroup
+            />
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
   </div>
 </template>
 <script>
@@ -228,7 +228,6 @@ export default {
     async saveChart() {
       try {
         await this.$store.dispatch('editor/SAVE_CHART');
-        console.log(this.$store.getters['editor/viz']);
         stringChart(
           `#empty_chart_0`,
           this.$store.getters['editor/viz'].id

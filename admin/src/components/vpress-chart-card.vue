@@ -1,152 +1,120 @@
 <template>
-  <div>
-    <v-card
-      v-if="!deletedCard"
-      :loading="loading"
-      class="mx-auto"
-    >
+  <v-card
+    :loading="loading"
+    class="mx-auto"
+  >
+    <div class="mx-5 pt-4">
       <v-img
+        class="link mb-3"
         contain
-        color="#222A32"
-        class="link"
-        :src="img_url"
         @click="createChart"
-      ></v-img>
-      <v-card-title class="link">
+        color="#222A32"
+        :src="img_url"
+      />
+    </div>
+    <v-divider/>
+    <div class="mx-5">
+      <div class="link text-truncate viz-card-title">
+        <span
+          v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
+          class="link add-text-toggle"
+          @click="toggleInput('editTitle', 'title-input')"
+        >
+          Agregar Título
+        </span>
+        <span
+          v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
+          class="edit"
+          @click="toggleInput('editTitle', 'title-input')"
+        >
+          {{ editedItem.chartValues.title }}
+        </span>
         <v-text-field
+          ref="title-input"
+          v-show="editTitle"
+          dense
           solo
           flat
-          dense
-          hide-details
-          label="Agregar título"
-          v-model.trim="editedItem.chartValues.title"
-          :loading="loading"
-          @keyup.enter="save"
-          @click="editedTitle = true"
-          :readonly="!editedTitle"
+          v-model="editedItem.chartValues.title"
+          @keydown.enter.exact.prevent
+          @keyup.enter.exact="save"
+          @blur="save"
+        />
+      </div>
+      <div class="viz-card-textarea">
+        <span
+          v-if="editedItem.description.trim().length === 0 && !editDescription"
+          class="link add-text-toggle"
+          @click="toggleInput('editDescription', 'description-input')"
         >
-        </v-text-field>
-      </v-card-title>
-      <v-card-text>
+          Agregar descripción
+        </span>
+        <span
+          v-if="editedItem.description.trim().length !== 0 && !editDescription"
+          class="edit"
+          @click="toggleInput('editDescription', 'description-input')"
+        >
+          {{ editedItem.description }}
+        </span>
         <v-textarea
-          solo
-          flat
+          ref="description-input"
+          counter="5"
+          :allow-overflow="false"
+          v-show="editDescription"
+          item-color="primary"
           dense
-          rows="2"
-          no-resize
-          single-line
-          hide-details
-          label="Agregar descripción"
-          v-model.trim="editedItem.description"
-          :loading="loading"
-          @keydown.enter.prevent=""
-          @keyup.enter="save"
-          @click="editedDescription = true"
-          :readonly="!editedDescription"
-        >
-        </v-textarea>
-      </v-card-text>
-      <v-divider class="mx-4"></v-divider>
-      <v-card-text>
-        <v-combobox
+          height="90"
           solo
           flat
-          chips
-          multiple
+          maxlength="140"
           hide-details
-          deletable-chips
-          color="primary"
-          label="Agregar etiquetas"
-          v-model="editedItem.tags"
-          :loading="loading"
-          @keyup.enter="save"
-          @click="editedTags = true"
-        ></v-combobox>
-      </v-card-text>
+          v-model="editedItem.description"
+          @keydown.enter.exact.prevent
+          @keyup.enter.exact="save"
+          @blur="save"
+        />
+      </div>
+      <v-divider class="my-1"/>
+      <v-combobox
+        solo
+        flat
+        chips
+        multiple
+        hide-details
+        deletable-chips
+        color="primary"
+        label="Agregar etiquetas"
+        v-model="editedItem.tags"
+        :loading="loading"
+        @keyup.enter="save"
+        @blur="save"
+        @click="editedTags = true"
+      ></v-combobox>
       <v-card-actions>
-        <v-row class="px-4" align="center">
-          <v-col>
-            <span
-              @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
-              class="link text-uppercase mr-2 font-weight-bold"
-              :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
-            >
-              {{ editedItem.permissions }}
-            </span>
-            <span class="grey--text">
-              <v-icon small>mdi-clock-outline</v-icon>
-              {{ updated }}
-            </span>
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <v-btn v-if="false" icon color="primary" @click="dialog = true">
-              <v-icon small>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn icon color="primary" @click="shareChart">
-              <v-icon small>mdi-share-variant</v-icon>
-            </v-btn>
-            <v-btn icon color="error1" @click="deleteChart">
-              <v-icon small>mdi-delete</v-icon>
-            </v-btn>
-          </v-col>
+        <v-row align="center">
+          <span
+            @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+            class="link text-uppercase mr-2 font-weight-bold"
+            :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
+          >
+            {{ editedItem.permissions }}
+          </span>
+          <v-spacer/>
+          <span class="grey--text">
+            <v-icon small>mdi-clock-outline</v-icon>
+            {{ updated }}
+          </span>
+          <v-spacer/>
+          <v-btn icon color="primary" @click="shareChart">
+            <v-icon>mdi-share-variant-outline</v-icon>
+          </v-btn>
+          <v-btn icon color="primary" @click="deleteChart">
+            <v-icon>mdi-trash-can-outline</v-icon>
+          </v-btn>
         </v-row>
       </v-card-actions>
-    </v-card>
-    <v-dialog v-model="dialog" max-width="500px" scrollable eager>
-      <v-card>
-        <v-toolbar dark flat color="primary">
-          <v-toolbar-title>Editar</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon dark @click="close">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-divider/>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field v-model="editedItem.chartValues.title" label="Nombre"></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  rows="2"
-                  no-resize
-                  label="Descripción"
-                  v-model="editedItem.description"
-                ></v-textarea>
-              </v-col>
-              <v-col cols="12">
-                <v-combobox
-                  v-model="editedItem.tags"
-                  label="Etiquetas"
-                  multiple
-                  chips
-                  deletable-chips
-                ></v-combobox>
-              </v-col>
-              <v-col cols="12">
-                <v-select
-                  v-model="editedItem.permissions"
-                  :items="[
-                    { value: 'public', text: 'Público' },
-                    { value: 'private', text: 'Privado' },
-                  ]"
-                  label="Permisos"
-                ></v-select>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider/>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="close">Cancelar</v-btn>
-          <v-btn color="primary" @click="save">Guardar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+    </div>
+  </v-card>
 </template>
 <script>
 import * as _ from 'lodash'
@@ -192,13 +160,11 @@ export default {
     }
   },
   data: () => ({
-    dialog: false,
     loading: false,
     chartValues: {},
-    deletedCard: false,
-    editedTitle: false,
+    editTitle: false,
     editedTags: false,
-    editedDescription: false,
+    editDescription: false,
     editedItem: {
       chartValues: {
         title: '',
@@ -218,13 +184,25 @@ export default {
     }
   },
   methods: {
+    async toggleInput(field, element) {
+      this[field] = true
+      await this.$nextTick();
+      //Focus on the deepest node (input) of the vuetify element
+      this.$refs[element]
+          .$el
+          .firstChild
+          .firstChild
+          .firstChild
+          .firstChild
+          .focus()
+    },
     async createChart () {
       try {
         this.loading = true
         const viz = await api.chart.get(this.id)
         const dataset = await api.dataset.get(this.dataset_id)
         await this.loadSavedViz(viz.data.data, dataset.data.data)
-        this.$router.push({ path: `/`, query: { tab: 1 } })
+        this.$router.push({ path: `/editor`, query: { tab: 1 } })
         this.loading = false
       } catch (error) {
         this.loading = false
@@ -235,7 +213,7 @@ export default {
       try {
         this.loading = true
         const response = await api.chart.delete({ data: { id: parseInt(this.id) }});
-        this.deletedCard = true
+        this.$emit('onDeleted')
         this.loading = false
         return response
       } catch (error) {
@@ -246,13 +224,14 @@ export default {
     async save () {
       try {
         this.loading = true
-        const response = await api.chart.update({
+        const body = {
           id: parseInt(this.id),
           value: JSON.stringify(this.editedItem.chartValues),
-          description: this.editedItem.description,
+          description: this.editedItem.description.trim(),
           tags: this.editedItem.tags.join(', '),
           permissions: this.editedItem.permissions
-        });
+        }
+        const response = await api.chart.update(body);
         this.chartValues = this.editedItem.chartValues;
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -264,11 +243,10 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      this.editedTitle = false
-      this.editedDescription = false
+      this.editTitle = false
+      this.editDescription = false
       this.editedTags = false
       this.loading = false
-      this.close()
     },
     shareChart() {
       try {
@@ -291,14 +269,14 @@ export default {
         throw new Error(error.message);
       }
     },
-    close () {
-      this.dialog = false
-    },
   }
 }
 </script>
-
 <style lang="scss" scoped>
+.edit {
+  cursor: text
+}
+
 .link {
   cursor: pointer
 }
@@ -315,4 +293,25 @@ a:hover {
 ::v-deep.v-textarea textarea {
   line-height: normal;
 }
+
+.viz-card-textarea {
+  margin-top: 6px;
+  height: 90px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.viz-card-title {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-top: 2%;
+  height: 35px;
+}
+
+.add-text-toggle{
+  color: #21A7F3;
+  font-weight: 400;
+}
+
 </style>

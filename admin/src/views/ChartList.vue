@@ -1,35 +1,16 @@
 <template>
   <v-container>
-    <v-form
-      ref="form"
-      @submit.prevent="getCharts"
-      lazy-validation
+    <VpressSearchBar
+      @onSearch="handleSearch"
+      btnLabel="Nueva gráfica"
+      btnRoute="/editor"
+    />
+    <v-row
+      v-show="loading"
+      class="min-height-container"
+      justify="center"
+      align-content="center"
     >
-      <v-row justify="space-between">
-        <v-col>
-          <v-text-field
-            name="search"
-            label="Buscar por título, descripción o etiquetas"
-            solo
-            clearable
-            v-model="q"
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-          ></v-text-field>
-        </v-col>
-        <v-col class="shrink">
-          <v-btn
-            large
-            color="primary"
-            type="submit"
-          >
-            Buscar
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-form>
-    <v-divider class="my-6"></v-divider>
-    <v-row v-show="loading" justify="center" align-content="center" style="height:300px;">
       <v-progress-circular
         :size="70"
         :width="7"
@@ -37,80 +18,123 @@
         indeterminate
       />
     </v-row>
-    <v-data-iterator
-      v-show="!loading"
-      :items="items"
-      :options.sync="options"
-      :server-items-length="total"
-      :loading="loading"
+    <v-row
+      class="min-height-container"
+      v-show="!loading && total === 0"
+      justify-center
+    > 
+      <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+        <h1 class="initial-msg-title">Te damos la bienvenida a Vpress</h1>
+        <span class="initial-msg">
+          Aquí se mostrarán tus visualizaciones, una vez que se hayan creado.
+        </span>
+      </v-col>
+    </v-row>
+    <VpressPagination
+      v-show="!loading && total > 0"
+      :total="total"
+      :perPage="perPage"
+      @onPageChange="handlePageChange"
     >
-      <template v-slot:default="props">
-        <v-row>
-          <v-col
-            v-for="item in props.items"
-            :key="item.id"
-            cols="12"
-            sm="4"
-          >
-            <vpress-chart-card
-              :id="item.id"
-              :dataset_id="item.dataset_id"
-              :description="item.description"
-              :permissions="item.permissions"
-              :img_url="item.img_url"
-              :updated="item.updated"
-              :value="item.value"
-              :tags="item.tags"
-            />
-          </v-col>
-        </v-row>
-      </template>
-    </v-data-iterator>
+      <v-row>
+        <v-col
+          v-for="item in items"
+          :key="item.id"
+          xl="3"
+          lg="4"
+          md="6"
+          sm="6"
+          xs="12"
+        >
+          <vpress-chart-card
+            :id="item.id"
+            :dataset_id="item.dataset_id"
+            :description="item.description"
+            :permissions="item.permissions"
+            :img_url="item.img_url"
+            :updated="item.updated"
+            :value="item.value"
+            :tags="item.tags"
+            @onDeleted="getCharts"
+          />
+        </v-col>
+      </v-row>
+    </VpressPagination>
   </v-container>
 </template>
 <script>
 import VpressChartCard from '@/components/vpress-chart-card.vue'
+import VpressSearchBar from '@/components/vpress-search-bar.vue'
+import VpressPagination from '@/components/vpress-paginator.vue'
 import api from '../utils/axios'
 
 export default {
   name: 'VpressChartList',
   components: {
     VpressChartCard,
+    VpressSearchBar,
+    VpressPagination
   },
   data: () => ({
-    q: null,
+    query: '',
+    perPage: 12,
+    page: 1,
     total: 0,
-    options: {},
     loading: true,
     items: []
   }),
-  watch: {
-    options: {
-      async handler () {
-        await this.getCharts()
-      },
-      deep: true,
-    },
+  mounted() {
+    this.getCharts()
   },
   methods: {
+    handlePageChange(page) {
+      this.page = page
+      this.getCharts()
+    },
+    handleSearch(query) {
+      this.query = query
+      this.getCharts()
+    },
     async getCharts() {
-      this.loading = true
-      const { page, itemsPerPage } = this.options
-      const obj = {
-        page,
-        itemsPerPage,
-        q: this.q
+      try {
+        this.loading = true
+        const obj = {
+          page: this.page,
+          itemsPerPage: this.perPage,
+          q: this.query
+        }
+        const { data } = await api.chart.list(obj);
+        data.data.forEach(element => {
+          element.tags = element.tags
+            ? element.tags.split(', ')
+            : element.tags = []
+        });
+        this.items = data.data
+        this.total = data.total
+        this.loading = false
+      } catch (error) {
+        console.error(error.message);
+        this.loading = false
       }
-      const { data } = await api.chart.list(obj);
-      data.data.forEach(element => {
-        element.tags = element.tags
-          ? element.tags.split(', ')
-          : element.tags = []
-      });
-      this.items = data.data
-      this.total = data.total
-      this.loading = false
     }
   }
 }
 </script>
+<style scoped>
+  .min-height-container {
+    min-height: 450px;
+  }
+  .initial-msg-title {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .initial-msg {
+    display: flex;
+    justify-content: center;
+    font-size: 1.2rem;
+    text-align: center;
+    color: #a19f9f;
+  }
+</style>

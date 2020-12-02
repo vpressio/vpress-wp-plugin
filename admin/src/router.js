@@ -16,9 +16,9 @@ export const privateRouter = {
       component: Vpress,
       props: true,
       children: [
-        { path: '/', component: VpressChartEditor },
-        { path: '/chart/list', component: VpressChartList },
-        { path: '/dataset/list', component: VpressDatasetList },
+        { path: '/', component: VpressChartList },
+        { path: '/datasets', component: VpressDatasetList },
+        { path: '/editor', component: VpressChartEditor }
       ]
     }
   ]
