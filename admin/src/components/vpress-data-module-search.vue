@@ -24,16 +24,6 @@
         </v-text-field>
       </v-form>
     </v-col>
-    <v-col cols="3" style="display: flex;">
-      <!-- <v-simple-checkbox
-      /> -->
-      <!-- <v-spacer/>
-      <v-spacer/>
-      <v-simple-checkbox/>
-      <v-spacer/>
-      <v-simple-checkbox/>
-      <v-spacer/> -->
-    </v-col>
     </v-row>
   </v-toolbar>
 </template>

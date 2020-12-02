@@ -93,7 +93,7 @@
         </v-col>
         <v-col :cols="12" :sm="12" :md="7" :lg="6" :xl="6">
           <v-row align="center">
-            <v-col cols="10" style="display:flex;">
+            <v-col cols="10" class="dataset-info">
               <span
                 @click.stop="editedDataset.permissions === 'public' ? editedDataset.permissions = 'private' : editedDataset.permissions = 'public'; save()"
                 class="link permissions-label"
@@ -386,6 +386,9 @@ export default {
 > input
 {
   background-color:var(--background) !important;
+}
+.dataset-info {
+  display:flex;
 }
 
 </style>

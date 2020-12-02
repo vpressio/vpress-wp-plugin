@@ -1,9 +1,9 @@
 <template>
   <v-row class="ma-0 v-step-9">
     <v-col class="pa-0" v-for="schemeType in colorSchemes" :key="schemeType.colorSchemeType">
-      <div flat class="ma-3" style="font-size: 0.8rem">
+      <div flat class="ma-3 schema-label-size">
         {{ schemeType.colorSchemeType }}
-        <div style="display:flex">
+        <div class="schemes-container">
           <v-card
             v-for="(scheme, schemeIndex) in schemeType.schemes"
             :key="`scheme_${schemeIndex}`"
@@ -73,3 +73,13 @@ export default {
   }
 };
 </script>
+<style scoped>
+
+.schema-label-size {
+  font-size: 0.8rem;
+}
+
+.schemes-container {
+  display:flex;
+}
+</style>

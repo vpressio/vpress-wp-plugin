@@ -11,7 +11,7 @@
         <div class=" elevation-2 editor-card">
           <VpressSectionBar/>
           <div v-if="$attrs.section === 'config'">
-            <div class="px-2 py-2" style="display:flex;width:100%;background-color:#322E71;color:#FFF">
+            <div class="px-2 py-2 dataset-card">
               <v-btn
                 dark
                 class="mx-2 px-1 py-3"
@@ -26,7 +26,6 @@
                     ? 'secondary'
                     : '#817DB0'
                 "
-                @click="selectDataset(dataset)"
               >
                 <v-tooltip
                 attach
@@ -91,10 +90,12 @@
         </div>
       </v-col>
       <v-col cols="12" sm="12" md="12" lg="8">
-        <div class="elevation-2 editor-card">
-          <VpressVizToolbar/>
-          <VpressVizButtons/>
-          <VpressChartGroup/>
+        <div class="elevation-2 editor-viz-card">
+          <div class="viz-card--content">
+            <VpressVizToolbar/>
+            <VpressVizButtons/>
+            <VpressChartGroup/>
+          </div>
         </div>
       </v-col>
     </v-row>
@@ -133,6 +134,9 @@ export default {
       theme: false
     }
   },
+  mounted() {
+    console.log(window.innerHeight);
+  },
   filters: {
     name(dataset){ 
       return dataset ? dataset.name : ''
@@ -140,7 +144,6 @@ export default {
   },
   computed: {
     datasets() {
-      console.log(this.$store.getters['workspace/datasetMeta']);
       return this.$store.getters['workspace/datasetMeta']
     },
     activeDataset() {
@@ -183,4 +186,19 @@ export default {
   background-color: #FFF;
 }
 
+.editor-viz-card {
+  background-color: #F8F8F8;
+  height: 100%;
+}
+
+.dataset-card {
+  display:flex;
+  width:100%;
+  background-color:#322E71;
+  color:#FFF
+}
+
+.viz-card--content {
+  background-color: #FFF;
+}
 </style>
