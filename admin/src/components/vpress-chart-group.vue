@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <div style="min-height:600px;position:relative;">
+  <div :style="cssProps" ref="chart-group">
+    <div class="chart-container" >
       <div
-        v-show="loadingViz"
         class="progress--layer"
+        v-show="loadingViz"
       >
         <v-progress-circular
           :size="70"
@@ -16,6 +16,7 @@
         :id="`empty_chart_0`"
         :chartConfig="viz.getValues ? viz.getValues() : {}"
         :data="viz.getData ? viz.getData() : []"
+        :height="this.vizHeight"
         @chart_loaded="onChartIsLoaded"
       />
     </div>
@@ -43,7 +44,9 @@
         color="primary"
         @click.stop.prevent="removeViz(chartIndex)"
       >
-        <v-icon>mdi-close</v-icon>
+        <v-icon>
+          mdi-close
+        </v-icon>
       </v-btn>
     </v-btn>
   </div>
@@ -59,15 +62,22 @@ export default {
     VpressChartContainer
   },
   mixins: [loaderMixin, editorMixin],
+  props: {
+    cardHeight: {
+      type: Number
+    }
+  },
   data() {
     return {
       openTab: this.$store.getters['editor/vizzes']()
         ? this.$store.getters['editor/vizzes']().open
         : this.$store.getters['editor/vizzes'](),
       tabs: [],
+      vizHeight: Math.floor(window.innerHeight / 3 * 2)
     };
   },
   mounted() {
+    window.addEventListener('resize', this.resizeVizHeight)
     this.tabs = this.$store.getters['editor/vizzes']()
       ? this.$store.getters['editor/vizzes']().vizzes
       : this.$store.getters['editor/vizzes']()
@@ -82,9 +92,20 @@ export default {
     )
   },
   beforeDestroy() {
+    window.removeEventListener('resize', this.resizeVizHeight)
     this.unsubscribe();
   },
+  computed: {
+    cssProps() {
+      return {
+        '--cardHeight': `${this.vizHeight}px`
+      }
+    }
+  },
   methods: {
+    resizeVizHeight() {
+      this.vizHeight = Math.floor(window.innerHeight / 3 * 2)
+    },
     async addViz() {
       try {
         this.openTab = await this.$store.dispatch('editor/ADD_VIZ', {})
@@ -240,14 +261,18 @@ export default {
 </script>
 <style scoped>
 
+.chart-container {
+  min-height: var(--cardHeight);
+  position: relative;
+}
+
 .progress--layer {
-  position:absolute;
-  z-index: 10;
+  position: absolute;
   width:100%;
   height:100%;
   background-color: white;
-  display:flex;
-  justify-content:center;
+  display: flex;
+  justify-content: center;
   align-items:center
 }
 

@@ -45,10 +45,12 @@ export default {
     },
     async updateActiveDataset(dataset) {
       try {
-        await this.$store.dispatch(
+        console.log('Perro');
+        this.$store.dispatch(
           'workspace/UPDATE_ACTIVE_DATASET',
           dataset
         )
+        console.log('bonito')
         this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: 0 })
       } catch (error) {
         throw new Error(error.message)

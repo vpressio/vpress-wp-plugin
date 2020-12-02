@@ -170,6 +170,7 @@ import VpressDatasetSelect from '../components/vpress-dataset-select.vue'
 import VpressDataTable from '../components/vpress-data-table.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
 import { editorMixin, loaderMixin } from '../mixins/index.js'
+import FReader from '../utils/fileReader'
 
 export default {
   name: 'VpressDataModule',
@@ -225,6 +226,7 @@ export default {
   methods: {
     async selectDataset(dataset) {
       try {
+        this.proxyScreen = true
         await this.editorInit(dataset)
 
       } catch(error) {
@@ -236,6 +238,68 @@ export default {
       await this.$store.dispatch('workspace/REMOVE_DATASET')
       if(Object.keys(this.datasets).length === 0) this.proxyScreen = false;
     },
+    async loadFile(file) {
+      try {
+        const self = this;
+        self.loading = true;
+        const content = await FReader.readCSV(file);
+        self.headers = self.extractSampleHeaders(content[0]);
+        self.data = content;
+        setTimeout(() => {
+          self.loading = false;
+        }, 0);
+        return content
+      } catch (error) {
+        self.loading = false;
+        this.errorMessage = error.message;
+      }
+    },
+    parsePastedData() {
+      const self = this;
+      self.data = [];
+      self.headers = [];
+      const data = self.pastedData;
+      const rows = data.split('\n');
+      let headers = [];
+      for (const y in rows) {
+        const cells = rows[y].split('\t');
+        if (+y === 0) {
+          /** First row, used for headers */
+          headers = cells;
+          /** Generate headers for data-table */
+          self.headers = headers.map(o => ({
+            text: o,
+            value: o
+              .toLowerCase()
+              .split(' ')
+              .join('_'),
+            sortable: true
+          }));
+        } else {
+          /** Parse pasted rows to JSON objects */
+          const cellObj = cells.reduce(
+            (previousObject, currentValue, currentIndex) => {
+              const key = headers[currentIndex]
+                .toLowerCase()
+                .split(' ')
+                .join('_');
+              const value = currentValue;
+              return Object.assign(previousObject, {
+                [key]: value
+              });
+            },
+            {}
+          );
+          if (
+            !self.data[0] ||
+            Object.keys(cellObj).length >= Object.keys(self.data[0]).length
+          ) {
+            self.data.push(cellObj);
+          }
+        }
+      }
+      /** Reset pastedData */
+    }
   }
 }
 </script>

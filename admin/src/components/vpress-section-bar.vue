@@ -21,7 +21,14 @@
         active-class="nav-btn__active"
         :disabled="disabledValidation(link)"
       >
-        <v-icon>{{ link.icon }}</v-icon>
+        <img
+          class="nav_icon"
+          :class="{ 'nav_icon__active': $route.path === link.path }"
+          :src="iconSrc(link.icon)"
+          :alt="link.name"
+          height=20
+          width=20
+        />
       </v-btn>
     </div>
   </v-toolbar>
@@ -38,15 +45,18 @@ export default {
   data() {
     return {
       links: [
-        { icon: 'mdi-database', path: '/data', name: 'data'},
-        { icon: 'mdi-database-settings', path: '/editor/config', name:"config"},
-        { icon: 'mdi-brush', path: '/editor/style', name: "style"},
+        { icon: `db`, path: '/data', name: 'data'},
+        { icon: `db-gear`, path: '/editor/config', name:"config"},
+        { icon: `estilos`, path: '/editor/style', name: "style"},
       ]
     }
   },
   methods: {
     disabledValidation(link) {
       return this.disableEditor && (link.name === 'config' || link.name === 'style')
+    },
+    iconSrc(icon) {
+      return require(`../assets/images/${icon}.svg`);
     }
   }
 }
@@ -54,6 +64,14 @@ export default {
 <style scoped>
 * >>>.v-toolbar__content{
    padding: 0 16px !important;
+}
+
+.nav_icon {
+  opacity: 0.5; 
+}
+
+.nav_icon__active {
+  opacity: 1
 }
 
 .nav-btn {

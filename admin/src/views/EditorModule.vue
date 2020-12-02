@@ -7,36 +7,70 @@
         sm="12"
         md="6"
         lg="2"
-        class="pb-0"
       >
-        <VpressSectionBar/>
-        <v-card v-if="$attrs.section === 'config'" style="min-height: 600px;">
-          <div class="px-5">
-            <!-- <v-img class="db-icon" src="../assets/images/db1.svg" /> -->
-            <span class="db-titulo">
-              {{ activeDataset | name }}
-            </span>
-            <v-divider/>
+        <div class=" elevation-2 editor-card">
+          <VpressSectionBar/>
+          <div v-if="$attrs.section === 'config'">
+            <div class="px-2 py-2" style="display:flex;width:100%;background-color:#322E71;color:#FFF">
+              <v-btn
+                dark
+                class="mx-2 px-1 py-3"
+                min-width="20"
+                v-for="(dataset, dataIdx) in datasets"
+                :key="`dataset_${dataIdx}`"
+                x-small
+                tile
+                :color="
+                  $store.getters['workspace/activeDataset'] &&
+                  $store.getters['workspace/activeDataset'].slug === dataset 
+                    ? 'secondary'
+                    : '#817DB0'
+                "
+                @click="selectDataset(dataset)"
+              >
+                <v-tooltip
+                attach
+                right
+                offset-x
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-img
+                    v-bind="attrs"
+                    v-on="on"
+                    src="../assets/images/db1-purple.svg"
+                    width="15"
+                    height="12"
+                  />
+                </template>
+                <span> {{ dataset.name }} </span>
+              </v-tooltip>
+            </v-btn>
+            </div>
+            <div class="px-3 py-2">
+              <span class="db-titulo">
+                {{ activeDataset | name }}
+              </span>
+            </div>
+            <VpressVariableContainer/>
           </div>
-          <VpressVariableContainer/>
-        </v-card>
-        <v-card v-if="$attrs.section === 'style'" style="min-height: 600px;">
-          <VpressExpansionPanel panelTitle="TEMA">
-            <VpressInputControl inputName="Tema">
-              <v-switch
-                dense
-                inset
-                v-model="theme"
-                :color="themeSwitchColor"
-                class="config-switch"
-                :value-comparator="(e)=> console.log(e)"
-              />
-            </VpressInputControl>
-          </VpressExpansionPanel>
-          <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
-            <VpressColorSelection />
-          </VpressExpansionPanel>
-        </v-card>
+          <div v-if="$attrs.section === 'style'">
+            <VpressExpansionPanel panelTitle="TEMA">
+              <VpressInputControl inputName="Tema">
+                <v-switch
+                  dense
+                  inset
+                  v-model="theme"
+                  :color="themeSwitchColor"
+                  class="config-switch"
+                  :value-comparator="(e)=> console.log(e)"
+                />
+              </VpressInputControl>
+            </VpressExpansionPanel>
+            <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
+              <VpressColorSelection />
+            </VpressExpansionPanel>
+          </div>
+        </div>
       </v-col>
       <v-col
         v-show="$vuetify.breakpoint.mdAndUp"
@@ -44,24 +78,24 @@
         sm="0"
         md="6"
         lg="2"
-        class="pb-0"
-      >
-        <v-toolbar class="text-center" color="primary" dark flat height="58">
-          <v-spacer/>
-          <div class="text-subtitle-2">
-            Arrastra tu selección
-          </div>
-          <v-spacer/>
-        </v-toolbar>
-        <v-card style="min-height: 600px;">
+      > 
+        <div class="elevation-2 editor-card">
+          <v-toolbar class="text-center" color="primary" dark flat height="58">
+            <v-spacer/>
+            <div class="text-subtitle-2">
+              Arrastra tu selección
+            </div>
+            <v-spacer/>
+          </v-toolbar>
           <VpressSlotGroup/>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="12" sm="12" md="12" lg="8">
-            <VpressChartSelectButtons/>
-          <v-card>
-            <VpressChartGroup/>
-          </v-card>
+        <div class="elevation-2 editor-card">
+          <VpressVizToolbar/>
+          <VpressVizButtons/>
+          <VpressChartGroup/>
+        </div>
       </v-col>
     </v-row>
   </div>
@@ -71,29 +105,32 @@ import VpressAppBar from '../components/vpress-app-bar.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
 import VpressVariableContainer from '../components/vpress-variable-container.vue'
 import VpressSlotGroup from '../components/vpress-slot-group.vue'
-import VpressChartSelectButtons from '../components/vpress-chart-select-buttons.vue';
+import VpressVizButtons from '../components/vpress-viz-buttons.vue';
+import VpressVizToolbar from '../components/vpress-viz-toolbar.vue';
 import VpressChartGroup from '../components/vpress-chart-group.vue'
 import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
 import VpressInputControl from '../components/vpress-config-input.vue'
 import VpressColorSelection from '../components/vpress-config-color-selection.vue'
+import { loaderMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressEditorModule',
+  mixins: [loaderMixin],
   components: {
     VpressAppBar,
     VpressSectionBar,
     VpressVariableContainer,
     VpressSlotGroup,
-    VpressChartSelectButtons,
+    VpressVizToolbar,
+    VpressVizButtons,
     VpressChartGroup,
     VpressExpansionPanel,
     VpressInputControl,
     VpressColorSelection
-
   },
   data() {
     return {
-       theme: false,
+      theme: false
     }
   },
   filters: {
@@ -102,14 +139,21 @@ export default {
     }
   },
   computed: {
+    datasets() {
+      console.log(this.$store.getters['workspace/datasetMeta']);
+      return this.$store.getters['workspace/datasetMeta']
+    },
     activeDataset() {
       const dataset = this.$store.getters['workspace/activeDataset']
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      if (!dataset) this.activeTab = 0
       return dataset
     },
     themeSwitchColor() {
       return this.theme  ? 'black' : '';
+    },
+  },
+  methods: {
+    async selectDataset(dataset) {
+      this.updateActiveDataset( dataset)
     },
   }
 }
@@ -134,5 +178,9 @@ export default {
   font-family: Roboto;
 }
 
+.editor-card {
+  height: 100%;
+  background-color: #FFF;
+}
 
 </style>

@@ -73,6 +73,7 @@ export default {
       labels: Boolean
     },
     iframe: Boolean,
+    height: Number,
   },
   data() {
     return {
@@ -247,8 +248,8 @@ export default {
       vm.margin = {
           top: 10,
           right: marginRatio(this.width, 4),
-          bottom: marginRatio(this.height, 4),
-          left:marginRatio(this.width, 4)
+          bottom: marginRatio(this.height, 5),
+          left:marginRatio(this.width, 5)
       }
       
 

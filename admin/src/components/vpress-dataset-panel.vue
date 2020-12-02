@@ -1,5 +1,5 @@
 <template>
-  <v-expansion-panels flat>
+  <v-expansion-panels accordion flat>
     <v-expansion-panel
       ref="dataset-panel"
       class="dataset-panel"
