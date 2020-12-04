@@ -279,6 +279,7 @@ export default {
       try {
         this.editTitle = false
         this.editDescription = false
+        this.editedTags = false
         this.loading = true
         const body = {
           id: parseInt(this.id),
@@ -291,7 +292,6 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.editedTags = false
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Base de datos actualizada con éxito'

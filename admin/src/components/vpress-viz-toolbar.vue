@@ -1,116 +1,115 @@
 <template>
-    <v-row>
-      <v-col
-        class="buttons-header py-0 pr-0"
-        v-show="!$vuetify.breakpoint.smAndDown"
-        cols="3"
-      >
-        <v-toolbar flat height="58" color="primary" dark>
-          Gráficos
-          <br/>
-          recomendados
-        </v-toolbar>
-      </v-col>
-      <v-col
-        class="py-0 pl-0"
-        style="display:flex;"
-        cols="9"
-      >
-        <v-toolbar flat height="58" color="#F8F8F8">
-          <v-row>
-            <v-col cols="2">
-              <div class="viz-list-header">
-                Tipo de 
-                <br/>
-                gráficas
-              </div>
-            </v-col>
-            <v-col cols="7" style="background-color: #FFF">
-              <v-slide-group show-arrows >
-                <v-slide-item
-                  v-for="(graph, graphIndex) in availableCharts"
-                  :key="graphIndex"
-                >
-                  <v-menu
-                      open-on-hover
-                      :close-on-content-click="false"
-                      max-width="205"
-                      offset-y
-                      attach
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn
-                          :disabled="graph.disabled"
-                          :class="graph.disabled ? 'grey lighten-1' : ''"
-                          text
-                          @click="setChartType(graph.type)"
-                          class="mx-1"
-                          v-bind="attrs"
-                          v-on="on"
+  <div class="viz-toolbar" :style="cssProps">
+    <div class="viz-list-header text-subtitle-2 font-weight-regular">
+      <v-spacer/>
+      <img 
+        src="../assets/images/graficos-recomendados.svg"
+        alt="viz"
+        width="30px"
+        height="30px"
+      />
+      <v-spacer/>
+        Tipo de 
+        <br/>
+        gráficas
+      <v-spacer/>
+    </div>
+    <v-spacer/>
+      <div class="slide-container">
+        <v-slide-group show-arrows >
+          <v-slide-item
+            v-for="(graph, graphIndex) in availableCharts"
+            :key="graphIndex"
+          >
+            <v-menu
+                open-on-hover
+                :close-on-content-click="false"
+                max-width="205"
+                offset-y
+                :z-index="10000"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    :class="graph.disabled ? 'lighten-1' : ''"
+                    text
+                    @click="setChartType(graph)"
+                    class="mx-1"
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-img
+                      :class="{ 'disabled-img': graph.disabled }"
+                      :src="requireImg(graph.type)"
+                      :alt="graph.type"
+                      :width="graph.type === 'map' ? 35 : 30"
+                      :height="graph.type === 'map' ? 24 : 30"
+                    />
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card-text>
+                    <h6 class="text-subtitle-2 font-weight-bold">{{ graph.type }}</h6>
+                    <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
+                      {{rule.msg}}
+                      <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
+                        {{ chip.msg }}
+                        <v-chip
+                          class="ma-2"
                         >
-                          <v-img
-                            :src="requireImg(graph.type)"
-                            :alt="graph.type"
-                            :width="graph.type === 'map' ? 35 : 30"
-                            :height="graph.type === 'map' ? 24 : 30"
-                          />
-                        </v-btn>
-                      </template>
-                      <v-card>
-                        <v-card-text>
-                          <h6 class="text-subtitle-1 font-weight-bold">{{ graph.type }}</h6>
-                          <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
-                            {{rule.msg}}
-                            <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
-                              {{ chip.msg }}
-                              <v-chip
-                                class="ma-2"
-                              >
-                                {{ chip.type }}
-                              </v-chip>
-                            </div>
-                          </div>
-                        </v-card-text>
-                      </v-card>
-                    </v-menu> 
-                </v-slide-item>
-              </v-slide-group>
-            </v-col>
-            <v-col cols="2" style="background-color: #FFF;display:flex;height:100%;align-items:center;width:20%">
-              <v-divider class="tri-actions-divider" vertical/>
-              <v-btn icon @click="saveChart">
-                <img src="../assets/images/Guardar.svg" alt="" width="20" height="20">
-              </v-btn>
-              <v-spacer/>
-              <v-btn icon @click="downloadChartImg">
-                <img src="../assets/images/Descargar.svg" alt="" width="20" height="20">
-              </v-btn>
-              <v-spacer/>
-              <v-btn icon @click="clipboardCopy">
-                <img src="../assets/images/Compartir.svg" alt="" width="20" height="20">
-              </v-btn>
-              <v-spacer/>
-            </v-col>
-          </v-row>
-        </v-toolbar>
-      </v-col>
-    </v-row>
+                          {{ chip.type }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </v-card-text>
+                </v-card>
+            </v-menu> 
+          </v-slide-item>
+        </v-slide-group>
+      </div>
+      <v-spacer/>
+      <div class="tri-actions-container">
+        <v-divider class="tri-actions-divider" vertical/>
+        <v-spacer/>
+        <v-btn icon @click="saveChart">
+          <img src="../assets/images/Guardar.svg" alt="" width="20" height="20">
+        </v-btn>
+        <v-spacer/>
+        <v-btn icon @click="downloadChartImg">
+          <img src="../assets/images/Descargar.svg" alt="" width="20" height="20">
+        </v-btn>
+        <v-spacer/>
+        <v-btn icon @click="clipboardCopy">
+          <img src="../assets/images/Compartir.svg" alt="" width="20" height="20">
+        </v-btn>
+        <v-spacer/>
+      </div>
+      <v-spacer/>
+    </div>
 </template>
 <script>
 import { downloadChart, stringChart } from '../utils/downloadChart.js'
+import { editorMixin } from '../mixins/index.js'
 
 export default {
   name: 'VpressVizToolbar',
+  mixins: [editorMixin],
   computed: {
+    cssProps() {
+      return {
+        '--primary': this.$vuetify.theme.themes.light.primary
+      }
+    },
     availableCharts() {
       return this.$store.getters['editor/getAvailableCharts']
     },
   },
   methods: {
-    async setChartType(chartType) {
-      this.merge_value(
-        { mutationType:'chart' , value: chartType}
-      );
+    async setChartType(viz) {
+      if(!viz.disabled) {
+        this.merge_value(
+          { mutationType:'chart' , value: viz.type}
+        );
+      }
     },
     requireImg(chartType) {
       try {
@@ -168,17 +167,47 @@ export default {
 <style scoped>
 .tri-actions-divider {
   border-color: #5D5799;
+  border-width: 1px;
 }
 
 .viz-list-header {
-  width:100%;
-  height:100%;
+  width:20%;
+  height: 58px;
   display:flex;
   justify-content:center;
   align-items:center;
-  background-color: #F2F2F2;
-  color:#696969;
+  background-color: var(--primary);
+  color:#FFF;
+  /* background-color: #F2F2F2;
+  color:#696969; */
   line-height: 1;
+}
+.viz-toolbar{
+  display:flex;
+  width:100%;
+  height:58px;
+}
+
+.slide-container{
+  height:58px;
+  width:60%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-bottom: solid 2px #F2F2F2;
+}
+
+.tri-actions-container{
+  display:flex;
+  height:58px;
+  align-items:center;
+  width:20%;
+  border-bottom: solid 2px #F2F2F2;
+  padding: 0.6% 0%;
+}
+
+.disabled-img {
+  opacity: 0.5;
 }
 
 </style>

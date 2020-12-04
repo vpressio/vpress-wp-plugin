@@ -1,6 +1,5 @@
 <template>
   <v-row class="px-3">
-    
     <v-col cols="12" class="pt-0">
       <p
         v-show="ordinalVariables.length > 0"

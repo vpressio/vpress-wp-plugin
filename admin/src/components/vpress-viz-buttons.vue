@@ -3,6 +3,7 @@
     <v-col class="ml-5 v-step-7">
       <v-btn
         class="mr-2"
+        tile
         @click="toggleLabels"
         small
         dark
@@ -17,6 +18,7 @@
         "
         class="mr-2"
         @click="toggleBarsType"
+        tile
         small
         dark
         color="color2"
@@ -28,6 +30,7 @@
       <v-btn
         class="mr-2"
         @click="toggleOrder"
+        tile
         small
         dark
         color="color2"
@@ -41,6 +44,7 @@
       <v-btn
         class="mr-2"
         @click="orderByAlphabetical"
+        tile
         small
         dark
         color="color2"
@@ -54,6 +58,7 @@
       <v-btn
         class="mr-2"
         @click="orderByNumerical"
+        tile
         small
         dark
         color="color2"
@@ -67,6 +72,7 @@
       <v-btn
         class="mr-2"
         @click="invertAxis"
+        tile
         small
         dark
         color="color2"

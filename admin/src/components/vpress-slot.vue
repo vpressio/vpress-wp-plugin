@@ -17,12 +17,14 @@
       {{ label }}
     </span>
     <div
+      class="mt-2"
       v-if="slotId !== 'filter'"
     >
       <v-card
+        class="card-container"
         v-for="(card, cardIndex) in storeVariables"
         :key="`card_${cardIndex}`"
-        :min-height="50"
+        :min-height="80"
         outlined
         :raised="changeSlotStyle"
         light
@@ -35,24 +37,36 @@
           @dragleave="dragOver"
           @dragover.prevent
         >
-          Números o categorías aquí.
+          <div
+            class="slot_border"
+            @drop.stop.self="drop($event, card.mutationType)"
+          >
+            <div class="instruction_label" :class="{ 'hideCard': changeSlotStyle && storeVariables.length > 0 }">
+              Arrastra una nueva variable de tipo:
+            </div>
+            <span :class="{ 'hideCard': changeSlotStyle && storeVariables.length > 0 }">
+              Números o categorías aquí.
+            </span>
+          </div>
         </div>
         <VpressVariableCard
-        v-show="card.variable.slug !== ''"
-        class="my-2 mx-3"
-        :variable="card.variable"
-        inSlot
-        :mutationType="card.mutationType"  
-        :error="error"
-        :errorMsg="errorMsg"
-      />
+          v-show="card.variable.slug !== ''"
+          class="my-2 mx-3"
+          :variable="card.variable"
+          inSlot
+          :mutationType="card.mutationType"
+          :error="error"
+          :errorMsg="errorMsg"
+        />`
       </v-card>
     </div>
     <div
+      class="mt-2"
       v-if="slotId === 'filter'"
     >
       <v-card
-        :min-height="50"
+        class="card-container"
+        :min-height="80"
         outlined
         :raised="changeSlotStyle"
         light
@@ -79,7 +93,17 @@
           @dragleave="dragOver"
           @dragover.prevent
         >
-          Números o categorías aquí.
+          <div
+            class="slot_border"
+            @drop.stop.self="drop($event, card.mutationType)"
+          >
+            <div class="instruction_label" :class="{ 'hideCard': changeSlotStyle || storeVariables.length > 0 }">
+              Arrastra una nueva variable de tipo:
+            </div>
+            <span :class="{ 'hideCard': changeSlotStyle || storeVariables.length > 0 }">
+              Números o categorías aquí.
+            </span>
+          </div>
         </div>
       </v-card>
     </div>
@@ -196,13 +220,25 @@ export default {
   width: 100%;
   position:absolute;
 }
+.slot_border {
+  border: dashed 1px #C7C7D3;
+  height:100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
 .slot_placeholder_filter {
   color: #c3c3c3;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1;
   font-size: 0.8rem;
   height:50px;
+}
+
+.instruction_label {
+  font-size: 0.8rem;
+  color: #7872AB;
 }
 
 .selectedSlot {
@@ -211,6 +247,16 @@ export default {
 
 .overCard {
   z-index:4
+}
+
+.hideCard {
+  display: none;
+}
+
+.card-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 </style>

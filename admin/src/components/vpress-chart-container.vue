@@ -247,7 +247,7 @@ export default {
       vm.margin = {
           top: 10,
           right: marginRatio(this.width, 4),
-          bottom: marginRatio(this.height, 5),
+          bottom: marginRatio(this.height, 4),
           left:marginRatio(this.width, 5)
       }
       
@@ -401,7 +401,6 @@ export default {
               )
             )
           : [];
-      console.log(this.width);
       const config = {
         regression:
           this.chartConfig.xAxis.type === 'linear' &&

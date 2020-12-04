@@ -81,7 +81,7 @@
         <div class="elevation-2 editor-card">
           <v-toolbar class="text-center" color="primary" dark flat height="58">
             <v-spacer/>
-            <div class="text-subtitle-2">
+            <div class="text-subtitle-2 font-weight-regular">
               Arrastra tu selección
             </div>
             <v-spacer/>
@@ -133,9 +133,6 @@ export default {
     return {
       theme: false
     }
-  },
-  mounted() {
-    console.log(window.innerHeight);
   },
   filters: {
     name(dataset){ 
