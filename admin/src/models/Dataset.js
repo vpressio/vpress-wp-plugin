@@ -1,4 +1,4 @@
-const Dataset = function (id, name, slug, description, owner_id, permissions, source, tag, variables, dateFormat) {
+const Dataset = function (id, name, slug, description, owner_id, permissions, source, tag, variables, dateFormat, rows, size) {
   this.id = id,
   this.name = name,
   this.slug = slug,
@@ -9,6 +9,8 @@ const Dataset = function (id, name, slug, description, owner_id, permissions, so
   this.tags = tag,
   this.variables = variables
   this.dateFormat = dateFormat
+  this.rows = rows
+  this.size = size
 }
 
 export default Dataset

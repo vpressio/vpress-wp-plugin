@@ -1,52 +1,66 @@
-<template>
-  <div>
-    <div style="min-height:600px;position:relative;">
-      <div
-        v-show="loadingViz"
-        class="progress--layer"
-      >
-        <v-progress-circular
-          :size="70"
-          :width="7"
-          color="primary"
-          indeterminate
+  <template>
+    <v-row :style="cssProps" ref="chart-group">
+      <v-col class="chart-container" cols="12">
+        <div
+          class="progress--layer"
+          v-show="loadingViz"
+        >
+          <v-progress-circular
+            :size="70"
+            :width="7"
+            color="primary"
+            indeterminate
+          />
+        </div>
+        <VpressChartContainer
+          :id="`empty_chart_0`"
+          :chartConfig="viz.getValues ? viz.getValues() : {}"
+          :data="viz.getData ? viz.getData() : []"
+          @chart_loaded="onChartIsLoaded"
         />
-      </div>
-      <VpressChartContainer
-        :id="`empty_chart_0`"
-        :chartConfig="viz.getValues ? viz.getValues() : {}"
-        :data="viz.getData ? viz.getData() : []"
-        @chart_loaded="onChartIsLoaded"
-      />
-    </div>
-    <v-btn
-      tile
-      depressed
-      @click="addViz"
-    >
-      <v-icon color="grey">mdi-plus-thick</v-icon>
-    </v-btn>
-    <v-btn
-      v-for="(chart, chartIndex) in tabs"
-      :key="`chart_tab_${chartIndex}`"
-      :color="openTab === chartIndex ? 'primary' : ''"
-      :text="openTab === chartIndex"
-      @click="setActiveViz(chartIndex)"
-      tile
-      depressed
-    >
-      Gráfica {{ chartIndex + 1 }}
-      <v-btn
-        class="ml-3 mr-2"
-        x-small
-        icon
-        color="primary"
-        @click.stop.prevent="removeViz(chartIndex)"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-btn>
-  </div>
+      </v-col>
+      <v-col class="py-0 pr-0" cols="1">
+        <v-btn
+          tile
+          depressed
+          @click="addViz"
+        >
+          <v-icon color="grey">mdi-plus-thick</v-icon>
+        </v-btn>
+      </v-col>
+      <v-col cols="11" class="tab-btn-container py-0 pl-0">
+        <div class="tabs-bar">
+          <v-slide-group show-arrows>
+            <v-slide-item
+              v-for="(chart, chartIndex) in tabs"
+              :key="`chart_tab_${chartIndex}`"
+            >
+              <div style="display: flex;">
+                <v-btn
+                  class="elevation-1 mx-1"
+                  :color="openTab === chartIndex ? '#FFF' : ''"
+                  @click="setActiveViz(chartIndex)"
+                  tile
+                >
+                  Gráfica {{ chartIndex + 1 }}
+                  <v-btn
+                    class="ml-3 mr-2"
+                    x-small
+                    icon
+                    color="primary"
+                    @click.stop.prevent="removeViz(chartIndex)"
+                  >
+                    <v-icon>
+                      mdi-close
+                    </v-icon>
+                  </v-btn>
+                </v-btn>
+              </div>
+            </v-slide-item>
+          </v-slide-group>
+        </div>
+      </v-col>
+    </v-row>
 </template>
 <script>
 import * as d3 from 'd3';
@@ -59,15 +73,23 @@ export default {
     VpressChartContainer
   },
   mixins: [loaderMixin, editorMixin],
+  props: {
+    cardHeight: {
+      type: Number
+    }
+  },
   data() {
     return {
       openTab: this.$store.getters['editor/vizzes']()
         ? this.$store.getters['editor/vizzes']().open
         : this.$store.getters['editor/vizzes'](),
       tabs: [],
+      vizHeight: 0
     };
   },
   mounted() {
+    window.addEventListener('resize', this.resizeVizHeight)
+    this.resizeVizHeight()
     this.tabs = this.$store.getters['editor/vizzes']()
       ? this.$store.getters['editor/vizzes']().vizzes
       : this.$store.getters['editor/vizzes']()
@@ -82,9 +104,20 @@ export default {
     )
   },
   beforeDestroy() {
+    window.removeEventListener('resize', this.resizeVizHeight)
     this.unsubscribe();
   },
+  computed: {
+    cssProps() {
+      return {
+        '--cardHeight': `${this.vizHeight}px`
+      }
+    }
+  },
   methods: {
+    resizeVizHeight() {
+      this.vizHeight = Math.floor(window.innerHeight * .7)
+    },
     async addViz() {
       try {
         this.openTab = await this.$store.dispatch('editor/ADD_VIZ', {})
@@ -240,15 +273,27 @@ export default {
 </script>
 <style scoped>
 
+.chart-container {
+  height: var(--cardHeight);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 .progress--layer {
-  position:absolute;
-  z-index: 10;
+  position: absolute;
   width:100%;
   height:100%;
   background-color: white;
-  display:flex;
-  justify-content:center;
+  display: flex;
+  justify-content: center;
   align-items:center
+}
+
+.tabs-bar {
+  display: flex;
+  background-color: #F8F8F8;
 }
 
 </style>

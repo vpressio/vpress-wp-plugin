@@ -4,7 +4,6 @@
     flat
     tile
     hover
-    dark
     :value="[0]"
   >
     <v-expansion-panel class="config-panels">
@@ -12,9 +11,7 @@
         {{ panelTitle }}
       </v-expansion-panel-header>
       <v-expansion-panel-content>
-        <v-card class="border-radius-none" flat light>
-          <slot/>
-        </v-card>
+        <slot/>
       </v-expansion-panel-content>
     </v-expansion-panel>
   </v-expansion-panels>

@@ -53,7 +53,9 @@ export default {
           payload.source,
           payload.tag,
           datasetVariables,
-          datasetDateFormat
+          datasetDateFormat,
+          payload.rows,
+          payload.size
         )
 
         

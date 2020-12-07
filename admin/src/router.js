@@ -3,7 +3,8 @@ import Chart from './views/Chart.vue'
 import Vpress from './views/Vpress.vue'
 import VpressChartList from './views/ChartList.vue'
 import VpressDatasetList from './views/DatasetList.vue'
-import VpressChartEditor from './views/Editor.vue'
+import VpressEditor from './views/EditorModule.vue'
+import VpressDataModule from './views/DataModule.vue'
 
 export const privateRouter = {
   routes: [
@@ -18,8 +19,23 @@ export const privateRouter = {
       children: [
         { path: '/', component: VpressChartList },
         { path: '/datasets', component: VpressDatasetList },
-        { path: '/editor', component: VpressChartEditor }
       ]
+    },
+    {
+      path: '/data',
+      component: VpressDataModule,
+      props: true,
+      children: [
+        { path: '/', component: null },
+        { path: '/upload', component: null },
+        { path: '/paste', component: null },
+        { path: '/api', component: null },
+      ]
+    },
+    {
+      path: '/editor/:section',
+      component: VpressEditor,
+      props: true
     }
   ]
 }

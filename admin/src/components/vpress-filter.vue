@@ -17,7 +17,7 @@
         </v-card-text>
         <v-divider></v-divider>
         <div
-          style="width:100%;display:flex;justify-content:center;padding-top:10px"
+          class="loader-container"
           v-if="loading"
         >
           <v-progress-circular
@@ -171,4 +171,12 @@ export default {
 a.underline {
   text-decoration: underline;
 }
+
+.loader-container {
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding-top:10px;
+}
+
 </style>

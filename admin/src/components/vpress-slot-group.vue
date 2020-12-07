@@ -1,5 +1,5 @@
 <template>
-  <v-card class="slots-container" >
+  <div class="px-2">
     <VpressSlot
       class="mb-2"
       slotId="xAxis"
@@ -45,7 +45,7 @@
       slotIcon=""
       label="Filtros"
     />
-  </v-card>
+  </div>
 </template>
 <script>
 import VpressSlot from './vpress-slot';
@@ -62,8 +62,3 @@ export default {
   }
 };
 </script>
-<style scoped>
-.slots-container {
-  height: 100%;
-}
-</style>
