@@ -1,13 +1,13 @@
 <template lang="pug">
   .chart-container.center-align(
     :class="`${chartConfig ? chartConfig.theme : 'light'}-themed`"
-    style="position:absolute;top:0;left:0;width:100%;height:100%;"
+    
     )
-    .layout-row.left-align.label-font.bold.layout-align-start-end(style="height:10%")
+    .layout-row.left-align.label-font.bold.layout-align-start-end.titles-container
       .col-12.py-0
-        h2.generated-title.mb-0 {{ chartTitle('title', 'Título') }}
+        h2.generated-title.my-0 {{ chartTitle('title', 'Título') }}
       .col-12.py-0
-        h3.generated-subtitle.mb-0 {{ chartTitle('subtitle', 'Subtítulo') }}
+        h3.generated-subtitle.my-0 {{ chartTitle('subtitle', 'Subtítulo') }}
     .empty-chart( :id="this.id")
       .vertical-align
         p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
@@ -248,7 +248,7 @@ export default {
           top: 10,
           right: marginRatio(this.width, 4),
           bottom: marginRatio(this.height, 4),
-          left:marginRatio(this.width, 4)
+          left:marginRatio(this.width, 5)
       }
       
 
@@ -401,7 +401,6 @@ export default {
               )
             )
           : [];
-      console.log(this.width);
       const config = {
         regression:
           this.chartConfig.xAxis.type === 'linear' &&
@@ -1153,19 +1152,21 @@ export default {
 
 .generated-title,
 .edit-title {
-  font-size: 0.9em;
-  font-weight: bold;
-  text-transform: uppercase;
-  text-align: center;
-  display: initial;
+  display: flex;
+  justify-content: flex-start;
+  font-size: 1.5em;
+  font-weight: 500;
+  text-align: left;
+  padding-left: 2%
 }
 .generated-subtitle,
 .edit-subtitle {
+  display: flex;
+  justify-content: flex-start;
   font-size: 1em;
-  font-weight: bold;
-  text-transform: uppercase;
-  text-align: center;
-  display: initial;
+  font-weight: 500;
+  text-align: left;
+  padding-left: 2%
 }
 
 
@@ -1182,12 +1183,20 @@ export default {
 }
 
 .chart-container {
+  position: absolute;
+  top:0;
+  left:0;
   width: 100%;
   height: 100%;
   margin: 0 auto;
 }
 </style>
 <style>
+.empty-chart {
+  width: 100%;
+  height: calc(100% - 54px );
+}
+
 .empty-chart > svg {
   width: 100%;
   min-height: 100%;
@@ -1217,4 +1226,8 @@ export default {
 .leaflet-container {
   z-index: 0;
 }
+.title-container {
+  height:10%
+}
+
 </style>

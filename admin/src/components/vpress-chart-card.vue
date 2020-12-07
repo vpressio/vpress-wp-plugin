@@ -1,7 +1,7 @@
 <template>
   <v-card
     :loading="loading"
-    class="mx-auto"
+    class="mx-auto pb-4"
   >
     <div class="mx-5 pt-4">
       <v-img
@@ -71,11 +71,14 @@
           v-model="editedItem.description"
           @keydown.enter.exact.prevent
           @keyup.enter.exact="save"
+          @keydown.space.stop
+          @keyup.space.stop
           @blur="save"
         />
       </div>
       <v-divider class="my-1"/>
       <v-combobox
+        class="tag-box"
         solo
         flat
         chips
@@ -88,8 +91,25 @@
         :loading="loading"
         @keyup.enter="save"
         @blur="save"
-        @click="editedTags = true"
-      ></v-combobox>
+        @click.stop="editedTags = true"
+      >
+        <template v-slot:selection="{ attrs, item, parent }">
+          <v-chip
+            v-bind="attrs"
+            color="primary"
+          >
+            <span class="pr-2 font-weight-light">
+              {{ item }}
+            </span>
+            <v-icon
+              small
+              @click="parent.selectItem(item)"
+            >
+              mdi-close
+            </v-icon>
+          </v-chip>
+        </template>
+      </v-combobox>
       <v-card-actions>
         <v-row align="center">
           <span
@@ -102,15 +122,17 @@
           <v-spacer/>
           <span class="grey--text">
             <v-icon small>mdi-clock-outline</v-icon>
-            {{ updated }}
+            {{ updated | dateFormat }}
           </span>
           <v-spacer/>
-          <v-btn icon color="primary" @click="shareChart">
+          <v-btn icon x-small color="primary" @click="shareChart">
             <v-icon>mdi-share-variant-outline</v-icon>
           </v-btn>
-          <v-btn icon color="primary" @click="deleteChart">
+          <v-spacer/>
+          <v-btn icon x-small color="primary" @click="deleteChart">
             <v-icon>mdi-trash-can-outline</v-icon>
           </v-btn>
+          <v-spacer/>
         </v-row>
       </v-card-actions>
     </div>
@@ -183,18 +205,20 @@ export default {
       permissions: _.clone(this.permissions)
     }
   },
+  filters: {
+    dateFormat(update) {
+      const date = new Date(update)
+        .toLocaleString()
+        .replace( ', ', ' | ' )
+      return date
+    }
+  },
   methods: {
-    async toggleInput(field, element) {
+     async toggleInput(field, element) {
       this[field] = true
       await this.$nextTick();
       //Focus on the deepest node (input) of the vuetify element
-      this.$refs[element]
-          .$el
-          .firstChild
-          .firstChild
-          .firstChild
-          .firstChild
-          .focus()
+      this.$refs[element].focus()
     },
     async createChart () {
       try {
@@ -202,7 +226,7 @@ export default {
         const viz = await api.chart.get(this.id)
         const dataset = await api.dataset.get(this.dataset_id)
         await this.loadSavedViz(viz.data.data, dataset.data.data)
-        this.$router.push({ path: `/editor`, query: { tab: 1 } })
+        this.$router.push({ path: `/editor/config`, query: { tab: 1 } })
         this.loading = false
       } catch (error) {
         this.loading = false
@@ -223,6 +247,9 @@ export default {
     },
     async save () {
       try {
+        this.editTitle = false
+        this.editDescription = false
+        this.editedTags = false
         this.loading = true
         const body = {
           id: parseInt(this.id),
@@ -243,9 +270,6 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      this.editTitle = false
-      this.editDescription = false
-      this.editedTags = false
       this.loading = false
     },
     shareChart() {
@@ -273,6 +297,10 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+// .tag-box {
+//   border: solid red;
+// }
+
 .edit {
   cursor: text
 }

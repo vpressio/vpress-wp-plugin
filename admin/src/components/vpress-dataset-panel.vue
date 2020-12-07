@@ -1,76 +1,5 @@
 <template>
-  <!-- <v-data-table
-        v-show="!loading"
-        :headers="headers"
-        :items="items"
-        :options.sync="options"
-        :server-items-length="total"
-        :loading="loading"
-        :expanded.sync="expanded"
-        show-expand
-        single-expand
-        hide-default-header
-      >
-        <template v-slot:[`item.name`]="{ item }" >
-          <div>
-            <v-text-field
-              solo
-              flat
-              dense
-              hide-details
-              :loading="loading"
-              label="Agregar título"
-              v-model.trim="item.name"
-              background-color="transparent"
-              @keyup.enter="editItem(item); save()"
-            >
-            </v-text-field>
-            <v-textarea
-              solo
-              flat
-              dense
-              rows="2"
-              no-resize
-              single-line
-              hide-details
-              :loading="loading"
-              label="Agregar descripción"
-              v-model.trim="item.description"
-              background-color="transparent"
-              @keydown.enter.prevent=""
-              @keyup.enter="editItem(item); save()"
-            >
-            </v-textarea>
-          </div>
-        </template>
-        <template v-slot:[`item.permissions`]="{ item }">
-          <p
-            @click="editItem(item); editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
-            class="link text-uppercase font-weight-bold"
-            :class="{ 'green--text': item.permissions === 'public', 'red--text': item.permissions !== 'public' }"
-          >
-            {{ item.permissions }}
-          </p>
-        </template>
-        <template v-slot:[`item.size`]="{ item }">
-          {{ item.size }}
-        </template>
-        <template v-slot:[`item.rows`]="{ item }">
-          ~{{ item.rows | intFromat }} filas
-        </template>
-        <template v-slot:[`item.tag`]="{ item }">
-          <v-chip color="primary" small class="mr-1" v-for="t in item.tag" :key="t">
-            {{ t }}
-          </v-chip>
-        </template>
-        <template v-slot:[`item.actions`]="{ item }">
-          <v-btn icon color="error" @click="confirmDeletion(item)">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </template>
-        
-      </v-data-table> -->
-  <v-expansion-panels flat>
+  <v-expansion-panels accordion flat>
     <v-expansion-panel
       ref="dataset-panel"
       class="dataset-panel"
@@ -94,6 +23,7 @@
           :size="item.size"
           :rows="item.rows"
           :updated="item.updated"
+          @onDatasetDelete="$emit('on-dataset-delete')"
         />
       </v-expansion-panel-header>
       <v-expansion-panel-content
@@ -184,7 +114,6 @@
           </v-col>
         </v-row>
       </v-expansion-panel-content>
-      <v-divider/>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
@@ -227,15 +156,20 @@ export default {
       }
     },
     async loadViz(id, dataset_id) {
-      const viz = await api.chart.get(id)
-      const dataset = await api.dataset.get(dataset_id)
-      await this.loadSavedViz(viz.data.data, dataset.data.data)
-      this.$router.push({ path: `/editor`, query: { tab: 1 } })
+      try {
+        this.loading
+        const viz = await api.chart.get(id)
+        const dataset = await api.dataset.get(dataset_id)
+        await this.loadSavedViz(viz.data.data, dataset.data.data)
+        this.$router.push({ path: `/editor/config`})
+      } catch (error) {
+        console.error(error);
+      }
     },
     async setDataset (dataset) {
       try {
         await this.editorInit(dataset)
-        this.$router.push('/')
+        this.$router.push('/data')
       } catch(error) {
         this.errorMessage = error.message;
       }

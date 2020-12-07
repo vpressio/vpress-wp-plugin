@@ -1,6 +1,5 @@
 <template>
-  <v-row class="px-5">
-    
+  <v-row class="px-3">
     <v-col cols="12" class="pt-0">
       <p
         v-show="ordinalVariables.length > 0"
@@ -75,13 +74,10 @@ export default {
   components: {
     VpressVariableCard
   },
-  props: {
-    variables: {
-      type: Array,
-      required: true,
-    }
-  },
   computed: {
+    variables() {
+      return this.$store.getters['workspace/dataType'];
+    },
     linearVariables() {
       return this.variables.filter(variable => variable.type === 'linear')
     },
@@ -98,7 +94,7 @@ export default {
 .variable-class-label {
   font-size: 1rem;
   font-weight: 500;
-  margin: 0 0 0 16px;
+  margin: 0 ;
 }
 .card--container{
   max-height:30vh;

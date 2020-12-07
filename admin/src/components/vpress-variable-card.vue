@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :style="cssProps">
     <v-card v-show="error" class="errorMsgContainer">
       <div style="display:flex">
         <v-card
@@ -27,16 +27,21 @@
       </div>
     </v-card>
     <v-card
-      :style="cssProps"
+      class="py-1 pl-2 draggable-card"
+      :class="{ 'pr-5': inSlot }"
       v-show="variable.type !== '' && variable.title !== ''"
       :draggable="draggable"
       @dragstart="dragStart"
       tile
-      :class="{ 'pr-5': inSlot }"
-      :color="error ? 'warning1' : 'color2'"
+      :color="error ? 'warning1' : '#322E71'"
       dark
-      hover
-    >
+      
+    > 
+      <v-img
+        :src="require('../assets/images/Puntos.svg')"
+        width=10
+        height="100%"
+      />
       <div v-if="inSlot" class="operationButtonContainer">
         <v-menu
           attach
@@ -160,7 +165,7 @@ export default {
     },
     cssProps() {
       return {
-        '--warning2': this.$vuetify.theme.themes.light.warning2
+        '--warning2': this.$vuetify.theme.themes.light.warning2,
       }
     },
   },
@@ -213,6 +218,15 @@ export default {
 };
 </script>
 <style scoped>
+.draggable-card:hover {
+  background-color: #757692 !important
+}
+.draggable-card {
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
+
 .dataTypeTitle {
   font-weight: 700;
   font-size: 0.8rem;

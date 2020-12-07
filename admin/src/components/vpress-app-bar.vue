@@ -14,6 +14,7 @@
     />
     <v-spacer/>
     <v-btn
+      class="mx-2"
       v-for="(item, index) in items"
       :key="index"
       :to="item.path"
