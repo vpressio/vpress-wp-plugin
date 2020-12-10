@@ -9,14 +9,14 @@
  * that starts the plugin.
  *
  * @link              data4.mx
- * @since             1.0.0
+ * @since             0.0.1
  * @package           Vpress
  *
  * @wordpress-plugin
  * Plugin Name:       Vpress
  * Plugin URI:        vpress.io
  * Description:       Transforma tus datos en impacto ¡Publica y cuenta tu historia!
- * Version:           1.0.0
+ * Version:           0.0.1
  * Author:            Vpress
  * Author URI:        vpress.io
  * License:           GPL-2.0+
