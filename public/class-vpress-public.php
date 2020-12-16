@@ -4,7 +4,7 @@
  * The public-facing functionality of the plugin.
  *
  * @link       data4.mx
- * @since      1.0.0
+ * @since      0.1.0
  *
  * @package    Vpress
  * @subpackage Vpress/public
@@ -25,7 +25,7 @@ class Vpress_Public {
 	/**
 	 * The ID of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
@@ -34,62 +34,51 @@ class Vpress_Public {
 	/**
 	 * The version of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $version    The current version of this plugin.
 	 */
 	private $version;
 
 	/**
+	 * Node js client location.
+	 *
+	 * @since    0.1.0
+	 * @access   private
+	 * @var      string    Node js client location.
+	 */
+	private $client;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( $plugin_name, $version, $client ) {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
-	}
-
-	/**
-	 * Register the stylesheets for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-
-	private function is_develop_serve()
-	{
-		$connection = @fsockopen('localhost', '8080');
-
-		if ( $connection ) {
-				return true;
-		}
-
-		return false;
+		$this->client = $client;
 	}
 
 
-	public function include_html() {
+
+	public function include_html($template) {
 		global $gdata;
-
 		$gdata = get_query_var('chart');
-		if($gdata)
-    {
-
-			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/chart.php';
-			exit();
+		if($gdata) {
+			return plugin_dir_path( dirname( __FILE__ ) ) . 'public/index.php';
+		} else {
+			return $template;
 		}
-		return;
 	}
 
 	public function add_chart_query ( $vars ) {
 		$vars[] = 'chart';
     return $vars;
 	}
-
 
 	public function add_chart_rule () {
 		add_rewrite_rule(
@@ -99,6 +88,67 @@ class Vpress_Public {
 		);
 		flush_rewrite_rules();
 	}
+	
+	public function add_style_attributes($html, $handle) {
+		$tag = $html;
+		switch ($handle) {
+			case 'vpress_leaflet':
+				$tag = str_replace(
+					'/>',
+					'integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>',
+					$tag
+				);
+				break;
+			default:
+				$tag = $html;
+				break;
+		}
+		return $tag;
+	}
+		/**
+	 * Register the JavaScript for the public-facing side of the site.
+	 *
+	 * @since    0.1.0
+	 */
+	public function enqueue_scripts() {
+		/**
+		 * This function is provided for demonstration purposes only.
+		 *
+		 * An instance of this class should be passed to the run() function
+		 * defined in Vpress_Loader as all of the hooks are defined
+		 * in that particular class.
+		 *
+		 * The Vpress_Loader will then create the relationship
+		 * between the defined hooks and the functions defined in this
+		 * class.
+		 */
+		wp_enqueue_script( 
+			$this->plugin_name. '_chunks',
+				$this->client['location']. '/js/chunk-vendors.js',
+				array(),
+				$this->version,
+				true
+		);
+		wp_enqueue_script( 
+			$this->plugin_name . '_app',
+				$this->client['location']. '/js/app.js',
+				array(),
+				$this->version,
+				true
+		);
+		wp_enqueue_script(
+			$this->plugin_name,
+			plugin_dir_url( __FILE__ ) . 'js/vpress-public.js',
+			array( 'jquery' ),
+			$this->version, false
+		);
+	}	
+
+		/**
+	 * Register the stylesheets for the public-facing side of the site.
+	 *
+	 * @since    0.1.0
+	 */
 
 	public function enqueue_styles($hook) {
 
@@ -113,29 +163,46 @@ class Vpress_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/vpress-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style(
+			$this->plugin_name . '_public-style',
+			plugin_dir_url( __FILE__ ) . 'css/vpress-public.css',
+			array(),
+			null
+		);
+		foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
+			$filename = substr($file, strrpos($file, '/') + 1);
+			wp_enqueue_style(
+				$this->plugin_name . '_' . $filename ,
+				$this->client['location']. '/css/' .$filename,
+				array(),
+				null
+			);
+		} 
+		wp_enqueue_style(
+			$this->plugin_name . '_app',
+			$this->client['location']. '/css/app.css',
+			array(),
+			null
+		);
+		wp_enqueue_style(
+			$this->plugin_name . '_chunk-vendors' ,
+			$this->client['location']. '/css/chunk-vendors.css',
+			array(),
+			null
+		);
+		wp_enqueue_style(
+			$this->plugin_name . '_leaflet',
+			"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+			array(),
+			null
+		);
+		wp_enqueue_style(
+			$this->plugin_name . '_roboto-font',
+			"https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900",
+			array(),
+			null
+		);
 	}
 
-	/**
-	 * Register the JavaScript for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_scripts($hook) {
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Vpress_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Vpress_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-		
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/vpress-public.js', array( 'jquery' ), $this->version, false );
-		}	
 
 }

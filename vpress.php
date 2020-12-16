@@ -9,16 +9,15 @@
  * that starts the plugin.
  *
  * @link              data4.mx
- * @since             0.0.1
+ * @since             0.1.0
  * @package           Vpress
  *
  * @wordpress-plugin
  * Plugin Name:       Vpress
  * Plugin URI:        vpress.io
  * Description:       Transforma tus datos en impacto ¡Publica y cuenta tu historia!
- * Version:           0.0.1
+ * Version:           0.1.0
  * Author:            Vpress
- * Author URI:        vpress.io
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       vpress
@@ -32,10 +31,10 @@ if ( ! defined( 'WPINC' ) ) {
 
 /**
  * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
+ * Start at version 0.1.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'VPRESS_VERSION', '1.0.0' );
+define( 'VPRESS_VERSION', '0.1.0' );
 
 /**
  * The code that runs during plugin activation.
@@ -72,7 +71,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-vpress.php';
  * then kicking off the plugin from this point in the file does
  * not affect the page life cycle.
  *
- * @since    1.0.0
+ * @since    0.1.0
  */
 function run_vpress() {
 

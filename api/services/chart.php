@@ -1,6 +1,6 @@
 <?php
 
-function query_chart_data($request) {
+function vpress_query_chart_data($request) {
   $body = $request->get_json_params();
   if ( empty($body['dataset']) ) {
     return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
@@ -129,7 +129,7 @@ function query_chart_data($request) {
 
 }
 
-function get_data( $request ) {
+function vpress_get_data( $request ) {
   $body = $request->get_json_params();
   if ( empty($body['dataset']) || empty($body['chart_type']) ) {
     return new WP_Error( 'missing_field', 'Missing field', array( 'status' => 404 ) );
@@ -262,7 +262,7 @@ function get_data( $request ) {
   return $response;
 }
 
-function get_chart_data( $request ) {
+function vpress_get_chart_data( $request ) {
   $body = $request->get_json_params();
   $column_1 = $body['column_1'];
   $column_2 = $body['column_2'];
@@ -292,7 +292,7 @@ function get_chart_data( $request ) {
  return $response;
 }
 
-function get_chart( $request ) {
+function vpress_get_chart( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_charts';
@@ -309,7 +309,7 @@ function get_chart( $request ) {
   return $response;
 }
 
-function list_charts( $request ) {
+function vpress_list_charts( $request ) {
   global $wpdb;
   $q = strtolower($request->get_param('q'));
   $page = (int)$request->get_param('page');
@@ -339,7 +339,7 @@ function list_charts( $request ) {
   return $response;
 }
 
-function create_chart( $request ) {
+function vpress_create_chart( $request ) {
   global $wpdb;
   $table_name = $wpdb->prefix.'vpresscore_charts';
   $dataset_id = (int)$request->get_param('dataset_id');
@@ -379,7 +379,7 @@ function create_chart( $request ) {
   return $response;
 }
 
-function update_chart( $request ) {
+function vpress_update_chart( $request ) {
   global $wpdb;
   $table_name = $wpdb->prefix.'vpresscore_charts';
   $id = (int)$request->get_param('id');
@@ -414,7 +414,7 @@ function update_chart( $request ) {
   return $response;
 }
 
-function update_image_url_chart( $request ) {
+function vpress_update_image_url_chart( $request ) {
   global $wpdb;
   $table_name = $wpdb->prefix.'vpresscore_charts';
   $id = (int)$request->get_param('id');
@@ -440,7 +440,7 @@ function update_image_url_chart( $request ) {
   return $response;
 }
 
-function delete_chart( $request ) {
+function vpress_delete_chart( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_charts';
@@ -461,7 +461,7 @@ function delete_chart( $request ) {
   return $response;
 }
 
-function image_chart( $request ) {
+function vpress_image_chart( $request ) {
   $upload_dir = wp_upload_dir();
   $string = $request->get_param('string');
   $filename = $request->get_param('name');
