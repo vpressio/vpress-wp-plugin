@@ -4,7 +4,7 @@
  * Fired during plugin activation
  *
  * @link       data4.mx
- * @since      1.0.0
+ * @since      0.1.0
  *
  * @package    Vpress
  * @subpackage Vpress/includes
@@ -15,7 +15,7 @@
  *
  * This class defines all code necessary to run during the plugin's activation.
  *
- * @since      1.0.0
+ * @since      0.1.0
  * @package    Vpress
  * @subpackage Vpress/includes
  * @author     D4 <info@data4.mx>
@@ -27,7 +27,7 @@ class Vpress_Activator {
 	 *
 	 * Long Description.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public static function create_tables() {
 		global $wpdb;
@@ -78,7 +78,7 @@ class Vpress_Activator {
 			dbDelta( [ $sql_datasets, $sql_charts ] );
 		}
 
-		add_option( 'vpress_db_version', '1.0.0' );
+		add_option( 'vpress_db_version', '0.1.0' );
 
 		
 	}
@@ -88,7 +88,7 @@ class Vpress_Activator {
 	 *
 	 * Long Description.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public static function create_uploads_folder() {
 		$upload_dir = wp_upload_dir();

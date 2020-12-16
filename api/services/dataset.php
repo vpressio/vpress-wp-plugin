@@ -1,12 +1,12 @@
 <?php
 
-function clean_string($string) {
+function vpress_clean_string($string) {
   $string = str_replace(' ', '', $string);
   $string = preg_replace('/[^A-Za-z0-9]/', '', $string);
   return strtolower($string);
 }
 
-function get_dataset_data( $request ) {
+function vpress_get_dataset_data( $request ) {
   global $wpdb;
   $table_name = $request['dataset'];
   $page = (int)$request->get_param('page');
@@ -27,7 +27,7 @@ function get_dataset_data( $request ) {
   return $response;
 }
 
-function upload_dataset( $request ) {
+function vpress_upload_dataset( $request ) {
   $permittedExtension = 'csv';
   $permittedTypes = ['text/csv', 'text/plain'];
 
@@ -76,7 +76,7 @@ function upload_dataset( $request ) {
   require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
   $file_name = explode('.', $file['name'])[0];
-  $table_name = "vpress_" . clean_string($file_name);
+  $table_name = "vpress_" . vpress_clean_string($file_name);
 
   while ( ( $data = fgetcsv( $handle, 1000, ',' ) ) !== FALSE ) {
     if ( $headerFlag ) {
@@ -84,7 +84,7 @@ function upload_dataset( $request ) {
       $headerFlag = false;
       $sql_create_dataset = "CREATE TABLE IF NOT EXISTS $table_name (";
       foreach ($data as $value) {
-        $clean_string = clean_string($value);
+        $clean_string = vpress_clean_string($value);
         $sql_create_dataset .= "`$clean_string` TEXT NULL, ";
       }
       $sql_create_dataset .= "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ";
@@ -122,7 +122,7 @@ function upload_dataset( $request ) {
   return $response;
 }
 
-function get_dataset( $request ) {
+function vpress_get_dataset( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_datasets';
@@ -139,7 +139,7 @@ function get_dataset( $request ) {
   return $response;
 }
 
-function list_datasets( $request ) {
+function vpress_list_datasets( $request ) {
   global $wpdb;
   $page = (int)$request->get_param('page');
   $per_page = (int)$request->get_param('perPage');
@@ -184,7 +184,7 @@ function list_datasets( $request ) {
   return $response;
 }
 
-function create_dataset( $request ) {
+function vpress_create_dataset( $request ) {
   global $wpdb;
   $table_name = $wpdb->prefix.'vpresscore_datasets';
   $permissions = $request->get_param('permissions');
@@ -200,7 +200,7 @@ function create_dataset( $request ) {
     array( 
       'permissions' => $permissions, 
       'name' => $name,
-      'slug' => clean_string($slug),
+      'slug' => vpress_clean_string($slug),
       'description' => $description,
       'tag' => $tag,
       'source' => $source,
@@ -225,7 +225,7 @@ function create_dataset( $request ) {
   return $response;
 }
 
-function update_dataset( $request ) {
+function vpress_update_dataset( $request ) {
   global $wpdb;
   $table_name = $wpdb->prefix.'vpresscore_datasets';
 
@@ -267,7 +267,7 @@ function update_dataset( $request ) {
   return $response;
 }
 
-function delete_dataset( $request ) {
+function vpress_delete_dataset( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_datasets';
@@ -286,7 +286,7 @@ function delete_dataset( $request ) {
   return $response;
 }
 
-function datasets_charts( $request ) {
+function vpress_datasets_charts( $request ) {
   global $wpdb;
   $id = (int)$request->get_param('id');
   $table_name = $wpdb->prefix.'vpresscore_charts';
@@ -307,7 +307,7 @@ function datasets_charts( $request ) {
   return $response;
 }
 
-function delete_column( $request ) {
+function vpress_delete_column( $request ) {
   global $wpdb;
   $table_name = $request['dataset'];
   $column = $request->get_param('column');
@@ -323,7 +323,7 @@ function delete_column( $request ) {
   return $response;
 }
 
-function rename_column( $request ) {
+function vpress_rename_column( $request ) {
   global $wpdb;
   $table_name = $request['dataset'];
   $new = $request->get_param('new');
@@ -343,7 +343,7 @@ function rename_column( $request ) {
   return $response;
 }
 
-function change_data_type_column( $request ) {
+function vpress_change_data_type_column( $request ) {
   global $wpdb;
   require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 

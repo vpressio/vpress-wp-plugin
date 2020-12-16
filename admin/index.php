@@ -1,3 +1,4 @@
-<?php // Silence is golden
-include('./public/index.html');
-?>
+<noscript>
+  <strong>We're sorry but Vpress doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+</noscript>
+<div id="app"></div>

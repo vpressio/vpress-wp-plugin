@@ -4,7 +4,7 @@
  * Fired during plugin deactivation
  *
  * @link       data4.mx
- * @since      1.0.0
+ * @since      0.1.0
  *
  * @package    Vpress
  * @subpackage Vpress/includes
@@ -15,7 +15,7 @@
  *
  * This class defines all code necessary to run during the plugin's deactivation.
  *
- * @since      1.0.0
+ * @since      0.1.0
  * @package    Vpress
  * @subpackage Vpress/includes
  * @author     D4 <info@data4.mx>
@@ -27,7 +27,7 @@ class Vpress_Deactivator {
 	 *
 	 * Long Description.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public static function deactivate() {
 

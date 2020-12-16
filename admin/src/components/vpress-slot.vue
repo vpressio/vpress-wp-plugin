@@ -7,12 +7,12 @@
     >
       {{ icon }}
     </v-icon>
-    <img
+    <v-img
       v-if="slotIcon.length !== 0"
       :src="iconSrc"
-      width="15"
-      height="15"
-    ><img>
+      width="15px"
+      height="15px"
+    />
     <span>
       {{ label }}
     </span>

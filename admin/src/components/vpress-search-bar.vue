@@ -73,7 +73,7 @@ export default {
 
   .new-viz-btn {
     height: 56px !important;
-    text-transform: capitalize;
+    text-transform: none;
     font-size: 0.8rem;
     margin-left: 20px;
   }

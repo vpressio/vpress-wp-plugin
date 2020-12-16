@@ -23,10 +23,30 @@
           )
 </template>  
 <script>
-import * as d3 from 'd3';
-import * as _ from 'lodash';
+import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
-import * as dbox from '@dboxjs/core';
+import {
+  timeFormatLocale,
+  select,
+  max,
+  min,
+  mean,
+  sum,
+  selectAll,
+  curveLinear,
+  format,
+  nest
+} from 'd3';
+import {
+  chart,
+  leaflet,
+  timeline,
+  treemap,
+  heatmap,
+  spineplot,
+  scatter,
+  bars
+} from '@dboxjs/core';
 
 export default {
   name: 'VpressChartContainer',
@@ -77,7 +97,7 @@ export default {
   data() {
     return {
       windowWidth: window.innerWidth,
-      locale: d3.timeFormatLocale({
+      locale: timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
         date: '%d.%m.%Y',
         time: '%H:%M:%S',
@@ -187,7 +207,7 @@ export default {
   watch: {
     chartConfig() {
       if (
-        !_.includes(
+        !includes(
           ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map'],
           this.chartConfig.chart
         )
@@ -229,13 +249,13 @@ export default {
        * (axes, groupby, collapseby, project) and selected chart
        */
       /** Configure chart size */
-      this.width =  d3
-            .select(this.$el)
+      this.width =  select(this.$el)
             .node().offsetWidth ;
-      this.height = d3
-          .select(this.$el)
+      this.height = select(this.$el)
           .node().offsetHeight * 0.85
-
+      this.height = this.height > 0
+        ? this.height
+        : 500
       const marginRatio = (value, limit) => {
         let margin = value
         for (let i = 0; i < limit; i++) {
@@ -296,7 +316,7 @@ export default {
       // }
       this.removeChart()
 
-      this.sortedData = _.cloneDeep(this.data).sort((a, b) => {
+      this.sortedData = cloneDeep(this.data).sort((a, b) => {
         if (vm.chartConfig.orderBy && vm.chartConfig.orderBy.order === 'asc') {
           if (a[vm.chartConfig.orderBy.slug] < b[vm.chartConfig.orderBy.slug]) {
             return -1;
@@ -312,7 +332,7 @@ export default {
         }
       });
 
-      this.xAxisValues = _.uniq(
+      this.xAxisValues = uniq(
         this.sortedData.map(
           function(d) {
             return d[this.chartConfig.xAxis.slug];
@@ -320,7 +340,7 @@ export default {
         )
       ).sort();
 
-      this.yAxisValues = _.uniq(
+      this.yAxisValues = uniq(
         this.sortedData.map(
           function(d) {
             return d[this.chartConfig.yAxis.slug];
@@ -330,7 +350,7 @@ export default {
 
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
-          ? _.uniq(
+          ? uniq(
               this.sortedData.map(
                 function(d) {
                   return d[this.chartConfig.groupBy.slug];
@@ -352,13 +372,13 @@ export default {
         };
       });
       //eslint-disable-next-line
-      const maxFirstWord = d3.max(this.xAxisValues, o => (o ? o.length * 8 : 0));
+      const maxFirstWord = max(this.xAxisValues, o => (o ? o.length * 8 : 0));
       const bandWidth = ((this.width - 250) / this.xAxisValues.length) * 0.8;
 
       if (
         bandWidth < maxFirstWord ||
         (this.chartConfig.chart === 'spineplot' &&
-          +d3.min(
+          +min(
             this.data,
             function(d) {
               return d[this.chartConfig.collapseBy.slug];
@@ -375,8 +395,8 @@ export default {
      * (for linear axis scale)
      */
     currentMinZero(axis) {
-      const min = Number(d3.min(this.data, o => o[axis.slug]));
-      if (min < 0) {
+      const minimum = Number(min(this.data, o => o[axis.slug]));
+      if (minimum < 0) {
         return false;
       } else {
         return (
@@ -393,7 +413,7 @@ export default {
       this.dataToDraw = this.parseApiData(this.filteredData)
       this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
-          ? _.uniq(
+          ? uniq(
               this.filteredData.map(
                 function(d) {
                   return d[this.chartConfig.groupBy.slug];
@@ -500,8 +520,8 @@ export default {
             /** Remove labels that are not a number */
             if (vm.chartConfig.chart === 'timeline') {
               chart._svg.selectAll('.x.axis .tick text').each(() => {
-                if (isNaN(parseInt(d3.select(this).text(), 10))) {
-                  d3.select(this).remove();
+                if (isNaN(parseInt(select(this).text(), 10))) {
+                  select(this).remove();
                 }
               });
             }
@@ -517,26 +537,24 @@ export default {
             }
             
             if(vm.chartConfig.chart === 'heatmap') {
-              d3.selectAll('.dbox-label').style('fill', 'white')
+              selectAll('.dbox-label').style('fill', 'white')
             }
             /** Rotate x axis ticks texts */
             chart._svg.selectAll('.x.axis .tick text').each(function() {
               if (
-                d3.select(this).attr('transform') &&
-                d3
-                  .select(this)
+                select(this).attr('transform') &&
+                select(this)
                   .attr('transform')
                   .search('rotate') !== -1
               ) {
-                d3.select(this).style('font-size', '11');
+                select(this).style('font-size', '11');
               }
             });
             vm.$emit('chart_loaded', vm.$el);
           }
         }
       };
-      this.chart = dbox
-        .chart(config)
+      this.chart = chart(config)
         .bindTo(`#${this.id}`)
         .data({
           raw: this.dataToDraw // Modified data by chartConfig.chart (parse dates or fill NAs)
@@ -650,14 +668,14 @@ export default {
       // Update position for axes only for timeline
       if (this.chartConfig.chart === 'timeline') {
         // Timeline
-        d3.selectAll('.x.axis .tick text').attr('dy', 20);
-        d3.selectAll('.y.axis .tick text').attr('dx', -10);
+        selectAll('.x.axis .tick text').attr('dy', 20);
+        selectAll('.y.axis .tick text').attr('dx', -10);
 
         // Remove monthly ticks if variable is year-defined
         if (this.selectedQuestion && this.selectedQuestion['minorFrequency'] === 'anual') {
-          d3.selectAll('.x.axis .tick text').each(() => {
+          selectAll('.x.axis .tick text').each(() => {
             if (Number.isNaN(+this['innerHTML'])) {
-              d3.select(this['parentNode']).remove();
+              select(this['parentNode']).remove();
               return;
             }
           });
@@ -668,32 +686,32 @@ export default {
      * Configure a barchart using dboxjs
      */
     drawBars() {
-      const bars = this.chart.layer(dbox.bars);
+      const b = this.chart.layer(bars);
 
       if (this.groupByOptions[0] && this.chartConfig.groupBy.slug !== "") {
         if (this.chartConfig.stackedBars) {
-          bars.stackBy(this.groupByOptions);
+          b.stackBy(this.groupByOptions);
         } else {
-          bars.groupBy(this.groupByOptions);
+          b.groupBy(this.groupByOptions);
         }
         if (this.chartConfig.yAxis.type === 'linear') {
-          bars.x(this.chartConfig.xAxis.slug).fill(this.chartConfig.xAxis.slug);
+          b.x(this.chartConfig.xAxis.slug).fill(this.chartConfig.xAxis.slug);
         } else {
-          bars.y(this.chartConfig.yAxis.slug).fill(this.chartConfig.yAxis.slug);
+          b.y(this.chartConfig.yAxis.slug).fill(this.chartConfig.yAxis.slug);
         }
       } else {
         if (this.chartConfig.yAxis.type === 'linear') {
-          bars.fill(this.chartConfig.xAxis.slug);
+          b.fill(this.chartConfig.xAxis.slug);
         } else {
-          bars.fill(this.chartConfig.yAxis.slug);
+          b.fill(this.chartConfig.yAxis.slug);
         }
-        bars.x(this.chartConfig.xAxis.slug).y(this.chartConfig.yAxis.slug);
+        b.x(this.chartConfig.xAxis.slug).y(this.chartConfig.yAxis.slug);
       }
-      bars.sortBy().colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+      b.sortBy().colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawHeatmap() {
-      const heatmap = this.chart.layer(dbox.heatmap);
-      heatmap
+      const hm = this.chart.layer(heatmap);
+      hm
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
         .fill(this.chartConfig.collapseBy.slug)
@@ -703,27 +721,27 @@ export default {
         .colors(this.chartConfig.colors.slice(0, 5));
     },
     drawSpineplot() {
-      const spineplot = this.chart.layer(dbox.spineplot);
+      const sp = this.chart.layer(spineplot);
       if (this.groupByOptions.length > 0) {
-        spineplot
+        sp
           .stackBy(this.groupByOptions)
           .fill('key')
           .value(this.chartConfig.collapseBy.slug);
       } else {
         if (this.chartConfig.xAxis.type === 'linear') {
-          spineplot.fill(this.chartConfig.yAxis.slug).value(this.chartConfig.xAxis.slug);
+          sp.fill(this.chartConfig.yAxis.slug).value(this.chartConfig.xAxis.slug);
         } else if (this.chartConfig.xAxis.type !== 'linear') {
-          spineplot.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.yAxis.slug);
+          sp.fill(this.chartConfig.xAxis.slug).value(this.chartConfig.yAxis.slug);
         }
       }
-      spineplot
+      sp
         .category(this.ordinalAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
     drawTreemap() {
       const vm = this
-      const treemap = this.chart.layer(dbox.treemap);
-      treemap
+      const tm = this.chart.layer(treemap);
+      tm
         .nestBy(vm.chartConfig.xAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse())
 
@@ -731,9 +749,9 @@ export default {
     drawScatter() {
       const vm = this;
       const collapseBy = this.chartConfig.collapseBy.slug;
-      const scatter = this.chart.layer(dbox.scatter);
+      const sctr = this.chart.layer(scatter);
 
-      scatter
+      sctr
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
         .figure()
@@ -743,21 +761,21 @@ export default {
         !vm.linearAxis &&
         ![this.chartConfig.yAxis, this.chartConfig.xAxis].map(o => o.slug).includes(collapseBy)
       ) {
-        scatter.magnitude(collapseBy).magnitudeRange([10, 40]);
+        sctr.magnitude(collapseBy).magnitudeRange([10, 40]);
       }
       if (this.groupByOptions[0] && this.chartConfig.groupBy.slug) {
-        scatter.fill(this.chartConfig.groupBy.slug);
+        sctr.fill(this.chartConfig.groupBy.slug);
       } else if (this.chartConfig.yAxis.type === 'ordinal') {
-        scatter.fill(this.chartConfig.yAxis.slug);
+        sctr.fill(this.chartConfig.yAxis.slug);
       } else {
-        scatter.fill(this.chartConfig.xAxis.slug);
+        sctr.fill(this.chartConfig.xAxis.slug);
       }
     },
     drawTimeline() {
       const vm = this
-      const timeline = vm.chart
-        .layer(dbox.timeline)
-        .curve(d3.curveLinear)
+      const tl = vm.chart
+        .layer(timeline)
+        .curve(curveLinear)
         .parseDate(vm.dateFormat)
         .tip(function(d) {
           let html = '';
@@ -765,15 +783,15 @@ export default {
           let format = vm.dateFormat;
           html += vm.locale.format(format)(d.x) + '<br>';
           if (d.y !== undefined) {
-            if (typeof timeline.utils.format(d.y) === 'string') {
+            if (typeof tl.utils.format(d.y) === 'string') {
               /** @deprecated uses dbox version 0.0.8 */
               html +=
-                '<span>' + (Number.isNaN(+d.y) ? d.y : timeline.utils.format(d.y)) + '</span></br>';
+                '<span>' + (Number.isNaN(+d.y) ? d.y : tl.utils.format(d.y)) + '</span></br>';
             } else {
               /** cool, uses dbox version 0.0.9 */
               html +=
                 '<span>' +
-                (Number.isNaN(+d.y) ? d.y : timeline.utils.format()(d.y)) +
+                (Number.isNaN(+d.y) ? d.y : tl.utils.format()(d.y)) +
                 '</span></br>';
             }
           }
@@ -781,12 +799,12 @@ export default {
         });
 
       if (this.groupByOptions.length > 0) {
-        timeline.series(this.groupByOptions);
+        tl.series(this.groupByOptions);
       } else {
         // SET LINEAR AXIS
-        timeline.series([this.chartConfig.yAxis.slug]);
+        tl.series([this.chartConfig.yAxis.slug]);
       }
-      timeline
+      tl
         .x(this.chartConfig.xAxis.slug)
         .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
     },
@@ -800,11 +818,11 @@ export default {
       // const width = window['$'](`#${this.id}`).width();
       // const height = window['$'](`#${this.id}`).height();
 
-      d3.select(`#${this.id}`).text('');
-      d3.select(`#${this.id}`)
+      select(`#${this.id}`).text('');
+      select(`#${this.id}`)
         .selectAll('*')
         .remove();
-      d3.select(`#${this.id}`)
+      select(`#${this.id}`)
         .append('div')
         .attr('id', 'leaflet-wrapper')
         .style('width', this.innerWidth >= mobileWidth ? this.width - 200 + 'px' : this.width + 'px')
@@ -845,7 +863,7 @@ export default {
           },
           formatLegend: function(number) {
             if (number >= 100000) {
-              return d3.format('s')(number);
+              return format('s')(number);
             } else {
               if (typeof vm.chart.helper.utils.format(number) === 'string') {
                 /** @deprecated uses dbox version 0.0.8, only to keep compatibility if dbox version wasn't changed yet*/
@@ -860,8 +878,8 @@ export default {
         events: {
           load: function() {
             if (!vm.visibleLabels) {
-              d3.selectAll('.dbox-label').style('display', 'none');
-              d3.selectAll('.dbox-label-coefficient').style('display', 'none');
+              selectAll('.dbox-label').style('display', 'none');
+              selectAll('.dbox-label-coefficient').style('display', 'none');
             }
              vm.$emit('chart_loaded', vm.$el);
           }
@@ -872,9 +890,9 @@ export default {
       };
 
       const data = this.dataToDraw;
-      this.chart = dbox.chart(lconfig).data({ raw: data });
+      this.chart = chart(lconfig).data({ raw: data });
       this.chart
-        .layer(dbox.leaflet)
+        .layer(leaflet)
         .id(this.chartConfig.xAxis.slug)
         .fill(this.chartConfig.yAxis.slug)
         .opacity(0.9)
@@ -883,8 +901,7 @@ export default {
 
       if (this.innerWidth >= mobileWidth) {
         // Responsive mobile
-        const legend = d3
-          .select(`#${this.id}`)
+        const legend = select(`#${this.id}`)
           .style('display', 'flex')
           .style('flex-direction', 'row')
           .style('flex-wrap', 'nowrap')
@@ -918,7 +935,7 @@ export default {
               ].active;
               const parentNode = this['parentNode'];
               const checked = vm.legendOptions[vm.legendOptions.indexOf(d)].active ? true : null;
-              d3.select(parentNode)
+              select(parentNode)
                 .select('input')
                 .attr('checked', checked);
               vm.legendChanged(vm.legendOptions);
@@ -942,9 +959,8 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!_.includes([ 'scatter','heatmap', 'map'], vm.chartConfig.chart)) {
-        const parsedData = d3
-          .nest()
+      if (!includes([ 'scatter','heatmap', 'map'], vm.chartConfig.chart)) { 
+        const parsedData = nest()
           .key(d => d[vm.ordinalAxis.slug])
           .rollup(leaves => {
             let obj = {};
@@ -987,9 +1003,8 @@ export default {
     },
     parseData(data) {
       const vm = this;
-      if (!_.includes(['scatter'], vm.chartConfig.chart)) {
-        let collapsedData = d3
-          .nest()
+      if (!includes(['scatter'], vm.chartConfig.chart)) {
+        let collapsedData = nest()
           .key(d => `${d[vm.ordinalAxis.slug]}_${d[vm.chartConfig.groupBy.slug]}`)
           .rollup(leaves => {
             let obj = {};
@@ -1006,25 +1021,25 @@ export default {
             } else {
               switch (vm.chartConfig.collapseBy.func) {
                 case 'min':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.min(
+                  obj[vm.chartConfig.collapseBy.slug] = min(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 case 'max':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.max(
+                  obj[vm.chartConfig.collapseBy.slug] = max(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 case 'mean':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.mean(
+                  obj[vm.chartConfig.collapseBy.slug] = mean(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 default:
-                  obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                  obj[vm.chartConfig.collapseBy.slug] = sum(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
@@ -1052,8 +1067,7 @@ export default {
             }
           });
         if (vm.chartConfig.chart !== 'heatmap' && vm.chartConfig.groupBy.slug !== '') {
-          collapsedData = d3
-            .nest()
+          collapsedData = nest()
             .key(d => d[vm.ordinalAxis.slug])
             .rollup(leaves => {
               let obj = {};
@@ -1065,25 +1079,25 @@ export default {
               obj[vm.ordinalAxis.slug] = leaves[0][vm.ordinalAxis.slug];
               switch (vm.chartConfig.collapseBy.func) {
                 case 'min':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.min(
+                  obj[vm.chartConfig.collapseBy.slug] = min(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 case 'max':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.max(
+                  obj[vm.chartConfig.collapseBy.slug] = max(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 case 'mean':
-                  obj[vm.chartConfig.collapseBy.slug] = d3.mean(
+                  obj[vm.chartConfig.collapseBy.slug] = mean(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
                   break;
                 default:
-                  obj[vm.chartConfig.collapseBy.slug] = d3.sum(
+                  obj[vm.chartConfig.collapseBy.slug] = sum(
                     leaves,
                     d => d[vm.chartConfig.collapseBy.slug]
                   );
@@ -1111,12 +1125,12 @@ export default {
       }
     },
     removeChart() {
-      d3.select(this.$el)
+      select(this.$el)
         .select(`#${this.id}`)
         .selectAll('*')
         .remove();
-      d3.selectAll(`.d3-tip.tip-${this._uid}`).remove();
-      d3.selectAll('.title-tip').remove();
+      selectAll(`.d3-tip.tip-${this._uid}`).remove();
+      selectAll('.title-tip').remove();
       if(this.chart && this.chart.destroy){
         this.chart.destroy()
       }

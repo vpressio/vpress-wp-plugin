@@ -1,3 +1,5 @@
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+
 module.exports = {
   productionSourceMap: false,
   publicPath: process.env.NODE_ENV === 'production'
@@ -5,7 +7,6 @@ module.exports = {
     : 'http://localhost:8080/',
   configureWebpack: {
     devServer: {
-      // contentBase: '/wp-content/plugins/vpress/dist/',
       allowedHosts: [''],
       headers: {
         'Access-Control-Allow-Origin': '*'
@@ -20,7 +21,8 @@ module.exports = {
     },
     resolve: {
       symlinks: false
-    }
+    },
+    plugins: [new BundleAnalyzerPlugin()]
   },
   css: {
     extract:

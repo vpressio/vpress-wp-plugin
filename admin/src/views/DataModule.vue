@@ -170,7 +170,7 @@ import VpressDatasetSelect from '../components/vpress-dataset-select.vue'
 import VpressDataTable from '../components/vpress-data-table.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
 import { editorMixin, loaderMixin } from '../mixins/index.js'
-import FReader from '../utils/fileReader'
+import { readCSV } from '../utils/fileReader'
 
 export default {
   name: 'VpressDataModule',
@@ -242,7 +242,7 @@ export default {
       try {
         const self = this;
         self.loading = true;
-        const content = await FReader.readCSV(file);
+        const content = await readCSV(file);
         self.headers = self.extractSampleHeaders(content[0]);
         self.data = content;
         setTimeout(() => {
