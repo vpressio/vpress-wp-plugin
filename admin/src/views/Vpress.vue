@@ -3,80 +3,6 @@
     <div class="vpress-app-bar">
       <VpressAppBar/>
     </div>
-    <!-- <v-card
-      class="vpress-sidebar"
-      tile
-      flat
-      color="#222A32"
-    >
-      <v-card 
-        class="pa-2"
-        tile
-        height="50"
-        color="#181D25"
-        flat
-      >
-        <v-img src="../assets/images/logo.svg" />
-        <div class="my-4">
-          <v-btn
-            class="py-3 my-2"
-            v-for="dataset in datasets"
-            :key="dataset"
-            x-small
-            block
-            :color="
-              $store.getters['workspace/activeDataset'] &&
-              $store.getters['workspace/activeDataset'].slug === dataset 
-                ? 'secondary'
-                : 'primary'
-            "
-            @click="selectDataset(dataset)"
-          >
-            <v-tooltip
-              attach
-              right
-              offset-x
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-icon
-                  small
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  mdi-database
-                </v-icon>
-              </template>
-              <span> {{ dataset }} </span>
-            </v-tooltip>
-          </v-btn>
-          <v-btn
-            v-if="datasets.length > 0"
-            class="py-3 my-2"
-            x-small
-            block
-            color="primary"
-            @click="addDataset"
-          >
-            <v-tooltip
-              attach
-              right
-              offset-x
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-icon
-                  small
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  mdi-plus
-                </v-icon>
-              </template>
-              <span> Nuevo </span>
-            </v-tooltip>
-          </v-btn>
-        </div>
-      </v-card>
-    </v-card> -->
     <div class='vpress-navigation-view'>
       <router-view :key="$route.path"/>
       <v-snackbar
@@ -99,12 +25,12 @@
           </v-btn>
         </template>
       </v-snackbar>
-      <v-tour
+      <!-- <v-tour
         name="vpress-tour"
         :steps="tourSteps"
         :options="tourOptions"
         :callbacks="tourCallbacks"
-      />
+      /> -->
     </div>
   </div>
 </template>
@@ -244,59 +170,8 @@ export default {
     tourNext(currentStep) {
       switch(currentStep) {
         case 0:
-          // this.$store.dispatch(
-          //   'workspace/GET_DATASET_BY_NAME',
-          //   { dataSetDir:tourFileDir, file: tourFileName }
-          // )
-          //   .then(file => this.tourFile = {
-          //     file: file,
-          //     fileName: tourFileName,
-          //     fileDir: tourFileDir
-          //     }
-          //   )
-          //   .catch(err => this.tourFile = { error: err })
           break
-        case 2:
-          // this.activeTab = 1
-          break
-        case 3:
-          // this.mergeValue(
-          //   'xAxis',
-          //   {
-          //     slug: "anillos",
-          //     title: "anillos",
-          //     type: "ordinal"
-          //   }
-          // );
-          break
-        case 4:
-          // this.mergeValue(
-          //   'yAxis',
-          //   {
-          //     slug: "total_count",
-          //     title: "Conteo de observaciones",
-          //     type: "linear"
-          //   }
-          // );
-          break
-        case 5:
-          // this.mergeValue(
-          //   'aggregation',
-          //   {
-          //     slug: "planeta",
-          //     title: "planeta",
-          //     type: "ordinal"
-          //   }
-          // );
-          break
-        case 6:
-          // this.merge_value(
-          //   { mutationType:'stackedBars', value: true }
-          // );
-          break
-        case 7:
-          // this.activeTab = 2
-          break
+        
       }
     }
   }
@@ -317,9 +192,6 @@ export default {
   width: 100%;
   height:calc(100% - 48px);
   background-color:#F8F8F8;
-}
-.vpress-sidebar {
-  grid-area: 1/1/2/2;
 }
 
 .v-input input {

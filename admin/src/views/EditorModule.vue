@@ -36,7 +36,7 @@
                   <v-img
                     v-bind="attrs"
                     v-on="on"
-                    src="../assets/images/db1-purple.svg"
+                    :src="require('../assets/images/db1-purple.svg')"
                     width="15"
                     height="12"
                   />
@@ -61,7 +61,6 @@
                   v-model="theme"
                   :color="themeSwitchColor"
                   class="config-switch"
-                  :value-comparator="(e)=> console.log(e)"
                 />
               </VpressInputControl>
             </VpressExpansionPanel>

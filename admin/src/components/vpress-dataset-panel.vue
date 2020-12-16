@@ -137,7 +137,7 @@ export default {
   data() {
     return {
       loading: false,
-      datasetVizzes: this.items
+      datasetVizzes: this.items,
     }
   },
   methods: {

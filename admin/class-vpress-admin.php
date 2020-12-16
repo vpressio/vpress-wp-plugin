@@ -4,7 +4,7 @@
  * The admin-specific functionality of the plugin.
  *
  * @link       data4.mx
- * @since      1.0.0
+ * @since      0.1.0
  *
  * @package    Vpress
  * @subpackage Vpress/admin
@@ -25,7 +25,7 @@ class Vpress_Admin {
 	/**
 	 * The ID of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
@@ -34,57 +34,47 @@ class Vpress_Admin {
 	/**
 	 * The version of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $version    The current version of this plugin.
 	 */
 	private $version;
+	/**
+	 * Node js client location.
+	 *
+	 * @since    0.1.0
+	 * @access   private
+	 * @var      string    $client    Node js client location..
+	 */
+	private $client;
 
 	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( $plugin_name, $version, $client ) {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
+		$this->client = $client;
 	}
-
-	private function is_develop_serve()
-	{
-		$connection = @fsockopen('localhost', '8080');
-
-		if ( $connection ) {
-				return true;
-		}
-
-		return false;
-	}
-
 
 	public function vpress_html() {
 		// check user capabilities
 		if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 		}
-		if ( $this->is_develop_serve() ) {
-			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/public/index.html';
-		} else { 
-			echo '<div class="wrap">';
-			echo '<div id="app"></div>';
-			echo '</div>';
-		}
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/index.php';
 	}
 
 
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public function admin_menu_vpress() {
 		add_menu_page(
@@ -102,7 +92,7 @@ class Vpress_Admin {
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public function enqueue_scripts($hook) {
 		/**
@@ -119,27 +109,41 @@ class Vpress_Admin {
 		if ($hook != 'toplevel_page_vpress'){
 			return;
 		}
-
-		if ( $this->is_develop_serve() ) {
-			wp_enqueue_script( $this->plugin_name  . '_dev', 'http://localhost:8080/js/app.js', array( 'wp-api' ), $this->version, false );
-			wp_enqueue_script( $this->plugin_name  . '_chunks', 'http://localhost:8080/js/chunk-vendors.js', array( 'wp-api' ), $this->version, false );
-		} else {
-			wp_enqueue_script( $this->plugin_name . '_chunks', plugin_dir_url( __DIR__ ) . 'admin/dist/js/chunk-vendors.js', [], $this->version, false );
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'admin/dist/js/app.js', array( 'wp-api' ), $this->version, false );
-		}
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'js/vpress-admin.js', array(), $this->version, false );
+		wp_enqueue_script( 
+			$this->plugin_name. '_chunks',
+			$this->client['location']. '/js/chunk-vendors.js',
+			array(),
+			$this->version,
+			true
+		);
+		wp_enqueue_script( 
+			$this->plugin_name . '_app',
+			$this->client['location']. '/js/app.js',
+			array(),
+			$this->version,
+			true
+		);
+		wp_enqueue_script(
+			$this->plugin_name,
+			plugin_dir_url( __DIR__ ) . 'js/vpress-admin.js',
+			array(),
+			$this->version,
+			false
+		);
 		$dataToBePassed = array(
 			'upload_max_filesize' => ini_get('upload_max_filesize'),
 		);
-
 		wp_localize_script( $this->plugin_name, 'php_vars', $dataToBePassed );
+		wp_localize_script( $this->plugin_name, 'wpApiSettings', array(
+			'root' => esc_url_raw( rest_url() ),
+			'nonce' => wp_create_nonce( 'wp_rest' )
+	) );
 	}
 
 	/**
 	 * Register the JavaScript for the admin area.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public function enqueue_styles($hook) {
 
@@ -157,18 +161,41 @@ class Vpress_Admin {
 		if ($hook != 'toplevel_page_vpress'){
 			return;
 		}
-		
-		// wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/vpress-admin.css', array(), $this->version, 'all' );
-		if ( $this->is_develop_serve() ) {
-			// wp_enqueue_style( $this->plugin_name . '_dev', 'http://localhost:8080/css/app.css', [], $this->version, 'all' );
-		} else {		
-			foreach( glob( plugin_dir_path( __FILE__). '../admin/dist/css/*.css' ) as $file ) {
+		if($this->client['env'] == 'prod') {
+			foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
 				$filename = substr($file, strrpos($file, '/') + 1);
-				wp_enqueue_style( $filename, plugin_dir_url( __DIR__ ).'admin/dist/css/'.$filename);
-			} 
-
-			//wp_enqueue_style( $this->plugin_name, plugin_dir_url( __DIR__ ) . 'admin/dist/css/chunk-vendors.css', [], $this->version, 'all' );
+				wp_enqueue_style(
+					$this->plugin_name . '_' . $filename ,
+					$this->client['location']. '/css/' .$filename,
+					array(),
+					null
+				);
+			}
+			wp_enqueue_style(
+				$this->plugin_name . '_app',
+				$this->client['location']. '/css/app.css',
+				array(),
+				null
+			);
+			wp_enqueue_style(
+				$this->plugin_name . '_chunk-vendors' ,
+				$this->client['location']. '/css/chunk-vendors.css',
+				array(),
+				null
+			);
 		}
+		wp_enqueue_style(
+			$this->plugin_name . '_leaflet',
+			"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+			array(),
+			null
+		);
+		wp_enqueue_style(
+			$this->plugin_name . '_roboto-font',
+			"https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900",
+			array(),
+			null
+		);
 	}
 
 }

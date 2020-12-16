@@ -139,7 +139,7 @@
   </v-card>
 </template>
 <script>
-import * as _ from 'lodash'
+import { clone } from 'lodash'
 import { loaderMixin, editorMixin } from '../mixins/index.js'
 import api from '../utils/axios'
 
@@ -199,10 +199,10 @@ export default {
   created() {
     this.chartValues = JSON.parse(this.value)
     this.editedItem = {
-      chartValues: _.clone(this.chartValues),
-      description: _.clone(this.description),
-      tags: _.clone(this.tags),
-      permissions: _.clone(this.permissions)
+      chartValues: clone(this.chartValues),
+      description: clone(this.description),
+      tags: clone(this.tags),
+      permissions: clone(this.permissions)
     }
   },
   filters: {

@@ -3,7 +3,7 @@
     <div class="viz-list-header text-subtitle-2 font-weight-regular">
       <v-spacer/>
       <img 
-        src="../assets/images/graficos-recomendados.svg"
+        :src="require('../assets/images/graficos-recomendados.svg')"
         alt="viz"
         width="30px"
         height="30px"
@@ -37,7 +37,7 @@
                     v-bind="attrs"
                     v-on="on"
                   >
-                    <v-img
+                    <img
                       :class="{ 'disabled-img': graph.disabled }"
                       :src="requireImg(graph.type)"
                       :alt="graph.type"
@@ -71,15 +71,15 @@
         <v-divider class="tri-actions-divider" vertical/>
         <v-spacer/>
         <v-btn icon @click="saveChart">
-          <img src="../assets/images/Guardar.svg" alt="" width="20" height="20">
+          <img :src="require('../assets/images/Guardar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
         <v-btn icon @click="downloadChartImg">
-          <img src="../assets/images/Descargar.svg" alt="" width="20" height="20">
+          <img :src="require('../assets/images/Descargar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
         <v-btn icon @click="clipboardCopy">
-          <img src="../assets/images/Compartir.svg" alt="" width="20" height="20">
+          <img :src="require('../assets/images/Compartir.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
       </div>

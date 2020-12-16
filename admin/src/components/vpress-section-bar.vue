@@ -26,8 +26,8 @@
           :class="{ 'nav_icon__active': $route.path === link.path }"
           :src="iconSrc(link.icon)"
           :alt="link.name"
-          height=20
-          width=20
+          height="20px"
+          width="20px"
         />
       </v-btn>
     </div>
