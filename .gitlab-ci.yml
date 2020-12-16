@@ -3,7 +3,6 @@ include:
   template: Jobs/Code-Quality.gitlab-ci.yml
 
 code_quality:
-  extends: code_quality
   variables:
     REPORT_FORMAT: html
   artifacts:
