@@ -50,7 +50,7 @@
         >
           <v-row>
             <v-col cols="12" sm="12" md="8" lg="9" style="display:flex;">
-              
+
               <v-slide-group
                 show-arrows
               >
@@ -60,13 +60,13 @@
                     :key="idx"
                     center-active
                     v-slot:default="{}"
-                  > 
+                  >
                     <div>
                       <v-icon class="mr-5">
                         mdi-database
                       </v-icon>
                       <v-btn
-                        outlined                                              
+                        outlined
                         color="primary"
                         class="py-5 mr-4"
                         @click="selectDataset(dataset)"
@@ -128,18 +128,18 @@
             <v-tab-item
               :value="'search'"
             >
-              <VpressDatasetSelect  @dataset="selectDataset"/>
+              <VpressDatasetSelect @dataset="selectDataset"/>
             </v-tab-item>
             <v-tab-item
               :value="'upload'"
-            > 
+            >
             <div class="pa-10" style="height:100%;">
-              <VpressFilepond/>
+              <VpressFilepond @uploaded="uploaded"/>
             </div>
             </v-tab-item>
             <v-tab-item
               :value="'paste'"
-            > 
+            >
               <div class="pa-10" style="height:100%;">
                 <div class="paste-area mb-4">
                   <v-textarea
@@ -161,6 +161,26 @@
         </v-card>
       </v-col>
     </v-row>
+    <v-snackbar
+      dark
+      bottom
+      right
+      v-model="$store.state.notifications.show"
+      :timeout="$store.state.notifications.timeout"
+      :color="$store.state.notifications.color"
+    >
+      {{ $store.state.notifications.text }}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="white"
+          text
+          v-bind="attrs"
+          @click="snackbar = $store.dispatch('notifications/close')"
+        >
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 <script>
@@ -229,6 +249,13 @@ export default {
         this.proxyScreen = true
         await this.editorInit(dataset)
 
+      } catch(error) {
+        console.error(error.message);
+      }
+    },
+    async uploaded() {
+      try {
+        this.tabs = 'search'
       } catch(error) {
         console.error(error.message);
       }

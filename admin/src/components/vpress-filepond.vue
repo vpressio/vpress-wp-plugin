@@ -89,11 +89,12 @@ export default {
         if (createRes.data.error) {
           throw new Error(createRes.data.error);
         }
-        this.$emit('update:file', uploadRes.data.data);
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Dataset guardado con éxito'
         })
+        this.$emit('uploaded', uploadRes.data.data);
+        // this.$emit('update:file', uploadRes.data.data);
       } catch (error) {
         this.$store.dispatch('notifications/open', {
           color: 'error',

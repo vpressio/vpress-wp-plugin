@@ -23,13 +23,13 @@
           :size="item.size"
           :rows="item.rows"
           :updated="item.updated"
-          @onDatasetDelete="$emit('on-dataset-delete')"
+          @on-dataset-delete="$emit('on-dataset-delete')"
         />
       </v-expansion-panel-header>
       <v-expansion-panel-content
         class="pa-0"
         color="#F8F8F8"
-      > 
+      >
         <v-row
           class="py-5 database-content-min-height"
           v-show="loading"
