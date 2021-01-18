@@ -29,7 +29,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_create_chart',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -40,7 +40,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
       'callback' => 'vpress_update_chart',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'edit_posts' );
       }
     )
@@ -51,7 +51,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::DELETABLE,
       'callback' => 'vpress_delete_chart',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'delete_posts' );
       }
     )
@@ -62,7 +62,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
       'callback' => 'vpress_get_chart_data',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'edit_posts' );
       }
     )
@@ -73,7 +73,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
       'callback' => 'get_data',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'edit_posts' );
       }
     )
@@ -93,7 +93,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_image_chart',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -104,7 +104,7 @@ function vpress_register_chart_routes() {
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_update_image_url_chart',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )

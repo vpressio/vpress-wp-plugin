@@ -11,7 +11,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_upload_dataset',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -62,7 +62,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_create_dataset',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -74,7 +74,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::EDITABLE,
       'callback' => 'vpress_update_dataset',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'edit_posts' );
       }
     )
@@ -84,9 +84,9 @@ function vpress_register_dataset_routes(){
     VPRESS_API_BASE_URL,
     VPRESS_API_DELETE_DATASET_ROUTE,
     array(
-      'methods' => WP_REST_SERVER::DELETABLE,
+      'methods' => WP_REST_Server::DELETABLE,
       'callback' => 'vpress_delete_dataset',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'delete_posts' );
       }
     )
@@ -98,7 +98,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_delete_column',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -110,7 +110,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_rename_column',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
@@ -122,7 +122,7 @@ function vpress_register_dataset_routes(){
     array(
       'methods' => WP_REST_SERVER::CREATABLE,
       'callback' => 'vpress_change_data_type_column',
-      'permission_callback' => function () {
+      'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
     )
