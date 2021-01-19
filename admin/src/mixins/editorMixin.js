@@ -109,9 +109,6 @@ export default {
     async query_data(queryBody ) {
       try {
         const response = await api.chart.query(queryBody);
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
         return response.data.data
       } catch (error) {
         throw new Error(error.message)

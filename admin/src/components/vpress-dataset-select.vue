@@ -101,7 +101,6 @@ export default {
             : element.tag = []
         });
         this.items = data.data
-        console.log(this.items);
         this.total = data.total
         this.loading = false
       } catch (error) {

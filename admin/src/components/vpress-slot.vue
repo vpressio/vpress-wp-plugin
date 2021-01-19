@@ -95,7 +95,7 @@
         >
           <div
             class="slot_border"
-            @drop.stop.self="drop($event, card.mutationType)"
+            @drop.stop.self="drop"
           >
             <div class="instruction_label" :class="{ 'hideCard': changeSlotStyle || storeVariables.length > 0 }">
               Arrastra una nueva variable de tipo:

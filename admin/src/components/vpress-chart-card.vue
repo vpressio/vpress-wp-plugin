@@ -9,7 +9,7 @@
         contain
         @click="createChart"
         color="#222A32"
-        :src="img_url"
+        :src="requireImg(img_url)"
       />
     </div>
     <v-divider/>
@@ -214,6 +214,16 @@ export default {
     }
   },
   methods: {
+    requireImg(url) {
+      try {
+        const vizType = JSON.parse(this.value).chart
+        return url && url.length > 0
+          ? url
+          : require(`../assets/images/${vizType}.png`);
+      } catch (error) {
+        return require('../assets/images/spineplot.png')
+      }
+    },
      async toggleInput(field, element) {
       this[field] = true
       await this.$nextTick();
@@ -297,10 +307,6 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-// .tag-box {
-//   border: solid red;
-// }
-
 .edit {
   cursor: text
 }
