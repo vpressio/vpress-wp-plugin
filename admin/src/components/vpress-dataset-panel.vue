@@ -17,7 +17,7 @@
           :permissions="item.permissions"
           :name="item.name"
           :slug="item.slug"
-          :description="item.description"
+          :description="item.description || ''"
           :tag="item.tag"
           :source="item.source"
           :size="item.size"

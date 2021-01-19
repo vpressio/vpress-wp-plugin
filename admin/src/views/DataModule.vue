@@ -248,14 +248,14 @@ export default {
       try {
         this.proxyScreen = true
         await this.editorInit(dataset)
-
       } catch(error) {
         console.error(error.message);
       }
     },
-    async uploaded() {
+    async uploaded(dataset) {
       try {
-        this.tabs = 'search'
+        this.proxyScreen = true
+        await this.editorInit(dataset)
       } catch(error) {
         console.error(error.message);
       }

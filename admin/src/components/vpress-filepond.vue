@@ -93,8 +93,7 @@ export default {
           color: 'success',
           text: 'Dataset guardado con éxito'
         })
-        this.$emit('uploaded', uploadRes.data.data);
-        // this.$emit('update:file', uploadRes.data.data);
+        this.$emit('uploaded', createRes.data.data[0]);
       } catch (error) {
         this.$store.dispatch('notifications/open', {
           color: 'error',
