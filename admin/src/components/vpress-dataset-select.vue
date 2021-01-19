@@ -40,11 +40,11 @@
             :permissions="item.permissions"
             :name="item.name"
             :slug="item.slug"
-            :description="item.description"
+            :description="item.description || ''"
             :tag="item.tag"
             :source="item.source"
-            :size="item.size"
-            :rows="item.rows"
+            :size="item.size || ''"
+            :rows="item.rows || ''"
             :updated="item.updated"
             cardColor="#FFF"
             @onDatasetDelete="$emit('on-dataset-delete')"
@@ -101,10 +101,14 @@ export default {
             : element.tag = []
         });
         this.items = data.data
+        console.log(this.items);
         this.total = data.total
         this.loading = false
       } catch (error) {
-        console.error(error.message);
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Hubo un error al intentar obtener el dataset'
+        })
         this.loading = false
       }
     }

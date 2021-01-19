@@ -22,7 +22,7 @@
       class="min-height-container"
       v-show="!loading && total === 0"
       justify-center
-    > 
+    >
       <v-col
         offset-md="3"
         offset-sm="3"
@@ -45,7 +45,7 @@
     >
       <VpressDatasetPanel
         :items="items"
-        @onDatasetDelete="getDatasets"
+        @on-dataset-delete="getDatasets"
       />
     </VpressPaginator>
   </v-container>

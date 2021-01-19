@@ -217,8 +217,26 @@ function vpress_create_dataset( $request ) {
     )
   );
 
+  $query = "SELECT
+    d.*,
+    CASE 
+      WHEN (DATA_LENGTH + INDEX_LENGTH) >= 1048576
+        THEN  CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 1),' ' , 'MB')
+      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1048576 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
+        THEN CONCAT(TRUNCATE((DATA_LENGTH + INDEX_LENGTH) / 1024, 1),' ' , 'KB')
+      WHEN (DATA_LENGTH + INDEX_LENGTH) < 1024 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
+        THEN CONCAT((DATA_LENGTH + INDEX_LENGTH),' ' , 'Bytes')
+    END AS size,
+    TABLE_ROWS AS rows
+  FROM $table_name as d
+  LEFT JOIN information_schema.tables as i
+  ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)
+  WHERE id = $wpdb->insert_id";
+
+  $data = $wpdb->get_results($query);
+
   $response = array(
-    'data' => $wpdb->insert_id,
+    'data' => $data,
     'query' => $wpdb->last_query,
     'error' => $wpdb->last_error ? $wpdb->last_error : false,
   );

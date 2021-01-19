@@ -191,7 +191,7 @@ export default {
           this.total = data.total
           this.headers = this.extractHeaders(this.items[0]);
         }
-          this.loading = false
+        this.loading = false
       } catch (error) {
         this.loading = false
         throw new Error(error.message)
