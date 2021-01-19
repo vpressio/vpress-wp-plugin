@@ -77,18 +77,12 @@ export default {
         const uploadRes = await api.dataset.upload(
           formData
         )
-        if (uploadRes.data.error) {
-          throw new Error(uploadRes.data.error);
-        }
         const createRes = await api.dataset.create({
           name: uploadRes.data.data,
           slug: uploadRes.data.data,
           permissions: "public",
           owner_id: window.userSettings.uid
         })
-        if (createRes.data.error) {
-          throw new Error(createRes.data.error);
-        }
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Dataset guardado con éxito'
