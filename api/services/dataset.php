@@ -107,7 +107,7 @@ function vpress_upload_dataset( $request ) {
     print_r('Failed to move uploaded file.');
   }
   
-  $query = "LOAD DATA INFILE '" . $file . "' INTO TABLE " . $table_name . " CHARACTER SET utf8 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES;";
+  $query = "LOAD DATA LOCAL INFILE '" . $file . "' INTO TABLE " . $table_name . " CHARACTER SET utf8 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES;";
 
   $sql = $wpdb->query($query);
 
