@@ -555,11 +555,12 @@ function vpress_delete_chart( $request ) {
 function vpress_image_chart( $request ) {
   try {
     $upload_dir = wp_upload_dir();
-    $string = $request->get_param('string');
-    $filename = $request->get_param('name');
-    $fileurl = $upload_dir['baseurl'].'/vpress/images/'. $filename . '.png';
-    $file = $upload_dir['basedir'].'/vpress/images/'. $filename . '.png';
-    $success = file_put_contents($file, file_get_contents($string));
+    $base64_img = $request->get_param('string');
+    $filename = $request->get_param('name') . '.png';
+    $file = $upload_dir['basedir'].'/vpress/images/'. $filename;
+    $fileurl = $upload_dir['baseurl'].'/vpress/images/'. $filename;
+    $decoded = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64_img), true);
+    $upload_file = file_put_contents($file, $decoded);
     return $fileurl;
   } catch (Exception $e) {
     return new WP_Error(
