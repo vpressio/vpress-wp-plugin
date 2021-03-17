@@ -21,7 +21,7 @@ define('VPRESS_API_GET_CHART_DATA_ROUTE_TEST','/test/columns');
 define('VPRESS_API_UPLOAD_DATASET','/dataset/upload');
 define('VPRESS_API_GET_DATASET_ROUTE','/dataset/get/(?P<id>[\d]+)');
 define('VPRESS_API_GET_DATASET_CHARTS_ROUTE','/dataset/charts/(?P<id>[\d]+)');
-define('VPRESS_API_LIST_DATASET_ROUTE','/dataset/list');
+define('VPRESS_API_LIST_DATASET_ROUTE','/dataset/list/');
 define('VPRESS_API_CREATE_DATASET_ROUTE','/dataset/create');
 define('VPRESS_API_UPDATE_DATASET_ROUTE','/dataset/update');
 define('VPRESS_API_DELETE_DATASET_ROUTE','/dataset/delete');

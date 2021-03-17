@@ -2,22 +2,27 @@
 
 function vpress_clean_string($string) {
   $string = str_replace(' ', '', $string);
-  $string = preg_replace('/[^A-Za-z0-9]/', '', $string);
+  //Replace not allowed characters with _ 
+  $string = preg_replace('/[^A-Za-z0-9_]/', '_', $string);
+  if(!$string) $string = 'empty';
   return strtolower($string);
 }
 
 function vpress_get_dataset_data( $request ) {
   try {
     global $wpdb;
-    $table_name = $request['dataset'];
+    $table_name =  "vpress_{$request['dataset']}";
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
     $start_at = $per_page * ($page - 1);
-    $query_total = "SELECT COUNT(*) AS total FROM vpress_$table_name";
-    $query = "SELECT * FROM vpress_$table_name LIMIT $start_at, $per_page";
-  
-    $data = $wpdb->get_results($wpdb->prepare($query));
-    $total = $wpdb->get_results($wpdb->prepare($query_total));
+    $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
+    $query_total = "SELECT COUNT(*) AS total FROM %s";
+    
+    
+    $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
+    $data = $wpdb->get_results($sql);
+    $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
+    $total = $wpdb->get_results($sql);
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error);
     }
@@ -84,11 +89,26 @@ function vpress_upload_dataset( $request ) {
     while ( ( $data = fgetcsv( $handle, 1000, ',' ) ) !== FALSE ) {
       if ( $headerFlag ) {
         $header = $data;
+       
         $headerFlag = false;
         $sql_create_dataset = "CREATE TABLE IF NOT EXISTS $table_name (";
-        foreach ($data as $value) {
-          $clean_string = vpress_clean_string($value);
-          $sql_create_dataset .= "`$clean_string` TEXT NULL, ";
+
+        //clean column names
+        $data = array_map('vpress_clean_string',$data);
+
+        foreach ( $data as $value) {
+          //Handle duplicate names in columns by adding an extra number at the end
+          $duplicates = array_keys($data, $value);
+          if(count($duplicates)>1){
+            foreach($duplicates as $k => $v){
+              $i = $k+1;
+              $data[$v] .= "_{$i}"; // Update columns array 
+            }
+          }
+        }
+
+        foreach (array_filter($data) as $value) {
+          $sql_create_dataset .= "`$value` TEXT NULL, ";
         }
         $sql_create_dataset .= "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ";
         $sql_create_dataset .= "updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
