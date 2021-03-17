@@ -14,7 +14,7 @@ export default {
     loadingViz() {
       return this.$store.getters['editor/loadingState']
     }
-  }, 
+  },
   methods: {
     async merge_value(payload) {
       try {
@@ -48,7 +48,7 @@ export default {
             newValue: value,
             mergeType: mutationType
           }
-          )
+        )
         payload.data = await this.createVizQuery(payload.values)
         await this.$store.dispatch(
           'editor/UPDATE_VIZ',
@@ -80,7 +80,7 @@ export default {
         throw new Error(error.message)
       }
     },
-    
+
     async createVizQuery(
         chartValues,
         dataSetSlug = this.$store.getters['workspace/activeDataset']

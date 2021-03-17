@@ -490,4 +490,3 @@ const sanitizeSpaces = (columnName) => {
       ? '`' + columnName + '`'
       : columnName
   }
- 

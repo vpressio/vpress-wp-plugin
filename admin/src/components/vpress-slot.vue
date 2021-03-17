@@ -79,7 +79,7 @@
           <VpressVariableCard
             class="mx-3 my-2"
             :variable="card.variable"
-            :mutationType="card.mutationType"  
+            :mutationType="card.mutationType"
             inSlot
             :error="error"
             :errorMsg="errorMsg"
@@ -182,7 +182,7 @@ export default {
           this.error = false
         }, 7000);
         this.errorMsg = error.message
-        throw new Error(error.message)
+        //throw new Error(error.message)
       }
     },
     dragOver() {
