@@ -79,7 +79,7 @@ class Vpress {
 		if ( defined( 'VPRESS_VERSION' ) ) {
 			$this->version = VPRESS_VERSION;
 		} else {
-			$this->version = '0.1.0';
+			$this->version = '0.2.0';
 		}
 		$this->plugin_name = 'vpress';
 		$this->client = $this->is_develop_serve('8080');

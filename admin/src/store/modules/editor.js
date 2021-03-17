@@ -42,7 +42,7 @@ export default {
       },
       {
         type: 'spineplot',
-        required: ['collpaseBy'],
+        required: ['collapseBy'],
         chartRules: [
           {
             msg: 'Para esta gráfica necesitas seleccionar',
@@ -188,7 +188,7 @@ export default {
         commit('SET_VIZZES', { dataset: dataset.slug, vizzes: storedVizzes })
         return storedVizzes.open
       } catch (error) {
-        throw new Error(error.message)        
+        throw new Error(error.message)
       }
     },
     SET_ACTIVE_VIZ(
@@ -201,7 +201,7 @@ export default {
         const activeViz = storedVizzes.activate(idx)
         commit('ACTIVE_VIZ', activeViz)
       } catch (error) {
-        throw new Error(error.message)  
+        throw new Error(error.message)
       }
     },
     UPDATE_LOADING_STATE({ commit }, state) {
@@ -241,7 +241,7 @@ export default {
               throw new Error(updateResponse.data.error);
             }
           }
-          
+
       } catch (error) {
         throw new Error(error.message)
       }
