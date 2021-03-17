@@ -1,7 +1,7 @@
 <template lang="pug">
   .chart-container.center-align(
     :class="`${chartConfig ? chartConfig.theme : 'light'}-themed`"
-    
+
     )
     .layout-row.left-align.label-font.bold.layout-align-start-end.titles-container
       .col-12.py-0
@@ -21,7 +21,7 @@
             color="primary"
             indeterminate
           )
-</template>  
+</template>
 <script>
 import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
@@ -184,7 +184,7 @@ export default {
         return vm.chartConfig.xAxis;
       }
     },
-    linearAxis() { 
+    linearAxis() {
 
       const vm = this;
       if (
@@ -270,23 +270,23 @@ export default {
           bottom: marginRatio(this.height, 4),
           left:marginRatio(this.width, 5)
       }
-      
+
 
       // if (this.$vuetify.breakpoint.xs) {
-        
+
       // } else if (this.$vuetify.breakpoint.xs) {
-        
+
       // } if (this.$vuetify.breakpoint.xs) {
-        
+
       // } else if (this.$vuetify.breakpoint.xs) {
-        
+
       // } if (this.$vuetify.breakpoint.xs) {
-        
+
       // } else if (this.$vuetify.breakpoint.xs) {
-        
+
       // }
 
-      
+
       // console.log(this.windowWidth, 'windowWidth')
       // console.log(
       //   d3
@@ -408,10 +408,10 @@ export default {
     },
     drawChart() {
       const vm = this;
-      // const tabletWidth = this.iframe ? 200 : 800;
+      const tabletWidth = this.iframe ? 200 : 800;
       this.filteredData = this.filterData(this.sortedData);
       this.dataToDraw = this.parseApiData(this.filteredData)
-      this.groupByOptions =
+      /* this.groupByOptions =
         this.chartConfig.groupBy.slug !== ''
           ? uniq(
               this.filteredData.map(
@@ -420,7 +420,7 @@ export default {
                 }.bind(this)
               )
             )
-          : [];
+          : []; */
       const config = {
         regression:
           this.chartConfig.xAxis.type === 'linear' &&
@@ -429,8 +429,8 @@ export default {
         formatPreffix: this.chartConfig.preffix || '',
         formatSuffix: this.chartConfig.suffix || '',
         decimals: this.chartConfig.decimals,
-        // legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
-        legendEnabled: false,
+        legendEnabled: this.windowWidth >= tabletWidth || this.iframe ? true : false,
+        //legendEnabled: false,
         size: {
           width: this.width,
           height: this.height,
@@ -535,7 +535,7 @@ export default {
             if (!vm.chartConfig.labels) {
               chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
-            
+
             if(vm.chartConfig.chart === 'heatmap') {
               selectAll('.dbox-label').style('fill', 'white')
             }
@@ -658,6 +658,13 @@ export default {
               // text align
             },
           },
+          legend:{
+              text: {
+              textColor: '#000',
+              fontSize: '12px',
+              fontWeight: 600,
+            },
+          },
           chart: {
             backgroundColor: ''
           }
@@ -688,7 +695,7 @@ export default {
     drawBars() {
       const b = this.chart.layer(bars);
 
-      if (this.groupByOptions[0] && this.chartConfig.groupBy.slug !== "") {
+      if (this.groupByOptions.length && this.chartConfig.groupBy.slug !== "") {
         if (this.chartConfig.stackedBars) {
           b.stackBy(this.groupByOptions);
         } else {
@@ -959,7 +966,7 @@ export default {
     },
     parseApiData(data) {
       const vm = this;
-      if (!includes([ 'scatter','heatmap', 'map'], vm.chartConfig.chart)) { 
+      if (!includes([ 'scatter','heatmap', 'map'], vm.chartConfig.chart)) {
         const parsedData = nest()
           .key(d => d[vm.ordinalAxis.slug])
           .rollup(leaves => {
