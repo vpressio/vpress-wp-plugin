@@ -3,6 +3,7 @@
 function vpress_query_chart_data($request) {
   try {
     $body = $request->get_json_params();
+    
     if ( empty($body['dataset']) ) {
       throw new Exception( 'missing_field', 'Missing field');
     } else if (
@@ -11,85 +12,94 @@ function vpress_query_chart_data($request) {
     ) {
       throw new Exception( 'missing_field', 'Missing field');
     }
-    $dataset = $body['dataset'];
-    $column_head = $body['column_head'];
-    $column_2 = $body['column_2'];
-    $column_3 = $body['column_3'];
-    $aggregate_head = $body['aggregate_head'];
-    $aggregate_column_head = $body['aggregate_column_head'];
-    $aggregate_2 = $body['aggregate_2'];
-    $aggregate_column_2 = $body['aggregate_column_2'];
-    $aggregate_3 = $body['aggregate_3'];
-    $aggregate_column_3 = $body['aggregate_column_3'];
-    $linear_column_head = $body['linear_column_head'];
-    $linear_column_2 = $body['linear_column_2'];
-    $linear_column_3 = $body['linear_column_3'];
-    $linear_column_4 = $body['linear_column_4'];
-    $function_operation_head = $body['function_operation_head'];
-    $function_alias_head = $body['function_alias_head'];
-    $function_operation_2 = $body['function_operation_2'];
-    $function_alias_2 = $body['function_alias_2'];
+    $dataset = $body['dataset'] ?? '';
+    $column_head = $body['column_head'] ?? '';
+    $column_2 = $body['column_2'] ?? '';
+    $column_3 = $body['column_3'] ?? '';
+    $column_4 = $body['column_4'] ?? '';
+    $aggregate_head = $body['aggregate_head'] ?? '';
+    $aggregate_column_head = $body['aggregate_column_head'] ?? '';
+    $aggregate_2 = $body['aggregate_2'] ?? '';
+    $aggregate_column_2 = $body['aggregate_column_2'] ?? '';
+    $aggregate_3 = $body['aggregate_3'] ?? '';
+    $aggregate_column_3 = $body['aggregate_column_3'] ?? '';
+    $linear_column_head = $body['linear_column_head'] ?? '';
+    $linear_column_2 = $body['linear_column_2'] ?? '';
+    $linear_column_3 = $body['linear_column_3'] ?? '';
+    $linear_column_4 = $body['linear_column_4'] ?? '';
+    $function_operation_head = $body['function_operation_head'] ?? '';
+    $function_alias_head = $body['function_alias_head'] ?? '';
+    $function_operation_2 = $body['function_operation_2'] ?? '';
+    $function_alias_2 = $body['function_alias_2'] ?? '';
   
-    $where = $body['where'];
-    $order_by = $body['order_by'];
-    $limit = $body['limit'];
+    $where = $body['where'] ?? '';
+    $order_by = $body['order_by'] ?? '';
+    $limit = $body['limit'] ?? '';
   
   
     
     $query_select = "SELECT ";
+    $query_select_columns = [];
     $query_from = " FROM " . trim($dataset) . " as f1";
     $query_where = "";
-    $query_group_by = "";
+    $query_group_by = "GROUP BY ";
+    $query_group_by_columns = [];
     $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
     $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
   
     if (!empty($column_head)) {
-      $query_select .= "f1.$column_head";
-      $query_group_by .= "GROUP BY f1.$column_head";
+      array_push($query_select_columns, "f1.$column_head");
+      array_push($query_group_by_columns, "f1.$column_head");
     }
     if (!empty($column_2)) {
-      $query_select .= ", f1.$column_2";
-      $query_group_by .= ", f1.$column_2";
+      array_push($query_select_columns, "f1.$column_2");
+      array_push($query_group_by_columns, "f1.$column_2");
     }
     if (!empty($column_3)) {
-      $query_select .= ", f1.$column_3";
-      $query_group_by .= ", f1.$column_3";
+      array_push($query_select_columns, "f1.$column_3");
+      array_push($query_group_by_columns, "f1.$column_3");
+    }
+    if (!empty($column_4)) {
+      array_push($query_select_columns, "f1.$column_4");
+      array_push($query_group_by_columns, "f1.$column_4");
     }
   
-  
+
     if (!empty($aggregate_head) && !empty($aggregate_column_head)) {
-      $query_select .= " $aggregate_head($aggregate_column_head) AS $aggregate_column_head";
+      array_push($query_select_columns,"$aggregate_head($aggregate_column_head) AS $aggregate_column_head");
     }
     if (!empty($aggregate_2) && !empty($aggregate_column_2)) {
-      $query_select .= ", $aggregate_2($aggregate_column_2) AS $aggregate_column_2";
+      array_push($query_select_columns,"$aggregate_2($aggregate_column_2) AS $aggregate_column_2");
     }
     if (!empty($aggregate_3) && !empty($aggregate_column_3)) {
-      $query_select .= ", $aggregate_3($aggregate_column_3) as $aggregate_column_3";
+      array_push($query_select_columns,"$aggregate_3($aggregate_column_3) as $aggregate_column_3");
     }
     if (!empty($aggregate_4) && !empty($aggregate_column_4)) {
-      $query_select .= ", $aggregate_4($aggregate_column_4) as $aggregate_column_4";
+      array_push($query_select_columns,"$aggregate_4($aggregate_column_4) as $aggregate_column_4");
     }
     
     if (!empty($linear_column_head)) {
-      $query_select .= "f1.$linear_column_head";
+      array_push($query_select_columns,"f1.$linear_column_head");
     }
     if (!empty($linear_column_2)) {
-      $query_select .= ", f1.$linear_column_2";
+      array_push($query_select_columns,"f1.$linear_column_2");
     }
     if (!empty($linear_column_3)) {
-      $query_select .= ", f1.$linear_column_3";
+      array_push($query_select_columns,"f1.$linear_column_3");
     }
     if (!empty($linear_column_4)) {
-      $query_select .= ", f1.$linear_column_4";
+      array_push($query_select_columns,"f1.$linear_column_4");
     }
   
     if (!empty($function_operation_head) && !empty($function_alias_head)) {
-      $query_select .= "($function_operation_head) AS $function_alias_head";
+      array_push($query_select_columns,"($function_operation_head) AS $function_alias_head");
     }
     if (!empty($function_operation_2) && !empty($function_alias_2)) {
-      $query_select .= " ,($function_operation_2) AS $function_alias_2";
+      array_push($query_select_columns," ,($function_operation_2) AS $function_alias_2");
     }
-  
+    
+    $query_select .= ' ' . implode(",", $query_select_columns); 
+    $query_group_by .= ' ' . implode(",", $query_group_by_columns); 
   
     if ( !empty($where) ) {
       $where_array = [];
@@ -132,7 +142,8 @@ function vpress_query_chart_data($request) {
     return new WP_Error(
       'db_error',
       $e,
-      array( 'status' => 400 )
+      array( 'status' => 400 ,
+            'query' => $wpdb->last_query )
     );
   }
 
