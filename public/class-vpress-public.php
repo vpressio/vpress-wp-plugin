@@ -122,26 +122,27 @@ class Vpress_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		wp_enqueue_script( 
-			$this->plugin_name. '_chunks',
+		$chart = get_query_var('chart');
+		if($chart) {
+			wp_enqueue_script( 
+				$this->plugin_name. '_chunks',
 				$this->client['location']. '/js/chunk-vendors.js',
 				array(),
 				$this->version,
-				true
-		);
-		wp_enqueue_script( 
-			$this->plugin_name . '_app',
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name . '_app',
 				$this->client['location']. '/js/app.js',
 				array(),
 				$this->version,
-				true
-		);
-		wp_enqueue_script(
-			$this->plugin_name,
-			plugin_dir_url( __FILE__ ) . 'js/vpress-public.js',
-			array( 'jquery' ),
-			$this->version, false
-		);
+				false
+			);
+			wp_localize_script( $this->plugin_name . '_app', 'wpApiSettings', array(
+				'root' => esc_url_raw( rest_url() ),
+				'nonce' => wp_create_nonce( 'wp_rest' )
+			));
+		}
 	}	
 
 		/**
@@ -163,45 +164,42 @@ class Vpress_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		wp_enqueue_style(
-			$this->plugin_name . '_public-style',
-			plugin_dir_url( __FILE__ ) . 'css/vpress-public.css',
-			array(),
-			null
-		);
-		foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
-			$filename = substr($file, strrpos($file, '/') + 1);
+		$chart = get_query_var('chart');
+		if($chart) {
+			foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
+				$filename = substr($file, strrpos($file, '/') + 1);
+				wp_enqueue_style(
+					$this->plugin_name . '_' . $filename ,
+					$this->client['location']. '/css/' .$filename,
+					array(),
+					null
+				);
+			} 
 			wp_enqueue_style(
-				$this->plugin_name . '_' . $filename ,
-				$this->client['location']. '/css/' .$filename,
+				$this->plugin_name . '_app',
+				$this->client['location']. '/css/app.css',
 				array(),
 				null
 			);
-		} 
-		wp_enqueue_style(
-			$this->plugin_name . '_app',
-			$this->client['location']. '/css/app.css',
-			array(),
-			null
-		);
-		wp_enqueue_style(
-			$this->plugin_name . '_chunk-vendors' ,
-			$this->client['location']. '/css/chunk-vendors.css',
-			array(),
-			null
-		);
-		wp_enqueue_style(
-			$this->plugin_name . '_leaflet',
-			"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
-			array(),
-			null
-		);
-		wp_enqueue_style(
-			$this->plugin_name . '_roboto-font',
-			"https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900",
-			array(),
-			null
-		);
+			wp_enqueue_style(
+				$this->plugin_name . '_chunk-vendors' ,
+				$this->client['location']. '/css/chunk-vendors.css',
+				array(),
+				null
+			);
+			wp_enqueue_style(
+				$this->plugin_name . '_leaflet',
+				"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+				array(),
+				null
+			);
+			wp_enqueue_style(
+				$this->plugin_name . '_roboto-font',
+				"https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900",
+				array(),
+				null
+			);
+		}
 	}
 
 

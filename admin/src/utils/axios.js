@@ -1,10 +1,12 @@
 import { create } from 'axios'
 import { fillValues } from '../helpers/index.js'
 
+
+
 const instance = create({
   baseURL: process.env.VUE_APP_API_URI || '/',
   headers: {
-    'X-WP-Nonce': window.wpApiSettings.nonce
+    'X-WP-Nonce': window.wpApiSettings && window.wpApiSettings.nonce ? window.wpApiSettings.nonce : '123'
   }
 })
 
