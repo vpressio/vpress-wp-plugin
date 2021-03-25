@@ -211,7 +211,7 @@ export default {
       sections: [
         { ref: 'search', name: 'Tus bases de datos' },
         { ref: 'upload', name: 'Sube datos' },
-        { ref: 'paste', name: 'Pegar datos' },
+        // { ref: 'paste', name: 'Pegar datos' },
       ]
     }
   },
