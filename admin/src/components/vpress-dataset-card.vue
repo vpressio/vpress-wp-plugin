@@ -11,7 +11,7 @@
             <span
               v-if="( emptyValue('name') && !editTitle) "
             >
-              Sin Título
+              Sin título
             </span>
             <span
               v-if="!emptyValue('name') && !editTitle"
@@ -25,7 +25,7 @@
               class="link add-text-toggle"
               @click.stop="toggleInput('editTitle', 'title-input')"
             >
-              Agregar Título
+              Agregar título
             </span>
             <span
               v-if="!emptyValue('name') && !editTitle"
@@ -97,9 +97,9 @@
               <span
                 @click.stop=" togglePermissions()"
                 class="link permissions-label"
-                :class="{ 
+                :class="{
                   'green--text': editedDataset.permissions === 'public',
-                  'red--text': editedDataset.permissions !== 'public' 
+                  'red--text': editedDataset.permissions !== 'public'
                 }"
               >
                 {{ editedDataset.permissions }}
@@ -291,7 +291,7 @@ export default {
     },
     dateFormat(update) {
       const date = new Date(update)
-      return date.toDateString()
+      return date.toLocaleString().replace( ', ', ' | ' )
     }
   },
   methods: {
@@ -405,13 +405,13 @@ export default {
 }
 
 * >>> .tags-input
-> .v-input__control 
+> .v-input__control
 > .v-input__slot {
   background-color:var(--background) !important;
 }
 
 * >>> .tags-input
-> .v-input__control 
+> .v-input__control
 > .v-input__slot
 > .v-select__slot
 label {
@@ -427,7 +427,7 @@ label {
 > input
 {
   background-color:var(--background) !important;
-  
+
 }
 
 * >>> .tags-input
