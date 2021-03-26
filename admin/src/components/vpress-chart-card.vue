@@ -115,7 +115,7 @@
           <span
             @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
             class="link text-uppercase mr-2 font-weight-bold"
-            :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
+            :class="{ 'green--text': editedItem.permissions.toLowerCase() === 'public', 'red--text': editedItem.permissions.toLowerCase() !== 'public' }"
           >
             {{ editedItem.permissions }}
           </span>
