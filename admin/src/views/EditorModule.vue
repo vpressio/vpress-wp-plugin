@@ -22,7 +22,7 @@
                 tile
                 :color="
                   $store.getters['workspace/activeDataset'] &&
-                  $store.getters['workspace/activeDataset'].slug === dataset 
+                  $store.getters['workspace/activeDataset'].slug === dataset
                     ? 'secondary'
                     : '#817DB0'
                 "
@@ -76,7 +76,7 @@
         sm="0"
         md="6"
         lg="2"
-      > 
+      >
         <div class="elevation-2 editor-card">
           <v-toolbar class="text-center" color="primary" dark flat height="58">
             <v-spacer/>
@@ -98,6 +98,26 @@
         </div>
       </v-col>
     </v-row>
+    <v-snackbar
+      dark
+      bottom
+      right
+      v-model="$store.state.notifications.show"
+      :timeout="$store.state.notifications.timeout"
+      :color="$store.state.notifications.color"
+    >
+      {{ $store.state.notifications.text }}
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="white"
+          text
+          v-bind="attrs"
+          @click="snackbar = $store.dispatch('notifications/close')"
+        >
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 <script>
@@ -134,7 +154,7 @@ export default {
     }
   },
   filters: {
-    name(dataset){ 
+    name(dataset){
       return dataset ? dataset.name : ''
     }
   },
