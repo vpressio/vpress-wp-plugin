@@ -20,7 +20,7 @@
           class="link add-text-toggle"
           @click="toggleInput('editTitle', 'title-input')"
         >
-          Agregar Título
+          Agregar título
         </span>
         <span
           v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
@@ -36,6 +36,33 @@
           solo
           flat
           v-model="editedItem.chartValues.title"
+          @keydown.enter.exact.prevent
+          @keyup.enter.exact="save"
+          @blur="save"
+        />
+      </div>
+      <div class="link text-truncate viz-card-subtitle">
+        <span
+          v-if="editedItem.chartValues.subtitle.trim().length === 0 && !editSubtitle"
+          class="link add-text-toggle"
+          @click="toggleInput('editTitle', 'title-input')"
+        >
+          Agregar subtítulo
+        </span>
+        <span
+          v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
+          class="edit"
+          @click="toggleInput('editSubtitle', 'title-input')"
+        >
+          {{ editedItem.chartValues.subtitle }}
+        </span>
+        <v-text-field
+          ref="title-input"
+          v-show="editSubtitle"
+          dense
+          solo
+          flat
+          v-model="editedItem.chartValues.subtitle"
           @keydown.enter.exact.prevent
           @keyup.enter.exact="save"
           @blur="save"
@@ -185,11 +212,13 @@ export default {
     loading: false,
     chartValues: {},
     editTitle: false,
+    editSubtitle: false,
     editedTags: false,
     editDescription: false,
     editedItem: {
       chartValues: {
         title: '',
+        subtitle: '',
       },
       description: '',
       tags: '',
@@ -258,6 +287,7 @@ export default {
     async save () {
       try {
         this.editTitle = false
+        this.editSubtitle = false
         this.editDescription = false
         this.editedTags = false
         this.loading = true
@@ -333,6 +363,14 @@ a:hover {
   height: 90px;
   font-size: 1rem;
   line-height: 1.2;
+}
+
+.viz-card-subtitle {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 2%;
+  height: 35px;
 }
 
 .viz-card-title {
