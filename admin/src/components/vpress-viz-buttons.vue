@@ -8,6 +8,7 @@
         small
         dark
         color="color2"
+        title="Etiquetas"
       >
         <v-icon>
           mdi-tag-outline
@@ -22,6 +23,7 @@
         small
         dark
         color="color2"
+        title="Agrupar"
       >
         <v-icon>
           {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
@@ -34,6 +36,7 @@
         small
         dark
         color="color2"
+        title="Ordenar"
       >
         <v-img
           :src="requireImg('totales')"
@@ -48,6 +51,7 @@
         small
         dark
         color="color2"
+        title="Ordenar alfabéticamente"
       >
         <v-img
           :src="requireImg('alfabeto')"
@@ -62,6 +66,7 @@
         small
         dark
         color="color2"
+        title="Ordenar numéricamente"
       >
         <v-img
           :src="requireImg('numerico')"
@@ -76,6 +81,7 @@
         small
         dark
         color="color2"
+        title="Invertir eje"
       >
         <v-img
           :src="requireImg('invertir')"
