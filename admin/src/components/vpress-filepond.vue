@@ -93,7 +93,7 @@ export default {
           color: 'error',
           text: 'Hubo un error al intentar guardar el dataset'
         })
-        this.showFilepond = true;
+        this.$refs.fileInput.value = '';
       }
     },
     activateFileInput() {
