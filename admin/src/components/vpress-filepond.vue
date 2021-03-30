@@ -39,6 +39,27 @@
         Tamaño máximo de archivo: <strong>{{ php_vars.upload_max_filesize }}</strong>
       </v-label>
     </div>
+    <v-dialog
+      v-model="loading"
+      persistent
+      width="300"
+    >
+      <v-card
+        color="primary"
+        dark
+      >
+        <v-card-text>
+          <v-card-title class="px-0 text-subtitle-1">
+            Subiendo, por favor espera
+          </v-card-title>
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 <script>
@@ -55,6 +76,7 @@ export default {
   props: ['file'],
   data() {
     return {
+      loading: false,
       inPondFiles: [],
       showFilepond: false,
       fileTypeMessage: ''
@@ -71,6 +93,7 @@ export default {
   },
   methods: {
     async handleFile(file) {
+      this.loading = true
       let formData = new FormData();
       formData.append('file', file);
       try {
@@ -88,12 +111,14 @@ export default {
           text: 'Dataset guardado con éxito'
         })
         this.$emit('uploaded', createRes.data.data[0]);
+        this.loading = false
       } catch (error) {
         this.$store.dispatch('notifications/open', {
           color: 'error',
           text: 'Hubo un error al intentar guardar el dataset'
         })
         this.$refs.fileInput.value = '';
+        this.loading = false
       }
     },
     activateFileInput() {
