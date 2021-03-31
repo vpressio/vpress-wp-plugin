@@ -1,142 +1,208 @@
 <template>
-  <v-card
-    :loading="loading"
-    class="mx-auto pb-4"
-  >
-    <div class="mx-5 pt-4">
-      <v-img
-        class="link mb-3"
-        contain
-        @click="createChart"
-        color="#222A32"
-        :src="requireImg(img_url)"
-      />
-    </div>
-    <v-divider/>
-    <div class="mx-5">
-      <div class="link text-truncate viz-card-title">
-        <span
-          v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
-          class="link add-text-toggle"
-          @click="toggleInput('editTitle', 'title-input')"
-        >
-          Agregar Título
-        </span>
-        <span
-          v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
-          class="edit"
-          @click="toggleInput('editTitle', 'title-input')"
-        >
-          {{ editedItem.chartValues.title }}
-        </span>
-        <v-text-field
-          ref="title-input"
-          v-show="editTitle"
-          dense
-          solo
-          flat
-          v-model="editedItem.chartValues.title"
-          @keydown.enter.exact.prevent
-          @keyup.enter.exact="save"
-          @blur="save"
+  <div>
+    <v-card
+      :loading="loading"
+      class="mx-auto pb-4"
+    >
+      <div class="mx-5 pt-4">
+        <v-img
+          class="link mb-3"
+          contain
+          @click="createChart"
+          color="#222A32"
+          :src="requireImg(img_url)"
         />
       </div>
-      <div class="viz-card-textarea">
-        <span
-          v-if="editedItem.description.trim().length === 0 && !editDescription"
-          class="link add-text-toggle"
-          @click="toggleInput('editDescription', 'description-input')"
-        >
-          Agregar descripción
-        </span>
-        <span
-          v-if="editedItem.description.trim().length !== 0 && !editDescription"
-          class="edit"
-          @click="toggleInput('editDescription', 'description-input')"
-        >
-          {{ editedItem.description }}
-        </span>
-        <v-textarea
-          ref="description-input"
-          counter="5"
-          :allow-overflow="false"
-          v-show="editDescription"
-          item-color="primary"
-          dense
-          height="90"
-          solo
-          flat
-          maxlength="140"
-          hide-details
-          v-model="editedItem.description"
-          @keydown.enter.exact.prevent
-          @keyup.enter.exact="save"
-          @keydown.space.stop
-          @keyup.space.stop
-          @blur="save"
-        />
-      </div>
-      <v-divider class="my-1"/>
-      <v-combobox
-        class="tag-box"
-        solo
-        flat
-        chips
-        multiple
-        hide-details
-        deletable-chips
-        color="primary"
-        label="Agregar etiquetas"
-        v-model="editedItem.tags"
-        :loading="loading"
-        @keyup.enter="save"
-        @blur="save"
-        @click.stop="editedTags = true"
-      >
-        <template v-slot:selection="{ attrs, item, parent }">
-          <v-chip
-            v-bind="attrs"
-            color="primary"
-          >
-            <span class="pr-2 font-weight-light">
-              {{ item }}
-            </span>
-            <v-icon
-              small
-              @click="parent.selectItem(item)"
-            >
-              mdi-close
-            </v-icon>
-          </v-chip>
-        </template>
-      </v-combobox>
-      <v-card-actions>
-        <v-row align="center">
+      <v-divider/>
+      <div class="mx-5">
+        <div class="link text-truncate viz-card-title">
           <span
-            @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
-            class="link text-uppercase mr-2 font-weight-bold"
-            :class="{ 'green--text': editedItem.permissions === 'public', 'red--text': editedItem.permissions !== 'public' }"
+            v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
+            class="link add-text-toggle"
+            @click="toggleInput('editTitle', 'title-input')"
           >
-            {{ editedItem.permissions }}
+            Agregar título
           </span>
-          <v-spacer/>
-          <span class="grey--text">
-            <v-icon small>mdi-clock-outline</v-icon>
-            {{ updated | dateFormat }}
+          <span
+            v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
+            class="edit"
+            @click="toggleInput('editTitle', 'title-input')"
+          >
+            {{ editedItem.chartValues.title }}
           </span>
-          <v-spacer/>
-          <v-btn icon x-small color="primary" @click="shareChart">
-            <v-icon>mdi-share-variant-outline</v-icon>
+          <v-text-field
+            ref="title-input"
+            v-show="editTitle"
+            dense
+            solo
+            flat
+            v-model="editedItem.chartValues.title"
+            @keydown.enter.exact.prevent
+            @keyup.enter.exact="save"
+            @blur="save"
+          />
+        </div>
+        <div class="link text-truncate viz-card-subtitle">
+          <span
+            v-if="editedItem.chartValues.subtitle.trim().length === 0 && !editSubtitle"
+            class="link add-text-toggle"
+            @click="toggleInput('editSubtitle', 'subtitle-input')"
+          >
+            Agregar subtítulo
+          </span>
+          <span
+            v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
+            class="edit"
+            @click="toggleInput('editSubtitle', 'subtitle-input')"
+          >
+            {{ editedItem.chartValues.subtitle }}
+          </span>
+          <v-text-field
+            ref="subtitle-input"
+            v-show="editSubtitle"
+            dense
+            solo
+            flat
+            v-model="editedItem.chartValues.subtitle"
+            @keydown.enter.exact.prevent
+            @keyup.enter.exact="save"
+            @blur="save"
+          />
+        </div>
+        <div class="viz-card-textarea">
+          <span
+            v-if="editedItem.description.trim().length === 0 && !editDescription"
+            class="link add-text-toggle"
+            @click="toggleInput('editDescription', 'description-input')"
+          >
+            Agregar descripción
+          </span>
+          <span
+            v-if="editedItem.description.trim().length !== 0 && !editDescription"
+            class="edit"
+            @click="toggleInput('editDescription', 'description-input')"
+          >
+            {{ editedItem.description }}
+          </span>
+          <v-textarea
+            ref="description-input"
+            counter="5"
+            :allow-overflow="false"
+            v-show="editDescription"
+            item-color="primary"
+            dense
+            height="90"
+            solo
+            flat
+            maxlength="140"
+            hide-details
+            v-model="editedItem.description"
+            @keydown.enter.exact.prevent
+            @keyup.enter.exact="save"
+            @keydown.space.stop
+            @keyup.space.stop
+            @blur="save"
+          />
+        </div>
+        <v-divider class="my-1"/>
+        <v-combobox
+          class="tag-box"
+          solo
+          flat
+          chips
+          multiple
+          hide-details
+          deletable-chips
+          color="primary"
+          label="Agregar etiquetas"
+          v-model="editedItem.tags"
+          :loading="loading"
+          @keyup.enter="save"
+          @blur="save"
+          @click.stop="editedTags = true"
+        >
+          <template v-slot:selection="{ attrs, item, parent }">
+            <v-chip
+              v-bind="attrs"
+              color="primary"
+            >
+              <span class="pr-2 font-weight-light">
+                {{ item }}
+              </span>
+              <v-icon
+                small
+                @click="parent.selectItem(item)"
+              >
+                mdi-close
+              </v-icon>
+            </v-chip>
+          </template>
+        </v-combobox>
+        <v-card-actions>
+          <v-row align="center">
+            <span
+              @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
+              class="link text-uppercase mr-2 font-weight-bold"
+              :class="{ 'green--text': editedItem.permissions.toLowerCase() === 'public', 'red--text': editedItem.permissions.toLowerCase() !== 'public' }"
+            >
+              {{ editedItem.permissions }}
+            </span>
+            <v-spacer/>
+            <span class="grey--text">
+              <v-icon small>mdi-clock-outline</v-icon>
+              {{ updated | dateFormat }}
+            </span>
+            <v-spacer/>
+            <v-btn icon x-small color="primary" @click="shareChart">
+              <v-icon>mdi-share-variant-outline</v-icon>
+            </v-btn>
+            <v-spacer/>
+            <v-btn icon x-small color="primary" @click="dialogConfirmDeletion = true">
+              <v-icon>mdi-trash-can-outline</v-icon>
+            </v-btn>
+            <v-spacer/>
+          </v-row>
+        </v-card-actions>
+      </div>
+    </v-card>
+    <v-dialog
+      v-model="dialogConfirmDeletion"
+      max-width="500px"
+      scrollable
+    >
+      <v-card>
+        <v-toolbar dark flat color="primary">
+          <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="dialogConfirmDeletion = false">
+            <v-icon>mdi-close</v-icon>
           </v-btn>
-          <v-spacer/>
-          <v-btn icon x-small color="primary" @click="deleteChart">
-            <v-icon>mdi-trash-can-outline</v-icon>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                ¿Está seguro de eliminar la gráfica?
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="dialogConfirmDeletion = false"
+          >
+            Cancelar
           </v-btn>
-          <v-spacer/>
-        </v-row>
-      </v-card-actions>
-    </div>
-  </v-card>
+          <v-btn color="primary" @click="deleteChart" :loading="loading">Eliminar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 <script>
 import { clone } from 'lodash'
@@ -185,16 +251,19 @@ export default {
     loading: false,
     chartValues: {},
     editTitle: false,
+    editSubtitle: false,
     editedTags: false,
     editDescription: false,
     editedItem: {
       chartValues: {
         title: '',
+        subtitle: '',
       },
       description: '',
       tags: '',
       permissions: ''
-    }
+    },
+    dialogConfirmDeletion: false
   }),
   created() {
     this.chartValues = JSON.parse(this.value)
@@ -249,15 +318,18 @@ export default {
         const response = await api.chart.delete({ data: { id: parseInt(this.id) }});
         this.$emit('onDeleted')
         this.loading = false
+        this.dialogConfirmDeletion = false
         return response
       } catch (error) {
         this.loading = false
+        this.dialogConfirmDeletion = false
         throw new Error(error.message)
       }
     },
     async save () {
       try {
         this.editTitle = false
+        this.editSubtitle = false
         this.editDescription = false
         this.editedTags = false
         this.loading = true
@@ -333,6 +405,14 @@ a:hover {
   height: 90px;
   font-size: 1rem;
   line-height: 1.2;
+}
+
+.viz-card-subtitle {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 2%;
+  height: 35px;
 }
 
 .viz-card-title {

@@ -208,7 +208,7 @@ function vpress_list_datasets( $request ) {
     ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
   
     if ($q) {
-      $where .= " WHERE lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
+      $where .= " WHERE lower(slug) like '%$q%' OR lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
       $query_total .= $where;
       $query .= $where;
     }
@@ -345,13 +345,13 @@ function vpress_update_dataset( $request ) {
       'query' => $wpdb->last_query,
     );
     return $response;
-} catch (Exception $e) {
-  return new WP_Error(
-    'db_error',
-    $e,
-    array( 'status' => 400 )
-  );
-}
+  } catch (Exception $e) {
+    return new WP_Error(
+      'db_error',
+      $e,
+      array( 'status' => 400 )
+    );
+  }
 }
 
 function vpress_delete_dataset( $request ) {

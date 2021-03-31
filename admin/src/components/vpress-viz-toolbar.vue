@@ -2,14 +2,14 @@
   <div class="viz-toolbar" :style="cssProps">
     <div class="viz-list-header text-subtitle-2 font-weight-regular">
       <v-spacer/>
-      <img 
+      <img
         :src="require('../assets/images/graficos-recomendados.svg')"
         alt="viz"
         width="30px"
         height="30px"
       />
       <v-spacer/>
-        Tipo de 
+        Tipo de
         <br/>
         gráficas
       <v-spacer/>
@@ -22,47 +22,48 @@
             :key="graphIndex"
           >
             <v-menu
-                open-on-hover
-                :close-on-content-click="false"
-                max-width="205"
-                offset-y
-                :z-index="10000"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    :class="graph.disabled ? 'lighten-1' : ''"
-                    text
-                    @click="setChartType(graph)"
-                    class="mx-1"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    <img
-                      :class="{ 'disabled-img': graph.disabled }"
-                      :src="requireImg(graph.type)"
-                      :alt="graph.type"
-                      :width="graph.type === 'map' ? 35 : 30"
-                      :height="graph.type === 'map' ? 24 : 30"
-                    />
-                  </v-btn>
-                </template>
-                <v-card>
-                  <v-card-text>
-                    <h6 class="text-subtitle-2 font-weight-bold">{{ graph.type }}</h6>
-                    <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
-                      {{rule.msg}}
-                      <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
-                        {{ chip.msg }}
-                        <v-chip
-                          class="ma-2"
-                        >
-                          {{ chip.type }}
-                        </v-chip>
-                      </div>
+              nudge-top="-5"
+              :nudge-left="getWidthWpSidebar"
+              open-on-hover
+              max-width="205"
+              :z-index="10000"
+              :close-on-content-click="false"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  :class="graph.disabled ? 'lighten-1' : ''"
+                  text
+                  @click="setChartType(graph)"
+                  class="mx-1"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <img
+                    :class="{ 'disabled-img': graph.disabled }"
+                    :src="requireImg(graph.type)"
+                    :alt="graph.type"
+                    :width="graph.type === 'map' ? 35 : 30"
+                    :height="graph.type === 'map' ? 24 : 30"
+                  />
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-text>
+                  <h6 class="text-subtitle-2 font-weight-bold">{{ graph.type }}</h6>
+                  <div v-for=" (rule, ruleIdx) in graph.chartRules" :key="ruleIdx">
+                    {{rule.msg}}
+                    <div v-for="(chip, chipIdx) in rule.vars" :key="chipIdx">
+                      {{ chip.msg }}
+                      <v-chip
+                        class="ma-2"
+                      >
+                        {{ chip.type }}
+                      </v-chip>
                     </div>
-                  </v-card-text>
-                </v-card>
-            </v-menu> 
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
           </v-slide-item>
         </v-slide-group>
       </div>
@@ -102,6 +103,10 @@ export default {
     availableCharts() {
       return this.$store.getters['editor/getAvailableCharts']
     },
+    getWidthWpSidebar() {
+      const width = document.getElementById('adminmenuback').clientWidth + 20
+      return width
+    }
   },
   methods: {
     async setChartType(viz) {

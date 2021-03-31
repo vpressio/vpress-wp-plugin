@@ -8,7 +8,7 @@ const Viz = function (
   dataset_id = null,
   data = [],
   description = "",
-  permission = "Public",
+  permission = "public",
   img_url = ""
 ) {
   this.id = id,

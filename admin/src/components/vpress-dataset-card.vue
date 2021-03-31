@@ -9,9 +9,9 @@
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
           <div v-if="readonly" class="text-truncate dataset-name">
             <span
-              v-if="( emptyValue('name') && !editTitle) "
+              v-if="( emptyValue('name') && !editTitle)"
             >
-              Sin Título
+              Sin título
             </span>
             <span
               v-if="!emptyValue('name') && !editTitle"
@@ -25,7 +25,7 @@
               class="link add-text-toggle"
               @click.stop="toggleInput('editTitle', 'title-input')"
             >
-              Agregar Título
+              Agregar título
             </span>
             <span
               v-if="!emptyValue('name') && !editTitle"
@@ -95,11 +95,11 @@
           <v-row align="center">
             <v-col cols="10" class="dataset-info">
               <span
-                @click.stop=" togglePermissions()"
+                @click.stop="togglePermissions()"
                 class="link permissions-label"
-                :class="{ 
+                :class="{
                   'green--text': editedDataset.permissions === 'public',
-                  'red--text': editedDataset.permissions !== 'public' 
+                  'red--text': editedDataset.permissions !== 'public'
                 }"
               >
                 {{ editedDataset.permissions }}
@@ -129,25 +129,30 @@
               </v-btn>
             </v-col>
           </v-row>
-          <v-combobox
-            class="tags-input"
-            ref="tags-input"
-            :readonly="readonly"
-            background-color="cardColor"
-            solo
-            flat
-            chips
-            multiple
-            hide-details
-            deletable-chips
-            color="primary"
-            label="Agregar etiquetas"
-            v-model="editedDataset.tag"
-            :loading="loading"
-            @keyup.enter="save"
-            @blur="save"
-            @click.stop
-          />
+          <v-row>
+            <v-col cols="12">
+              <v-combobox
+                class="tags-input"
+                ref="tags-input"
+                :readonly="readonly"
+                background-color="cardColor"
+                solo
+                flat
+                chips
+                multiple
+                hide-details
+                deletable-chips
+                color="primary"
+                label="Agregar etiquetas"
+                v-model="editedDataset.tag"
+                :loading="loading"
+                @keydown.enter.exact.prevent
+                @keyup.enter.exact="save"
+                @blur="save"
+                @click.native.stop
+              />
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card>
@@ -229,11 +234,9 @@ export default {
     },
     size: {
       type: String,
-      required: true
     },
     rows: {
       type: String,
-      required: true
     },
     updated: {
       type: String,
@@ -291,7 +294,7 @@ export default {
     },
     dateFormat(update) {
       const date = new Date(update)
-      return date.toDateString()
+      return date.toLocaleString().replace( ', ', ' | ' )
     }
   },
   methods: {
@@ -355,7 +358,12 @@ export default {
       this.itemToDelete = null
       this.dialogConfirmDeletion = false
       this.$emit('on-dataset-delete')
-    }
+    },
+    stop(event) {
+      console.log('event');
+      console.log(event)
+      event.stopPropagation();
+    },
   }
 }
 </script>
@@ -405,13 +413,13 @@ export default {
 }
 
 * >>> .tags-input
-> .v-input__control 
+> .v-input__control
 > .v-input__slot {
   background-color:var(--background) !important;
 }
 
 * >>> .tags-input
-> .v-input__control 
+> .v-input__control
 > .v-input__slot
 > .v-select__slot
 label {
@@ -427,7 +435,7 @@ label {
 > input
 {
   background-color:var(--background) !important;
-  
+
 }
 
 * >>> .tags-input
