@@ -9,7 +9,7 @@
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
           <div v-if="readonly" class="text-truncate dataset-name">
             <span
-              v-if="( emptyValue('name') && !editTitle) "
+              v-if="( emptyValue('name') && !editTitle)"
             >
               Sin título
             </span>
@@ -95,7 +95,7 @@
           <v-row align="center">
             <v-col cols="10" class="dataset-info">
               <span
-                @click.stop=" togglePermissions()"
+                @click.stop="togglePermissions()"
                 class="link permissions-label"
                 :class="{
                   'green--text': editedDataset.permissions === 'public',
@@ -129,25 +129,30 @@
               </v-btn>
             </v-col>
           </v-row>
-          <v-combobox
-            class="tags-input"
-            ref="tags-input"
-            :readonly="readonly"
-            background-color="cardColor"
-            solo
-            flat
-            chips
-            multiple
-            hide-details
-            deletable-chips
-            color="primary"
-            label="Agregar etiquetas"
-            v-model="editedDataset.tag"
-            :loading="loading"
-            @keyup.enter="save"
-            @blur="save"
-            @click.stop
-          />
+          <v-row>
+            <v-col cols="12">
+              <v-combobox
+                class="tags-input"
+                ref="tags-input"
+                :readonly="readonly"
+                background-color="cardColor"
+                solo
+                flat
+                chips
+                multiple
+                hide-details
+                deletable-chips
+                color="primary"
+                label="Agregar etiquetas"
+                v-model="editedDataset.tag"
+                :loading="loading"
+                @keydown.enter.exact.prevent
+                @keyup.enter.exact="save"
+                @blur="save"
+                @click.native.stop
+              />
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card>
@@ -229,11 +234,9 @@ export default {
     },
     size: {
       type: String,
-      required: true
     },
     rows: {
       type: String,
-      required: true
     },
     updated: {
       type: String,
@@ -355,7 +358,12 @@ export default {
       this.itemToDelete = null
       this.dialogConfirmDeletion = false
       this.$emit('on-dataset-delete')
-    }
+    },
+    stop(event) {
+      console.log('event');
+      console.log(event)
+      event.stopPropagation();
+    },
   }
 }
 </script>
