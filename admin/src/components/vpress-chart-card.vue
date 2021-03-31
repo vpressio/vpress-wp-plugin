@@ -46,19 +46,19 @@
           <span
             v-if="editedItem.chartValues.subtitle.trim().length === 0 && !editSubtitle"
             class="link add-text-toggle"
-            @click="toggleInput('editTitle', 'title-input')"
+            @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
             Agregar subtítulo
           </span>
           <span
             v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
             class="edit"
-            @click="toggleInput('editSubtitle', 'title-input')"
+            @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
             {{ editedItem.chartValues.subtitle }}
           </span>
           <v-text-field
-            ref="title-input"
+            ref="subtitle-input"
             v-show="editSubtitle"
             dense
             solo
