@@ -8,7 +8,7 @@
         md="6"
         lg="2"
       >
-        <div class=" elevation-2 editor-card">
+        <div class="elevation-2 editor-card">
           <VpressSectionBar/>
           <div v-if="$attrs.section === 'config'">
             <div class="px-2 py-2 dataset-card">
@@ -75,6 +75,7 @@
         sm="6"
         md="6"
         lg="2"
+        class="px-0"
       >
         <div class="elevation-2 editor-card">
           <v-toolbar class="text-center" color="primary" dark flat height="58">
