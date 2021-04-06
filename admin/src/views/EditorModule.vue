@@ -3,8 +3,8 @@
     <VpressAppBar/>
     <v-row class="px-5">
       <v-col
-        cols="12"
-        sm="12"
+        cols="6"
+        sm="6"
         md="6"
         lg="2"
       >
@@ -71,9 +71,8 @@
         </div>
       </v-col>
       <v-col
-        v-show="$vuetify.breakpoint.mdAndUp"
-        cols="0"
-        sm="0"
+        cols="6"
+        sm="6"
         md="6"
         lg="2"
       >
@@ -83,6 +82,10 @@
             <div class="text-subtitle-2 font-weight-regular">
               Arrastra tu selección
             </div>
+            <v-spacer/>
+            <v-btn icon small color="secondary" @click="resetViz">
+              <v-icon>mdi-restart</v-icon>
+            </v-btn>
             <v-spacer/>
           </v-toolbar>
           <VpressSlotGroup/>
@@ -174,6 +177,9 @@ export default {
     async selectDataset(dataset) {
       this.updateActiveDataset( dataset)
     },
+    resetViz() {
+      this.$store.dispatch('editor/RESET_VIZ')
+    }
   }
 }
 
