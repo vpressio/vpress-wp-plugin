@@ -1,6 +1,6 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" persistent width="500">
+    <v-dialog v-model="dialog" scrollable persistent width="500">
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">
@@ -125,7 +125,7 @@ export default {
         )
         if(this.type !== 'linear'){
           this.categories = filterParams.map(category => category[this.column])
-        } else { 
+        } else {
           this.min = +filterParams[0].min
           this.max = +filterParams[0].max
         }
@@ -143,7 +143,7 @@ export default {
               slug: this.column,
               type: this.type,
               value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
-              
+
           },
           'filter'
         )
