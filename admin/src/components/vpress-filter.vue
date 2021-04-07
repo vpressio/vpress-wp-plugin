@@ -1,6 +1,6 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" scrollable persistent width="500">
+    <v-dialog v-model="dialog" attach="#app" scrollable persistent width="500">
       <v-card>
         <v-card-title class="primary white--text">
           <span v-if="type == 'linear'">

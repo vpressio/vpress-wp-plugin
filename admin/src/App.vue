@@ -16,6 +16,7 @@ export default {
 .v-application {
   margin-left: -20px;
 }
+
 .v-input {
   input {
     border: none;
@@ -27,6 +28,7 @@ export default {
     outline: none;
   }
 }
+
 a:focus, textarea:focus {
   border: none;
   box-shadow: none;
@@ -50,5 +52,17 @@ textarea[readonly] {
   .container {
     max-width: calc(1785px - 160px) !important;
   }
+}
+
+.v-dialog__content {
+  z-index: 9990 !important;
+}
+
+.v-dialog.v-dialog--active .v-card__title {
+  cursor: grab;
+}
+
+.v-dialog.v-dialog--active .v-card__title:active {
+  cursor: grabbing;
 }
 </style>
