@@ -216,6 +216,7 @@ export default {
     }
   },
   created() {
+    if (this.$route.query && this.$route.query.upload) this.tabs='upload'
     this.datasets = this.$store.getters['workspace/datasetMeta']
     if(this.datasetsRefs.length > 0) this.proxyScreen = true;
     this.unsubscribe = this.$store.subscribe(
