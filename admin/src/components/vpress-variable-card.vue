@@ -159,7 +159,7 @@ export default {
         this.variable.func !== '' &&
         this.variable.slug !== 'total_count'
       )
-        ? `${this.variable.title} (${this.variable.func.toUpperCase() || ''})`
+        ? `${this.variable.func.toUpperCase() || ''} (${this.variable.title})`
         : `${this.variable.title}`
     },
     cssProps() {
