@@ -22,6 +22,9 @@ const Viz = function (
 }
 
 Viz.prototype = {
+  resetValues() {
+    this.chartValues = fillValues({filters: [], title: '', subtitle: ''}, ChartPreset);
+  },
   getValues() {
     return this.chartValues;
   },

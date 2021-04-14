@@ -246,6 +246,16 @@ export default {
         throw new Error(error.message)
       }
     },
+    RESET_VIZ(
+      { state, commit, rootGetters }
+    ) {
+      const dataset = rootGetters['workspace/activeDataset']
+      const datasetSlug = dataset.slug
+      const storedVizzes = state.vizzes[datasetSlug]
+      const activeViz = storedVizzes.activeViz
+      activeViz.resetValues()
+      commit('SET_VIZZES', { dataset: datasetSlug, vizzes: storedVizzes })
+    },
   },
   getters: {
     vizzes: ({ vizzes }, _, __, rootGetters) => {

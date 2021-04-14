@@ -35,8 +35,7 @@
       tile
       :color="error ? 'warning1' : '#322E71'"
       dark
-      
-    > 
+    >
       <v-img
         :src="require('../assets/images/Puntos.svg')"
         width=10
@@ -65,7 +64,7 @@
             <div
               v-if="
                 variable.type === 'linear' &&
-                variable.slug !== 'total_count' && 
+                variable.slug !== 'total_count' &&
                 mutationType !== 'filter'
               "
             >
@@ -102,7 +101,7 @@
           v-if="variable.slug !== 'total_count'"
           class="ma-0"
         >
-          {{ variable.title }}
+          {{ variableFunc }}
         </span>
         <span
           v-if="variable.slug === 'total_count'"
@@ -116,9 +115,9 @@
           class="variableCardDataType mb-0"
           :class="{'warning-text-color': error }"
         >
-          {{ variableType }}
+          {{ this.variable.type }}
         </span>
-      </div>  
+      </div>
     </v-card>
   </div>
 </template>
@@ -153,15 +152,15 @@ export default {
     errorMessage() {
       return this.errorMsg
     },
-    variableType() {
+    variableFunc() {
       return (
         this.variable.func &&
         this.variable.type === 'linear' &&
         this.variable.func !== '' &&
         this.variable.slug !== 'total_count'
       )
-        ? `${this.variable.type} • ${this.variable.func || ''}`
-        : `${this.variable.type}`
+        ? `${this.variable.func.toUpperCase() || ''} (${this.variable.title})`
+        : `${this.variable.title}`
     },
     cssProps() {
       return {
@@ -186,7 +185,7 @@ export default {
           this.variable,
           this.mutationType
         )
-      } catch (error) { 
+      } catch (error) {
         throw new Error(error.message)
       }
     },
@@ -212,8 +211,8 @@ export default {
       } catch (error) {
         throw new Error(error.message)
       }
-      
-    }    
+
+    }
   }
 };
 </script>

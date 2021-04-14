@@ -16,20 +16,20 @@
       <v-divider/>
       <div class="mx-5">
         <div class="link text-truncate viz-card-title">
-          <span
+          <a
             v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
             class="link add-text-toggle"
             @click="toggleInput('editTitle', 'title-input')"
           >
             Agregar título
-          </span>
-          <span
+          </a>
+          <a
             v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
             class="edit"
             @click="toggleInput('editTitle', 'title-input')"
           >
             {{ editedItem.chartValues.title }}
-          </span>
+          </a>
           <v-text-field
             ref="title-input"
             v-show="editTitle"
@@ -43,20 +43,20 @@
           />
         </div>
         <div class="link text-truncate viz-card-subtitle">
-          <span
+          <a
             v-if="editedItem.chartValues.subtitle.trim().length === 0 && !editSubtitle"
             class="link add-text-toggle"
             @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
             Agregar subtítulo
-          </span>
-          <span
+          </a>
+          <a
             v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
             class="edit"
             @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
             {{ editedItem.chartValues.subtitle }}
-          </span>
+          </a>
           <v-text-field
             ref="subtitle-input"
             v-show="editSubtitle"
@@ -70,20 +70,20 @@
           />
         </div>
         <div class="viz-card-textarea">
-          <span
+          <a
             v-if="editedItem.description.trim().length === 0 && !editDescription"
             class="link add-text-toggle"
             @click="toggleInput('editDescription', 'description-input')"
           >
             Agregar descripción
-          </span>
-          <span
+          </a>
+          <a
             v-if="editedItem.description.trim().length !== 0 && !editDescription"
             class="edit"
             @click="toggleInput('editDescription', 'description-input')"
           >
             {{ editedItem.description }}
-          </span>
+          </a>
           <v-textarea
             ref="description-input"
             counter="5"
@@ -379,12 +379,8 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.edit {
-  cursor: text
-}
-
-.link {
-  cursor: pointer
+a {
+  color: rgba(0, 0, 0, 0.87) !important;
 }
 a:hover {
   text-decoration: underline;

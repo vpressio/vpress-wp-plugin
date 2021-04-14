@@ -3,12 +3,12 @@
     <VpressAppBar/>
     <v-row class="px-5">
       <v-col
-        cols="12"
-        sm="12"
+        cols="6"
+        sm="6"
         md="6"
         lg="2"
       >
-        <div class=" elevation-2 editor-card">
+        <div class="elevation-2 editor-card">
           <VpressSectionBar/>
           <div v-if="$attrs.section === 'config'">
             <div class="px-2 py-2 dataset-card">
@@ -71,11 +71,11 @@
         </div>
       </v-col>
       <v-col
-        v-show="$vuetify.breakpoint.mdAndUp"
-        cols="0"
-        sm="0"
+        cols="6"
+        sm="6"
         md="6"
         lg="2"
+        class="px-0"
       >
         <div class="elevation-2 editor-card">
           <v-toolbar class="text-center" color="primary" dark flat height="58">
@@ -83,6 +83,10 @@
             <div class="text-subtitle-2 font-weight-regular">
               Arrastra tu selección
             </div>
+            <v-spacer/>
+            <v-btn icon small color="secondary" @click="resetViz">
+              <v-icon>mdi-restart</v-icon>
+            </v-btn>
             <v-spacer/>
           </v-toolbar>
           <VpressSlotGroup/>
@@ -174,6 +178,9 @@ export default {
     async selectDataset(dataset) {
       this.updateActiveDataset( dataset)
     },
+    resetViz() {
+      this.$store.dispatch('editor/RESET_VIZ')
+    }
   }
 }
 

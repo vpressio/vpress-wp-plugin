@@ -3,7 +3,7 @@
     <VpressSearchBar
       @onSearch="handleSearch"
       btnLabel="Nueva gráfica"
-      btnRoute="/data"
+      btnRoute="/data?selectDB=1"
     />
     <v-row
       v-show="loading"
@@ -22,7 +22,7 @@
       class="min-height-container"
       v-show="!loading && total === 0"
       justify-center
-    > 
+    >
       <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
         <h1 class="initial-msg-title">Te damos la bienvenida a Vpress</h1>
         <span class="initial-msg">

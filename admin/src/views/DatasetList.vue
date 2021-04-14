@@ -3,7 +3,7 @@
     <VpressSearchBar
       @onSearch="handleSearch"
       btnLabel="Nueva base de datos"
-      btnRoute="/data"
+      btnRoute="/data?upload=1"
     />
     <v-row
       v-show="loading"
