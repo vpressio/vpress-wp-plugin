@@ -227,7 +227,6 @@ export default {
   flex-direction: column;
   justify-content: center;
 }
-
 .slot_placeholder_filter {
   color: #c3c3c3;
   text-align: center;
@@ -235,28 +234,22 @@ export default {
   font-size: 0.8rem;
   height:50px;
 }
-
 .instruction_label {
   font-size: 0.8rem;
   color: #7872AB;
 }
-
 .selectedSlot {
   background-color: #f4f4f4;
 }
-
 .overCard {
   z-index:4
 }
-
 .hideCard {
   display: none;
 }
-
 .card-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-
 </style>
