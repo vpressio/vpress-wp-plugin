@@ -1,4 +1,5 @@
 import { Viz } from './index'
+import { find, findIndex } from 'lodash'
 const Vizzes = function (vizValues = [], dataset) {
   this.activeViz =  null
   this.load(vizValues)
@@ -32,7 +33,12 @@ Vizzes.prototype = {
     return this.vizzes
   },
   add(vizValues) {
-    this.vizzes = [...this.vizzes, ...vizValues]
+    if (find(this.vizzes, ['id', vizValues[0].id])) {
+      const index = findIndex(this.vizzes, ['id', vizValues[0].id]);
+      this.vizzes[index] = vizValues[0]
+    } else {
+      this.vizzes = [...this.vizzes, ...vizValues]
+    }
     return this.vizzes
   },
   delete(idx) {
