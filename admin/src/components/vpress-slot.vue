@@ -57,7 +57,7 @@
           :mutationType="card.mutationType"
           :error="error"
           :errorMsg="errorMsg"
-        />`
+        />
       </v-card>
     </div>
     <div
