@@ -37,7 +37,6 @@ export default {
             'editor/LOAD_VIZZES',
             { vizValues }
         )
-        
         return { datasetMeta }
       } catch (error) {
         throw new Error(error.message)
@@ -54,11 +53,12 @@ export default {
         throw new Error(error.message)
       }
     },
-    async loadSavedViz(viz, dataset) {
-      const storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
+    async loadSavedViz(viz, dataset) { //TODO: Reconsider functionality
+      let storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
         ? this.$store.getters['editor/vizzes'](dataset.slug).vizzes
         : this.$store.getters['editor/vizzes'](dataset.slug)
       const parsedViz = JSON.parse(viz.value)
+      storedVizzes = false
       if (storedVizzes) {
         const { includes, idx } = vizzesIncludes(viz.id, storedVizzes)
         const payload = {
