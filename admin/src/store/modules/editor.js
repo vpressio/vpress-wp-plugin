@@ -111,6 +111,8 @@ export default {
       state.vizzes[dataset].activeViz.id = id
     },
     SET_VIZZES(state, { dataset, vizzes }) {
+      // TODO: Reconsider functionality
+      state.vizzes = {} // Para reiniciar vizzes y omitir los Workspaces
       state.vizzes[dataset] = vizzes
     },
     RESET_VIZZES(state, vizzesGroup) {

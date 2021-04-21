@@ -10,6 +10,8 @@ export default {
   },
   mutations: {
     ADD_DATASET_META(state, datasetMeta) {
+      // TODO: Reconsider functionality
+      state.datasetMeta = {} // Para reiniciar vizzes y omitir los Workspaces
       state.datasetMeta[datasetMeta.slug] = datasetMeta
     },
     REMOVE_DATASET_META(state, dataset) {
@@ -30,7 +32,7 @@ export default {
           }
         )
         let datasetVariables, datasetDateFormat;
-        
+
         if (data.data && data.data.length > 0) {
           const {
             variables,
@@ -58,7 +60,7 @@ export default {
           payload.size
         )
 
-        
+
         if (data.error) {
           throw new Error(data.error);
         }
