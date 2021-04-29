@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { remove } from 'lodash'
 import VpressError from './vpressError';
 
 export const queryByChart =  (chartValues, { newValue, mergeType } ) => {
@@ -243,6 +244,9 @@ const setFilters = ({ chartValues, newValue }) => {
         return filter.slug !== newValue.slug
       });
     } else {
+      remove(chartValues.filters, function(n) {
+        return n.slug === newValue.slug;
+      });
       chartValues.filters.push(newValue)
     }
     return chartValues

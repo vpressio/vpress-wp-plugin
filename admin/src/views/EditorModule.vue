@@ -11,7 +11,7 @@
         <div class="elevation-2 editor-card">
           <VpressSectionBar/>
           <div v-if="$attrs.section === 'config'">
-            <div class="px-2 py-2 dataset-card">
+            <div v-show="false" class="px-2 py-2 dataset-card">
               <v-btn
                 dark
                 class="mx-2 px-1 py-3"
