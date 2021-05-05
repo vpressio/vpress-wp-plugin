@@ -1,0 +1,20 @@
+export default {
+  chart: 'bars',
+  xAxis: { title: '', type: '', slug: '', func: '' },
+  yAxis: { title: '', type: '', slug: '', func: '' },
+  groupBy: { title: '', type: '', slug: '' },
+  collapseBy: { title: '', type: '', slug: '', func: '' },
+  filters: [],
+  orderBy: { order: 'asc', slug: '' },
+  unitsName: '',
+  decimals: 0,
+  preffix: '',
+  suffix: '',
+  stackedBars: false,
+  title: '',
+  subtitle: '',
+  opacity: 1,
+  theme: '',
+  labels: false,
+  colors: ['#40348c', '#842f8e', '#ba2982', '#e2346d', '#fc5353', '#ff7b33', '#ffa600']
+}

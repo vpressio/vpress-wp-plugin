@@ -1,0 +1,48 @@
+<template>
+  <v-expansion-panels
+    multiple
+    flat
+    tile
+    hover
+    :value="[0]"
+  >
+    <v-expansion-panel class="config-panels">
+      <v-expansion-panel-header color="color1">
+        {{ panelTitle }}
+      </v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <slot/>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+  </v-expansion-panels>
+</template>
+<script>
+export default {
+  name: 'VpressExpansionPanel',
+  props: ['panelTitle'],
+
+};
+</script>
+<style scoped>
+.config-panels > .v-expansion-panel-header {
+  min-height: 0% !important;
+  padding: 14px 24px;
+  color:#FFFF !important;
+  font-weight: 800;
+  font-size:  0.65rem !important;
+  border-top-left-radius: 0%;
+  border-top-right-radius: 0%;
+}
+
+.config-panels > .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+  padding: 0 !important;
+}
+
+.config-panels {
+  margin: 0% !important;
+}
+
+.border-radius-none{
+  border-radius: 0px !important;
+}
+</style>
