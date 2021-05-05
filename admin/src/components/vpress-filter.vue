@@ -139,11 +139,10 @@ export default {
       try {
         await this.merge_query(
           {
-              title: this.column,
-              slug: this.column,
-              type: this.type,
-              value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
-
+            title: this.column,
+            slug: this.column,
+            type: this.type,
+            value: this.type === 'linear' ? this.linearFilter : this.ordinalFilter,
           },
           'filter'
         )
@@ -166,17 +165,14 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 a.underline {
   text-decoration: underline;
 }
-
 .loader-container {
   width:100%;
   display:flex;
   justify-content:center;
   padding-top:10px;
 }
-
 </style>

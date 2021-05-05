@@ -216,13 +216,14 @@ export default {
     }
   },
   created() {
-    if (this.$route.query && this.$route.query.upload) this.tabs = 'upload'
-    if (this.$route.query && this.$route.query.selectDB) {
+    this.datasets = this.$store.getters['workspace/datasetMeta']
+    if (this.$route.query && this.$route.query.upload) {
+      this.tabs = 'upload'
+    } else if (this.$route.query && this.$route.query.selectDB) {
       this.proxyScreen = false
     } else if (this.datasetsRefs.length > 0) {
       this.proxyScreen = true
     }
-    this.datasets = this.$store.getters['workspace/datasetMeta']
     this.unsubscribe = this.$store.subscribe(
       mutation => {
         if(

@@ -53,12 +53,11 @@ export default {
         throw new Error(error.message)
       }
     },
-    async loadSavedViz(viz, dataset) { //TODO: Reconsider functionality
-      let storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
+    async loadSavedViz(viz, dataset) { // TODO: Reconsider functionality
+      const storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
         ? this.$store.getters['editor/vizzes'](dataset.slug).vizzes
         : this.$store.getters['editor/vizzes'](dataset.slug)
       const parsedViz = JSON.parse(viz.value)
-      storedVizzes = false
       if (storedVizzes) {
         const { includes, idx } = vizzesIncludes(viz.id, storedVizzes)
         const payload = {
@@ -67,7 +66,9 @@ export default {
           index: null
         }
         if (includes) {
-          payload.values = storedVizzes[idx].getValues()
+          // TODO: "Save before leave" to uncomment next line
+          // payload.values = storedVizzes[idx].getValues()
+          payload.values = parsedViz
           payload.index = idx
         } else {
           payload.values = parsedViz
@@ -79,7 +80,7 @@ export default {
         await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: index })
         await this.$store.dispatch('editor/UPDATE_VIZ', { values, data, dataset})
       } else {
-        await this.editorInit(dataset, [ viz ])
+        await this.editorInit(dataset, [viz])
         const data = await this.createVizQuery(parsedViz, dataset)
         await this.$store.dispatch('editor/UPDATE_VIZ', { data, dataset})
       }

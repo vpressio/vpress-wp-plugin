@@ -86,7 +86,6 @@ export default {
         throw new Error(error.message)
       }
     },
-
     async createVizQuery(
         chartValues,
         dataSetSlug = this.$store.getters['workspace/activeDataset']
