@@ -61,7 +61,13 @@ export default {
     async filter_params(payload) {
       try {
         const body = {
-          dataset: `vpress_${this.$store.getters['workspace/activeDataset'].slug}`
+          dataset: `vpress_${this.$store.getters['workspace/activeDataset'].slug}`,
+          context:{
+            getFilters:{
+              'slug': payload.column,
+              'func': 'distinct'
+            }
+          }
         }
         if (payload.type !== 'linear') {
           const ordinalBody = filterOrdinalParamsQuery(

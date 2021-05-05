@@ -1,8 +1,117 @@
 <?php
 
+
+function vpress_sql_groupBy_column($body, $key){
+  $col = false;
+  $column = $body['context'][$key] ? $body['context'][$key]['slug'] : ''; 
+  $aggregate = $body['context'][$key] ? $body['context'][$key]['func'] : ''; 
+
+  if($column !== 'total_count' && !$aggregate){
+    $col = "f1.$column";
+  }
+  return $col;
+}
+
+function vpress_sql_groupBy($body){
+    $groupBy_columns = [];
+    $groupBy = "groupBy";
+
+    $xAxis = vpress_sql_groupBy_column($body, 'xAxis');
+    $xAxis ? array_push($groupBy_columns, $xAxis): false; 
+
+    $yAxis = vpress_sql_groupBy_column($body, 'yAxis');
+    $yAxis ? array_push($groupBy_columns, $yAxis): false; 
+
+    $groupBy = vpress_sql_groupBy_column($body, 'groupBy');
+    $groupBy ? array_push($groupBy_columns, $groupBy): false;
+    
+    //@TODO SEPARATE LOGIC
+    $getFilters = vpress_sql_groupBy_column($body, 'getFilters');
+    $getFilters ? array_push($groupBy_columns, $getFilters): false;
+  
+    $groupBy .= ' ' . implode(",", $groupBy_columns); 
+    return $groupBy;
+}
+
+function vpress_sql_where($body){
+  $where = ''; 
+  $where_array = [];
+
+  if ( !empty($body['context']['filters']) ) {
+    
+    foreach ($body['context']['filters'] as $value) {
+
+      if( $value['type'] !== 'ordinal' & count($value['value']) == 2){
+        array_push($where_array, $value['slug'] . " BETWEEN '" . $value["value"][0] . "' AND '" . $value["value"][1] . "'");
+      }else{
+        array_push($where_array, $value["slug"] . " IN (" . "'" . implode ( "', '", $value["value"] ) . "'" . ")");
+      }
+    }
+    $where = "WHERE " . implode(" AND ", $where_array);
+  }
+
+  return $where;
+}
+
+
+function vpress_sql_from($body){
+  return " FROM " . trim($body['dataset']) . " as f1";
+}
+
+function vpress_sql_select_column($body, $key){
+  $col = false;
+  $column = $body['context'][$key] ? $body['context'][$key]['slug'] : ''; 
+  $aggregate = $body['context'][$key] ? $body['context'][$key]['func'] : ''; 
+
+  if($column){
+    if($column == 'total_count'){
+      $col = "COUNT(*) as total_count";
+    } else if($aggregate){
+      $col = "$aggregate(f1.$column) as $column";
+    } else{
+      $col = "f1.$column";
+    }
+  }
+  return $col;
+}
+
+function vpress_sql_select($body){
+    $select_columns = [];
+    $select = "SELECT";
+
+    $xAxis = vpress_sql_select_column($body, 'xAxis');
+    $xAxis ? array_push($select_columns, $xAxis): false; 
+
+    $yAxis = vpress_sql_select_column($body, 'yAxis');
+    $yAxis ? array_push($select_columns, $yAxis): false; 
+
+    $groupBy = vpress_sql_select_column($body, 'groupBy');
+    $groupBy ? array_push($select_columns, $groupBy): false;
+    
+    //@TODO SEPARATE LOGIC
+    $getFilters = vpress_sql_select_column($body, 'getFilters');
+    $getFilters ? array_push($select_columns, $getFilters): false;
+  
+    $select .= ' ' . implode(",", $select_columns); 
+    return $select;
+}
+
+
+function vpress_sql($body){
+  $select = vpress_sql_select($body);
+  $from = vpress_sql_from($body); 
+  $where = vpress_sql_where($body); 
+  $groupBy = vpress_sql_groupBy($body); 
+
+  return "$select $from $where $groupBy";
+}
+
 function vpress_query_chart_data($request) {
   try {
     $body = $request->get_json_params();
+
+
+    $query = vpress_sql($body);
     
     if ( empty($body['dataset']) ) {
       throw new Exception( 'missing_field', 'Missing field');
@@ -42,7 +151,7 @@ function vpress_query_chart_data($request) {
     $query_select_columns = [];
     $query_from = " FROM " . trim($dataset) . " as f1";
     $query_where = "";
-    $query_group_by = "GROUP BY ";
+    $query_group_by = "";
     $query_group_by_columns = [];
     $query_order_by = (empty($order_by) ? "" : "ORDER BY ". $order_by);
     $query_limit = (empty($limit) ? "" : "LIMIT ".$limit);
@@ -95,11 +204,12 @@ function vpress_query_chart_data($request) {
       array_push($query_select_columns,"($function_operation_head) AS $function_alias_head");
     }
     if (!empty($function_operation_2) && !empty($function_alias_2)) {
-      array_push($query_select_columns," ,($function_operation_2) AS $function_alias_2");
+      array_push($query_select_columns,"($function_operation_2) AS $function_alias_2");
     }
     
     $query_select .= ' ' . implode(",", $query_select_columns); 
-    $query_group_by .= ' ' . implode(",", $query_group_by_columns); 
+    $group_by = implode(",", $query_group_by_columns);
+    $query_group_by = !empty($group_by) ? 'GROUP BY ' . implode(",", $query_group_by_columns) : '';
   
     if ( !empty($where) ) {
       $where_array = [];
@@ -126,7 +236,7 @@ function vpress_query_chart_data($request) {
       // Todo: Validate if both axis are selected
     }
   
-    $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
+    //$query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
   
     global $wpdb;
     $data =$wpdb->get_results($wpdb->prepare($query));

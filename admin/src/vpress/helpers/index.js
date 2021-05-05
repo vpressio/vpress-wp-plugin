@@ -305,6 +305,9 @@ export const queryBody = (context, table_name) => {
     filters,
     orderBy
   } = context;
+
+  body['context'] = context;
+
   if (xAxis.type === 'linear' && yAxis.type === 'linear') {
     if (xAxis.slug === 'total_count' && yAxis.slug === 'total_count') {
       throw new Error('Combinación de variables inválida.')
