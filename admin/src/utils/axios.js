@@ -4,11 +4,18 @@ import { fillValues } from '../helpers/index.js'
 
 
 const instance = create({
-  baseURL: process.env.VUE_APP_API_URI || '/',
+  baseURL: process.env.VUE_APP_API_URI || '/wordpress/',
   headers: {
     'X-WP-Nonce': window.wpApiSettings && window.wpApiSettings.nonce ? window.wpApiSettings.nonce : '123'
   }
 })
+
+const hueApi = create({
+  baseURL: process.env.VUE_APP_HUE_API_BASE_URL || 'http://localhost:8000',
+});
+
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjYjY0ZWZhZGJmNmM4MDAxN2QzYzYyNCIsInJvbGUiOiJBRE1JTiIsImdvb2dsZSI6IiIsImV4cCI6MTYyNTA3NDY3OSwiaWF0IjoxNjI0OTg4Mjc5fQ.gtDBtP_w2PxfxLmvUctWWOgq1giSlrcuzVOVrgT880U';
+hueApi.defaults.headers.common.Authorization = `Bearer ${token}`;
 
 const dataset = {
   get: id => instance.get(`/wp-json/vpress/v1/dataset/get/${id}`),
@@ -26,6 +33,7 @@ const dataset = {
     const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
     return instance.get(`/wp-json/vpress/v1/dataset/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`)
   },
+  listHue: payload => hueApi.get(`/sql/datasets`, payload),
   charts: id => instance.get(`/wp-json/vpress/v1/dataset/charts/${id}`),
   rename_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/rename`, payload),
   delete_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/delete`, payload),
