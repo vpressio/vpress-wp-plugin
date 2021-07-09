@@ -101,9 +101,9 @@ export default {
             ? element.tag.split(', ')
             : element.tag = []
         });
-        data.data = data.data.concat(hueDatasets.data);
-        this.items = data.data
-        this.total = data.total
+        const allDatasets = data.data.concat(hueDatasets.data);
+        this.items = allDatasets
+        this.total = allDatasets.length
         this.loading = false
       } catch (error) {
         console.error(error.message);
