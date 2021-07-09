@@ -109,11 +109,11 @@ function vpress_sql($body){
 function vpress_query_chart_data($request) {
   try {
     $body = $request->get_json_params();
+    $hueAPI = 'https://hue.devf.la/sql/query';
 
-
-    $query = vpress_sql($body);
+    # $query = vpress_sql($body);
     
-    if ( empty($body['dataset']) ) {
+    if ( empty($body['dataset']) ||  empty($body['dataSource'])) {
       throw new Exception( 'missing_field', 'Missing field');
     } else if (
       ( !empty($body['aggregate']) && empty($body['aggregate_column']) ) || 
@@ -236,10 +236,20 @@ function vpress_query_chart_data($request) {
       // Todo: Validate if both axis are selected
     }
   
-    //$query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
+    $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
   
-    global $wpdb;
-    $data =$wpdb->get_results($wpdb->prepare($query));
+    if ($body['dataSource'] === 'wordpress') {
+      global $wpdb;
+      $data =$wpdb->get_results($wpdb->prepare($query));
+    } else { 
+      $data_array =  array(
+        "query" => $query,
+      );
+      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
+      $data = json_decode($get_data, true);
+      $errors = $response['response']['errors'];
+    }
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
