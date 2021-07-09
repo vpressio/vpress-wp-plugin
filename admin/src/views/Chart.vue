@@ -43,7 +43,7 @@ export default {
           const datasetRes = await api.dataset.get(chart.dataset_id)
           const dataset = datasetRes.data.data
           const values = JSON.parse(chart.value)
-          const query = queryBody(values, dataset.slug)
+          const query = queryBody(values, dataset.slug, dataset.source)
           const dataResponse = await api.chart.query(query)
           this.chartConfig = values
           this.chartData = dataResponse.data.data
