@@ -183,7 +183,8 @@ export default {
           const obj = {
             page,
             dataset: this.dataset.slug,
-            itemsPerPage
+            itemsPerPage,
+            dataSource: this.dataset.source,
           }
           const response = await api.dataset.data(obj);
           const data = response.data
