@@ -105,8 +105,6 @@ function vpress_upload_dataset( $request ) {
 
   $files = $request->get_file_params();
   $headers = $request->get_headers();
-  echo implode(" ",$files);
-  echo implode(" ",$headers);
   if ( !empty( $files ) && !empty( $files['file'] ) ) {
     $file = $files['file'];
   }
