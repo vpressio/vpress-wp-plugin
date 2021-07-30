@@ -1226,7 +1226,7 @@ export default {
 }
 
 .d3-tip {
-  line-height: 1;
+  line-height: 1.2;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   font-weight: bold;
   padding: 12px;
@@ -1246,6 +1246,8 @@ export default {
   content: "\25BC";
   position: absolute;
   text-align: center;
+  top: -5px;
+  bottom: 5px;
 }
 
 /* Style northward tooltips differently */
