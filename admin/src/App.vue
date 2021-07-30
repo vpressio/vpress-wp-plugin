@@ -14,7 +14,7 @@ export default {
 
 <style lang="scss">
 .v-application {
-  margin-left: -20px;
+  margin-left: -15px;
 }
 
 .v-input {
