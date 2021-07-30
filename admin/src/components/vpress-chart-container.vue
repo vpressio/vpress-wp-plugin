@@ -5,9 +5,9 @@
     )
     .layout-row.left-align.label-font.bold.layout-align-start-end.titles-container
       .col-12.py-0
-        h2.generated-title.mb-2 {{ chartTitle('title', iframe ? '' : 'Título') }}
+        h2.generated-title.mb-2.mt-2 {{ chartTitle('title', iframe ? '' : 'Título') }}
       .col-12.py-0
-        h3.generated-subtitle.mb-2 {{ chartTitle('subtitle', iframe ? '' : 'Subtítulo') }}
+        h3.generated-subtitle.mb-2.mt-2 {{ chartTitle('subtitle', iframe ? '' : 'Subtítulo') }}
     .empty-chart( :id="this.id")
       .vertical-align
         p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
