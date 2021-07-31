@@ -113,7 +113,7 @@ function vpress_query_chart_data($request) {
 
     # $query = vpress_sql($body);
     
-    if ( empty($body['dataset']) ||  empty($body['dataSource'])) {
+    if (empty($body['dataset'])) {
       throw new Exception( 'missing_field', 'Missing field');
     } else if (
       ( !empty($body['aggregate']) && empty($body['aggregate_column']) ) || 
@@ -238,17 +238,20 @@ function vpress_query_chart_data($request) {
   
     $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
   
-    if ($body['dataSource'] === 'wordpress') {
-      global $wpdb;
-      $data =$wpdb->get_results($wpdb->prepare($query));
-    } else { 
-      $data_array =  array(
-        "query" => $query,
-      );
-      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
-      $data = json_decode($get_data, true);
-      $errors = $response['response']['errors'];
-    }
+    global $wpdb;
+    $data =$wpdb->get_results($wpdb->prepare($query));
+
+    // if ($body['dataSource'] === 'wordpress') {
+    //   global $wpdb;
+    //   $data =$wpdb->get_results($wpdb->prepare($query));
+    // } else { 
+    //   $data_array =  array(
+    //     "query" => $query,
+    //   );
+    //   $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
+    //   $data = json_decode($get_data, true);
+    //   $errors = $response['response']['errors'];
+    // }
 
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
