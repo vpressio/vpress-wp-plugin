@@ -87,14 +87,21 @@ export default {
       this.getDatasets()
     },
     async getDatasets() {
+      this.loading = true
+      let hueDatasets = null
+      const obj = {
+        page: this.page ,
+        itemsPerPage: this.perPage,
+        q: this.query
+      }
       try {
-        this.loading = true
-        const obj = {
-          page: this.page ,
-          itemsPerPage: this.perPage,
-          q: this.query
+        hueDatasets = await api.dataset.listHue(obj);
+      } catch (error) {
+        hueDatasets = {
+          data: []
         }
-        const hueDatasets = await api.dataset.listHue(obj);
+      }
+      try {
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
           element.tag = element.tag
