@@ -297,9 +297,10 @@ export const filterLinearParamsQuery = (body, column) => {
   return body
 }
 
-export const queryBody = (context, table_name) => {
+export const queryBody = (context, table_name, data_source) => {
   const body = {}
-  body['dataset'] = `vpress_${table_name}`
+  body['dataset'] = data_source ? `${table_name}` : `vpress_${table_name}`
+  body['dataSource'] = data_source || 'wordpress'
   body['chart_type'] = context.chart
   const {
     xAxis,

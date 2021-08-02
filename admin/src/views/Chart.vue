@@ -1,4 +1,13 @@
 <template>
+  <v-container class="fill-height justify-center align-center">
+  <v-progress-circular
+            :size="90"
+            :width="10"
+            color="primary"
+            indeterminate
+            class="my-5"
+            v-show="loading"
+  ></v-progress-circular>
   <VpressChartContainer
     id="empty_chart_0"
     iframe
@@ -6,17 +15,16 @@
     :chartConfig="chartConfig"
     :dateFormat="dateFormat"
   />
+  </v-container>
 </template>
 <script>
 import VpressChartContainer from '../components/vpress-chart-container'
 import vpress from '../vpress/index.js'
 import api from '../utils/axios'
-
 const {
   queryBody,
   extractDataType,
 } = vpress
-
 export default {
   name: 'Chart',
   components: {
@@ -26,7 +34,8 @@ export default {
     return {
       chartConfig: {},
       chartData: [],
-      dateFormat: undefined
+      dateFormat: undefined,
+      loading: true,
     }
   },
   created () {
@@ -43,12 +52,13 @@ export default {
           const datasetRes = await api.dataset.get(chart.dataset_id)
           const dataset = datasetRes.data.data
           const values = JSON.parse(chart.value)
-          const query = queryBody(values, dataset.slug)
+          const query = queryBody(values, dataset.slug, dataset.source)
           const dataResponse = await api.chart.query(query)
           this.chartConfig = values
           this.chartData = dataResponse.data.data
           const { dateFormat } = extractDataType(this.chartData[0])
           this.dateFormat = dateFormat
+          this.loading = false
         }
       } catch (error) {
         error

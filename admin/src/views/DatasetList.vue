@@ -94,14 +94,16 @@ export default {
           itemsPerPage: this.perPage,
           q: this.query
         }
+        const hueDatasets = await api.dataset.listHue(obj);
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
           element.tag = element.tag
             ? element.tag.split(', ')
             : element.tag = []
         });
-        this.items = data.data
-        this.total = data.total
+        const allDatasets = data.data.concat(hueDatasets.data);
+        this.items = allDatasets
+        this.total = allDatasets.length
         this.loading = false
       } catch (error) {
         console.error(error.message);

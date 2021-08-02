@@ -8,21 +8,79 @@ function vpress_clean_string($string) {
   return strtolower($string);
 }
 
+function callAPI($method, $url, $data){
+  $curl = curl_init();
+  switch ($method){
+     case "POST":
+        curl_setopt($curl, CURLOPT_POST, 1);
+        if ($data)
+           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        break;
+     case "PUT":
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        if ($data)
+           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);			 					
+        break;
+     default:
+        if ($data)
+           $url = sprintf("%s?%s", $url, http_build_query($data));
+  }
+  // OPTIONS:
+  curl_setopt($curl, CURLOPT_URL, $url);
+  curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+     // 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjYjY0ZWZhZGJmNmM4MDAxN2QzYzYyNCIsInJvbGUiOiJBRE1JTiIsImdvb2dsZSI6IiIsImV4cCI6MTYyNTE3NDE2NSwiaWF0IjoxNjI1MDg3NzY1fQ.TAGrUgZJJm6WZwrDeCdzRuzo3IgqBhlpULfC8Bk7bLA',
+     'Content-Type: application/json',
+  ));
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+  // EXECUTE:
+  $result = curl_exec($curl);
+  if(!$result){die("Connection Failure");}
+  curl_close($curl);
+  return $result;
+}
+
 function vpress_get_dataset_data( $request ) {
   try {
     global $wpdb;
-    $table_name =  "vpress_{$request['dataset']}";
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
+    $data_source = $request->get_param('dataSource');
     $start_at = $per_page * ($page - 1);
-    $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
     $query_total = "SELECT COUNT(*) AS total FROM %s";
-    
-    
-    $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
-    $data = $wpdb->get_results($sql);
-    $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
-    $total = $wpdb->get_results($sql);
+    // ENV
+    $hueAPI = 'https://hue.devf.la/sql/query';
+
+    if ($data_source === 'wordpress') {
+      $table_name =  "vpress_{$request['dataset']}";
+      $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
+      $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
+      $data = $wpdb->get_results($sql);
+      $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
+      $total = $wpdb->get_results($sql);
+    } else {
+      $table_name = $request['dataset'];
+      $query = "SELECT sexo, pais, ciudad, programa_de_interes, edad, como_se_entero_programa_de_becas,
+        tiene_internet, acceso_a_computadora, ocupacion, grado_de_estudios, conocimiento_de_ingles,
+        discapacidad_fisica, grupo_etnico, grupo_subrepresentado_o_vulnerable FROM %s LIMIT  %d ,  %d ";
+      $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
+      $data_array =  array(
+        "query" => $sql,
+      );
+      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
+      $data = json_decode($get_data, true);
+      $errors = $response['response']['errors'];
+      
+      $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
+      $data_array =  array(
+        "query" => $sql,
+      );
+      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
+      $response = json_decode($get_data, true);
+      $errors = $response['response']['errors'];
+      $total = $response[0];
+    }
+
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error);
     }
@@ -47,7 +105,6 @@ function vpress_upload_dataset( $request ) {
 
   $files = $request->get_file_params();
   $headers = $request->get_headers();
-
   if ( !empty( $files ) && !empty( $files['file'] ) ) {
     $file = $files['file'];
   }

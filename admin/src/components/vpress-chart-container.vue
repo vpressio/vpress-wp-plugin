@@ -5,9 +5,9 @@
     )
     .layout-row.left-align.label-font.bold.layout-align-start-end.titles-container
       .col-12.py-0
-        h2.generated-title.my-0 {{ chartTitle('title', 'Título') }}
+        h2.generated-title.mb-2.mt-2 {{ chartTitle('title', iframe ? '' : 'Título') }}
       .col-12.py-0
-        h3.generated-subtitle.my-0 {{ chartTitle('subtitle', 'Subtítulo') }}
+        h3.generated-subtitle.mb-2.mt-2 {{ chartTitle('subtitle', iframe ? '' : 'Subtítulo') }}
     .empty-chart( :id="this.id")
       .vertical-align
         p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
@@ -1175,6 +1175,7 @@ export default {
 .edit-title {
   display: flex;
   justify-content: flex-start;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-size: 1.5em;
   font-weight: 500;
   text-align: left;
@@ -1184,6 +1185,7 @@ export default {
 .edit-subtitle {
   display: flex;
   justify-content: flex-start;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-size: 1em;
   font-weight: 500;
   text-align: left;
@@ -1224,7 +1226,35 @@ export default {
 }
 
 .d3-tip {
-  background: rgba(255, 255, 255, 0.8);
+  line-height: 1.2;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 0;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+  top: -5px;
+  bottom: 5px;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: 3px 0 0 0;
+  top: 100%;
+  left: 0;
 }
 
 .chart-container.dark-themed svg text {
@@ -1236,12 +1266,6 @@ export default {
   width: 50px;
   margin: 0.2em;
   background-color: #57779c;
-}
-
-.d3-tip {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  color: #666;
-  font-weight: bold;
 }
 
 .leaflet-container {
