@@ -90,6 +90,11 @@
                 Eliminar
               </v-list-item-title>
             </v-list-item>
+            <v-list-item class="px-5" @click="toggleShowLabel">
+              <v-list-item-title class="func-menu">
+                Ocultar/Mostrar
+              </v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -145,7 +150,8 @@ export default {
         { type: 'max', name: 'Máximo' },
         { type: '', name: 'Valor por defecto' }
       ],
-      selectedFunc: { type: '', name: '' }
+      selectedFunc: { type: '', name: '' },
+      showLabelAxis: false,
     };
   },
   computed: {
@@ -168,6 +174,9 @@ export default {
       }
     },
   },
+  // created() {
+  //   this.showLabelAxis = this.$store.getters['editor/xAxisShowLabel'];
+  // },
   methods: {
     closeErrorMsg () {
       this.showErrorMsg = false
@@ -212,6 +221,12 @@ export default {
         throw new Error(error.message)
       }
 
+    },
+    toggleShowLabel () {
+      this.showLabelAxis = !this.showLabelAxis;
+      this.merge_value(
+        { mutationType: 'showLabelAxis', value: { axis: this.mutationType, value: this.showLabelAxis } }
+      );
     }
   }
 };

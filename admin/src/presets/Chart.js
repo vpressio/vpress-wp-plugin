@@ -1,7 +1,7 @@
 export default {
   chart: 'bars',
-  xAxis: { title: '', type: '', slug: '', func: '' },
-  yAxis: { title: '', type: '', slug: '', func: '' },
+  xAxis: { title: '', type: '', slug: '', func: '', showLabel: false },
+  yAxis: { title: '', type: '', slug: '', func: '', showLabel: false },
   groupBy: { title: '', type: '', slug: '' },
   collapseBy: { title: '', type: '', slug: '', func: '' },
   filters: [],
