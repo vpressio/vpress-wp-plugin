@@ -7,7 +7,7 @@ export default {
   filters: [],
   orderBy: { order: 'asc', slug: '' },
   unitsName: '',
-  decimals: 0,
+  decimals: 1,
   preffix: '',
   suffix: '',
   stackedBars: false,
