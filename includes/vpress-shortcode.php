@@ -8,7 +8,7 @@ function vpress_shortcode($atts) {
     'id' => $atts['id']
   ), $atts );
   return '
-    <Chart id="'.esc_attr($values['id']).'">
+    <chart v-bind:vpress="'.esc_attr($values['id']).'"></chart>
   ';
 }
 

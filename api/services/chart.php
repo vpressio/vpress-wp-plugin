@@ -111,7 +111,7 @@ function vpress_query_chart_data($request) {
     $body = $request->get_json_params();
 
 
-    $query = vpress_sql($body);
+    //$query = vpress_sql($body);
     
     if ( empty($body['dataset']) ) {
       throw new Exception( 'missing_field', 'Missing field');
@@ -236,7 +236,7 @@ function vpress_query_chart_data($request) {
       // Todo: Validate if both axis are selected
     }
   
-    //$query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
+    $query = sprintf("%s %s %s %s %s %s", $query_select, $query_from, $query_where, $query_group_by, $query_order_by, $query_limit);
   
     global $wpdb;
     $data =$wpdb->get_results($wpdb->prepare($query));

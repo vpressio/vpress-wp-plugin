@@ -105,7 +105,20 @@ class Vpress_Public {
 		}
 		return $tag;
 	}
-		/**
+
+	public function add_script_attributes($tag, $handle, $src) {
+		switch ( $handle ) {
+			case $this->plugin_name . '_vpress':
+				return '<script type="module" src="' . esc_url( $src ) . '"></script>';
+				break;
+
+			default:
+				return $tag;
+				break;
+		}
+	}
+
+	/**
 	 * Register the JavaScript for the public-facing side of the site.
 	 *
 	 * @since    0.1.0
@@ -123,26 +136,38 @@ class Vpress_Public {
 		 * class.
 		 */
 		$chart = get_query_var('chart');
-		if($chart) {
+		//if($chart) {
+
 			wp_enqueue_script( 
-				$this->plugin_name. '_chunks',
-				$this->client['location']. '/js/chunk-vendors.js',
+				$this->plugin_name. '_vue',
+				"https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js",
 				array(),
 				$this->version,
-				false
+				true
 			);
+
 			wp_enqueue_script( 
-				$this->plugin_name . '_app',
-				$this->client['location']. '/js/app.js',
+				$this->plugin_name. '_axios',
+				"https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js",
 				array(),
 				$this->version,
-				false
+				true
 			);
-			wp_localize_script( $this->plugin_name . '_app', 'wpApiSettings', array(
+
+			wp_enqueue_script( 
+				$this->plugin_name . '_vpress',
+				plugin_dir_url(dirname(__FILE__)). 'public/vpress.js',
+				array(),
+				$this->version,
+				true
+			);
+
+			
+			wp_localize_script( $this->plugin_name . '_vpress', 'wpApiSettings', array(
 				'root' => esc_url_raw( rest_url() ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
 			));
-		}
+		//}
 	}	
 
 		/**
@@ -165,7 +190,7 @@ class Vpress_Public {
 		 * class.
 		 */
 		$chart = get_query_var('chart');
-		if($chart) {
+		//if($chart) {
 			foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
 				$filename = substr($file, strrpos($file, '/') + 1);
 				wp_enqueue_style(
@@ -199,7 +224,7 @@ class Vpress_Public {
 				array(),
 				null
 			);
-		}
+		//}
 	}
 
 
