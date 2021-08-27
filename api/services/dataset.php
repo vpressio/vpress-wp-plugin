@@ -45,29 +45,25 @@ function vpress_get_dataset_data( $request ) {
     global $wpdb;
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
-    $data_source = $request->get_param('dataSource');
+    // $data_source = $request->get_param('dataSource');
+    $query_url = $request->get_param('queryUrl');
     $start_at = $per_page * ($page - 1);
     $query_total = "SELECT COUNT(*) AS total FROM %s";
-    // ENV
-    $hueAPI = 'https://hue.devf.la/sql/query';
+    $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
 
-    if ($data_source === 'wordpress') {
+    if (!$query_url) {
       $table_name =  "vpress_{$request['dataset']}";
-      $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
       $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
       $data = $wpdb->get_results($sql);
       $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
       $total = $wpdb->get_results($sql);
     } else {
       $table_name = $request['dataset'];
-      $query = "SELECT sexo, pais, ciudad, programa_de_interes, edad, como_se_entero_programa_de_becas,
-        tiene_internet, acceso_a_computadora, ocupacion, grado_de_estudios, conocimiento_de_ingles,
-        discapacidad_fisica, grupo_etnico, grupo_subrepresentado_o_vulnerable FROM %s LIMIT  %d ,  %d ";
       $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
       $data_array =  array(
         "query" => $sql,
       );
-      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
+      $get_data = callAPI('POST', $query_url, json_encode($data_array));
       $data = json_decode($get_data, true);
       $errors = $response['response']['errors'];
       
@@ -75,10 +71,10 @@ function vpress_get_dataset_data( $request ) {
       $data_array =  array(
         "query" => $sql,
       );
-      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
-      $response = json_decode($get_data, true);
-      $errors = $response['response']['errors'];
-      $total = $response[0];
+      $get_data = callAPI('POST', $query_url, json_encode($data_array));
+      $response_total = json_decode($get_data, true);
+      $errors = $response_total['response']['errors'];
+      $total = $response_total[0].total;
     }
 
     if ($wpdb->last_error) {
@@ -87,7 +83,7 @@ function vpress_get_dataset_data( $request ) {
     $response = array(
       'data' => $data,
       'query' => $query,
-      'total' => (int)$total[0]->total,
+      'total' => $query_url ? $total : (int)$total[0]->total,
     );
     return $response;
   } catch (Exception $e) {
@@ -303,6 +299,7 @@ function vpress_create_dataset( $request ) {
     $tag = $request->get_param('tag');
     $source = $request->get_param('source');
     $owner_id = (int)$request->get_param('owner_id');
+    $query_url = $request->get_param('query_url');
   
     $data = $wpdb->insert( 
       $table_name, 
@@ -372,6 +369,7 @@ function vpress_update_dataset( $request ) {
     $tag = $request->get_param('tag');
     $source = $request->get_param('source');
     $owner_id = (int)$request->get_param('owner_id');
+    $query_url = $request->get_param('query_url');
 
     $data = $wpdb->update( 
       $table_name, 
