@@ -88,18 +88,10 @@ export default {
     },
     async getDatasets() {
       this.loading = true
-      let hueDatasets = null
       const obj = {
         page: this.page ,
         itemsPerPage: this.perPage,
         q: this.query
-      }
-      try {
-        hueDatasets = await api.dataset.listHue(obj);
-      } catch (error) {
-        hueDatasets = {
-          data: []
-        }
       }
       try {
         const { data } = await api.dataset.list(obj);
@@ -108,9 +100,8 @@ export default {
             ? element.tag.split(', ')
             : element.tag = []
         });
-        const allDatasets = data.data.concat(hueDatasets.data);
-        this.items = allDatasets
-        this.total = allDatasets.length
+        this.items = data.data
+        this.total = data.data.length
         this.loading = false
       } catch (error) {
         console.error(error.message);

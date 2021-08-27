@@ -91,7 +91,7 @@ export default {
         dataSetSlug = this.$store.getters['workspace/activeDataset']
     ) {
       const dataSetSlugo = dataSetSlug ?  dataSetSlug.slug : ''
-      const datasetSource = dataSetSlug ? dataSetSlug.source : 'wordpress'
+      const querySlug = dataSetSlug ? dataSetSlug.query_url : ''
       try {
         if (
           chartValues.xAxis.slug !== '' &&
@@ -101,7 +101,7 @@ export default {
           const body = await queryBody(
             chartValues,
             dataSetSlugo,
-            datasetSource
+            querySlug
           )
           const data = await this.query_data(body)
           return data

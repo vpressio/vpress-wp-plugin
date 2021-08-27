@@ -29,7 +29,7 @@ export default {
             page: 1,
             dataset: payload.slug,
             itemsPerPage: 1,
-            dataSource: payload.source
+            queryUrl: payload.query_url
           }
         )
         let datasetVariables, datasetDateFormat;
@@ -58,7 +58,8 @@ export default {
           datasetVariables,
           datasetDateFormat,
           payload.rows,
-          payload.size
+          payload.size,
+          payload.query_url
         )
 
 
