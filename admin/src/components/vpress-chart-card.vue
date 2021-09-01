@@ -16,20 +16,20 @@
       <v-divider/>
       <div class="mx-5">
         <div class="link text-truncate viz-card-title">
-          <a
+          <span
             v-if="editedItem.chartValues.title.trim().length === 0 && !editTitle"
-            class="link add-text-toggle"
-            @click="toggleInput('editTitle', 'title-input')"
+            class="link"
+            @click="createChart"
           >
-            Agregar título
-          </a>
-          <a
+            Sin título
+          </span>
+          <span
             v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
             class="edit"
-            @click="toggleInput('editTitle', 'title-input')"
+            @click="createChart"
           >
             {{ editedItem.chartValues.title }}
-          </a>
+          </span>
           <v-text-field
             ref="title-input"
             v-show="editTitle"
@@ -43,20 +43,20 @@
           />
         </div>
         <div class="link text-truncate viz-card-subtitle">
-          <a
+          <span
             v-if="editedItem.chartValues.subtitle.trim().length === 0 && !editSubtitle"
             class="link add-text-toggle"
             @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
-            Agregar subtítulo
-          </a>
-          <a
+            Agregar subtítulo...
+          </span>
+          <span
             v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
             class="edit"
             @click="toggleInput('editSubtitle', 'subtitle-input')"
           >
             {{ editedItem.chartValues.subtitle }}
-          </a>
+          </span>
           <v-text-field
             ref="subtitle-input"
             v-show="editSubtitle"
@@ -70,20 +70,20 @@
           />
         </div>
         <div class="viz-card-textarea">
-          <a
+          <span
             v-if="editedItem.description.trim().length === 0 && !editDescription"
             class="link add-text-toggle"
             @click="toggleInput('editDescription', 'description-input')"
           >
-            Agregar descripción
-          </a>
-          <a
+            Agregar descripción...
+          </span>
+          <span
             v-if="editedItem.description.trim().length !== 0 && !editDescription"
             class="edit"
             @click="toggleInput('editDescription', 'description-input')"
           >
             {{ editedItem.description }}
-          </a>
+          </span>
           <v-textarea
             ref="description-input"
             counter="5"
@@ -293,7 +293,7 @@ export default {
         return require('../assets/images/spineplot.png')
       }
     },
-     async toggleInput(field, element) {
+    async toggleInput(field, element) {
       this[field] = true
       await this.$nextTick();
       //Focus on the deepest node (input) of the vuetify element
@@ -394,12 +394,13 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-a {
-  color: rgba(0, 0, 0, 0.87) !important;
+.link {
+  cursor: pointer
 }
-a:hover {
+.link:hover {
   text-decoration: underline;
 }
+
 ::v-deep.v-text-field > .v-input__control > .v-input__slot {
   padding-left: 0 !important;
   padding-right: 0 !important;
