@@ -4,26 +4,18 @@
       <v-row>
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
           <div v-if="readonly" class="text-truncate dataset-name">
-            <span v-if="emptyValue('name') && !editTitle">
+            <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <span v-if="!emptyValue('name') && !editTitle">
+            <span v-if="!emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               {{ editedDataset.name }}
             </span>
           </div>
           <div v-else class="text-truncate dataset-name">
-            <span
-              v-if="emptyValue('name') && !editTitle"
-              class="link add-text-toggle"
-              @click.stop="toggleInput('editTitle', 'title-input')"
-            >
-              Agregar título
+            <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
+              Sin título
             </span>
-            <span
-              v-if="!emptyValue('name') && !editTitle"
-              class="edit"
-              @click.stop="toggleInput('editTitle', 'title-input')"
-            >
+            <span v-if="!emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               {{ editedDataset.name }}
             </span>
             <v-text-field
@@ -136,13 +128,13 @@
               </span>
               <v-spacer />
               <span class="dataset-label">
-                {{ size }}
+                {{ dataset.size }}
               </span>
               <v-spacer />
-              <span class="dataset-label"> ~{{ rows | intFormat }} filas </span>
+              <span class="dataset-label"> ~{{ dataset.rows | intFormat }} filas </span>
               <v-spacer />
               <span class="dataset-label ">
-                {{ updated | dateFormat }}
+                {{ dataset.updated | dateFormat }}
               </span>
             </v-col>
             <v-col cols="2">
@@ -150,35 +142,6 @@
               <v-btn v-if="!readonly" icon color="primary" @click.stop="confirmDeletion">
                 <v-icon>mdi-trash-can-outline</v-icon>
               </v-btn>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <!-- <v-combobox
-                class="tags-input"
-                :readonly="readonly"
-                background-color="cardColor"
-                solo
-                flat
-                chips
-                multiple
-                hide-details
-                deletable-chips
-                color="primary"
-                label="Agregar etiquetas"
-                v-model="editedDataset.tag"
-                :loading="loading"
-                @keydown.enter.exact.prevent
-                @keyup.enter.exact="
-                  addTag();
-                  save();
-                "
-                @blur="
-                  addTag();
-                  save();
-                "
-                @click.native.stop
-              /> -->
             </v-col>
           </v-row>
         </v-col>
@@ -221,45 +184,14 @@
 <script>
 import { clone } from 'lodash';
 import api from '../utils/axios.js';
+import { loaderMixin } from '../mixins/index.js';
 
 export default {
   name: 'VpressDatasetCard',
+  mixins: [loaderMixin],
   props: {
-    id: {
-      type: String,
-      required: true
-    },
-    permissions: {
-      type: String,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    slug: {
-      type: String,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    tag: {
-      type: Array,
-      required: true
-    },
-    source: {
-      type: String
-    },
-    size: {
-      type: String
-    },
-    rows: {
-      type: String
-    },
-    updated: {
-      type: String,
+    dataset: {
+      type: Object,
       required: true
     },
     cardColor: {
@@ -281,19 +213,19 @@ export default {
       totalDelete: 0,
       newTag: '',
       editedDataset: {
-        permissions: clone(this.permissions),
-        name: clone(this.name),
-        description: clone(this.description),
-        tag: clone(this.tag)
+        permissions: clone(this.dataset.permissions),
+        name: clone(this.dataset.name),
+        description: clone(this.dataset.description),
+        tag: clone(this.dataset.tag)
       }
     };
   },
   created() {
     this.editedDataset = {
-      permissions: clone(this.permissions),
-      name: clone(this.name),
-      description: clone(this.description),
-      tag: clone(this.tag)
+      permissions: clone(this.dataset.permissions),
+      name: clone(this.dataset.name),
+      description: clone(this.dataset.description),
+      tag: clone(this.dataset.tag)
     };
   },
   computed: {
@@ -324,6 +256,14 @@ export default {
         this.newTag = '';
       }
     },
+    async setDataset(dataset) {
+      try {
+        await this.editorInit(dataset);
+        this.$router.push('/data');
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
     togglePermissions() {
       this.editedDataset.permissions === 'public'
         ? (this.editedDataset.permissions = 'private')
@@ -343,7 +283,7 @@ export default {
         this.editTags = false;
         this.loading = true;
         const body = {
-          id: parseInt(this.id),
+          id: parseInt(this.dataset.id),
           name: this.editedDataset.name,
           description: this.editedDataset.description,
           tag: this.editedDataset.tag.join(', '),
@@ -367,12 +307,12 @@ export default {
       this.dialogConfirmDeletion = false;
     },
     async confirmDeletion() {
-      const { data } = await api.dataset.charts(parseInt(this.id));
+      const { data } = await api.dataset.charts(parseInt(this.dataset.id));
       this.totalDelete = data.total;
       this.dialogConfirmDeletion = true;
     },
     async deleteItem() {
-      const response = await api.dataset.delete({ data: { id: parseInt(this.id) } });
+      const response = await api.dataset.delete({ data: { id: parseInt(this.dataset.id) } });
       if (response.data.error) {
         throw new Error(response.data.error);
       }
@@ -419,6 +359,10 @@ export default {
 .dataset-name {
   font-size: 1.2rem;
   font-weight: 500;
+}
+.dataset-name:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .dataset-description {
