@@ -58,8 +58,11 @@
             v-if="editedItem.chartValues.subtitle.trim().length !== 0 && !editSubtitle"
             class="edit"
             @click="toggleInput('editSubtitle', 'subtitle-input')"
+            @mouseover="showIcon = true"
+            @mouseleave="showIcon = false"
           >
             {{ editedItem.chartValues.subtitle }}
+            <v-icon dense v-show="showIcon">mdi-pencil</v-icon>
           </span>
           <v-text-field
             ref="subtitle-input"
@@ -83,10 +86,13 @@
           </span>
           <span
             v-if="editedItem.description.trim().length !== 0 && !editDescription"
-            class="edit"
+            class="link"
             @click="toggleInput('editDescription', 'description-input')"
+            @mouseover="showDescriptionIcon = true"
+            @mouseleave="showDescriptionIcon = false"
           >
             {{ editedItem.description }}
+            <v-icon dense v-show="showDescriptionIcon">mdi-pencil</v-icon>
           </span>
           <v-textarea
             ref="description-input"
@@ -246,6 +252,8 @@ export default {
     }
   },
   data: () => ({
+    showIcon: false,
+    showDescriptionIcon: false,
     loading: false,
     chartValues: {},
     editTitle: false,
@@ -326,6 +334,8 @@ export default {
         this.editSubtitle = false;
         this.editDescription = false;
         this.editedTags = false;
+        this.showIcon = false;
+        this.showDescriptionIcon = false;
         this.loading = true;
         const body = {
           id: parseInt(this.id),
@@ -389,9 +399,9 @@ export default {
 .link {
   cursor: pointer;
 }
-.link:hover {
-  text-decoration: underline;
-}
+// .link:hover {
+//   text-decoration: underline;
+// }
 
 ::v-deep.v-text-field > .v-input__control > .v-input__slot {
   padding-left: 0 !important;

@@ -75,8 +75,11 @@
               v-if="!emptyValue('description') && !editDescription"
               class="edit dataset-description"
               @click.stop="toggleInput('editDescription', 'description-input')"
+              @mouseover="showDescriptionIcon = true"
+              @mouseleave="showDescriptionIcon = false"
             >
               {{ editedDataset.description }}
+              <v-icon dense v-show="showDescriptionIcon">mdi-pencil</v-icon>
             </span>
             <v-textarea
               ref="description-input"
@@ -230,6 +233,7 @@ export default {
   data() {
     return {
       loading: false,
+      showDescriptionIcon: false,
       editDescription: false,
       editTitle: false,
       editTags: false,
@@ -305,6 +309,7 @@ export default {
         this.editTitle = false;
         this.editDescription = false;
         this.editTags = false;
+        this.showDescriptionIcon = false;
         this.loading = true;
         const body = {
           id: parseInt(this.dataset.id),
