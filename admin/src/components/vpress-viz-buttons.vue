@@ -1,22 +1,13 @@
 <template>
   <v-row v-show="$store.getters['editor/chart'].chart !== 'map'">
     <v-col class="ml-5 v-step-7">
-      <v-btn
-        class="mr-2"
-        tile
-        @click="toggleLabels"
-        small
-        dark
-        color="color2"
-        title="Etiquetas"
-      >
+      <v-btn class="mr-2" tile @click="toggleLabels" small dark color="color2" title="Etiquetas">
         <v-icon>
           mdi-tag-outline
         </v-icon>
       </v-btn>
       <v-btn
-        v-show="chartIsBarsGrouped
-        "
+        v-show="chartIsBarsGrouped"
         class="mr-2"
         @click="toggleBarsType"
         tile
@@ -26,24 +17,12 @@
         title="Agrupar"
       >
         <v-icon>
-          {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked'}}
+          {{ stackedBars ? 'mdi-chart-bar' : 'mdi-chart-bar-stacked' }}
         </v-icon>
       </v-btn>
-      <v-btn
-        class="mr-2"
-        @click="toggleOrder"
-        tile
-        small
-        dark
-        color="color2"
-        title="Ordenar"
-      >
-        <v-img
-          :src="requireImg('totales')"
-          :alt="'Ordenar'"
-          width="10"
-        />
-      </v-btn>
+      <!-- <v-btn class="mr-2" @click="toggleOrder" tile small dark color="color2" title="Ordenar">
+        <v-img :src="requireImg('totales')" :alt="'Ordenar'" width="10" />
+      </v-btn> -->
       <v-btn
         class="mr-2"
         @click="orderByAlphabetical"
@@ -53,11 +32,7 @@
         color="color2"
         title="Ordenar alfabéticamente"
       >
-        <v-img
-          :src="requireImg('alfabeto')"
-          :alt="'Invertir ejes'"
-          width="10"
-        />
+        <v-img :src="requireImg('alfabeto')" :alt="'Invertir ejes'" width="10" />
       </v-btn>
       <v-btn
         class="mr-2"
@@ -68,32 +43,16 @@
         color="color2"
         title="Ordenar numéricamente"
       >
-        <v-img
-          :src="requireImg('numerico')"
-          :alt="'Invertir ejes'"
-          width="10"
-        />
+        <v-img :src="requireImg('numerico')" :alt="'Invertir ejes'" width="10" />
       </v-btn>
-      <v-btn
-        class="mr-2"
-        @click="invertAxis"
-        tile
-        small
-        dark
-        color="color2"
-        title="Invertir eje"
-      >
-        <v-img
-          :src="requireImg('invertir')"
-          :alt="'Invertir ejes'"
-          width="10"
-        />
+      <v-btn class="mr-2" @click="invertAxis" tile small dark color="color2" title="Invertir eje">
+        <v-img :src="requireImg('invertir')" :alt="'Invertir ejes'" width="10" />
       </v-btn>
     </v-col>
   </v-row>
 </template>
 <script>
-import { editorMixin } from '../mixins/index.js'
+import { editorMixin } from '../mixins/index.js';
 
 export default {
   name: 'VpressVizButtons',
@@ -102,7 +61,7 @@ export default {
     return {
       labels: false,
       stackedBars: false,
-      order: this.$store.getters['editor/order'],
+      order: this.$store.getters['editor/order']
     };
   },
   created() {
@@ -122,85 +81,62 @@ export default {
       try {
         return require(`../assets/images/${chartType}.svg`);
       } catch (error) {
-        return require('../assets/images/spineplot.svg')
+        return require('../assets/images/spineplot.svg');
       }
     },
     toggleLabels() {
       this.labels = !this.labels;
-      this.merge_value(
-        { mutationType: 'labels' ,value: this.labels }
-      );
+      this.merge_value({ mutationType: 'labels', value: this.labels });
     },
     toggleBarsType() {
       this.stackedBars = !this.stackedBars;
-      this.merge_value(
-        { mutationType: 'stackedBars' ,value: this.stackedBars
-      });
+      this.merge_value({ mutationType: 'stackedBars', value: this.stackedBars });
     },
     toggleOrder() {
-      const order = [ 'asc', 'desc' ];
+      const order = ['asc', 'desc'];
       const selectedOrderIndex = order.indexOf(this.order);
-      if ( (selectedOrderIndex + 1) < order.length) {
-        this.order = order[selectedOrderIndex + 1]
+      if (selectedOrderIndex + 1 < order.length) {
+        this.order = order[selectedOrderIndex + 1];
       } else {
-        this.order = order[0]
+        this.order = order[0];
       }
-      this.merge_value(
-        { mutationType: 'orderBy' ,value: this.order}
-      );
+      this.merge_value({ mutationType: 'orderBy', value: this.order });
     },
     orderByAlphabetical() {
       const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
-        if (chartValues.xAxis.type === 'ordinal' ) {
-          this.merge_value(
-            { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
-          );
+        if (chartValues.xAxis.type === 'ordinal') {
+          this.merge_value({ mutationType: 'orderBy', value: chartValues.xAxis.slug });
         }
-        if (chartValues.yAxis.type === 'ordinal' ) {
-          this.merge_value(
-            { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
-          );
+        if (chartValues.yAxis.type === 'ordinal') {
+          this.merge_value({ mutationType: 'orderBy', value: chartValues.yAxis.slug });
         }
-
       } else if (chartValues.xAxis.type === 'ordinal') {
-        this.merge_value(
-          { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
-        );
+        this.merge_value({ mutationType: 'orderBy', value: chartValues.xAxis.slug });
       } else {
-        this.merge_value(
-          { mutationType: 'orderBy' ,value: '' }
-        );
+        this.merge_value({ mutationType: 'orderBy', value: '' });
       }
+      this.toggleOrder();
     },
     orderByNumerical() {
       const chartValues = this.$store.getters['editor/chart'];
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
-        if (chartValues.xAxis.type === 'linear' ) {
-          this.merge_value(
-            { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
-          );
+        if (chartValues.xAxis.type === 'linear') {
+          this.merge_value({ mutationType: 'orderBy', value: chartValues.xAxis.slug });
         }
-        if (chartValues.yAxis.type === 'linear' ) {
-          this.merge_value(
-            { mutationType: 'orderBy' ,value: chartValues.yAxis.slug }
-          );
+        if (chartValues.yAxis.type === 'linear') {
+          this.merge_value({ mutationType: 'orderBy', value: chartValues.yAxis.slug });
         }
       } else if (chartValues.xAxis.type === 'linear') {
-        this.merge_value(
-          { mutationType: 'orderBy' ,value: chartValues.xAxis.slug }
-        );
+        this.merge_value({ mutationType: 'orderBy', value: chartValues.xAxis.slug });
       } else {
-        this.merge_value(
-          { mutationType: 'orderBy' ,value: 'total_count' }
-        );
+        this.merge_value({ mutationType: 'orderBy', value: 'total_count' });
       }
+      this.toggleOrder();
     },
     invertAxis() {
-      this.merge_value(
-        { mutationType: 'invertAxis' }
-      );
+      this.merge_value({ mutationType: 'invertAxis' });
     }
   }
-}
+};
 </script>
