@@ -1,8 +1,6 @@
 import { create } from 'axios'
 import { fillValues } from '../helpers/index.js'
 
-
-
 const instance = create({
   baseURL: process.env.VUE_APP_API_URI || '/',
   headers: {
@@ -10,13 +8,6 @@ const instance = create({
   }
 })
 
-// const hueApi = create({
-//   baseURL: process.env.VUE_APP_HUE_API_BASE_URL || 'http://localhost:8000',
-// });
-
-// ENV
-// const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjYjY0ZWZhZGJmNmM4MDAxN2QzYzYyNCIsInJvbGUiOiJBRE1JTiIsImdvb2dsZSI6IiIsImV4cCI6MTYyNTE3NDE2NSwiaWF0IjoxNjI1MDg3NzY1fQ.TAGrUgZJJm6WZwrDeCdzRuzo3IgqBhlpULfC8Bk7bLA';
-// hueApi.defaults.headers.common.Authorization = `Bearer ${token}`;
 
 const dataset = {
   get: id => instance.get(`/wp-json/vpress/v1/dataset/get/${id}`),
