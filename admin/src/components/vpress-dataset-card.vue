@@ -7,17 +7,41 @@
             <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <span v-if="!emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
-              {{ editedDataset.name }}
-            </span>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <span
+                  v-if="!emptyValue('name') && !editTitle"
+                  @click.stop="setDataset(dataset)"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ editedDataset.name }}
+                </span>
+              </template>
+              <span>
+                {{ editedDataset.name }}
+              </span>
+            </v-tooltip>
           </div>
           <div v-else class="text-truncate dataset-name">
             <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <span v-if="!emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
-              {{ editedDataset.name }}
-            </span>
+            <v-tooltip left>
+              <template v-slot:activator="{ on, attrs }">
+                <span
+                  v-if="!emptyValue('name') && !editTitle"
+                  @click.stop="setDataset(dataset)"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ editedDataset.name }}
+                </span>
+              </template>
+              <span>
+                {{ editedDataset.name }}
+              </span>
+            </v-tooltip>
             <v-text-field
               ref="title-input"
               v-show="editTitle"
