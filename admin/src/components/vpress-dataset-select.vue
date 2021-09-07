@@ -24,8 +24,8 @@
       >
         <v-card
           flat
-          v-for="(item, idx) in items"
-          :key="idx"
+          v-for="item in items"
+          :key="item.id"
           @click="$emit('dataset', item)"
           class="px-10"
         >
@@ -83,7 +83,6 @@ export default {
         itemsPerPage: this.perPage,
         q: this.query
       };
-      console.log(this.query);
       try {
         hueDatasets = await api.dataset.listHue(obj);
       } catch (error) {
@@ -96,7 +95,6 @@ export default {
         data.data.forEach(element => {
           element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
         });
-        // console.log(data.data);
         const allDatasets = data.data.concat(hueDatasets.data);
         this.items = allDatasets;
         this.total = data.total;

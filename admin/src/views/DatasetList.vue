@@ -70,7 +70,6 @@ export default {
         itemsPerPage: this.perPage,
         q: this.query
       };
-      console.log(this.query);
       try {
         hueDatasets = await api.dataset.listHue(obj);
       } catch (error) {
@@ -89,7 +88,10 @@ export default {
         this.total = data.total;
         this.loading = false;
       } catch (error) {
-        console.error(error.message);
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Hubo un error al intentar obtener el dataset'
+        });
         this.loading = false;
       }
     }
