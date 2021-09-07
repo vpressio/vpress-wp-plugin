@@ -181,9 +181,7 @@ export default {
         this.editTitle = false;
         this.showIcon = false;
         const body = { ...this.dataset };
-        console.log(body);
         body.name = this.datasetName;
-        console.log(body);
         const response = await api.dataset.update(body);
         if (response.data.error) {
           throw new Error(response.data.error);
