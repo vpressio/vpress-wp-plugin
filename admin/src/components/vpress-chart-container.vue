@@ -62,12 +62,14 @@ export default {
       xAxis: {
         title: String,
         type: String,
-        slug: String
+        slug: String,
+        showLabel: Boolean,
       },
       yAxis: {
         title: String,
         type: String,
-        slug: String
+        slug: String,
+        showLabel: Boolean,
       },
       groupBy: {
         title: String,
@@ -453,6 +455,7 @@ export default {
           formatPreffix: this.chartConfig.preffix || '',
           formatSuffix: this.chartConfig.suffix || '',
           text: this.chartConfig.xAxis.title,
+          showLabel: this.chartConfig.xAxis.showLabel,
           // ticks: {
           //     enabled: false,
           //     strokeWidth: 5,
@@ -484,6 +487,7 @@ export default {
           formatPreffix: this.chartConfig.preffix || '',
           formatSuffix: this.chartConfig.suffix || '',
           text: this.chartConfig.yAxis.title,
+          showLabel: this.chartConfig.yAxis.showLabel,
             // ticks: {
             //   gridDashed: false,
             //   enabled: false,

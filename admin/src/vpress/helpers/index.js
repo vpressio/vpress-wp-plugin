@@ -160,6 +160,8 @@ export const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         return invertAxis(chartValues)
       case 'labelAxis':
         return labelAxis(payload)
+      case 'showLabelAxis':
+        return showLabelAxis(payload)
       default:
         return setValue(payload)
     }
@@ -231,6 +233,15 @@ export const invertAxis =  (chartValues) => {
 const labelAxis = ({ chartValues, newValue }) => {
   try {
     chartValues[newValue.axis].title = newValue.value
+    return chartValues
+  } catch (error) {
+    throw new Error(error.message)
+  }
+}
+
+const showLabelAxis = ({ chartValues, newValue }) => {
+  try {
+    chartValues[newValue.axis].showLabel = newValue.value
     return chartValues
   } catch (error) {
     throw new Error(error.message)
