@@ -1,39 +1,47 @@
 <template>
   <div :style="cssProps">
-    <v-card
-      flat
-      :color="cardColor"
-      :loading="loading"
-    >
+    <v-card flat :color="cardColor" :loading="loading">
       <v-row>
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
           <div v-if="readonly" class="text-truncate dataset-name">
-            <span
-              v-if="( emptyValue('name') && !editTitle)"
-            >
+            <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <span
-              v-if="!emptyValue('name') && !editTitle"
-            >
-              {{ editedDataset.name }}
-            </span>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <span
+                  v-if="!emptyValue('name') && !editTitle"
+                  @click.stop="setDataset(dataset)"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ editedDataset.name }}
+                </span>
+              </template>
+              <span>
+                {{ editedDataset.name }}
+              </span>
+            </v-tooltip>
           </div>
           <div v-else class="text-truncate dataset-name">
-            <span
-              v-if="(emptyValue('name') && !editTitle) "
-              class="link add-text-toggle"
-              @click.stop="toggleInput('editTitle', 'title-input')"
-            >
-              Agregar título
+            <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
+              Sin título
             </span>
-            <span
-              v-if="!emptyValue('name') && !editTitle"
-              class="edit"
-              @click.stop="toggleInput('editTitle', 'title-input')"
-            >
-              {{ editedDataset.name }}
-            </span>
+            <v-tooltip left>
+              <template v-slot:activator="{ on, attrs }">
+                <span
+                  v-if="!emptyValue('name') && !editTitle"
+                  @click.stop="setDataset(dataset)"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ editedDataset.name }}
+                </span>
+              </template>
+              <span>
+                {{ editedDataset.name }}
+              </span>
+            </v-tooltip>
             <v-text-field
               ref="title-input"
               v-show="editTitle"
@@ -48,14 +56,10 @@
             />
           </div>
           <div v-if="readonly">
-            <span
-              v-if="emptyValue('description') && !editDescription"
-            >
+            <span v-if="emptyValue('description') && !editDescription">
               Sin descripción
             </span>
-            <span
-              v-if="!emptyValue('description') && !editDescription"
-            >
+            <span v-if="!emptyValue('description') && !editDescription">
               {{ editedDataset.description }}
             </span>
           </div>
@@ -65,14 +69,17 @@
               class="link add-text-toggle"
               @click.stop="toggleInput('editDescription', 'description-input')"
             >
-              Agregar descripción
+              Agregar descripción...
             </span>
             <span
               v-if="!emptyValue('description') && !editDescription"
               class="edit dataset-description"
               @click.stop="toggleInput('editDescription', 'description-input')"
+              @mouseover="showDescriptionIcon = true"
+              @mouseleave="showDescriptionIcon = false"
             >
               {{ editedDataset.description }}
+              <v-icon dense v-show="showDescriptionIcon">mdi-pencil</v-icon>
             </span>
             <v-textarea
               ref="description-input"
@@ -90,6 +97,48 @@
               @click.stop
             />
           </div>
+          <div>
+            <span
+              v-if="!editTags"
+              class="link add-text-toggle"
+              @click.stop="toggleInput('editTags', 'tags-input')"
+            >
+              Agregar etiquetas...
+            </span>
+            <v-text-field
+              ref="tags-input"
+              v-show="editTags"
+              dense
+              solo
+              flat
+              v-model="newTag"
+              @keydown.enter.exact.prevent
+              @keyup.enter.exact="
+                addTag();
+                save();
+              "
+              @blur="
+                addTag();
+                save();
+              "
+              @click.stop
+            />
+          </div>
+          <div>
+            <v-chip-group column>
+              <v-chip
+                close
+                v-for="(tag, i) in editedDataset.tag"
+                :key="i"
+                @click:close="
+                  editedDataset.tag.splice(i, 1);
+                  save();
+                "
+              >
+                {{ tag }}
+              </v-chip>
+            </v-chip-group>
+          </div>
         </v-col>
         <v-col :cols="12" :sm="12" :md="7" :lg="6" :xl="6">
           <v-row align="center">
@@ -104,64 +153,29 @@
               >
                 {{ editedDataset.permissions }}
               </span>
-              <v-spacer/>
+              <v-spacer />
               <span class="dataset-label">
-                {{ size }}
+                {{ dataset.size }}
               </span>
-              <v-spacer/>
-              <span class="dataset-label">
-                ~{{ rows | intFormat }} filas
-              </span>
-              <v-spacer/>
+              <v-spacer />
+              <span class="dataset-label"> ~{{ dataset.rows | intFormat }} filas </span>
+              <v-spacer />
               <span class="dataset-label ">
-                {{ updated | dateFormat }}
+                {{ dataset.updated | dateFormat }}
               </span>
             </v-col>
             <v-col cols="2">
-              <v-spacer/>
-              <v-btn
-                v-if="!readonly"
-                icon
-                color="primary"
-                @click.stop="confirmDeletion"
-              >
+              <v-spacer />
+              <v-btn v-if="!readonly" icon color="primary" @click.stop="confirmDeletion">
                 <v-icon>mdi-trash-can-outline</v-icon>
               </v-btn>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12">
-              <v-combobox
-                class="tags-input"
-                ref="tags-input"
-                :readonly="readonly"
-                background-color="cardColor"
-                solo
-                flat
-                chips
-                multiple
-                hide-details
-                deletable-chips
-                color="primary"
-                label="Agregar etiquetas"
-                v-model="editedDataset.tag"
-                :loading="loading"
-                @keydown.enter.exact.prevent
-                @keyup.enter.exact="save"
-                @blur="save"
-                @click.native.stop
-              />
             </v-col>
           </v-row>
         </v-col>
       </v-row>
     </v-card>
-    <v-divider/>
-    <v-dialog
-      v-model="dialogConfirmDeletion"
-      max-width="500px"
-      scrollable
-    >
+    <v-divider />
+    <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
       <v-card>
         <v-toolbar dark flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
@@ -176,7 +190,7 @@
             <v-row>
               <v-col cols="12">
                 ¿Está seguro de eliminar la base de datos? Se eliminarán
-                  <strong>{{ totalDelete }}</strong>
+                <strong>{{ totalDelete }}</strong>
                 gráficas
               </v-col>
             </v-row>
@@ -185,11 +199,7 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="closeDialogConfirmDeletion"
-          >
+          <v-btn color="primary" text @click="closeDialogConfirmDeletion">
             Cancelar
           </v-btn>
           <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
@@ -199,47 +209,16 @@
   </div>
 </template>
 <script>
-import { clone } from 'lodash'
-import api from '../utils/axios.js'
+import { clone } from 'lodash';
+import api from '../utils/axios.js';
+import { loaderMixin } from '../mixins/index.js';
 
 export default {
   name: 'VpressDatasetCard',
+  mixins: [loaderMixin],
   props: {
-    id: {
-      type: String,
-      required: true
-    },
-    permissions: {
-      type: String,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    slug: {
-      type: String,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    tag: {
-      type: Array,
-      required: true
-    },
-    source: {
-      type: String,
-    },
-    size: {
-      type: String,
-    },
-    rows: {
-      type: String,
-    },
-    updated: {
-      type: String,
+    dataset: {
+      type: Object,
       required: true
     },
     cardColor: {
@@ -254,75 +233,91 @@ export default {
   data() {
     return {
       loading: false,
+      showDescriptionIcon: false,
       editDescription: false,
       editTitle: false,
-      editedTags: false,
+      editTags: false,
       dialogConfirmDeletion: false,
       totalDelete: 0,
+      newTag: '',
       editedDataset: {
-        permissions: clone(this.permissions),
-        name: clone(this.name),
-        description: clone(this.description),
-        tag: clone(this.tag),
+        permissions: clone(this.dataset.permissions),
+        name: clone(this.dataset.name),
+        description: clone(this.dataset.description),
+        tag: clone(this.dataset.tag)
       }
-    }
+    };
   },
   created() {
     this.editedDataset = {
-      permissions: clone(this.permissions),
-      name: clone(this.name),
-      description: clone(this.description),
-      tag: clone(this.tag),
-    }
+      permissions: clone(this.dataset.permissions),
+      name: clone(this.dataset.name),
+      description: clone(this.dataset.description),
+      tag: clone(this.dataset.tag)
+    };
   },
   computed: {
     emptyValue() {
-      return (field) => {
-        return this.editedDataset[field] === null ||
-          this.editedDataset[field].trim().length === 0
-      }
+      return field => {
+        return this.editedDataset[field] === null || this.editedDataset[field].trim().length === 0;
+      };
     },
     cssProps() {
       return {
         '--background': this.cardColor
-      }
+      };
     }
   },
   filters: {
     intFormat(number) {
-      return new Intl.NumberFormat().format(number)
+      return new Intl.NumberFormat().format(number);
     },
     dateFormat(update) {
-      const date = new Date(update)
-      return date.toLocaleString().replace( ', ', ' | ' )
+      const date = new Date(update);
+      return date.toLocaleString().replace(', ', ' | ');
     }
   },
   methods: {
+    addTag() {
+      if (this.newTag.trim().length > 0) {
+        this.editedDataset.tag.push(this.newTag);
+        this.newTag = '';
+      }
+    },
+    async setDataset(dataset) {
+      try {
+        await this.editorInit(dataset);
+        this.$router.push('/data');
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
     togglePermissions() {
       this.editedDataset.permissions === 'public'
-        ? this.editedDataset.permissions = 'private'
-        : this.editedDataset.permissions = 'public'
-      this.save()
+        ? (this.editedDataset.permissions = 'private')
+        : (this.editedDataset.permissions = 'public');
+      this.save();
     },
     async toggleInput(field, element) {
-        this[field] = true
-        await this.$nextTick();
-        // Focus on the deepest node (input) of the vuetify element
-        this.$refs[element].focus()
+      this[field] = true;
+      await this.$nextTick();
+      // Focus on the deepest node (input) of the vuetify element
+      this.$refs[element].focus();
     },
-    async save () {
+    async save() {
       try {
-        this.editTitle = false
-        this.editDescription = false
-        this.editedTags = false
-        this.loading = true
+        this.editTitle = false;
+        this.editDescription = false;
+        this.editTags = false;
+        this.showDescriptionIcon = false;
+        this.loading = true;
         const body = {
-          id: parseInt(this.id),
+          id: parseInt(this.dataset.id),
           name: this.editedDataset.name,
           description: this.editedDataset.description,
           tag: this.editedDataset.tag.join(', '),
           permissions: this.editedDataset.permissions
-        }
+        };
         const response = await api.dataset.update(body);
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -330,52 +325,52 @@ export default {
         this.$store.dispatch('notifications/open', {
           color: 'success',
           text: 'Base de datos actualizada con éxito'
-        })
-        this.loading = false
+        });
+        this.loading = false;
       } catch (error) {
-        this.loading = false
-        throw new Error(error.message)
+        this.loading = false;
+        throw new Error(error.message);
       }
     },
     closeDialogConfirmDeletion() {
-      this.dialogConfirmDeletion = false
+      this.dialogConfirmDeletion = false;
     },
     async confirmDeletion() {
-      const { data } = await api.dataset.charts(parseInt(this.id));
-      this.totalDelete = data.total
-      this.dialogConfirmDeletion = true
+      const { data } = await api.dataset.charts(parseInt(this.dataset.id));
+      this.totalDelete = data.total;
+      this.dialogConfirmDeletion = true;
     },
-    async deleteItem () {
-      const response = await api.dataset.delete({ data: { id: parseInt(this.id) }});
+    async deleteItem() {
+      const response = await api.dataset.delete({ data: { id: parseInt(this.dataset.id) } });
       if (response.data.error) {
         throw new Error(response.data.error);
       }
       this.$store.dispatch('notifications/open', {
         color: 'success',
         text: 'Base de datos eliminada con éxito'
-      })
-      this.totalDelete = 0
-      this.itemToDelete = null
-      this.dialogConfirmDeletion = false
-      this.$emit('on-dataset-delete')
+      });
+      this.totalDelete = 0;
+      this.itemToDelete = null;
+      this.dialogConfirmDeletion = false;
+      this.$emit('on-dataset-delete');
     },
     stop(event) {
       console.log('event');
-      console.log(event)
+      console.log(event);
       event.stopPropagation();
-    },
+    }
   }
-}
+};
 </script>
 <style scoped>
 .edit {
-  cursor: text
+  cursor: text;
 }
 .link {
-  cursor: pointer
+  cursor: pointer;
 }
-.add-text-toggle{
-  color: #21A7F3;
+.add-text-toggle {
+  color: #21a7f3;
   font-weight: 400;
 }
 
@@ -394,6 +389,10 @@ export default {
   font-size: 1.2rem;
   font-weight: 500;
 }
+.dataset-name:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
 
 .dataset-description {
   font-size: 0.9rem;
@@ -409,46 +408,32 @@ export default {
 .permissions-label {
   font-size: 0.8rem;
   text-transform: uppercase;
-
 }
 
-* >>> .tags-input
-> .v-input__control
-> .v-input__slot {
-  background-color:var(--background) !important;
+* >>> .tags-input > .v-input__control > .v-input__slot {
+  background-color: var(--background) !important;
 }
 
-* >>> .tags-input
-> .v-input__control
-> .v-input__slot
-> .v-select__slot
-label {
+* >>> .tags-input > .v-input__control > .v-input__slot > .v-select__slot label {
   right: 0px !important;
   left: auto !important;
 }
 
-* >>> .tags-input
-> .v-input__control
-> .v-input__slot
-> .v-select__slot
-> .v-select__selections
-> input
-{
-  background-color:var(--background) !important;
-
+*
+  >>> .tags-input
+  > .v-input__control
+  > .v-input__slot
+  > .v-select__slot
+  > .v-select__selections
+  > input {
+  background-color: var(--background) !important;
 }
 
-* >>> .tags-input
-> .v-input__control
-> .v-input__slot
-> .v-select__slot
-> .v-select__selections
-{
+* >>> .tags-input > .v-input__control > .v-input__slot > .v-select__slot > .v-select__selections {
   flex-direction: row-reverse;
 }
 
 .dataset-info {
-  display:flex;
+  display: flex;
 }
-
 </style>
