@@ -247,7 +247,7 @@ function vpress_query_chart_data($request) {
       $data_array =  array(
         "query" => $query,
       );
-      $get_data = callAPI('POST', $body['queryUrl'], json_encode($data_array));
+      $get_data = vpress_call_external_api('POST', $body['queryUrl'], json_encode($data_array));
       $data = json_decode($get_data, true);
       $errors = $response['response']['errors'];
     }
