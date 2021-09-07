@@ -82,7 +82,6 @@ export default {
         data.data.forEach(element => {
           element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
         });
-        // console.log(data.data);
         const allDatasets = data.data.concat(hueDatasets.data);
         this.items = allDatasets;
         this.total = data.total;
