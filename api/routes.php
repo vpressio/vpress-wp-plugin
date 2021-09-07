@@ -30,3 +30,9 @@ define('VPRESS_API_GET_DATASET_DATA','/dataset/data/(?P<dataset>(.|%20)+)');
 define('VPRESS_API_DELETE_COLUMN_DATASET_ROUTE','/dataset/column/delete');
 define('VPRESS_API_RENAME_COLUMN_DATASET_ROUTE','/dataset/column/rename');
 define('VPRESS_API_CHANGE_DATA_TYPE_COLUMN_DATASET_ROUTE','/dataset/column/change_data_type');
+
+define('VPRESS_API_CREATE_EXTERNAL_API_ROUTE','/external-api/create');
+define('VPRESS_API_GET_EXTERNAL_API_INFO_ROUTE','/external-api/get/(?P<id>[\d]+)');
+define('VPRESS_API_LIST_EXTERNAL_API_ROUTE','/external-api/list');
+define('VPRESS_API_UPDATE_EXTERNAL_API_ROUTE','/external-api/update');
+define('VPRESS_API_DELETE_EXTERNAL_API_ROUTE','/external-api/delete');
