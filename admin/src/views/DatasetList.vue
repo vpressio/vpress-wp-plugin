@@ -44,7 +44,7 @@ export default {
     perPage: 12,
     page: 1,
     total: 0,
-    loading: true,
+    loading: false,
     items: [],
     dialogConfirmDeletion: false,
     totalDelete: 0,

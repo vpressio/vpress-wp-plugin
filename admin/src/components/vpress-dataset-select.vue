@@ -16,7 +16,12 @@
           </span>
         </v-col>
       </v-row>
-      <VpressPaginator v-show="!loading && total > 0">
+      <VpressPaginator
+        v-show="!loading && total > 0"
+        :total="total"
+        :perPage="perPage"
+        @onPageChange="handlePageChange"
+      >
         <v-card
           flat
           v-for="(item, idx) in items"
@@ -50,11 +55,11 @@ export default {
   },
   data() {
     return {
-      page: 0,
+      page: 1,
       perPage: 12,
       query: '',
       loading: false,
-      total: null,
+      total: 0,
       items: []
     };
   },
@@ -62,23 +67,38 @@ export default {
     this.getDatasets();
   },
   methods: {
+    handlePageChange(page) {
+      this.page = page;
+      this.getDatasets();
+    },
     handleSearch(query) {
       this.query = query;
       this.getDatasets();
     },
     async getDatasets() {
+      this.loading = true;
+      let hueDatasets = null;
+      const obj = {
+        page: this.page,
+        itemsPerPage: this.perPage,
+        q: this.query
+      };
+      console.log(this.query);
       try {
-        this.loading = true;
-        const obj = {
-          page: this.page,
-          itemsPerPage: this.perPage,
-          q: this.query
+        hueDatasets = await api.dataset.listHue(obj);
+      } catch (error) {
+        hueDatasets = {
+          data: []
         };
+      }
+      try {
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
           element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
         });
-        this.items = data.data;
+        // console.log(data.data);
+        const allDatasets = data.data.concat(hueDatasets.data);
+        this.items = allDatasets;
         this.total = data.total;
         this.loading = false;
       } catch (error) {
