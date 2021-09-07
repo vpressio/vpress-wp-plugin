@@ -193,8 +193,10 @@ export default {
               .style('left', `${position.left}px`)
               .on('blur', function() {
                 const input = this;
-                d3.select(label).text(input.value); // Update label text
-                callback(input.value);
+                if (input.value.trim() !== '') { // empty label not allowed
+                  d3.select(label).text(input.value); // Update label text
+                  callback(input.value);
+                }
                 d3.select(input).remove();
               });
           }
