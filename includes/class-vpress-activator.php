@@ -34,11 +34,13 @@ class Vpress_Activator {
 
 		$table_datasets = $wpdb->prefix . 'vpresscore_datasets';
 		$table_charts = $wpdb->prefix . 'vpresscore_charts';
+		$table_apis = $wpdb->prefix . 'vpresscore_apis';
 		
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$query_1 = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_datasets ) );
 		$query_2 = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_charts ) );
+		$query_3 = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_apis ) );
 		
 		$sql_datasets = "CREATE TABLE $table_datasets (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
@@ -50,6 +52,7 @@ class Vpress_Activator {
 			source TINYTEXT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			query_url TINYTEXT NULL,
+			api_id MEDIUMINT(9) NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
@@ -70,18 +73,28 @@ class Vpress_Activator {
 			PRIMARY KEY (id)
 		) $charset_collate;";
 
+		$sql_apis = "CREATE TABLE $table_apis (
+			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+			name TEXT NOT NULL,
+			api_key TEXT NULL,
+			api_prefix TEXT NOT NULL,
+			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		if ( 
 			! $wpdb->get_var( $query_1 ) == $table_datasets && 
-			! $wpdb->get_var( $query_2 ) == $table_charts
+			! $wpdb->get_var( $query_2 ) == $table_charts &&
+			! $wpdb->get_var( $query_3 ) == $table_apis
 		) {
-			dbDelta( [ $sql_datasets, $sql_charts ] );
+			dbDelta( [ $sql_datasets, $sql_charts, $sql_apis ] );
 		}
 
 		add_option( 'vpress_db_version', '0.1.0' );
 
-		
 	}
 
 	/**
