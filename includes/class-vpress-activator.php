@@ -77,10 +77,11 @@ class Vpress_Activator {
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			name TEXT NOT NULL,
 			api_key TEXT NULL,
-			api_prefix TEXT NOT NULL,
+			api_prefix VARCHAR(255) NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
+			UNIQUE (api_prefix)
 		) $charset_collate;";
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
