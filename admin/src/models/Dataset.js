@@ -1,4 +1,4 @@
-const Dataset = function (id, name, slug, description, owner_id, permissions, source, tag, variables, dateFormat, rows, size, query_url) {
+const Dataset = function (id, name, slug, description, owner_id, permissions, source, tag, variables, dateFormat, rows, size, query_url, api_id) {
   this.id = id,
   this.name = name,
   this.slug = slug,
@@ -11,7 +11,8 @@ const Dataset = function (id, name, slug, description, owner_id, permissions, so
   this.dateFormat = dateFormat,
   this.rows = rows,
   this.size = size,
-  this.query_url = query_url
+  this.query_url = query_url,
+  this.api_id = api_id
 };
 
 export default Dataset
