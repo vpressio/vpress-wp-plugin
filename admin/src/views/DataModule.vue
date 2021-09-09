@@ -157,6 +157,11 @@
                 </span>
               </div>
             </v-tab-item>
+            <v-tab-item
+              :value="'api'"
+            >
+              <VpressApiDataset/>
+            </v-tab-item>
           </v-tabs-items>
         </v-card>
       </v-col>
@@ -189,6 +194,7 @@ import VpressFilepond from '../components/vpress-filepond.vue'
 import VpressDatasetSelect from '../components/vpress-dataset-select.vue'
 import VpressDataTable from '../components/vpress-data-table.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
+import VpressApiDataset from '../components/vpress-api-dataset'
 import { editorMixin, loaderMixin } from '../mixins/index.js'
 import { readCSV } from '../utils/fileReader'
 
@@ -200,7 +206,8 @@ export default {
     VpressFilepond,
     VpressDatasetSelect,
     VpressDataTable,
-    VpressSectionBar
+    VpressSectionBar,
+    VpressApiDataset
   },
   data() {
     return {
@@ -211,6 +218,7 @@ export default {
       sections: [
         { ref: 'search', name: 'Tus bases de datos' },
         { ref: 'upload', name: 'Sube datos' },
+        { ref: 'api', name: 'API Dataset' },
         // { ref: 'paste', name: 'Pegar datos' },
       ]
     }
