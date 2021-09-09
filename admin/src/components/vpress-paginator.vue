@@ -1,21 +1,17 @@
 <template>
   <v-row>
     <v-col cols="12">
-      <slot/>
-      <v-divider/>
+      <slot />
+      <v-divider />
     </v-col>
     <v-col>
-      <v-pagination
-        v-model="page"
-        :length="length"
-        @input="handlePageChange"
-      />
+      <v-pagination v-model="page" :length="length" @input="handlePageChange" />
     </v-col>
   </v-row>
 </template>
 <script>
 export default {
-  name: 'VpressPagintation',
+  name: 'VpressPaginator',
   props: {
     total: {
       type: Number,
@@ -30,7 +26,7 @@ export default {
     return {
       page: 1,
       length: 1
-    }
+    };
   },
   watch: {
     total(newTotal) {
@@ -39,8 +35,8 @@ export default {
   },
   methods: {
     handlePageChange() {
-      this.$emit('onPageChange', this.page)
+      this.$emit('onPageChange', this.page);
     }
   }
-}
+};
 </script>
