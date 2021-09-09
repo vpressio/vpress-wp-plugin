@@ -1,13 +1,5 @@
 <?php
 
-function vpress_clean_string($string) {
-  $string = str_replace(' ', '', $string);
-  //Replace not allowed characters with _ 
-  $string = preg_replace('/[^A-Za-z0-9_]/', '_', $string);
-  if(!$string) $string = 'empty';
-  return strtolower($string);
-}
-
 function vpress_call_external_api($method, $url, $data){
   $curl = curl_init();
   switch ($method){
