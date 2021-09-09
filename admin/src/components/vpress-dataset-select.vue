@@ -1,51 +1,36 @@
 <template>
   <v-row>
-    <v-col  cols="12">
-      <VpressDataModuleSearch @onSearch="handleSearch"/>
-      <h2 class="px-10 text-h5 font-weight-medium">Selecciona una base de datos para generar tus gráficas</h2>
-      <v-row
-          v-show="loading"
-          class="min-height-container"
-          justify="center"
-          align-content="center"
-        >
-          <v-progress-circular
-            :size="70"
-            :width="7"
-            color="primary"
-            indeterminate
-          />
-        </v-row>
-        <v-row
-          class="min-height-container"
-          v-show="!loading && total === 0"
-          justify-center
-        > 
-          <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
-            <h1 class="initial-msg-title">Vpress</h1>
-            <span class="initial-msg">
-              Parece que no hay nada aquí.
-            </span>
-          </v-col>
-        </v-row>
-      <VpressPaginator v-show="!loading && total > 0">
-        <v-card  flat
-          v-for="(item, idx) in items"
-          :key="idx"
+    <v-col cols="12">
+      <VpressDataModuleSearch @onSearch="handleSearch" />
+      <h2 class="px-10 text-h5 font-weight-medium">
+        Selecciona una base de datos para generar tus gráficas
+      </h2>
+      <v-row v-show="loading" class="min-height-container" justify="center" align-content="center">
+        <v-progress-circular :size="70" :width="7" color="primary" indeterminate />
+      </v-row>
+      <v-row class="min-height-container" v-show="!loading && total === 0" justify-center>
+        <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+          <h1 class="initial-msg-title">Vpress</h1>
+          <span class="initial-msg">
+            Parece que no hay nada aquí.
+          </span>
+        </v-col>
+      </v-row>
+      <VpressPaginator
+        v-show="!loading && total > 0"
+        :total="total"
+        :perPage="perPage"
+        @onPageChange="handlePageChange"
+      >
+        <v-card
+          flat
+          v-for="item in items"
+          :key="item.id"
           @click="$emit('dataset', item)"
           class="px-10"
         >
           <VpressDatasetCard
-            :id="item.id"
-            :permissions="item.permissions"
-            :name="item.name"
-            :slug="item.slug"
-            :description="item.description || ''"
-            :tag="item.tag"
-            :source="item.source"
-            :size="item.size || ''"
-            :rows="item.rows || ''"
-            :updated="item.updated"
+            :dataset="item"
             cardColor="#FFF"
             @onDatasetDelete="$emit('on-dataset-delete')"
             readonly
@@ -56,10 +41,10 @@
   </v-row>
 </template>
 <script>
-import VpressPaginator from './vpress-paginator.vue'
-import VpressDatasetCard from './vpress-dataset-card.vue'
-import VpressDataModuleSearch from './vpress-data-module-search.vue'
-import api from '../utils/axios.js'
+import VpressPaginator from './vpress-paginator.vue';
+import VpressDatasetCard from './vpress-dataset-card.vue';
+import VpressDataModuleSearch from './vpress-data-module-search.vue';
+import api from '../utils/axios.js';
 
 export default {
   name: 'VpressDatasetSelect',
@@ -70,49 +55,60 @@ export default {
   },
   data() {
     return {
-      page: 0,
+      page: 1,
       perPage: 12,
       query: '',
       loading: false,
-      total: null,
-      items: [],
-    }
+      total: 0,
+      items: []
+    };
   },
   mounted() {
-    this.getDatasets()
+    this.getDatasets();
   },
   methods: {
+    handlePageChange(page) {
+      this.page = page;
+      this.getDatasets();
+    },
     handleSearch(query) {
-      this.query = query
-      this.getDatasets()
+      this.query = query;
+      this.getDatasets();
     },
     async getDatasets() {
+      this.loading = true;
+      let hueDatasets = null;
+      const obj = {
+        page: this.page,
+        itemsPerPage: this.perPage,
+        q: this.query
+      };
       try {
-        this.loading = true
-        const obj = {
-          page: this.page ,
-          itemsPerPage: this.perPage,
-          q: this.query
-        }
+        hueDatasets = await api.dataset.listHue(obj);
+      } catch (error) {
+        hueDatasets = {
+          data: []
+        };
+      }
+      try {
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
-          element.tag = element.tag
-            ? element.tag.split(', ')
-            : element.tag = []
+          element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
         });
-        this.items = data.data
-        this.total = data.total
-        this.loading = false
+        const allDatasets = data.data.concat(hueDatasets.data);
+        this.items = allDatasets;
+        this.total = data.total;
+        this.loading = false;
       } catch (error) {
         this.$store.dispatch('notifications/open', {
           color: 'error',
           text: 'Hubo un error al intentar obtener el dataset'
-        })
-        this.loading = false
+        });
+        this.loading = false;
       }
     }
   }
-}
+};
 </script>
 <style lang="scss" scoped>
 .min-height-container {
@@ -120,10 +116,10 @@ export default {
 }
 
 .initial-msg-title {
-    display: flex;
-    justify-content: center;
-    text-align: center;
-  }
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
 
 .initial-msg {
   display: flex;

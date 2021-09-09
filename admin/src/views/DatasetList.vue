@@ -5,32 +5,11 @@
       btnLabel="Nueva base de datos"
       btnRoute="/data?upload=1"
     />
-    <v-row
-      v-show="loading"
-      class="min-height-container"
-      justify="center"
-      align-content="center"
-    >
-      <v-progress-circular
-        :size="70"
-        :width="7"
-        color="primary"
-        indeterminate
-      />
+    <v-row v-show="loading" class="min-height-container" justify="center" align-content="center">
+      <v-progress-circular :size="70" :width="7" color="primary" indeterminate />
     </v-row>
-    <v-row
-      class="min-height-container"
-      v-show="!loading && total === 0"
-      justify-center
-    >
-      <v-col
-        offset-md="3"
-        offset-sm="3"
-        offset-xs="2"
-        md="6"
-        sm="6"
-        xs="10"
-      >
+    <v-row class="min-height-container" v-show="!loading && total === 0" justify-center>
+      <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
         <h1 class="initial-msg-title">Vpress</h1>
         <span class="initial-msg">
           Parece que no hay nada aquí.
@@ -43,18 +22,15 @@
       :perPage="perPage"
       @onPageChange="handlePageChange"
     >
-      <VpressDatasetPanel
-        :items="items"
-        @on-dataset-delete="getDatasets"
-      />
+      <VpressDatasetPanel :items="items" @on-dataset-delete="getDatasets" />
     </VpressPaginator>
   </v-container>
 </template>
 <script>
-import VpressDatasetPanel from '../components/vpress-dataset-panel.vue'
-import VpressSearchBar from '../components/vpress-search-bar.vue'
-import VpressPaginator from '../components/vpress-paginator.vue'
-import api from '../utils/axios'
+import VpressDatasetPanel from '../components/vpress-dataset-panel.vue';
+import VpressSearchBar from '../components/vpress-search-bar.vue';
+import VpressPaginator from '../components/vpress-paginator.vue';
+import api from '../utils/axios';
 
 export default {
   name: 'VpressDatasetList',
@@ -68,48 +44,49 @@ export default {
     perPage: 12,
     page: 1,
     total: 0,
-    loading: true,
+    loading: false,
     items: [],
     dialogConfirmDeletion: false,
     totalDelete: 0,
     itemToDelete: null
   }),
   mounted() {
-    this.getDatasets()
+    this.getDatasets();
   },
   methods: {
     handlePageChange(page) {
-      this.page = page
-      this.getDatasets()
+      this.page = page;
+      this.getDatasets();
     },
     handleSearch(query) {
-      this.query = query
-      this.getDatasets()
+      this.query = query;
+      this.getDatasets();
     },
     async getDatasets() {
       this.loading = true
       const obj = {
-        page: this.page ,
+        page: this.page,
         itemsPerPage: this.perPage,
         q: this.query
-      }
+      };
       try {
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
-          element.tag = element.tag
-            ? element.tag.split(', ')
-            : element.tag = []
+          element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
         });
         this.items = data.data
         this.total = data.data.length
         this.loading = false
       } catch (error) {
-        console.error(error.message);
-        this.loading = false
+        this.$store.dispatch('notifications/open', {
+          color: 'error',
+          text: 'Hubo un error al intentar obtener el dataset'
+        });
+        this.loading = false;
       }
     }
   }
-}
+};
 </script>
 <style lang="scss" scoped>
 .min-height-container {
@@ -117,10 +94,10 @@ export default {
 }
 
 .initial-msg-title {
-    display: flex;
-    justify-content: center;
-    text-align: center;
-  }
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
 
 .initial-msg {
   display: flex;

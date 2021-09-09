@@ -1,10 +1,29 @@
 <template>
   <div>
     <div class="px-9">
-      <span class="text-h6">
-        {{ this.dataset ? this.dataset.name : null}}
-        <v-divider class="mb-5"/>
+      <span
+        v-if="!editTitle"
+        class="text-h6"
+        @click.stop="toggleInput('editTitle', 'edit-title')"
+        @mouseover="showIcon = true"
+        @mouseleave="showIcon = false"
+      >
+        {{ this.dataset ? this.datasetName : '' }}
+        <v-icon dense v-show="showIcon">mdi-pencil</v-icon>
       </span>
+      <v-text-field
+        ref="edit-title"
+        v-show="editTitle"
+        dense
+        solo
+        flat
+        v-model="datasetName"
+        @keydown.enter.exact.prevent
+        @keyup.enter.exact="save"
+        @blur="save"
+        @click.stop
+      />
+      <v-divider class="mb-5" />
     </div>
     <v-data-table
       disable-sort
@@ -16,31 +35,27 @@
       :server-items-length="total"
       :loading="loading"
       class="elevation-0"
-      :mobile-breakpoint='0'
+      :mobile-breakpoint="0"
     >
       <template v-slot:[`header.${header.value}`]="props" v-for="header in headers">
         <div :key="header.value" class="thead-container">
           <div class="header-text">
             {{ props.header.text }}
           </div>
-          <v-spacer/>
-          <v-menu
-            fixed
-            left
-            nudge-left="135"
-            :close-on-content-click="false"
-          >
+          <v-spacer />
+          <v-menu fixed left nudge-left="135" :close-on-content-click="false">
             <template v-slot:activator="{ on }">
-              <v-btn
-                v-on="on"
-                x-small
-                icon
-              >
+              <v-btn v-on="on" x-small icon>
                 <v-icon dense>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-list>
-              <v-list-item @click="dialog = true; oldName = props.header.value">
+              <v-list-item
+                @click="
+                  dialog = true;
+                  oldName = props.header.value;
+                "
+              >
                 <v-list-item-title class="font-weight-regular">
                   Renombrar
                 </v-list-item-title>
@@ -83,20 +98,13 @@
       </template>
       <template v-slot:item="props">
         <tr class="eltr">
-          <td
-            class="eltd"
-            v-for="header in props.headers"
-            :key="header.value"
-          >
+          <td class="eltd" v-for="header in props.headers" :key="header.value">
             {{ props.item[header.value] }}
           </td>
         </tr>
       </template>
     </v-data-table>
-    <v-dialog
-      v-model="dialog"
-      max-width="500px"
-    >
+    <v-dialog v-model="dialog" max-width="500px">
       <v-card>
         <v-card-title>
           <span class="headline">Renombrar</span>
@@ -106,10 +114,7 @@
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field
-                  v-model="newName"
-                  label="Nombre"
-                ></v-text-field>
+                <v-text-field v-model="newName" label="Nombre"></v-text-field>
               </v-col>
             </v-row>
           </v-container>
@@ -117,17 +122,10 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="blue darken-1"
-            text
-            @click="dialog = false"
-          >
+          <v-btn color="blue darken-1" text @click="dialog = false">
             Cerrar
           </v-btn>
-          <v-btn
-            color="primary"
-            @click="renameColumn"
-          >
+          <v-btn color="primary" @click="renameColumn">
             Guardar
           </v-btn>
         </v-card-actions>
@@ -136,29 +134,35 @@
   </div>
 </template>
 <script>
-import api from '../utils/axios'
+import api from '../utils/axios';
 
 export default {
-  name:'VpressDataTable',
+  name: 'VpressDataTable',
   props: {
     dataset: {
-      type: Object,
+      type: Object
     }
   },
   data() {
     return {
+      showIcon: false,
       dialog: false,
       loading: false,
+      editTitle: false,
       total: 0,
       headers: [],
       items: [],
       options: {},
+      datasetName: '',
       newName: null,
       oldName: null
-    }
+    };
   },
   mounted() {
-    if (this.dataset) this.getDataFromApi()
+    if (this.dataset) {
+      this.datasetName = `${this.dataset.name}`;
+      this.getDataFromApi();
+    }
   },
   watch: {
     dialog(val) {
@@ -168,18 +172,44 @@ export default {
       }
     },
     dataset() {
-      this.getDataFromApi()
+      this.getDataFromApi();
     }
   },
   methods: {
-    async getDataFromApi () {
+    async save() {
       try {
-        this.loading = true
-        this.items = []
-        this.total = 0
-        this.headers = []
-        const { page, itemsPerPage } = this.options
-        if(this.dataset) {
+        this.editTitle = false;
+        this.showIcon = false;
+        const body = { ...this.dataset };
+        body.name = this.datasetName;
+        const response = await api.dataset.update(body);
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        this.$store.dispatch('notifications/open', {
+          color: 'success',
+          text: 'Base de datos actualizada con éxito'
+        });
+        this.loading = false;
+      } catch (error) {
+        this.loading = false;
+        throw new Error(error.message);
+      }
+    },
+    async toggleInput(field, element) {
+      this[field] = true;
+      await this.$nextTick();
+      // Focus on the deepest node (input) of the vuetify element
+      this.$refs[element].focus();
+    },
+    async getDataFromApi() {
+      try {
+        this.loading = true;
+        this.items = [];
+        this.total = 0;
+        this.headers = [];
+        const { page, itemsPerPage } = this.options;
+        if (this.dataset) {
           const obj = {
             page,
             dataset: this.dataset.slug,
@@ -187,15 +217,15 @@ export default {
             queryUrl: this.dataset.query_url,
           }
           const response = await api.dataset.data(obj);
-          const data = response.data
-          this.items = data.data
-          this.total = data.total
+          const data = response.data;
+          this.items = data.data;
+          this.total = data.total;
           this.headers = this.extractHeaders(this.items[0]);
         }
-        this.loading = false
+        this.loading = false;
       } catch (error) {
-        this.loading = false
-        throw new Error(error.message)
+        this.loading = false;
+        throw new Error(error.message);
       }
     },
     extractHeaders(data) {
@@ -210,42 +240,42 @@ export default {
         dataset: this.dataset.slug,
         new: this.newName,
         old: this.oldName
-      }
+      };
       await api.dataset.rename_column(obj);
-      await this.getDataFromApi()
+      await this.getDataFromApi();
       this.dialog = false;
       this.$store.dispatch('notifications/open', {
         color: 'success',
         text: 'Columna renombrada con éxito'
-      })
+      });
     },
     async changeDataTypeColumn(column, type) {
       const obj = {
         dataset: this.dataset.slug,
         column: column,
         type
-      }
+      };
       await api.dataset.change_data_type_column(obj);
-      await this.getDataFromApi()
+      await this.getDataFromApi();
       this.$store.dispatch('notifications/open', {
         color: 'success',
         text: 'Tipo de dato modificado con éxito'
-      })
+      });
     },
     async deleteColumn(column) {
       const obj = {
         dataset: this.dataset.slug,
         column: column.value
-      }
+      };
       await api.dataset.delete_column(obj);
-      await this.getDataFromApi()
+      await this.getDataFromApi();
       this.$store.dispatch('notifications/open', {
         color: 'success',
         text: 'Columna eliminada con éxito'
-      })
-    },
-  },
-}
+      });
+    }
+  }
+};
 </script>
 <style lang="scss" scoped>
 .table-title {
@@ -256,10 +286,9 @@ export default {
 ::v-deep .v-data-table-header {
   th {
     white-space: nowrap;
-    border-bottom: solid  1.5px !important;
-    background-color: #F3F3F3;
+    border-bottom: solid 1.5px !important;
+    background-color: #f3f3f3;
   }
-
 }
 
 .thead-container {
@@ -269,8 +298,7 @@ export default {
 
 .header-text {
   min-height: 60px;
-  display: flex;  
+  display: flex;
   align-items: center;
 }
-
 </style>
