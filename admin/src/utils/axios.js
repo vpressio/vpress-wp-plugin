@@ -8,7 +8,6 @@ const instance = create({
   }
 })
 
-
 const dataset = {
   get: id => instance.get(`/wp-json/vpress/v1/dataset/get/${id}`),
   data: ({ dataset, page, perPage, queryUrl }) => {
@@ -26,7 +25,6 @@ const dataset = {
     const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
     return instance.get(`/wp-json/vpress/v1/dataset/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`)
   },
-  // listHue: payload => hueApi.get(`/sql/datasets`, payload),
   charts: id => instance.get(`/wp-json/vpress/v1/dataset/charts/${id}`),
   rename_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/rename`, payload),
   delete_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/delete`, payload),
@@ -48,7 +46,20 @@ const chart = {
   update_image_url: payload => instance.post(`/wp-json/vpress/v1/chart/update_image_url`, payload),
 }
 
+const externalAPI = {
+  create: payload => instance.post(`/wp-json/vpress/v1/external-api/create`, payload),
+  get: id => instance.get(`/wp-json/vpress/v1/external-api/get/${id}`),
+  list: (payload) => {
+    const defaultPayload = { page: 1, itemsPerPage: 20, q: '' }
+    const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
+    return instance.get(`/wp-json/vpress/v1/external-api/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`)
+  },
+  update: payload => instance.put(`/wp-json/vpress/v1/external-api/update`, payload),
+  delete: payload => instance.delete(`/wp-json/vpress/v1/external-api/delete`, payload),
+}
+
 export default {
   dataset,
-  chart
+  chart,
+  externalAPI
 }
