@@ -147,10 +147,25 @@ export default {
     },
     clipboardCopy() {
       try {
-        const chartId = this.$store.getters['editor/viz'].id
+        const chartId = this.id
         if (chartId) {
-          const iframe = `[vpress id=${chartId}]`
-          navigator.clipboard.writeText(iframe);
+          const el = document.createElement('textarea');
+          el.value = `[vpress id=${chartId}]`;
+          el.setAttribute('readonly', '');
+          el.style.position = 'absolute';
+          el.style.left = '-9999px';
+          document.body.appendChild(el);
+          const selected =
+            document.getSelection().rangeCount > 0
+              ? document.getSelection().getRangeAt(0)
+              : false;
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          if (selected) {
+            document.getSelection().removeAllRanges();
+            document.getSelection().addRange(selected);
+          }
           this.$store.dispatch('notifications/open', {
             color: 'success',
             text: 'Gráfica guardada al portapapeles'
