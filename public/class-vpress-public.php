@@ -105,6 +105,49 @@ class Vpress_Public {
 		}
 		return $tag;
 	}
+
+	/**
+	 * Allows you to indicate that a script should be treated as a module or
+	 * importmap by adding the correct type attribute to the script tag that
+	 * WordPress will output. When using wp_enqueue_script() you should add
+	 * a type parameter to the source indicating what type this file should
+	 * be treated as:
+	 *
+	 * Type module      =>  your-file.js?type=module
+	 * Type import map  =>  your-file.json?type=importmap
+	 *
+	 * @author Christopher Keers (Caboodle Tech)
+	 * @link https://gist.github.com/blizzardengle/3e4d5c789f1a13ff8ab86e83738a46c4 Original Source
+	 *
+	 * @param string $tag    The current HTML script tag WordPress is about to output.
+	 * @param string $handle The handle (id) used for this script tag.
+	 * @param string $src    The source of the JavaScript file.
+	 *
+	 * @return string The original HTML from $tag or a modified version with type added to the script tag.
+	 */
+	function ct_set_script_type( $tag, $handle, $src ) {
+		$url = wp_parse_url( $src, PHP_URL_QUERY );
+		if ( $url === false ) {
+				return $tag;
+		}
+		parse_str( $url, $query );
+		if ( array_key_exists( 'type', $query ) ) {
+				$type = 'module';
+				if ( str_contains( $query['type'], 'map' ) ) {
+						$type = 'importmap';
+				}
+				if ( str_contains( $tag, 'type="' ) ) {
+						$tag = preg_replace( '/type=".*?"/', 'type="' . $type . '"', $tag );
+				} else {
+						$tag = str_replace( 'src=', 'type="' . $type . '" src=', $tag );
+				}
+				return $tag;
+		}
+		return $tag;
+	}
+
+
+
 		/**
 	 * Register the JavaScript for the public-facing side of the site.
 	 *
@@ -122,6 +165,91 @@ class Vpress_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
+		$dummy = true; //get_query_var('dummy');
+		if($dummy) {
+			wp_enqueue_script( 
+				$this->plugin_name. '_d3',
+				"https://d3js.org/d3.v6.min.js",
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_vue',
+				"https://unpkg.com/vue@3/dist/vue.global.js",
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_lodash',
+				plugin_dir_url(dirname(__FILE__)) . 'public/utils/lodash/remove.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_dbox',
+				plugin_dir_url(dirname(__FILE__)) . 'public/dboxjs/dbox.esm.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_error',
+				plugin_dir_url(dirname(__FILE__)) . 'public/vpress/helpers/vpressError.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_helpers',
+				plugin_dir_url(dirname(__FILE__)) . 'public/helpers/index.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_axios',
+				plugin_dir_url(dirname(__FILE__)) . 'public/utils/axios.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_index',
+				plugin_dir_url(dirname(__FILE__)) . 'public/vpress/index.js?type=module',
+				array($this->plugin_name. '_helpers'),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_chart',
+				plugin_dir_url(dirname(__FILE__)) . 'public/components/Chart.js?type=module',
+				array($this->plugin_name. '_index'),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_chart_container',
+				plugin_dir_url(dirname(__FILE__)) . 'public/components/VpressChartContainer.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_enqueue_script( 
+				$this->plugin_name. '_js',
+				plugin_dir_url(dirname(__FILE__)) . 'public/vpress.js?type=module',
+				array(),
+				$this->version,
+				false
+			);
+			wp_localize_script( $this->plugin_name . '_js', 'wpApiSettings', array(
+				'root' => esc_url_raw( rest_url() ),
+				'nonce' => wp_create_nonce( 'wp_rest' )
+			));
+		}
+		 
 		$chart = get_query_var('chart');
 		if($chart) {
 			wp_enqueue_script( 
