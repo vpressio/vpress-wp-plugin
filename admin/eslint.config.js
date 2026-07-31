@@ -1,6 +1,8 @@
+import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
 
 export default [
+  js.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
   {
     rules: {
@@ -11,7 +13,11 @@ export default [
       'vue/require-prop-types': 'off',
       // Pre-existing prop mutations carried over verbatim from the Vue 2
       // codebase (chart-container parse*, variable-card selectFunc).
-      'vue/no-mutating-props': 'warn'
+      'vue/no-mutating-props': 'warn',
+      // Legacy error-handling style carried over verbatim: catch blocks
+      // rethrow `new Error(error.message)` and often ignore the caught var.
+      'preserve-caught-error': 'warn',
+      'no-unused-vars': ['warn', { caughtErrors: 'none' }]
     },
     languageOptions: {
       globals: {
@@ -22,7 +28,14 @@ export default [
         setInterval: 'readonly',
         FormData: 'readonly',
         Intl: 'readonly',
-        URL: 'readonly'
+        URL: 'readonly',
+        XMLSerializer: 'readonly',
+        btoa: 'readonly',
+        Image: 'readonly',
+        FileReader: 'readonly',
+        Blob: 'readonly',
+        self: 'readonly',
+        globalThis: 'readonly'
       }
     }
   },
