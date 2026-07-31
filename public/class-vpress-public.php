@@ -105,6 +105,22 @@ class Vpress_Public {
 		}
 		return $tag;
 	}
+
+	/**
+	 * Load the Vite bundle (and dev-server client) as ES modules.
+	 *
+	 * @since    0.2.0
+	 */
+	public function script_type_module($tag, $handle, $src) {
+		$module_handles = array(
+			$this->plugin_name . '_app',
+			$this->plugin_name . '_vite_client',
+		);
+		if ( in_array( $handle, $module_handles, true ) ) {
+			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+		}
+		return $tag;
+	}
 		/**
 	 * Register the JavaScript for the public-facing side of the site.
 	 *
@@ -124,20 +140,32 @@ class Vpress_Public {
 		 */
 		$chart = get_query_var('chart');
 		if($chart) {
-			wp_enqueue_script( 
-				$this->plugin_name. '_chunks',
-				$this->client['location']. '/js/chunk-vendors.js',
-				array(),
-				$this->version,
-				false
-			);
-			wp_enqueue_script( 
-				$this->plugin_name . '_app',
-				$this->client['location']. '/js/app.js',
-				array(),
-				$this->version,
-				false
-			);
+			if ( $this->client['env'] == 'prod' ) {
+				// Vite ESM bundle: app.js imports chunk-vendors.js itself.
+				wp_enqueue_script(
+					$this->plugin_name . '_app',
+					$this->client['location'] . '/js/app.js',
+					array(),
+					$this->version,
+					false
+				);
+			} else {
+				// Vite dev server (yarn dev).
+				wp_enqueue_script(
+					$this->plugin_name . '_vite_client',
+					$this->client['location'] . '/@vite/client',
+					array(),
+					null,
+					false
+				);
+				wp_enqueue_script(
+					$this->plugin_name . '_app',
+					$this->client['location'] . '/src/main.js',
+					array(),
+					null,
+					false
+				);
+			}
 			wp_localize_script( $this->plugin_name . '_app', 'wpApiSettings', array(
 				'root' => esc_url_raw( rest_url() ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
@@ -166,24 +194,11 @@ class Vpress_Public {
 		 */
 		$chart = get_query_var('chart');
 		if($chart) {
-			foreach( glob( 	$this->client['location']. '/css/*.css' ) as $file ) {
-				$filename = substr($file, strrpos($file, '/') + 1);
-				wp_enqueue_style(
-					$this->plugin_name . '_' . $filename ,
-					$this->client['location']. '/css/' .$filename,
-					array(),
-					null
-				);
-			} 
+			// Single stylesheet emitted by the Vite build (cssCodeSplit: false).
+			// (The old glob() loop never matched: location is a URL, not a path.)
 			wp_enqueue_style(
 				$this->plugin_name . '_app',
 				$this->client['location']. '/css/app.css',
-				array(),
-				null
-			);
-			wp_enqueue_style(
-				$this->plugin_name . '_chunk-vendors' ,
-				$this->client['location']. '/css/chunk-vendors.css',
 				array(),
 				null
 			);
