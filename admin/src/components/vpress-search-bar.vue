@@ -83,6 +83,12 @@ export default {
     width: calc(100% - var(--buttonWidth));
 
   }
+  /* The decorative #CFCFCF text color below leaks into v3's outline
+     (border = currentColor); pin the outline to the default border black
+     so the 0.38 opacity lands at v2's #9E9E9E look. */
+  .list-search-bar :deep(.v-field__outline) {
+    color: #000;
+  }
   * :deep(.list-search-bar
   > .v-input
   > .v-input__control){
