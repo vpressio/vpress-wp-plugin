@@ -214,9 +214,87 @@ function vpress_import_finish_upload( $request ) {
 }
 
 function vpress_import_tick( $request ) {
-  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+  global $wpdb;
+  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
+  if ( ! $session || $session->status !== 'importing' ) {
+    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+  }
+  $columns = json_decode( (string) $session->columns_json, true );
+  if ( empty( $columns ) ) {
+    return new WP_Error( 'invalid_session', 'Sesión sin columnas.', array( 'status' => 500 ) );
+  }
+  $rows_per_tick = (int) apply_filters( 'vpress_import_rows_per_tick', 5000 );
+
+  $handle = fopen( $session->tmp_path, 'r' );
+  if ( ! $handle ) {
+    return new WP_Error( 'tmp_read_failed', 'No se pudo leer el archivo temporal.', array( 'status' => 500 ) );
+  }
+  fseek( $handle, (int) $session->byte_offset );
+
+  $rows = array();
+  $eof  = false;
+  while ( count( $rows ) < $rows_per_tick ) {
+    $data = fgetcsv( $handle, 0, ',' );
+    if ( $data === false ) {
+      $eof = true;
+      break;
+    }
+    if ( $data === array( null ) ) {
+      continue;
+    }
+    if ( $session->encoding !== 'UTF-8' ) {
+      $data = array_map( function ( $v ) use ( $session ) {
+        return iconv( $session->encoding, 'UTF-8//TRANSLIT', (string) $v );
+      }, $data );
+    }
+    $rows[] = array_slice( array_pad( $data, count( $columns ), '' ), 0, count( $columns ) );
+  }
+  $new_offset = ftell( $handle );
+  fclose( $handle );
+
+  $inserted = 0;
+  if ( count( $rows ) > 0 ) {
+    $inserted = vpress_insert_rows( $session->table_name, $columns, $rows );
+    if ( $wpdb->last_error ) {
+      vpress_import_update_session( $session->id, array( 'status' => 'error', 'error' => $wpdb->last_error ) );
+      return new WP_Error( 'insert_failed', $wpdb->last_error, array( 'status' => 500 ) );
+    }
+  }
+
+  $fields = array(
+    'byte_offset'   => $new_offset,
+    'rows_inserted' => (int) $session->rows_inserted + $inserted,
+  );
+  if ( $eof ) {
+    $fields['status'] = 'done';
+    if ( $session->tmp_path && file_exists( $session->tmp_path ) ) {
+      wp_delete_file( $session->tmp_path );
+    }
+    $fields['tmp_path'] = '';
+  }
+  vpress_import_update_session( $session->id, $fields );
+
+  return array(
+    'status'        => $eof ? 'done' : 'importing',
+    'rows_inserted' => (int) $session->rows_inserted + $inserted,
+    'bytes_done'    => (int) $new_offset,
+    'total_bytes'   => (int) $session->total_bytes,
+    'dataset_name'  => preg_replace( '/^vpress_/', '', $session->table_name ),
+  );
 }
 
 function vpress_import_abort( $request ) {
-  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+  global $wpdb;
+  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
+  if ( ! $session ) {
+    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+  }
+  if ( $session->tmp_path && file_exists( $session->tmp_path ) ) {
+    wp_delete_file( $session->tmp_path );
+  }
+  if ( (int) $session->table_created === 1 ) {
+    $wpdb->query( "DROP TABLE IF EXISTS `{$session->table_name}`" );
+  }
+  vpress_import_update_session( $session->id, array( 'status' => 'aborted', 'tmp_path' => '' ) );
+  return array( 'status' => 'aborted' );
 }
