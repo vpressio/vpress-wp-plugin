@@ -126,11 +126,91 @@ function vpress_import_start( $request ) {
 }
 
 function vpress_import_chunk( $request ) {
-  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
+  if ( ! $session || $session->status !== 'uploading' ) {
+    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+  }
+  $index = (int) $request->get_param( 'index' );
+  $files = $request->get_file_params();
+  if ( empty( $files['blob'] ) || ! is_uploaded_file( $files['blob']['tmp_name'] ) ) {
+    return new WP_Error( 'missing_chunk', 'Falta el fragmento del archivo.', array( 'status' => 400 ) );
+  }
+  // Idempotent retry: a re-sent, already-applied chunk is acknowledged, not appended.
+  if ( $index < (int) $session->chunks_received ) {
+    return array( 'chunks_received' => (int) $session->chunks_received, 'bytes_received' => (int) $session->bytes_received );
+  }
+  if ( $index !== (int) $session->chunks_received ) {
+    return new WP_Error( 'out_of_order', 'Fragmento fuera de orden.', array( 'status' => 409 ) );
+  }
+  $bytes = file_get_contents( $files['blob']['tmp_name'] );
+  $new_total = (int) $session->bytes_received + strlen( $bytes );
+  if ( $new_total > (int) $session->total_bytes ) {
+    return new WP_Error( 'overflow', 'Se recibieron más bytes de los declarados.', array( 'status' => 400 ) );
+  }
+  if ( file_put_contents( $session->tmp_path, $bytes, FILE_APPEND ) === false ) {
+    return new WP_Error( 'tmp_write_failed', 'No se pudo escribir el fragmento.', array( 'status' => 500 ) );
+  }
+  vpress_import_update_session( $session->id, array(
+    'chunks_received' => (int) $session->chunks_received + 1,
+    'bytes_received'  => $new_total,
+  ) );
+  return array( 'chunks_received' => (int) $session->chunks_received + 1, 'bytes_received' => $new_total );
+}
+
+function vpress_import_detect_encoding( $sample ) {
+  if ( substr( $sample, 0, 3 ) === "\xEF\xBB\xBF" ) {
+    return 'UTF-8'; // BOM stripped at read time
+  }
+  return mb_check_encoding( $sample, 'UTF-8' ) ? 'UTF-8' : 'Windows-1252';
 }
 
 function vpress_import_finish_upload( $request ) {
-  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
+  if ( ! $session || $session->status !== 'uploading' ) {
+    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+  }
+  if ( (int) $session->bytes_received !== (int) $session->total_bytes ) {
+    return new WP_Error( 'incomplete_upload', 'La carga está incompleta.', array( 'status' => 400 ) );
+  }
+  $mime = mime_content_type( $session->tmp_path );
+  if ( ! in_array( $mime, array( 'text/csv', 'text/plain', 'application/csv' ), true ) ) {
+    return new WP_Error( 'invalid_mime', 'El archivo no es un CSV válido.', array( 'status' => 400 ) );
+  }
+
+  $handle = fopen( $session->tmp_path, 'r' );
+  $sample = fread( $handle, 64 * KB_IN_BYTES );
+  $encoding = vpress_import_detect_encoding( $sample );
+  rewind( $handle );
+  // Strip BOM if present so the first header cell is clean.
+  $bom = fread( $handle, 3 );
+  if ( $bom !== "\xEF\xBB\xBF" ) {
+    rewind( $handle );
+  }
+  $header = fgetcsv( $handle, 0, ',' );
+  if ( ! $header || count( array_filter( $header ) ) === 0 ) {
+    fclose( $handle );
+    return new WP_Error( 'invalid_header', 'No se pudo leer el encabezado del CSV.', array( 'status' => 400 ) );
+  }
+  if ( $encoding !== 'UTF-8' ) {
+    $header = array_map( function ( $v ) use ( $encoding ) {
+      return iconv( $encoding, 'UTF-8//TRANSLIT', (string) $v );
+    }, $header );
+  }
+  $data_offset = ftell( $handle );
+  fclose( $handle );
+
+  global $wpdb;
+  $table_existed = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $session->table_name ) ) === $session->table_name );
+  $columns = vpress_prepare_dataset_table( $session->table_name, $header );
+
+  vpress_import_update_session( $session->id, array(
+    'columns_json'  => wp_json_encode( $columns ),
+    'encoding'      => $encoding,
+    'byte_offset'   => $data_offset,
+    'table_created' => $table_existed ? 0 : 1,
+    'status'        => 'importing',
+  ) );
+  return array( 'status' => 'importing', 'columns' => $columns, 'encoding' => $encoding );
 }
 
 function vpress_import_tick( $request ) {

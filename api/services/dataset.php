@@ -100,6 +100,39 @@ function vpress_get_dataset_data( $request ) {
 }
 
 /**
+ * Build (or extend) a dataset table from a CSV header row and return the
+ * cleaned, deduplicated column list. Shared by the legacy one-shot upload
+ * and the chunked import pipeline (finish-upload).
+ */
+function vpress_prepare_dataset_table( $table_name, $header_row ) {
+  global $wpdb;
+  $charset_collate = $wpdb->get_charset_collate();
+  require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+  $sql_create_dataset = "CREATE TABLE IF NOT EXISTS $table_name (";
+  $data = array_map( 'vpress_clean_string', $header_row );
+  foreach ( $data as $value ) {
+    $duplicates = array_keys( $data, $value );
+    if ( count( $duplicates ) > 1 ) {
+      foreach ( $duplicates as $k => $v ) {
+        $i = $k + 1;
+        $data[ $v ] .= "_{$i}";
+      }
+    }
+  }
+  foreach ( array_filter( $data ) as $value ) {
+    $sql_create_dataset .= "`$value` TEXT NULL, ";
+  }
+  $sql_create_dataset .= "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ";
+  $sql_create_dataset .= "updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+  $sql_create_dataset = rtrim( $sql_create_dataset, ", " );
+  $sql_create_dataset .= ") $charset_collate;";
+  dbDelta( $sql_create_dataset );
+
+  return array_values( array_filter( $data ) );
+}
+
+/**
  * Portable bulk insert used by the CSV upload.
  *
  * Replaces LOAD DATA LOCAL INFILE, which requires `local_infile` on the
@@ -179,31 +212,7 @@ function vpress_upload_dataset( $request ) {
         $header = $data;
        
         $headerFlag = false;
-        $sql_create_dataset = "CREATE TABLE IF NOT EXISTS $table_name (";
-
-        //clean column names
-        $data = array_map('vpress_clean_string',$data);
-
-        foreach ( $data as $value) {
-          //Handle duplicate names in columns by adding an extra number at the end
-          $duplicates = array_keys($data, $value);
-          if(count($duplicates)>1){
-            foreach($duplicates as $k => $v){
-              $i = $k+1;
-              $data[$v] .= "_{$i}"; // Update columns array 
-            }
-          }
-        }
-
-        foreach (array_filter($data) as $value) {
-          $sql_create_dataset .= "`$value` TEXT NULL, ";
-        }
-        $sql_create_dataset .= "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ";
-        $sql_create_dataset .= "updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
-        $sql_create_dataset = rtrim($sql_create_dataset, ", ");
-        $sql_create_dataset .= ") $charset_collate;";
-        dbDelta( $sql_create_dataset );
-        $columns = array_values( array_filter( $data ) );
+        $columns = vpress_prepare_dataset_table( $table_name, $data );
         continue;
       }
 
