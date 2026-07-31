@@ -1,5 +1,3 @@
-export { default as vuetify} from './vuetify.js'
-export { default as store } from './vuex.js'
-// export { default as tours } from './vueTour.js'
-export { default as vpress } from './vpress.js'
-export { default as useRouter } from './vueRouter.js'
+export { default as vuetify } from './vuetify.js';
+export { default as vpress } from './vpress.js';
+export { default as useRouter } from './vueRouter.js';

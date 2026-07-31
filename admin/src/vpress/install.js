@@ -1,11 +1,11 @@
-const install = function (Vue) {
-  if (install.installed) return
-  install.installed = true
-  Vue.mixin({
+const install = function (app) {
+  if (install.installed) return;
+  install.installed = true;
+  app.mixin({
     beforeCreate() {
-      this.$vpress = {}
+      this.$vpress = {};
     }
-  })
-}
- 
-export default install
+  });
+};
+
+export default install;

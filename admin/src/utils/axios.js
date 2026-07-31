@@ -4,7 +4,7 @@ import { fillValues } from '../helpers/index.js'
 
 
 const instance = create({
-  baseURL: process.env.VUE_APP_API_URI || '/',
+  baseURL: import.meta.env.VITE_API_URI || '/',
   headers: {
     'X-WP-Nonce': window.wpApiSettings && window.wpApiSettings.nonce ? window.wpApiSettings.nonce : '123'
   }

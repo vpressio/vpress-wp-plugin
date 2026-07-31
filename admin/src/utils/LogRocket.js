@@ -1,6 +1,6 @@
 import LogRocket from 'logrocket';
 
-if (process.env.NODE_ENV === 'production') {
+if (import.meta.env.PROD) {
   LogRocket.init('vpress/vpress-wp-plugin');
 
   if (window.userSettings && window.userSettings.uid) {
