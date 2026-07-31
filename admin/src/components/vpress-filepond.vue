@@ -15,7 +15,7 @@
         ref="pond"
         accepted-file-types="text/csv"
       />
-      <v-label>{{ fileTypeDynamicMessage }}</v-label>
+      <v-label><span class="upload-hint">{{ fileTypeDynamicMessage }}</span></v-label>
     </div>
     <div v-show="!showFilepond" class="vpress-filepond--content">
       <v-card-title class="vpress-filepond--instruction">
@@ -33,10 +33,14 @@
         Subir datos
       </v-btn>
       <input v-show="false" type="file" ref="fileInput" id="fileInput" accept="text/csv" @input="fileInputAction" />
+      <!-- v3's v-label is a flex container: bare text + <br> collapse onto one
+           line; a single block child restores normal text flow. -->
       <v-label>
-        Formatos permitidos: <strong>CSV</strong>
-        <br />
-        Tamaño máximo de archivo: <strong>{{ php_vars.upload_max_filesize }}</strong>
+        <span class="upload-hint">
+          Formatos permitidos: <strong>CSV</strong>
+          <br />
+          Tamaño máximo de archivo: <strong>{{ php_vars.upload_max_filesize }}</strong>
+        </span>
       </v-label>
     </div>
     <v-dialog
@@ -172,5 +176,9 @@ export default {
 }
 .filepond--width {
   width: 80%;
+}
+.upload-hint {
+  display: block;
+  text-align: center;
 }
 </style>

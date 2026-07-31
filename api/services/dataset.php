@@ -259,7 +259,7 @@ function vpress_list_datasets( $request ) {
         WHEN (DATA_LENGTH + INDEX_LENGTH) < 1024 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
           THEN CONCAT((DATA_LENGTH + INDEX_LENGTH),' ' , 'Bytes')
       END AS size,
-      TABLE_ROWS AS rows
+      TABLE_ROWS AS `rows`
     FROM $table_name as d
     LEFT JOIN information_schema.tables as i
     ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
@@ -336,7 +336,7 @@ function vpress_create_dataset( $request ) {
         WHEN (DATA_LENGTH + INDEX_LENGTH) < 1024 AND (DATA_LENGTH + INDEX_LENGTH) >= 1024
           THEN CONCAT((DATA_LENGTH + INDEX_LENGTH),' ' , 'Bytes')
       END AS size,
-      TABLE_ROWS AS rows
+      TABLE_ROWS AS `rows`
     FROM $table_name as d
     LEFT JOIN information_schema.tables as i
     ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)
