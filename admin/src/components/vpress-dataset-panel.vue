@@ -1,15 +1,14 @@
 <template>
-  <v-expansion-panels accordion flat>
+  <v-expansion-panels variant="accordion" flat>
     <v-expansion-panel
       ref="dataset-panel"
       class="dataset-panel"
       v-for="item in items"
       :key="item.id"
-      hover
-      @change="handleChange(item.id)"
+      @group:selected="(selected) => selected.value && handleChange(item.id)"
     >
-      <v-expansion-panel-header
-        class="pa-0 subtitle-1"
+      <v-expansion-panel-title
+        class="pa-0 text-subtitle-1"
         color="#F8F8F8"
       >
         <VpressDatasetCard
@@ -25,8 +24,8 @@
           :updated="item.updated"
           @on-dataset-delete="$emit('on-dataset-delete')"
         />
-      </v-expansion-panel-header>
-      <v-expansion-panel-content
+      </v-expansion-panel-title>
+      <v-expansion-panel-text
         class="pa-0"
         color="#F8F8F8"
       >
@@ -48,12 +47,12 @@
         >
           <v-col xs="12" sm="3" md="3" class="dataset-vizzes">
             <div class="database-data-section" >
-              <div class="subtitle-2">
+              <div class="text-subtitle-2">
                 Base de datos
               </div>
               <div class="database-data-btn">
                 <v-btn
-                  small
+                  size="small"
                   rounded
                   color="primary"
                   @click="setDataset(item)"
@@ -68,7 +67,7 @@
             />
           </v-col>
           <v-col xs="12" sm="9" md="9">
-            <div class="subtitle-2 mb-2">
+            <div class="text-subtitle-2 mb-2">
                 Gráficas hechas con la base de datos
             </div>
             <div
@@ -82,11 +81,11 @@
             <v-slide-group
               v-show="datasetVizzes.length > 0"
               show-arrows
+              center-active
             >
-              <v-slide-item
+              <v-slide-group-item
                 v-for="viz in datasetVizzes"
                 :key="viz.id"
-                center-active
                 v-slot:default="{}"
               >
                 <v-card
@@ -96,12 +95,11 @@
                 >
                   <v-img
                     width="200px"
-                    contain
                     color="#222A32"
                     :src="viz.img_url"
                   />
                     <v-btn
-                      small
+                      size="small"
                       rounded
                       color="primary"
                       @click="loadViz(viz.id, viz.dataset_id)"
@@ -109,11 +107,11 @@
                       Entrar
                     </v-btn>
                 </v-card>
-              </v-slide-item>
+              </v-slide-group-item>
             </v-slide-group>
           </v-col>
         </v-row>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
@@ -134,6 +132,7 @@ export default {
       default: () => []
     }
   },
+  emits: ['on-dataset-delete'],
   data() {
     return {
       loading: false,
@@ -217,10 +216,9 @@ export default {
   flex-direction: column;
 }
 
-*>>> .dataset-panel
-> .v-expansion-panel-content
-> .v-expansion-panel-content__wrap{
+* :deep(.dataset-panel
+> .v-expansion-panel-text
+> .v-expansion-panel-text__wrapper){
   padding: 0;
 }
 </style>
-

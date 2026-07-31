@@ -2,17 +2,16 @@
   <v-expansion-panels
     multiple
     flat
-    tile
-    hover
-    :value="[0]"
+    rounded="0"
+    :model-value="[0]"
   >
     <v-expansion-panel class="config-panels">
-      <v-expansion-panel-header color="color1">
+      <v-expansion-panel-title class="panel-title-color1">
         {{ panelTitle }}
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <slot/>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
@@ -24,7 +23,11 @@ export default {
 };
 </script>
 <style scoped>
-.config-panels > .v-expansion-panel-header {
+.panel-title-color1 {
+  background-color: rgb(var(--v-theme-color1));
+}
+
+.config-panels > .v-expansion-panel-title {
   min-height: 0% !important;
   padding: 14px 24px;
   color:#FFFF !important;
@@ -34,7 +37,7 @@ export default {
   border-top-right-radius: 0%;
 }
 
-.config-panels > .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+.config-panels > .v-expansion-panel-text :deep(.v-expansion-panel-text__wrapper) {
   padding: 0 !important;
 }
 

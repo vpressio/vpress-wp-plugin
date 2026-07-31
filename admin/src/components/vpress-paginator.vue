@@ -8,7 +8,7 @@
       <v-pagination
         v-model="page"
         :length="length"
-        @input="handlePageChange"
+        @update:modelValue="handlePageChange"
       />
     </v-col>
   </v-row>
@@ -26,6 +26,7 @@ export default {
       default: 1
     }
   },
+  emits: ['onPageChange'],
   data() {
     return {
       page: 1,

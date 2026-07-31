@@ -7,7 +7,6 @@
       <div class="mx-5 pt-4">
         <v-img
           class="link mb-3"
-          contain
           @click="createChart"
           color="#222A32"
           :src="requireImg(img_url)"
@@ -33,8 +32,8 @@
           <v-text-field
             ref="title-input"
             v-show="editTitle"
-            dense
-            solo
+            density="compact"
+            variant="solo"
             flat
             v-model="editedItem.chartValues.title"
             @keydown.enter.exact.prevent
@@ -60,8 +59,8 @@
           <v-text-field
             ref="subtitle-input"
             v-show="editSubtitle"
-            dense
-            solo
+            density="compact"
+            variant="solo"
             flat
             v-model="editedItem.chartValues.subtitle"
             @keydown.enter.exact.prevent
@@ -87,12 +86,10 @@
           <v-textarea
             ref="description-input"
             counter="5"
-            :allow-overflow="false"
             v-show="editDescription"
-            item-color="primary"
-            dense
+            density="compact"
             height="90"
-            solo
+            variant="solo"
             flat
             maxlength="140"
             hide-details
@@ -107,12 +104,12 @@
         <v-divider class="my-1"/>
         <v-combobox
           class="tag-box"
-          solo
+          variant="solo"
           flat
           chips
           multiple
           hide-details
-          deletable-chips
+          closable-chips
           color="primary"
           label="Agregar etiquetas"
           v-model="editedItem.tags"
@@ -121,20 +118,14 @@
           @blur="save"
           @click.stop="editedTags = true"
         >
-          <template v-slot:selection="{ attrs, item, parent }">
+          <template v-slot:chip="{ props, item }">
             <v-chip
-              v-bind="attrs"
+              v-bind="props"
               color="primary"
             >
               <span class="pr-2 font-weight-light">
-                {{ item }}
+                {{ item.value }}
               </span>
-              <v-icon
-                small
-                @click="parent.selectItem(item)"
-              >
-                mdi-close
-              </v-icon>
             </v-chip>
           </template>
         </v-combobox>
@@ -143,21 +134,21 @@
             <span
               @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
               class="link text-uppercase mr-2 font-weight-bold"
-              :class="{ 'green--text': editedItem.permissions.toLowerCase() === 'public', 'red--text': editedItem.permissions.toLowerCase() !== 'public' }"
+              :class="{ 'text-green': editedItem.permissions.toLowerCase() === 'public', 'text-red': editedItem.permissions.toLowerCase() !== 'public' }"
             >
               {{ editedItem.permissions }}
             </span>
             <v-spacer/>
-            <span class="grey--text">
-              <v-icon small>mdi-clock-outline</v-icon>
-              {{ updated | dateFormat }}
+            <span class="text-grey">
+              <v-icon size="small">mdi-clock-outline</v-icon>
+              {{ dateFormat(updated) }}
             </span>
             <v-spacer/>
-            <v-btn icon x-small color="primary" @click="shareChart">
+            <v-btn icon size="x-small" color="primary" @click="shareChart">
               <v-icon>mdi-share-variant-outline</v-icon>
             </v-btn>
             <v-spacer/>
-            <v-btn icon x-small color="primary" @click="dialogConfirmDeletion = true">
+            <v-btn icon size="x-small" color="primary" @click="dialogConfirmDeletion = true">
               <v-icon>mdi-trash-can-outline</v-icon>
             </v-btn>
             <v-spacer/>
@@ -171,10 +162,10 @@
       scrollable
     >
       <v-card>
-        <v-toolbar dark flat color="primary">
+        <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click="dialogConfirmDeletion = false">
+          <v-btn icon @click="dialogConfirmDeletion = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -193,7 +184,7 @@
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
-            text
+            variant="text"
             @click="dialogConfirmDeletion = false"
           >
             Cancelar
@@ -206,7 +197,10 @@
 </template>
 <script>
 import { clone } from 'lodash'
+import { mapStores } from 'pinia'
 import { loaderMixin, editorMixin } from '../mixins/index.js'
+import { useNotificationsStore } from '../store/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
 import api from '../utils/axios'
 
 export default {
@@ -247,6 +241,7 @@ export default {
       required: true
     }
   },
+  emits: ['onDeleted'],
   data: () => ({
     loading: false,
     chartValues: {},
@@ -274,23 +269,24 @@ export default {
       permissions: clone(this.permissions)
     }
   },
-  filters: {
+  computed: {
+    ...mapStores(useNotificationsStore)
+  },
+  methods: {
     dateFormat(update) {
       const date = new Date(update)
         .toLocaleString()
         .replace( ', ', ' | ' )
       return date
-    }
-  },
-  methods: {
+    },
     requireImg(url) {
       try {
         const vizType = JSON.parse(this.value).chart
         return url && url.length > 0
           ? url
-          : require(`../assets/images/${vizType}.png`);
+          : imageUrl(`${vizType}.png`);
       } catch (error) {
-        return require('../assets/images/spineplot.png')
+        return imageUrl('spineplot.png')
       }
     },
      async toggleInput(field, element) {
@@ -345,7 +341,7 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Gráfica actualizada con éxito'
         })
@@ -375,12 +371,12 @@ export default {
             document.getSelection().removeAllRanges();
             document.getSelection().addRange(selected);
           }
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'success',
             text: 'Gráfica guardada al portapapeles'
           })
         } else {
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'warning',
             text: 'Primero debes de guardar la gráfica'
           })
@@ -400,14 +396,14 @@ a {
 a:hover {
   text-decoration: underline;
 }
-::v-deep.v-text-field > .v-input__control > .v-input__slot {
+:deep(.v-text-field > .v-input__control > .v-input__slot) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-::v-deep.v-text-field .v-input__append-inner {
+:deep(.v-text-field .v-input__append-inner) {
   display: none !important;
 }
-::v-deep.v-textarea textarea {
+:deep(.v-textarea textarea) {
   line-height: normal;
 }
 

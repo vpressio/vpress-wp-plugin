@@ -37,8 +37,8 @@
             <v-text-field
               ref="title-input"
               v-show="editTitle"
-              dense
-              solo
+              density="compact"
+              variant="solo"
               flat
               v-model="editedDataset.name"
               @keydown.enter.exact.prevent
@@ -77,9 +77,9 @@
             <v-textarea
               ref="description-input"
               v-show="editDescription"
-              dense
+              density="compact"
               height="75"
-              solo
+              variant="solo"
               flat
               maxlength="140"
               hide-details
@@ -98,8 +98,8 @@
                 @click.stop="togglePermissions()"
                 class="link permissions-label"
                 :class="{
-                  'green--text': editedDataset.permissions === 'public',
-                  'red--text': editedDataset.permissions !== 'public'
+                  'text-green': editedDataset.permissions === 'public',
+                  'text-red': editedDataset.permissions !== 'public'
                 }"
               >
                 {{ editedDataset.permissions }}
@@ -110,11 +110,11 @@
               </span>
               <v-spacer/>
               <span class="dataset-label">
-                ~{{ rows | intFormat }} filas
+                ~{{ intFormat(rows) }} filas
               </span>
               <v-spacer/>
               <span class="dataset-label ">
-                {{ updated | dateFormat }}
+                {{ dateFormat(updated) }}
               </span>
             </v-col>
             <v-col cols="2">
@@ -135,13 +135,13 @@
                 class="tags-input"
                 ref="tags-input"
                 :readonly="readonly"
-                background-color="cardColor"
-                solo
+                :bg-color="cardColor"
+                variant="solo"
                 flat
                 chips
                 multiple
                 hide-details
-                deletable-chips
+                closable-chips
                 color="primary"
                 label="Agregar etiquetas"
                 v-model="editedDataset.tag"
@@ -149,7 +149,7 @@
                 @keydown.enter.exact.prevent
                 @keyup.enter.exact="save"
                 @blur="save"
-                @click.native.stop
+                @click.stop
               />
             </v-col>
           </v-row>
@@ -163,10 +163,10 @@
       scrollable
     >
       <v-card>
-        <v-toolbar dark flat color="primary">
+        <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click="closeDialogConfirmDeletion">
+          <v-btn icon @click="closeDialogConfirmDeletion">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -187,7 +187,7 @@
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
-            text
+            variant="text"
             @click="closeDialogConfirmDeletion"
           >
             Cancelar
@@ -200,6 +200,8 @@
 </template>
 <script>
 import { clone } from 'lodash'
+import { mapStores } from 'pinia'
+import { useNotificationsStore } from '../store/index.js'
 import api from '../utils/axios.js'
 
 export default {
@@ -251,6 +253,7 @@ export default {
       default: false
     }
   },
+  emits: ['on-dataset-delete'],
   data() {
     return {
       loading: false,
@@ -276,6 +279,7 @@ export default {
     }
   },
   computed: {
+    ...mapStores(useNotificationsStore),
     emptyValue() {
       return (field) => {
         return this.editedDataset[field] === null ||
@@ -288,16 +292,14 @@ export default {
       }
     }
   },
-  filters: {
+  methods: {
     intFormat(number) {
       return new Intl.NumberFormat().format(number)
     },
     dateFormat(update) {
       const date = new Date(update)
       return date.toLocaleString().replace( ', ', ' | ' )
-    }
-  },
-  methods: {
+    },
     togglePermissions() {
       this.editedDataset.permissions === 'public'
         ? this.editedDataset.permissions = 'private'
@@ -327,7 +329,7 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Base de datos actualizada con éxito'
         })
@@ -350,7 +352,7 @@ export default {
       if (response.data.error) {
         throw new Error(response.data.error);
       }
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Base de datos eliminada con éxito'
       })
@@ -379,14 +381,14 @@ export default {
   font-weight: 400;
 }
 
-::v-deep.v-text-field > .v-input__control > .v-input__slot {
+:deep(.v-text-field > .v-input__control > .v-input__slot) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-::v-deep.v-text-field .v-input__append-inner {
+:deep(.v-text-field .v-input__append-inner) {
   display: none !important;
 }
-::v-deep.v-textarea textarea {
+:deep(.v-textarea textarea) {
   line-height: normal;
 }
 
@@ -412,37 +414,37 @@ export default {
 
 }
 
-* >>> .tags-input
+* :deep(.tags-input
 > .v-input__control
-> .v-input__slot {
+> .v-input__slot) {
   background-color:var(--background) !important;
 }
 
-* >>> .tags-input
+* :deep(.tags-input
 > .v-input__control
 > .v-input__slot
 > .v-select__slot
-label {
+label) {
   right: 0px !important;
   left: auto !important;
 }
 
-* >>> .tags-input
+* :deep(.tags-input
 > .v-input__control
 > .v-input__slot
 > .v-select__slot
 > .v-select__selections
-> input
+> input)
 {
   background-color:var(--background) !important;
 
 }
 
-* >>> .tags-input
+* :deep(.tags-input
 > .v-input__control
 > .v-input__slot
 > .v-select__slot
-> .v-select__selections
+> .v-select__selections)
 {
   flex-direction: row-reverse;
 }

@@ -4,23 +4,22 @@
       class="list-search-bar"
       ref="form"
       @submit.prevent="search"
-      lazy-validation
     >
       <v-text-field
         name="search"
         label="Buscar por título, descripción o etiquetas"
-        outlined
+        variant="outlined"
         clearable
         @click:clear="clear"
         v-model="query"
         hide-details
-        append-icon="mdi-magnify"
+        append-inner-icon="mdi-magnify"
       ></v-text-field>
     </v-form>
     <v-btn
       ref="link-button"
       class="new-viz-btn"
-      depressed
+      variant="flat"
       color="primary"
       @click="$router.push(btnRoute)"
     >
@@ -39,6 +38,7 @@ export default {
       type: String
     }
   },
+  emits: ['onSearch'],
   data() {
     return {
       query: '',
@@ -83,18 +83,18 @@ export default {
     width: calc(100% - var(--buttonWidth));
 
   }
-  * >>> .list-search-bar
+  * :deep(.list-search-bar
   > .v-input
-  > .v-input__control{
+  > .v-input__control){
     color: #CFCFCF;
   }
-  * >>> .list-search-bar
+  * :deep(.list-search-bar
   > .v-input
   > .v-input__control
   > .v-input__slot
   > .v-text-field__slot
-  > .v-label{
+  > .v-label){
     color: #a19f9f;
-    font-weight : 300; 
+    font-weight : 300;
   }
 </style>

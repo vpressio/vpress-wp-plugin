@@ -3,18 +3,18 @@
     class="nav-toolbar"
     height="58"
     color="#37307E"
-    dark
+    theme="dark"
     flat
-  > 
+  >
     <div
       class="nav-btn mx-2"
       v-for="(link, linkIdx) in links"
       :key="`section-${linkIdx}`"
     >
-      <v-btn 
+      <v-btn
         class="px-0 nav_btn_"
-        tile
-        text
+        rounded="0"
+        variant="text"
         height="100%"
         min-width="30"
         :to="link.path"
@@ -34,6 +34,8 @@
   </v-toolbar>
 </template>
 <script>
+import { imageUrl } from '../utils/assetUrl.js'
+
 export default {
   name: 'VpressSectionBar',
   props: {
@@ -56,18 +58,18 @@ export default {
       return this.disableEditor && (link.name === 'config' || link.name === 'style')
     },
     iconSrc(icon) {
-      return require(`../assets/images/${icon}.svg`);
+      return imageUrl(`${icon}.svg`);
     }
   }
 }
 </script>
 <style scoped>
-* >>>.v-toolbar__content{
+* :deep(.v-toolbar__content){
    padding: 0 16px !important;
 }
 
 .nav_icon {
-  opacity: 0.5; 
+  opacity: 0.5;
 }
 
 .nav_icon__active {
