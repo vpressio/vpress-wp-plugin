@@ -24,9 +24,6 @@
       justify="center"
     >
       <v-col
-        offset="2"
-        offset-sm="3"
-        offset-md="3"
         cols="10"
         sm="6"
         md="6"

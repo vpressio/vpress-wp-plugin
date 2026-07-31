@@ -23,7 +23,7 @@
       v-show="!loading && total === 0"
       justify="center"
     >
-      <v-col offset="2" offset-sm="3" offset-md="3" cols="10" sm="6" md="6">
+      <v-col cols="10" sm="6" md="6">
         <h1 class="initial-msg-title">Te damos la bienvenida a Vpress</h1>
         <span class="initial-msg">
           Aquí se mostrarán tus visualizaciones, una vez que se hayan creado.
