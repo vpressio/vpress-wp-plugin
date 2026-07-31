@@ -89,3 +89,21 @@ O bien, instalado manualmente
 
  
 
+
+## Admin frontend (Vue 3 + Vite)
+
+The admin SPA lives in `admin/` (Vue 3.5 + Vuetify 3 + Pinia, built with Vite).
+
+```bash
+cd admin
+yarn install
+yarn dev        # Vite dev server on :5173 — the plugin auto-detects it and loads dev mode
+yarn build      # production bundle → admin/dist/ (js/app.js + js/chunk-vendors.js + css/app.css)
+yarn test:unit  # Vitest (store units + app smoke mount)
+yarn lint       # eslint (flat config)
+```
+
+The WordPress side probes `localhost:5173` (`includes/class-vpress.php`) — when the dev
+server is up, the admin page loads `/@vite/client` + `/src/main.js` as ES modules; otherwise
+it enqueues the built bundle from `admin/dist/` (single module entry `js/app.js`, which
+imports `js/chunk-vendors.js` itself).

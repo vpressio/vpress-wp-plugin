@@ -16,8 +16,8 @@
       :mobile-breakpoint="0"
       @update:options="updateOptions"
     >
-      <template v-slot:[`header.${header.key}`]="{ column }" v-for="header in headers">
-        <div :key="header.key" class="thead-container">
+      <template v-for="header in headers" v-slot:[`header.${header.key}`]="{ column }" :key="header.key">
+        <div class="thead-container">
           <div class="header-text">
             {{ column.title }}
           </div>
