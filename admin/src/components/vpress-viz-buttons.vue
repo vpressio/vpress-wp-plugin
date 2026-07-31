@@ -1,5 +1,5 @@
 <template>
-  <v-row v-show="editorStore.chart.chart !== 'map'">
+  <v-row class="mt-0" v-show="editorStore.chart.chart !== 'map'">
     <v-col class="ml-5 v-step-7">
       <v-btn
         class="mr-2"

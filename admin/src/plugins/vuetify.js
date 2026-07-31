@@ -13,6 +13,17 @@ import vpressConfig from '../assets/vpress.theme.json';
 const normalizeColor = (value) =>
   /^[0-9a-fA-F]{6}$/.test(value) ? `#${value}` : value;
 
+const themeColors = (entries) =>
+  Object.fromEntries(
+    Object.entries(entries)
+      .filter(([, value]) => typeof value === 'string' && value !== '')
+      .map(([key, value]) => [key, normalizeColor(value)])
+  );
+
+// The dark theme in vpress.theme.json is mostly empty — inherit the light
+// brand colors so theme="dark" scopes resolve primary/color2/etc. to the
+// brand palette instead of Vuetify's default dark palette (Material blue).
+const lightColors = themeColors(vpressConfig.themes.light || {});
 const themes = Object.fromEntries(
   Object.entries(vpressConfig.themes).map(([name, entries]) => [
     name,
@@ -20,11 +31,9 @@ const themes = Object.fromEntries(
       // Without dark:true Vuetify builds the theme with light on-surface
       // tokens — theme="dark" scopes would render black text.
       dark: name === 'dark',
-      colors: Object.fromEntries(
-        Object.entries(entries)
-          .filter(([, value]) => typeof value === 'string' && value !== '')
-          .map(([key, value]) => [key, normalizeColor(value)])
-      )
+      colors: name === 'dark'
+        ? { ...lightColors, ...themeColors(entries) }
+        : themeColors(entries)
     }
   ])
 );
