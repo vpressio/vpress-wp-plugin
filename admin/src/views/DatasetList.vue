@@ -21,7 +21,7 @@
     <v-row
       class="min-height-container"
       v-show="!loading && total === 0"
-      justify-center
+      justify="center"
     >
       <v-col
         offset-md="3"

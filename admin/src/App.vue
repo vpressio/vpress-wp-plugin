@@ -54,15 +54,15 @@ textarea[readonly] {
   }
 }
 
-.v-dialog__content {
+.v-overlay__content {
   z-index: 9990 !important;
 }
 
-.v-dialog.v-dialog--active .v-card__title {
+.v-overlay--active .v-card-title {
   cursor: grab;
 }
 
-.v-dialog.v-dialog--active .v-card__title:active {
+.v-overlay--active .v-card-title:active {
   cursor: grabbing;
 }
 </style>

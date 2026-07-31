@@ -13,41 +13,38 @@
           <div v-if="$attrs.section === 'config'">
             <div v-show="false" class="px-2 py-2 dataset-card">
               <v-btn
-                dark
                 class="mx-2 px-1 py-3"
                 min-width="20"
                 v-for="(dataset, dataIdx) in datasets"
                 :key="`dataset_${dataIdx}`"
-                x-small
-                tile
+                size="x-small"
+                rounded="0"
                 :color="
-                  $store.getters['workspace/activeDataset'] &&
-                  $store.getters['workspace/activeDataset'].slug === dataset
+                  workspaceStore.activeDatasetMeta &&
+                  workspaceStore.activeDatasetMeta.slug === dataset
                     ? 'secondary'
                     : '#817DB0'
                 "
               >
                 <v-tooltip
-                attach
-                right
-                offset-x
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-img
-                    v-bind="attrs"
-                    v-on="on"
-                    :src="require('../assets/images/db1-purple.svg')"
-                    width="15"
-                    height="12"
-                  />
-                </template>
-                <span> {{ dataset.name }} </span>
-              </v-tooltip>
-            </v-btn>
+                  attach
+                  location="end"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-img
+                      v-bind="props"
+                      :src="db1PurpleIcon"
+                      width="15"
+                      height="12"
+                    />
+                  </template>
+                  <span> {{ dataset.name }} </span>
+                </v-tooltip>
+              </v-btn>
             </div>
             <div class="px-3 py-2">
               <span class="db-titulo">
-                {{ activeDataset | name }}
+                {{ name(activeDataset) }}
               </span>
             </div>
             <VpressVariableContainer/>
@@ -56,7 +53,7 @@
             <VpressExpansionPanel panelTitle="TEMA">
               <VpressInputControl inputName="Tema">
                 <v-switch
-                  dense
+                  density="compact"
                   inset
                   v-model="theme"
                   :color="themeSwitchColor"
@@ -78,13 +75,13 @@
         class="px-0"
       >
         <div class="elevation-2 editor-card">
-          <v-toolbar class="text-center" color="primary" dark flat height="58">
+          <v-toolbar class="text-center" color="primary" theme="dark" flat height="58">
             <v-spacer/>
             <div class="text-subtitle-2 font-weight-regular">
               Arrastra tu selección
             </div>
             <v-spacer/>
-            <v-btn icon small color="secondary" @click="resetViz">
+            <v-btn icon size="small" color="secondary" @click="resetViz">
               <v-icon>mdi-restart</v-icon>
             </v-btn>
             <v-spacer/>
@@ -103,20 +100,17 @@
       </v-col>
     </v-row>
     <v-snackbar
-      dark
-      bottom
-      right
-      v-model="$store.state.notifications.show"
-      :timeout="$store.state.notifications.timeout"
-      :color="$store.state.notifications.color"
+      location="bottom right"
+      v-model="notificationsStore.show"
+      :timeout="notificationsStore.timeout"
+      :color="notificationsStore.color"
     >
-      {{ $store.state.notifications.text }}
-      <template v-slot:action="{ attrs }">
+      {{ notificationsStore.text }}
+      <template v-slot:actions>
         <v-btn
           color="white"
-          text
-          v-bind="attrs"
-          @click="snackbar = $store.dispatch('notifications/close')"
+          variant="text"
+          @click="notificationsStore.close()"
         >
           Cerrar
         </v-btn>
@@ -125,6 +119,7 @@
   </div>
 </template>
 <script>
+import { mapStores } from 'pinia'
 import VpressAppBar from '../components/vpress-app-bar.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
 import VpressVariableContainer from '../components/vpress-variable-container.vue'
@@ -136,6 +131,8 @@ import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
 import VpressInputControl from '../components/vpress-config-input.vue'
 import VpressColorSelection from '../components/vpress-config-color-selection.vue'
 import { loaderMixin } from '../mixins/index.js'
+import { useNotificationsStore } from '../store/index.js'
+import db1PurpleIcon from '../assets/images/db1-purple.svg'
 
 export default {
   name: 'VpressEditorModule',
@@ -154,32 +151,31 @@ export default {
   },
   data() {
     return {
-      theme: false
-    }
-  },
-  filters: {
-    name(dataset){
-      return dataset ? dataset.name : ''
+      theme: false,
+      db1PurpleIcon
     }
   },
   computed: {
+    ...mapStores(useNotificationsStore),
     datasets() {
-      return this.$store.getters['workspace/datasetMeta']
+      return this.workspaceStore.datasetMeta
     },
     activeDataset() {
-      const dataset = this.$store.getters['workspace/activeDataset']
-      return dataset
+      return this.workspaceStore.activeDatasetMeta
     },
     themeSwitchColor() {
       return this.theme  ? 'black' : '';
     },
   },
   methods: {
+    name(dataset){
+      return dataset ? dataset.name : ''
+    },
     async selectDataset(dataset) {
       this.updateActiveDataset( dataset)
     },
     resetViz() {
-      this.$store.dispatch('editor/RESET_VIZ')
+      this.editorStore.RESET_VIZ()
     }
   }
 }

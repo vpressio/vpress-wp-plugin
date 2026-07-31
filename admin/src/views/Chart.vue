@@ -8,7 +8,7 @@
   />
 </template>
 <script>
-import VpressChartContainer from '../components/vpress-chart-container'
+import VpressChartContainer from '../components/vpress-chart-container.vue'
 import vpress from '../vpress/index.js'
 import api from '../utils/axios'
 

@@ -13,7 +13,7 @@
         <VpressSectionBar :disableEditor="activeDataset === null" />
       </v-col>
       <v-col
-        v-show="($vuetify.breakpoint.smAndDown && !activeDataset) || !$vuetify.breakpoint.smAndDown"
+        v-show="($vuetify.display.smAndDown && !activeDataset) || !$vuetify.display.smAndDown"
         cols="12"
         :sm="activeDataset ? 12 : 4"
         md="8"
@@ -23,21 +23,19 @@
       >
         <v-tabs
           v-model="tabs"
-          :light="$vuetify.breakpoint.smAndDown"
-          :dark="$vuetify.breakpoint.mdAndUp"
-          :height="$vuetify.breakpoint.mdAndUp ? 58 : null"
-          flat
-          :background-color="$vuetify.breakpoint.mdAndUp ? 'primary' : null"
-          :vertical="$vuetify.breakpoint.smAndDown"
-          :grow="$vuetify.breakpoint.smAndDown"
+          :theme="$vuetify.display.mdAndUp ? 'dark' : 'light'"
+          :height="$vuetify.display.mdAndUp ? 58 : undefined"
+          :bg-color="$vuetify.display.mdAndUp ? 'primary' : undefined"
+          :direction="$vuetify.display.smAndDown ? 'vertical' : 'horizontal'"
+          :grow="$vuetify.display.smAndDown"
+          :slider-color="$vuetify.display.smAndDown ? 'primary' : undefined"
         >
-          <v-tabs-slider :color="$vuetify.breakpoint.smAndDown ? 'primary' : null"/>
           <v-tab
             v-for="(section, secIdx) in sections"
             :key="`section-${secIdx}`"
-            :href="`#${section.ref}`"
+            :value="section.ref"
             class="dis-text-transform font-weight-regular"
-            :class="{ 'text-caption': $vuetify.breakpoint.smAndDown }"
+            :class="{ 'text-caption': $vuetify.display.smAndDown }"
             @click="proxyScreen = false"
             >
             {{ section.name }}
@@ -53,12 +51,12 @@
 
               <v-slide-group
                 show-arrows
+                center-active
               >
                 <div class="pl-5" style="display:flex;">
-                  <v-slide-item
+                  <v-slide-group-item
                     v-for="(dataset, idx) in datasets"
                     :key="idx"
-                    center-active
                     v-slot:default="{}"
                   >
                     <div>
@@ -66,7 +64,7 @@
                         mdi-database
                       </v-icon>
                       <v-btn
-                        outlined
+                        variant="outlined"
                         color="primary"
                         class="py-5 mr-4"
                         @click="selectDataset(dataset)"
@@ -76,14 +74,14 @@
                             {{ dataset.name }}
                           </div>
                           <div class="font-weight-light text-caption text-left">
-                          {{ ~ dataset.rows | intFormat }} | {{ dataset.size }}
+                          {{ intFormat(~ dataset.rows) }} | {{ dataset.size }}
                           </div>
                         </div>
                       </v-btn>
                     </div>
-                  </v-slide-item>
+                  </v-slide-group-item>
                 </div>
-                <v-btn x-small class="mr-4" fab color="primary" @click="proxyScreen = false">
+                <v-btn size="x-small" class="mr-4" icon color="primary" @click="proxyScreen = false">
                   <v-icon>
                     mdi-plus
                   </v-icon>
@@ -91,18 +89,18 @@
               </v-slide-group>
             </v-col>
             <v-col class="px-5" cols="12" sm="12" md="4" lg="3" style="display:flex;">
-              <v-spacer v-show="!$vuetify.breakpoint.smAndDown"/>
+              <v-spacer v-show="!$vuetify.display.smAndDown"/>
               <v-btn
                 class="text-caption elevation-0 dis-text-transform ml-1 px-5"
                 height="43"
                 color="error1"
                 rounded
-                outlined
+                variant="outlined"
                 @click="cleanComponentData"
               >
                 Remover
               </v-btn>
-              <v-spacer v-show="$vuetify.breakpoint.smAndDown"/>
+              <v-spacer v-show="$vuetify.display.smAndDown"/>
               <v-btn
                 class="text-caption elevation-0 dis-text-transform ml-1 px-5"
                 height="43"
@@ -111,7 +109,7 @@
                 to="/editor/config"
               >
                 Siguiente
-                <v-icon small class="ml-3 icon-arrow">
+                <v-icon size="small" class="ml-3 icon-arrow">
                   mdi-arrow-right
                 </v-icon>
               </v-btn>
@@ -124,20 +122,20 @@
         <v-card
           v-else
         >
-          <v-tabs-items v-model="tabs">
-            <v-tab-item
+          <v-tabs-window v-model="tabs">
+            <v-tabs-window-item
               :value="'search'"
             >
               <VpressDatasetSelect @dataset="selectDataset"/>
-            </v-tab-item>
-            <v-tab-item
+            </v-tabs-window-item>
+            <v-tabs-window-item
               :value="'upload'"
             >
             <div class="pa-10" style="height:100%;">
               <VpressFilepond @uploaded="uploaded"/>
             </div>
-            </v-tab-item>
-            <v-tab-item
+            </v-tabs-window-item>
+            <v-tabs-window-item
               :value="'paste'"
             >
               <div class="pa-10" style="height:100%;">
@@ -146,7 +144,7 @@
                     id="excel_data"
                     name="excel_data"
                     height="400px"
-                    solo
+                    variant="solo"
                     flat
                     hide-details
                     placeholder="Pegue aquí sus datos desde otras aplicaciones."
@@ -156,26 +154,23 @@
                   Copie y pegue sus datos de otras aplicaciones o sitios web. Puede utilizar datos tabulares formato CSV
                 </span>
               </div>
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-card>
       </v-col>
     </v-row>
     <v-snackbar
-      dark
-      bottom
-      right
-      v-model="$store.state.notifications.show"
-      :timeout="$store.state.notifications.timeout"
-      :color="$store.state.notifications.color"
+      location="bottom right"
+      v-model="notificationsStore.show"
+      :timeout="notificationsStore.timeout"
+      :color="notificationsStore.color"
     >
-      {{ $store.state.notifications.text }}
-      <template v-slot:action="{ attrs }">
+      {{ notificationsStore.text }}
+      <template v-slot:actions>
         <v-btn
           color="white"
-          text
-          v-bind="attrs"
-          @click="snackbar = $store.dispatch('notifications/close')"
+          variant="text"
+          @click="notificationsStore.close()"
         >
           Cerrar
         </v-btn>
@@ -184,12 +179,14 @@
   </div>
 </template>
 <script>
+import { mapStores } from 'pinia'
 import VpressAppBar from '../components/vpress-app-bar.vue'
 import VpressFilepond from '../components/vpress-filepond.vue'
 import VpressDatasetSelect from '../components/vpress-dataset-select.vue'
 import VpressDataTable from '../components/vpress-data-table.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
 import { editorMixin, loaderMixin } from '../mixins/index.js'
+import { useNotificationsStore } from '../store/index.js'
 import { readCSV } from '../utils/fileReader'
 
 export default {
@@ -206,8 +203,6 @@ export default {
     return {
       proxyScreen: false,
       tabs: 'search',
-      activeDataset: this.$store.getters['workspace/activeDataset'],
-      datasets: [],
       sections: [
         { ref: 'search', name: 'Tus bases de datos' },
         { ref: 'upload', name: 'Sube datos' },
@@ -216,7 +211,6 @@ export default {
     }
   },
   created() {
-    this.datasets = this.$store.getters['workspace/datasetMeta']
     if (this.$route.query && this.$route.query.upload) {
       this.tabs = 'upload'
     } else if (this.$route.query && this.$route.query.selectDB) {
@@ -224,29 +218,23 @@ export default {
     } else if (this.datasetsRefs.length > 0) {
       this.proxyScreen = true
     }
-    this.unsubscribe = this.$store.subscribe(
-      mutation => {
-        if(
-          mutation.type === 'workspace/SET_ACTIVE_DATASET'
-        ) {
-          this.activeDataset = this.$store.getters['workspace/activeDataset']
-        }
-        if(
-          mutation.type === 'workspace/ADD_DATASET_META' ||
-          mutation.type === 'workspace/REMOVE_DATASET_META'
-        ) {
-          this.datasets = this.$store.getters['workspace/datasetMeta']
-          if(this.datasetsRefs.length > 0) this.proxyScreen = true;
-        }
-      }
-    )
-  },
-  beforeDestroy() {
-    this.unsubscribe()
   },
   computed: {
+    ...mapStores(useNotificationsStore),
+    activeDataset() {
+      return this.workspaceStore.activeDatasetMeta
+    },
+    datasets() {
+      return this.workspaceStore.datasetMeta
+    },
     datasetsRefs() {
       return Object.keys(this.datasets)
+    }
+  },
+  watch: {
+    // Replaces the Vuex mutation subscription on ADD/REMOVE_DATASET_META.
+    datasetsRefs(refs) {
+      if (refs.length > 0) this.proxyScreen = true
     }
   },
   methods: {
@@ -267,8 +255,8 @@ export default {
       }
     },
     async cleanComponentData() {
-      await this.$store.dispatch('editor/REMOVE_VIZZES')
-      await this.$store.dispatch('workspace/REMOVE_DATASET')
+      this.editorStore.REMOVE_VIZZES()
+      this.workspaceStore.REMOVE_DATASET()
       if(Object.keys(this.datasets).length === 0) this.proxyScreen = false;
     },
     async loadFile(file) {
