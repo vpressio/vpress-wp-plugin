@@ -16,9 +16,12 @@ export default defineConfig(({ mode }) => ({
     }
   },
   server: {
-    port: 5173,
+    // 5173-5175 collide with other local dev servers; strictPort keeps the
+    // WP loader's probe (includes/class-vpress.php) and this server in lockstep.
+    port: 5180,
+    strictPort: true,
     cors: true,
-    origin: 'http://localhost:5173'
+    origin: 'http://localhost:5180'
   },
   build: {
     outDir: 'dist',

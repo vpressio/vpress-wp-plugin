@@ -82,7 +82,7 @@ class Vpress {
 			$this->version = '0.2.0';
 		}
 		$this->plugin_name = 'vpress';
-		$this->client = $this->is_develop_serve('5173');
+		$this->client = $this->is_develop_serve('5180');
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
