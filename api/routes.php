@@ -27,6 +27,12 @@ define('VPRESS_API_UPDATE_DATASET_ROUTE','/dataset/update');
 define('VPRESS_API_DELETE_DATASET_ROUTE','/dataset/delete');
 define('VPRESS_API_GET_DATASET_DATA','/dataset/data/(?P<dataset>(.|%20)+)');
 
+define('VPRESS_API_IMPORT_START','/import/start');
+define('VPRESS_API_IMPORT_CHUNK','/import/chunk');
+define('VPRESS_API_IMPORT_FINISH_UPLOAD','/import/finish-upload');
+define('VPRESS_API_IMPORT_TICK','/import/tick');
+define('VPRESS_API_IMPORT_ABORT','/import/abort');
+
 define('VPRESS_API_DELETE_COLUMN_DATASET_ROUTE','/dataset/column/delete');
 define('VPRESS_API_RENAME_COLUMN_DATASET_ROUTE','/dataset/column/rename');
 define('VPRESS_API_CHANGE_DATA_TYPE_COLUMN_DATASET_ROUTE','/dataset/column/change_data_type');

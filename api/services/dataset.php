@@ -99,6 +99,32 @@ function vpress_get_dataset_data( $request ) {
   }
 }
 
+/**
+ * Portable bulk insert used by the CSV upload.
+ *
+ * Replaces LOAD DATA LOCAL INFILE, which requires `local_infile` on the
+ * MySQL server AND `mysqli.allow_local_infile` in PHP — flags shared
+ * hostings do not grant. Batched multi-row INSERTs run anywhere WP runs.
+ */
+function vpress_insert_rows( $table_name, $columns, $rows ) {
+  global $wpdb;
+  if ( empty( $columns ) || empty( $rows ) ) {
+    return 0;
+  }
+  $cols_sql = '`' . implode( '`, `', $columns ) . '`';
+  $row_placeholders = '(' . implode( ', ', array_fill( 0, count( $columns ), '%s' ) ) . ')';
+  $all_placeholders = implode( ', ', array_fill( 0, count( $rows ), $row_placeholders ) );
+  $values = array();
+  foreach ( $rows as $row ) {
+    foreach ( $row as $value ) {
+      $values[] = (string) $value;
+    }
+  }
+  $sql = $wpdb->prepare( "INSERT INTO `$table_name` ($cols_sql) VALUES $all_placeholders", $values );
+  $result = $wpdb->query( $sql );
+  return $result === false ? 0 : $result;
+}
+
 function vpress_upload_dataset( $request ) {
   $permittedExtension = 'csv';
   $permittedTypes = ['text/csv', 'text/plain'];
@@ -143,7 +169,12 @@ function vpress_upload_dataset( $request ) {
     $file_name = explode('.', $file['name'])[0];
     $table_name = "vpress_" . vpress_clean_string($file_name);
 
-    while ( ( $data = fgetcsv( $handle, 1000, ',' ) ) !== FALSE ) {
+    $columns = array();
+    $pending_rows = array();
+    $inserted = 0;
+    $batch_size = 500;
+
+    while ( ( $data = fgetcsv( $handle, 0, ',' ) ) !== FALSE ) {
       if ( $headerFlag ) {
         $header = $data;
        
@@ -172,33 +203,36 @@ function vpress_upload_dataset( $request ) {
         $sql_create_dataset = rtrim($sql_create_dataset, ", ");
         $sql_create_dataset .= ") $charset_collate;";
         dbDelta( $sql_create_dataset );
+        $columns = array_values( array_filter( $data ) );
         continue;
       }
+
+      // Skip blank lines (fgetcsv yields array(null) for them).
+      if ( $data === array( null ) ) {
+        continue;
+      }
+
+      // Normalize row width to the header, then queue for batched insert.
+      $pending_rows[] = array_slice( array_pad( $data, count( $columns ), '' ), 0, count( $columns ) );
+
+      if ( count( $pending_rows ) >= $batch_size ) {
+        $inserted += vpress_insert_rows( $table_name, $columns, $pending_rows );
+        $pending_rows = array();
+      }
+    }
+    if ( count( $pending_rows ) > 0 ) {
+      $inserted += vpress_insert_rows( $table_name, $columns, $pending_rows );
     }
 
     fclose( $handle );
 
-    $upload_dir = wp_upload_dir();
-    $datafile = $_FILES['file']['tmp_name'];
-    $file = $upload_dir['basedir'].'/vpress/datasets/'.$_FILES['file']['name'];
-    $fileurl = $upload_dir['baseurl'].'/vpress/datasets/'.$_FILES['file']['name'];
-
-    if ( !move_uploaded_file( $_FILES['file']['tmp_name'], $file) ) {
-      print_r('Failed to move uploaded file.');
-    }
-    
-    $query = "LOAD DATA LOCAL INFILE '" . $file . "' INTO TABLE " . $table_name . " CHARACTER SET utf8 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES;";
-
-    $sql = $wpdb->query($query);
-
-    wp_delete_file( $file );
     if($wpdb->last_error ) {
       throw new Exception($wpdb->last_error);
     }
     $response = array(
       'data' => $file_name,
       'upload_max_filesize' => ini_get('upload_max_filesize'),
-      'query' => $query
+      'query' => "batched INSERT: {$inserted} rows"
     );
     return $response;
   } catch (Exception $e) {

@@ -1,0 +1,142 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+/**
+ * Route D′ import pipeline: chunked upload → server-side parse → client-driven
+ * ticks. No LOAD DATA, no WP-Cron — works on any shared hosting.
+ * Spec: docs/superpowers/specs/2026-07-31-csv-import-pipeline-design.md
+ */
+
+function vpress_import_sessions_table() {
+  global $wpdb;
+  $table = $wpdb->prefix . 'vpresscore_imports';
+  if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    $charset = $wpdb->get_charset_collate();
+    dbDelta( "CREATE TABLE $table (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      file_name VARCHAR(255) NOT NULL,
+      table_name VARCHAR(255) NOT NULL,
+      tmp_path VARCHAR(1024) NOT NULL,
+      total_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      bytes_received BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      chunks_received INT UNSIGNED NOT NULL DEFAULT 0,
+      byte_offset BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      rows_inserted BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      columns_json TEXT NULL,
+      encoding VARCHAR(16) NOT NULL DEFAULT 'UTF-8',
+      table_created TINYINT(1) NOT NULL DEFAULT 0,
+      status VARCHAR(16) NOT NULL DEFAULT 'uploading',
+      error TEXT NULL,
+      created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY  (id)
+    ) $charset;" );
+  }
+  return $table;
+}
+
+function vpress_import_get_session( $id ) {
+  global $wpdb;
+  $table = vpress_import_sessions_table();
+  return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $id ) );
+}
+
+function vpress_import_update_session( $id, $fields ) {
+  global $wpdb;
+  $wpdb->update( vpress_import_sessions_table(), $fields, array( 'id' => $id ) );
+}
+
+function vpress_import_tmp_dir() {
+  $upload_dir = wp_upload_dir();
+  $dir = $upload_dir['basedir'] . '/vpress/tmp';
+  if ( ! file_exists( $dir ) ) {
+    wp_mkdir_p( $dir );
+  }
+  return $dir;
+}
+
+function vpress_import_sweep_orphans() {
+  global $wpdb;
+  $table = vpress_import_sessions_table();
+  $stale = $wpdb->get_results(
+    "SELECT id, tmp_path FROM $table
+     WHERE status IN ('uploading','importing','error')
+       AND updated < (NOW() - INTERVAL 24 HOUR)"
+  );
+  foreach ( $stale as $row ) {
+    if ( $row->tmp_path && file_exists( $row->tmp_path ) ) {
+      wp_delete_file( $row->tmp_path );
+    }
+    vpress_import_update_session( $row->id, array( 'status' => 'aborted', 'tmp_path' => '' ) );
+  }
+}
+
+function vpress_import_chunk_bytes() {
+  $post_max   = wp_convert_hr_to_bytes( ini_get( 'post_max_size' ) );
+  $upload_max = wp_convert_hr_to_bytes( ini_get( 'upload_max_filesize' ) );
+  $limit = min( array_filter( array( $post_max, $upload_max ) ) );
+  return (int) min( max( floor( $limit * 0.75 ), 256 * KB_IN_BYTES ), 4 * MB_IN_BYTES );
+}
+
+function vpress_import_start( $request ) {
+  global $wpdb;
+  $filename    = sanitize_file_name( (string) $request->get_param( 'filename' ) );
+  $total_bytes = (int) $request->get_param( 'total_bytes' );
+  $cap         = (int) apply_filters( 'vpress_max_upload_bytes', 20 * MB_IN_BYTES );
+
+  if ( strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) !== 'csv' ) {
+    return new WP_Error( 'invalid_extension', 'Solo se permiten archivos CSV.', array( 'status' => 400 ) );
+  }
+  if ( $total_bytes <= 0 || $total_bytes > $cap ) {
+    return new WP_Error( 'file_too_large', 'El archivo excede el tamaño máximo permitido.', array( 'status' => 413, 'max_bytes' => $cap ) );
+  }
+
+  vpress_import_sweep_orphans();
+
+  $table_name = 'vpress_' . vpress_clean_string( explode( '.', $filename )[0] );
+  $sessions   = vpress_import_sessions_table();
+  $active = $wpdb->get_var( $wpdb->prepare(
+    "SELECT COUNT(*) FROM $sessions WHERE table_name = %s AND status IN ('uploading','importing')",
+    $table_name
+  ) );
+  if ( (int) $active > 0 ) {
+    return new WP_Error( 'import_in_progress', 'Ya hay una importación en curso para este dataset.', array( 'status' => 409 ) );
+  }
+
+  $tmp_path = vpress_import_tmp_dir() . '/' . wp_generate_password( 20, false ) . '.csv';
+  if ( file_put_contents( $tmp_path, '' ) === false ) {
+    return new WP_Error( 'tmp_write_failed', 'No se pudo crear el archivo temporal.', array( 'status' => 500 ) );
+  }
+
+  $wpdb->insert( $sessions, array(
+    'file_name'   => $filename,
+    'table_name'  => $table_name,
+    'tmp_path'    => $tmp_path,
+    'total_bytes' => $total_bytes,
+    'status'      => 'uploading',
+  ) );
+
+  return array(
+    'session_id'  => (int) $wpdb->insert_id,
+    'chunk_bytes' => vpress_import_chunk_bytes(),
+    'table_name'  => $table_name,
+    'engine'      => apply_filters( 'vpress_import_engine', 'ticks' ),
+  );
+}
+
+function vpress_import_chunk( $request ) {
+  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+}
+
+function vpress_import_finish_upload( $request ) {
+  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+}
+
+function vpress_import_tick( $request ) {
+  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+}
+
+function vpress_import_abort( $request ) {
+  return new WP_Error( 'not_implemented', '', array( 'status' => 501 ) );
+}
