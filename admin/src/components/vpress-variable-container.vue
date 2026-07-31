@@ -67,7 +67,9 @@
   </v-row>
 </template>
 <script>
+import { mapStores } from 'pinia';
 import VpressVariableCard from './vpress-variable-card.vue';
+import { useWorkspaceStore } from '../store/index.js';
 
 export default {
   name: 'VpressVariableContainer',
@@ -75,8 +77,9 @@ export default {
     VpressVariableCard
   },
   computed: {
+    ...mapStores(useWorkspaceStore),
     variables() {
-      return this.$store.getters['workspace/dataType'];
+      return this.workspaceStore.dataType;
     },
     linearVariables() {
       return this.variables.filter(variable => variable.type === 'linear')

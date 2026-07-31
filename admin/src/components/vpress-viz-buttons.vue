@@ -1,12 +1,12 @@
 <template>
-  <v-row v-show="$store.getters['editor/chart'].chart !== 'map'">
+  <v-row v-show="editorStore.chart.chart !== 'map'">
     <v-col class="ml-5 v-step-7">
       <v-btn
         class="mr-2"
-        tile
+        rounded="0"
         @click="toggleLabels"
-        small
-        dark
+        size="small"
+        theme="dark"
         color="color2"
         title="Etiquetas"
       >
@@ -19,9 +19,9 @@
         "
         class="mr-2"
         @click="toggleBarsType"
-        tile
-        small
-        dark
+        rounded="0"
+        size="small"
+        theme="dark"
         color="color2"
         title="Agrupar"
       >
@@ -32,9 +32,9 @@
       <v-btn
         class="mr-2"
         @click="toggleOrder"
-        tile
-        small
-        dark
+        rounded="0"
+        size="small"
+        theme="dark"
         color="color2"
         title="Ordenar"
       >
@@ -47,9 +47,9 @@
       <v-btn
         class="mr-2"
         @click="orderByAlphabetical"
-        tile
-        small
-        dark
+        rounded="0"
+        size="small"
+        theme="dark"
         color="color2"
         title="Ordenar alfabéticamente"
       >
@@ -62,9 +62,9 @@
       <v-btn
         class="mr-2"
         @click="orderByNumerical"
-        tile
-        small
-        dark
+        rounded="0"
+        size="small"
+        theme="dark"
         color="color2"
         title="Ordenar numéricamente"
       >
@@ -77,9 +77,9 @@
       <v-btn
         class="mr-2"
         @click="invertAxis"
-        tile
-        small
-        dark
+        rounded="0"
+        size="small"
+        theme="dark"
         color="color2"
         title="Invertir eje"
       >
@@ -94,6 +94,7 @@
 </template>
 <script>
 import { editorMixin } from '../mixins/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
 
 export default {
   name: 'VpressVizButtons',
@@ -102,27 +103,28 @@ export default {
     return {
       labels: false,
       stackedBars: false,
-      order: this.$store.getters['editor/order'],
+      order: null,
     };
   },
   created() {
-    this.labels = this.$store.getters['editor/labels'];
-    this.stackedBars = this.$store.getters['editor/stackedBars'];
+    this.order = this.editorStore.order;
+    this.labels = this.editorStore.labels;
+    this.stackedBars = this.editorStore.stackedBars;
   },
   computed: {
     chartIsBarsGrouped() {
       return (
-        this.$store.getters['editor/chart'].chart === 'bars' &&
-        this.$store.getters['editor/groupBy.slug'].length !== 0
+        this.editorStore.chart.chart === 'bars' &&
+        this.editorStore.groupBySlug.length !== 0
       );
     }
   },
   methods: {
     requireImg(chartType) {
       try {
-        return require(`../assets/images/${chartType}.svg`);
+        return imageUrl(`${chartType}.svg`);
       } catch (error) {
-        return require('../assets/images/spineplot.svg')
+        return imageUrl('spineplot.svg')
       }
     },
     toggleLabels() {
@@ -150,7 +152,7 @@ export default {
       );
     },
     orderByAlphabetical() {
-      const chartValues = this.$store.getters['editor/chart'];
+      const chartValues = this.editorStore.chart;
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'ordinal' ) {
           this.merge_value(
@@ -174,7 +176,7 @@ export default {
       }
     },
     orderByNumerical() {
-      const chartValues = this.$store.getters['editor/chart'];
+      const chartValues = this.editorStore.chart;
       if (chartValues.xAxis.slug !== chartValues.yAxis.slug) {
         if (chartValues.xAxis.type === 'linear' ) {
           this.merge_value(

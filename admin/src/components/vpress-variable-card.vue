@@ -4,9 +4,9 @@
       <div style="display:flex">
         <v-card
           class="mr-2"
-          dark
+          theme="dark"
           flat
-          tile
+          rounded="0"
           color="warning1"
         >
           <v-icon>
@@ -32,12 +32,12 @@
       v-show="variable.type !== '' && variable.title !== ''"
       :draggable="draggable"
       @dragstart="dragStart"
-      tile
+      rounded="0"
       :color="error ? 'warning1' : '#322E71'"
-      dark
+      theme="dark"
     >
       <v-img
-        :src="require('../assets/images/Puntos.svg')"
+        :src="puntosIcon"
         width=10
         height="100%"
       />
@@ -45,19 +45,16 @@
         <v-menu
           attach
           close-on-click
-          offset-x
-          right
-          nudge-right="15"
+          location="end"
         >
-          <template v-slot:activator="{ on }">
+          <template v-slot:activator="{ props }">
             <v-btn
               class="operationButton"
-              v-on="on"
-              small
+              v-bind="props"
+              size="small"
               icon
-              dark
             >
-              <v-icon dense>mdi-dots-vertical</v-icon>
+              <v-icon size="small">mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -78,7 +75,6 @@
                 <v-list-item-title
                   class="func-menu"
                   :class="{ 'selected-func': selectedFunc === func }"
-                  :dark="selectedFunc === func"
                 >
                   {{ func.name }}
                 </v-list-item-title>
@@ -123,6 +119,8 @@
 </template>
 <script>
 import { editorMixin } from '../mixins/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
+import vpressConfig from '../assets/vpress.theme.json'
 
 export default {
   name: 'VpressVariableCard',
@@ -136,6 +134,7 @@ export default {
   },
   data() {
     return {
+      puntosIcon: imageUrl('Puntos.svg'),
       showErrorMsg: false,
       draggable: true,
       funcs: [
@@ -164,7 +163,7 @@ export default {
     },
     cssProps() {
       return {
-        '--warning2': this.$vuetify.theme.themes.light.warning2,
+        '--warning2': vpressConfig.themes.light.warning2,
       }
     },
   },

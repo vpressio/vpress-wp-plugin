@@ -21,8 +21,8 @@
       </v-col>
       <v-col class="py-0 pr-0" cols="1">
         <v-btn
-          tile
-          depressed
+          rounded="0"
+          variant="flat"
           @click="addViz"
         >
           <v-icon color="grey">mdi-plus-thick</v-icon>
@@ -31,7 +31,7 @@
       <v-col cols="11" class="tab-btn-container py-0 pl-0">
         <div class="tabs-bar">
           <v-slide-group show-arrows>
-            <v-slide-item
+            <v-slide-group-item
               v-for="(chart, chartIndex) in tabs"
               :key="`chart_tab_${chartIndex}`"
             >
@@ -40,12 +40,12 @@
                   class="elevation-1 mx-1"
                   :color="openTab === chartIndex ? '#FFF' : ''"
                   @click="setActiveViz(chartIndex)"
-                  tile
+                  rounded="0"
                 >
                   Gráfica {{ chartIndex + 1 }}
                   <v-btn
                     class="ml-3 mr-2"
-                    x-small
+                    size="x-small"
                     icon
                     color="primary"
                     @click.stop.prevent="removeViz(chartIndex)"
@@ -56,7 +56,7 @@
                   </v-btn>
                 </v-btn>
               </div>
-            </v-slide-item>
+            </v-slide-group-item>
           </v-slide-group>
         </div>
       </v-col>
@@ -80,32 +80,32 @@ export default {
   },
   data() {
     return {
-      openTab: this.$store.getters['editor/vizzes']()
-        ? this.$store.getters['editor/vizzes']().open
-        : this.$store.getters['editor/vizzes'](),
+      openTab: null,
       tabs: [],
       vizHeight: 0
     };
   },
+  created() {
+    this.openTab = this.editorStore.getVizzes()
+      ? this.editorStore.getVizzes().open
+      : this.editorStore.getVizzes()
+  },
   mounted() {
     window.addEventListener('resize', this.resizeVizHeight)
     this.resizeVizHeight()
-    this.tabs = this.$store.getters['editor/vizzes']()
-      ? this.$store.getters['editor/vizzes']().vizzes
-      : this.$store.getters['editor/vizzes']()
-    this.unsubscribe = this.$store.subscribe(
-      mutation => {
-        if(
-          mutation.type === 'workspace/SET_ACTIVE_DATASET'
-        ) {
-          this.tabs = this.$store.getters['editor/vizzes']().vizzes
-        }
-      }
-    )
+    this.tabs = this.editorStore.getVizzes()
+      ? this.editorStore.getVizzes().vizzes
+      : this.editorStore.getVizzes()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.resizeVizHeight)
-    this.unsubscribe();
+  },
+  watch: {
+    // Replaces the Vuex mutation subscription on workspace/SET_ACTIVE_DATASET.
+    'workspaceStore.activeDataset'() {
+      const vizzes = this.editorStore.getVizzes()
+      this.tabs = vizzes ? vizzes.vizzes : vizzes
+    }
   },
   computed: {
     cssProps() {
@@ -120,11 +120,8 @@ export default {
     },
     async addViz() {
       try {
-        this.openTab = await this.$store.dispatch('editor/ADD_VIZ', {})
-        await this.$store.dispatch(
-          'editor/SET_ACTIVE_VIZ',
-          { idx: this.vizzes.length - 1}
-        )
+        this.openTab = await this.editorStore.ADD_VIZ({})
+        this.editorStore.SET_ACTIVE_VIZ({ idx: this.vizzes.length - 1})
         this.tabs = this.vizzes
       } catch (error) {
         throw new Error(error.message);
@@ -133,11 +130,8 @@ export default {
     async removeViz(idx) {
       try {
         this.openTab = 0
-        await this.$store.dispatch(
-          'editor/SET_ACTIVE_VIZ',
-          { idx: 0 }
-        )
-        await this.$store.dispatch('editor/REMOVE_VIZ', { idx })
+        this.editorStore.SET_ACTIVE_VIZ({ idx: 0 })
+        await this.editorStore.REMOVE_VIZ({ idx })
         this.tabs = this.vizzes
       } catch (error) {
         throw new Error(error.message)
@@ -145,22 +139,16 @@ export default {
     },
     async setActiveViz(idx) {
       this.openTab = idx
-      await this.$store.dispatch(
-        'editor/SET_ACTIVE_VIZ',
-        { idx: idx }
-      )
+      this.editorStore.SET_ACTIVE_VIZ({ idx: idx })
       const payload = {
-        values: this.$store.getters['editor/chart'],
+        values: this.editorStore.chart,
         data: [],
         idx: idx
       }
       payload.data = await this.createVizQuery(
         payload.values
       )
-      await this.$store.dispatch(
-        'editor/UPDATE_VIZ',
-        payload
-      )
+      this.editorStore.UPDATE_VIZ(payload)
      },
     /**
      * Appends an input to edit selected label
@@ -205,7 +193,7 @@ export default {
      */
     onChartIsLoaded($element) {
       const vm = this;
-      this.$store.dispatch('editor/UPDATE_LOADING_STATE', false)
+      this.editorStore.UPDATE_LOADING_STATE(false)
       this.createInputToEditLabel(
         $element,
         '.generated-title',

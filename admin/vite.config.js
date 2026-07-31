@@ -7,7 +7,12 @@ export default defineConfig(({ mode }) => ({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // @dboxjs/core's package.json "module" points to a dist/dbox.mjs that
+      // was never published — resolve straight to the real UMD build.
+      '@dboxjs/core': fileURLToPath(
+        new URL('./node_modules/@dboxjs/core/dist/dbox.js', import.meta.url)
+      )
     }
   },
   server: {
@@ -21,6 +26,8 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     cssCodeSplit: false,
     rollupOptions: {
+      // Name the entry "app" so the bundle lands at js/app.js (WP enqueue contract).
+      input: { app: fileURLToPath(new URL('./index.html', import.meta.url)) },
       output: {
         entryFileNames: 'js/[name].js',
         chunkFileNames: 'js/[name].js',

@@ -19,7 +19,7 @@
         <v-row
           class="min-height-container"
           v-show="!loading && total === 0"
-          justify-center
+          justify="center"
         > 
           <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
             <h1 class="initial-msg-title">Vpress</h1>
@@ -59,6 +59,8 @@
 import VpressPaginator from './vpress-paginator.vue'
 import VpressDatasetCard from './vpress-dataset-card.vue'
 import VpressDataModuleSearch from './vpress-data-module-search.vue'
+import { mapStores } from 'pinia'
+import { useNotificationsStore } from '../store/index.js'
 import api from '../utils/axios.js'
 
 export default {
@@ -67,6 +69,10 @@ export default {
     VpressDatasetCard,
     VpressPaginator,
     VpressDataModuleSearch
+  },
+  emits: ['dataset', 'on-dataset-delete'],
+  computed: {
+    ...mapStores(useNotificationsStore)
   },
   data() {
     return {
@@ -104,7 +110,7 @@ export default {
         this.total = data.total
         this.loading = false
       } catch (error) {
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'error',
           text: 'Hubo un error al intentar obtener el dataset'
         })

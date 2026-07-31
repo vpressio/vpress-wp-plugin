@@ -3,7 +3,7 @@
     <div class="viz-list-header text-subtitle-2 font-weight-regular">
       <v-spacer/>
       <img
-        :src="require('../assets/images/graficos-recomendados.svg')"
+        :src="imageUrl('graficos-recomendados.svg')"
         alt="viz"
         width="30px"
         height="30px"
@@ -17,26 +17,23 @@
     <v-spacer/>
       <div class="slide-container">
         <v-slide-group show-arrows >
-          <v-slide-item
+          <v-slide-group-item
             v-for="(graph, graphIndex) in availableCharts"
             :key="graphIndex"
           >
             <v-menu
-              nudge-top="-5"
-              :nudge-left="getWidthWpSidebar"
               open-on-hover
               max-width="205"
               :z-index="10000"
               :close-on-content-click="false"
             >
-              <template v-slot:activator="{ on, attrs }">
+              <template v-slot:activator="{ props }">
                 <v-btn
                   :class="graph.disabled ? 'lighten-1' : ''"
-                  text
+                  variant="text"
                   @click="setChartType(graph)"
                   class="mx-1"
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                 >
                   <img
                     :class="{ 'disabled-img': graph.disabled }"
@@ -64,7 +61,7 @@
                 </v-card-text>
               </v-card>
             </v-menu>
-          </v-slide-item>
+          </v-slide-group-item>
         </v-slide-group>
       </div>
       <v-spacer/>
@@ -72,15 +69,15 @@
         <v-divider class="tri-actions-divider" vertical/>
         <v-spacer/>
         <v-btn icon @click="saveChart">
-          <img :src="require('../assets/images/Guardar.svg')" alt="" width="20" height="20"/>
+          <img :src="imageUrl('Guardar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
         <v-btn icon @click="downloadChartImg">
-          <img :src="require('../assets/images/Descargar.svg')" alt="" width="20" height="20"/>
+          <img :src="imageUrl('Descargar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
         <v-btn icon @click="clipboardCopy">
-          <img :src="require('../assets/images/Compartir.svg')" alt="" width="20" height="20"/>
+          <img :src="imageUrl('Compartir.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
       </div>
@@ -88,20 +85,25 @@
     </div>
 </template>
 <script>
+import { mapStores } from 'pinia'
 import { downloadChart, stringChart } from '../utils/downloadChart.js'
 import { editorMixin } from '../mixins/index.js'
+import { useNotificationsStore } from '../store/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
+import vpressConfig from '../assets/vpress.theme.json'
 
 export default {
   name: 'VpressVizToolbar',
   mixins: [editorMixin],
   computed: {
+    ...mapStores(useNotificationsStore),
     cssProps() {
       return {
-        '--primary': this.$vuetify.theme.themes.light.primary
+        '--primary': vpressConfig.themes.light.primary
       }
     },
     availableCharts() {
-      return this.$store.getters['editor/getAvailableCharts']
+      return this.editorStore.getAvailableCharts
     },
     getWidthWpSidebar() {
       const width = document.getElementById('adminmenuback').clientWidth + 20
@@ -116,26 +118,27 @@ export default {
         );
       }
     },
+    imageUrl,
     requireImg(chartType) {
       try {
-        return require(`../assets/images/${chartType}.svg`);
+        return imageUrl(`${chartType}.svg`);
       } catch (error) {
-        return require('../assets/images/spineplot.svg')
+        return imageUrl('spineplot.svg')
       }
     },
     async saveChart() {
       try {
-        await this.$store.dispatch('editor/SAVE_CHART');
+        await this.editorStore.SAVE_CHART();
         stringChart(
           `#empty_chart_0`,
-          this.$store.getters['editor/viz'].id
+          this.editorStore.viz.id
         )
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Gráfica guardada con éxito'
         })
       } catch (error) {
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'error',
           text: 'Error al guardar gráfica'
         })
@@ -166,12 +169,12 @@ export default {
             document.getSelection().removeAllRanges();
             document.getSelection().addRange(selected);
           }
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'success',
             text: 'Gráfica guardada al portapapeles'
           })
         } else {
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'warning',
             text: 'Primero debes de guardar la gráfica'
           })

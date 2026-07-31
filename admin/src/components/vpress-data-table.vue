@@ -6,73 +6,71 @@
         <v-divider class="mb-5"/>
       </span>
     </div>
-    <v-data-table
-      disable-sort
-      calculate-widths
+    <v-data-table-server
       :headers="headers"
       :items="items"
-      :item-key="headers[0] ? headers[0].value : ''"
-      :options.sync="options"
-      :server-items-length="total"
+      :item-value="headers[0] ? headers[0].key : ''"
+      :items-length="total"
       :loading="loading"
       class="elevation-0"
-      :mobile-breakpoint='0'
+      :mobile-breakpoint="0"
+      @update:options="updateOptions"
     >
-      <template v-slot:[`header.${header.value}`]="props" v-for="header in headers">
-        <div :key="header.value" class="thead-container">
+      <template v-slot:[`header.${header.key}`]="{ column }" v-for="header in headers">
+        <div :key="header.key" class="thead-container">
           <div class="header-text">
-            {{ props.header.text }}
+            {{ column.title }}
           </div>
           <v-spacer/>
           <v-menu
-            fixed
-            left
-            nudge-left="135"
+            location="left"
             :close-on-content-click="false"
           >
-            <template v-slot:activator="{ on }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                v-on="on"
-                x-small
+                v-bind="props"
+                size="x-small"
                 icon
               >
-                <v-icon dense>mdi-dots-vertical</v-icon>
+                <v-icon size="small">mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-list>
-              <v-list-item @click="dialog = true; oldName = props.header.value">
+              <v-list-item @click="dialog = true; oldName = column.key">
                 <v-list-item-title class="font-weight-regular">
                   Renombrar
                 </v-list-item-title>
               </v-list-item>
               <v-list-group>
-                <template v-slot:activator>
-                  <v-list-item-title class="font-weight-regular">
-                    Cambiar tipo de dato
-                  </v-list-item-title>
+                <template v-slot:activator="{ props }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-title class="font-weight-regular">
+                      Cambiar tipo de dato
+                    </v-list-item-title>
+                  </v-list-item>
                 </template>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'text')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'text')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     String
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'int')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'int')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Number
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'date')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'date')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Date
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'boolean')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'boolean')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Boolean
                   </v-list-item-title>
                 </v-list-item>
               </v-list-group>
-              <v-list-item @click="deleteColumn(props.header)">
+              <v-list-item @click="deleteColumn(column)">
                 <v-list-item-title class="font-weight-regular">
                   Eliminar columna
                 </v-list-item-title>
@@ -81,25 +79,25 @@
           </v-menu>
         </div>
       </template>
-      <template v-slot:item="props">
+      <template v-slot:item="{ item, columns }">
         <tr class="eltr">
           <td
             class="eltd"
-            v-for="header in props.headers"
-            :key="header.value"
+            v-for="column in columns"
+            :key="column.key"
           >
-            {{ props.item[header.value] }}
+            {{ item[column.key] }}
           </td>
         </tr>
       </template>
-    </v-data-table>
+    </v-data-table-server>
     <v-dialog
       v-model="dialog"
       max-width="500px"
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Renombrar</span>
+          <span class="text-h5">Renombrar</span>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text>
@@ -118,8 +116,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="blue darken-1"
-            text
+            color="blue-darken-1"
+            variant="text"
             @click="dialog = false"
           >
             Cerrar
@@ -136,6 +134,8 @@
   </div>
 </template>
 <script>
+import { mapStores } from 'pinia'
+import { useNotificationsStore } from '../store/index.js'
 import api from '../utils/axios'
 
 export default {
@@ -160,6 +160,9 @@ export default {
   mounted() {
     if (this.dataset) this.getDataFromApi()
   },
+  computed: {
+    ...mapStores(useNotificationsStore)
+  },
   watch: {
     dialog(val) {
       if (!val) {
@@ -172,6 +175,10 @@ export default {
     }
   },
   methods: {
+    updateOptions(options) {
+      this.options = options
+      this.getDataFromApi()
+    },
     async getDataFromApi () {
       try {
         this.loading = true
@@ -199,9 +206,9 @@ export default {
     },
     extractHeaders(data) {
       return Object.keys(data).map(o => ({
-        text: o,
-        value: o,
-        sortable: true
+        title: o,
+        key: o,
+        sortable: false
       }));
     },
     async renameColumn() {
@@ -213,7 +220,7 @@ export default {
       await api.dataset.rename_column(obj);
       await this.getDataFromApi()
       this.dialog = false;
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Columna renombrada con éxito'
       })
@@ -226,7 +233,7 @@ export default {
       }
       await api.dataset.change_data_type_column(obj);
       await this.getDataFromApi()
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Tipo de dato modificado con éxito'
       })
@@ -234,11 +241,11 @@ export default {
     async deleteColumn(column) {
       const obj = {
         dataset: this.dataset.slug,
-        column: column.value
+        column: column.key
       }
       await api.dataset.delete_column(obj);
       await this.getDataFromApi()
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Columna eliminada con éxito'
       })
@@ -252,7 +259,7 @@ export default {
   display: inline-flex;
   width: 50%;
 }
-::v-deep .v-data-table-header {
+:deep(.v-data-table__thead) {
   th {
     white-space: nowrap;
     border-bottom: solid  1.5px !important;
@@ -268,7 +275,7 @@ export default {
 
 .header-text {
   min-height: 60px;
-  display: flex;  
+  display: flex;
   align-items: center;
 }
 
