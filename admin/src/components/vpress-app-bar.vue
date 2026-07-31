@@ -72,4 +72,13 @@ export default {
 .gradient {
   background: var(--bg-linear-gradient);
 }
+
+/* v2 parity: active section renders as a light translucent pill (v3's default
+   active overlay comes out dark on the gradient). */
+.gradient .v-btn--active {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+.gradient .v-btn--active > .v-btn__overlay {
+  opacity: 0;
+}
 </style>

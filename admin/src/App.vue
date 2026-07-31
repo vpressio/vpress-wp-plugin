@@ -18,15 +18,25 @@ export default {
 }
 
 .v-input {
+  /* WP-admin resets only — v3 fields size themselves via the input's
+     min-height, so the old `min-height: unset` hack would collapse them. */
   input {
     border: none;
-    min-height: unset;
   }
   input:focus {
     border: none;
     box-shadow: none;
     outline: none;
   }
+}
+
+/* WP admin's forms.css pins input[type=text] to min-height:40px, out-ranking
+   Vuetify's field sizing. Re-assert the Vuetify 3 rule with higher specificity. */
+.v-application .v-field__input {
+  min-height: max(
+    var(--v-input-control-height, 56px),
+    1.5rem + var(--v-field-input-padding-top) + var(--v-field-input-padding-bottom)
+  );
 }
 
 a:focus, textarea:focus {
