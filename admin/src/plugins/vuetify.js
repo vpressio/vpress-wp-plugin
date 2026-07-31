@@ -17,6 +17,9 @@ const themes = Object.fromEntries(
   Object.entries(vpressConfig.themes).map(([name, entries]) => [
     name,
     {
+      // Without dark:true Vuetify builds the theme with light on-surface
+      // tokens — theme="dark" scopes would render black text.
+      dark: name === 'dark',
       colors: Object.fromEntries(
         Object.entries(entries)
           .filter(([, value]) => typeof value === 'string' && value !== '')
