@@ -18,7 +18,7 @@
         height="100%"
         min-width="30"
         :to="link.path"
-        active-class="nav-btn__active"
+        :class="{ 'nav-btn__active': $route.path === link.path }"
         :disabled="disabledValidation(link)"
       >
         <img

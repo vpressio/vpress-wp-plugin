@@ -44,7 +44,6 @@
       <div v-if="inSlot" class="operationButtonContainer">
         <v-menu
           attach
-          close-on-click
           location="end"
         >
           <template v-slot:activator="{ props }">

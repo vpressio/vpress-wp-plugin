@@ -45,7 +45,7 @@
         <v-row
           v-show="!loading"
         >
-          <v-col xs="12" sm="3" md="3" class="dataset-vizzes">
+          <v-col cols="12" sm="3" md="3" class="dataset-vizzes">
             <div class="database-data-section" >
               <div class="text-subtitle-2">
                 Base de datos
@@ -66,7 +66,7 @@
               vertical
             />
           </v-col>
-          <v-col xs="12" sm="9" md="9">
+          <v-col cols="12" sm="9" md="9">
             <div class="text-subtitle-2 mb-2">
                 Gráficas hechas con la base de datos
             </div>

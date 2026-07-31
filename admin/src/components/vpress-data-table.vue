@@ -157,9 +157,6 @@ export default {
       oldName: null
     }
   },
-  mounted() {
-    if (this.dataset) this.getDataFromApi()
-  },
   computed: {
     ...mapStores(useNotificationsStore)
   },
@@ -183,8 +180,9 @@ export default {
       try {
         this.loading = true
         this.items = []
-        this.total = 0
         this.headers = []
+        // NOTE: total is NOT zeroed here — :items-length="0" would make
+        // Vuetify clamp the pager back to page 1 mid-request.
         const { page, itemsPerPage } = this.options
         if(this.dataset) {
           const obj = {

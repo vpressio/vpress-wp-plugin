@@ -21,7 +21,7 @@
           v-show="!loading && total === 0"
           justify="center"
         > 
-          <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+          <v-col offset="2" offset-sm="3" offset-md="3" cols="10" sm="6" md="6">
             <h1 class="initial-msg-title">Vpress</h1>
             <span class="initial-msg">
               Parece que no hay nada aquí.
