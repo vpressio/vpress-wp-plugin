@@ -1,5 +1,7 @@
 <template>
-  <v-app-bar density="compact" flat class="gradient v-step-0 v-step-3" :style="cssProps">
+  <!-- v-toolbar, not v-app-bar: v3's app-bar is always viewport-fixed (layout
+       system), which escapes the WP-admin container and hides under WP's bar. -->
+  <v-toolbar density="compact" flat class="gradient v-step-0 v-step-3" :style="cssProps">
     <v-img
       :src="appBarLogo"
       class="ml-5 vpress-image"
@@ -27,7 +29,7 @@
       </v-icon>
       {{ item.title }}
     </v-btn>
-  </v-app-bar>
+  </v-toolbar>
 </template>
 <script>
 import { imageUrl } from '../utils/assetUrl.js'
