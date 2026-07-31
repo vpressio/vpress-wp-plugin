@@ -1,42 +1,31 @@
+import { mapStores } from 'pinia'
 import { vizzesIncludes } from '../helpers/index.js'
+import { useEditorStore, useWorkspaceStore } from '../store/index.js'
 
 export default {
-  filters: {
-    intFormat(number) {
-      return new Intl.NumberFormat().format(number)
-    },
-  },
   computed: {
+    ...mapStores(useEditorStore, useWorkspaceStore),
     vizzes() {
-      return this.$store.getters['editor/vizzes']()
-      ? this.$store.getters['editor/vizzes']().vizzes
-      : this.$store.getters['editor/vizzes']()
+      return this.editorStore.getVizzes()
+      ? this.editorStore.getVizzes().vizzes
+      : this.editorStore.getVizzes()
     },
     viz() {
-      return this.$store.getters['editor/viz']
+      return this.editorStore.viz
     },
     loadingViz() {
-      return this.$store.getters['editor/loadingState']
+      return this.editorStore.loadingState
     }
   },
   methods: {
+    intFormat(number) {
+      return new Intl.NumberFormat().format(number)
+    },
     async editorInit(dataset, vizValues) {
       try {
-        const datasetMeta = await this.$store
-          .dispatch(
-            'workspace/ADD_DATASET',
-            dataset,
-        )
-        await this.$store
-          .dispatch(
-            'workspace/UPDATE_ACTIVE_DATASET',
-            datasetMeta.slug
-          )
-        await this.$store
-          .dispatch(
-            'editor/LOAD_VIZZES',
-            { vizValues }
-        )
+        const datasetMeta = await this.workspaceStore.ADD_DATASET(dataset)
+        this.workspaceStore.UPDATE_ACTIVE_DATASET(datasetMeta.slug)
+        this.editorStore.LOAD_VIZZES({ vizValues })
         return { datasetMeta }
       } catch (error) {
         throw new Error(error.message)
@@ -44,19 +33,16 @@ export default {
     },
     async updateActiveDataset(dataset) {
       try {
-        this.$store.dispatch(
-          'workspace/UPDATE_ACTIVE_DATASET',
-          dataset
-        )
-        this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: 0 })
+        this.workspaceStore.UPDATE_ACTIVE_DATASET(dataset)
+        this.editorStore.SET_ACTIVE_VIZ({ idx: 0 })
       } catch (error) {
         throw new Error(error.message)
       }
     },
     async loadSavedViz(viz, dataset) { // TODO: Reconsider functionality
-      const storedVizzes = this.$store.getters['editor/vizzes'](dataset.slug)
-        ? this.$store.getters['editor/vizzes'](dataset.slug).vizzes
-        : this.$store.getters['editor/vizzes'](dataset.slug)
+      const storedVizzes = this.editorStore.getVizzes(dataset.slug)
+        ? this.editorStore.getVizzes(dataset.slug).vizzes
+        : this.editorStore.getVizzes(dataset.slug)
       const parsedViz = JSON.parse(viz.value)
       if (storedVizzes) {
         const { includes, idx } = vizzesIncludes(viz.id, storedVizzes)
@@ -77,12 +63,12 @@ export default {
         }
         payload.data = await this.createVizQuery(payload.values, dataset)
         const { values, data, index } = payload
-        await this.$store.dispatch('editor/SET_ACTIVE_VIZ', { idx: index })
-        await this.$store.dispatch('editor/UPDATE_VIZ', { values, data, dataset})
+        this.editorStore.SET_ACTIVE_VIZ({ idx: index })
+        this.editorStore.UPDATE_VIZ({ values, data, dataset })
       } else {
         await this.editorInit(dataset, [viz])
         const data = await this.createVizQuery(parsedViz, dataset)
-        await this.$store.dispatch('editor/UPDATE_VIZ', { data, dataset})
+        this.editorStore.UPDATE_VIZ({ data, dataset })
       }
     },
   }

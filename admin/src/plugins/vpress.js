@@ -1,6 +1,3 @@
-import Vue from 'vue';
-import Vpress from '../vpress/index.js'
+import Vpress from '../vpress/index.js';
 
-Vue.use(Vpress)
-
-export default Vpress
+export default Vpress;

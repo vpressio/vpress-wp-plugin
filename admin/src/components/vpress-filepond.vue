@@ -29,7 +29,7 @@
         height="50"
         @click="activateFileInput"
       >
-        <v-icon class="icon-upload" left>mdi-file-upload-outline</v-icon>
+        <v-icon class="icon-upload" start>mdi-file-upload-outline</v-icon>
         Subir datos
       </v-btn>
       <input v-show="false" type="file" ref="fileInput" id="fileInput" accept="text/csv" @input="fileInputAction" />
@@ -46,7 +46,7 @@
     >
       <v-card
         color="primary"
-        dark
+        theme="dark"
       >
         <v-card-text>
           <v-card-title class="px-0 text-subtitle-1">
@@ -63,7 +63,9 @@
   </v-card>
 </template>
 <script>
+import { mapStores } from 'pinia'
 import api from '../utils/axios'
+import { useNotificationsStore } from '../store/index.js'
 import vueFilePond from 'vue-filepond';
 import 'filepond/dist/filepond.min.css';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
@@ -74,6 +76,7 @@ export default {
     FilePond: vueFilePond(FilePondPluginFileValidateType)
   },
   props: ['file'],
+  emits: ['uploaded'],
   data() {
     return {
       loading: false,
@@ -83,6 +86,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useNotificationsStore),
     fileTypeDynamicMessage() {
       return this.fileTypeMessage;
     },
@@ -106,14 +110,14 @@ export default {
           permissions: "public",
           owner_id: window.userSettings.uid
         })
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Dataset guardado con éxito'
         })
         this.$emit('uploaded', createRes.data.data[0]);
         this.loading = false
       } catch (error) {
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'error',
           text: 'Hubo un error al intentar guardar el dataset'
         })

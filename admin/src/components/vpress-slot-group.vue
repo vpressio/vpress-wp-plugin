@@ -48,7 +48,9 @@
   </div>
 </template>
 <script>
-import VpressSlot from './vpress-slot';
+import { mapStores } from 'pinia';
+import VpressSlot from './vpress-slot.vue';
+import { useEditorStore } from '../store/index.js';
 
 export default {
   name: 'VpressSlotGroup',
@@ -56,8 +58,9 @@ export default {
     VpressSlot
   },
   computed: {
+    ...mapStores(useEditorStore),
     chartType () {
-      return this.$store.getters['editor/chartType']
+      return this.editorStore.chartType
     }
   }
 };

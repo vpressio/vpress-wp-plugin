@@ -1,16 +1,18 @@
 <template>
   <div>
-    <v-card :loading="loading" class="mx-auto pb-4">
+    <v-card
+      :loading="loading"
+      class="mx-auto pb-4"
+    >
       <div class="mx-5 pt-4">
         <v-img
           class="link mb-3"
-          contain
           @click="createChart"
           color="#222A32"
           :src="requireImg(img_url)"
         />
       </div>
-      <v-divider />
+      <v-divider/>
       <div class="mx-5">
         <div class="link text-truncate viz-card-title">
           <span
@@ -20,14 +22,13 @@
           >
             Sin título
           </span>
-          <v-tooltip left fixed>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="start">
+            <template v-slot:activator="{ props }">
               <span
                 v-if="editedItem.chartValues.title.trim().length !== 0 && !editTitle"
                 class="edit"
                 @click="createChart"
-                v-bind="attrs"
-                v-on="on"
+                v-bind="props"
               >
                 {{ editedItem.chartValues.title }}
               </span>
@@ -37,8 +38,8 @@
           <v-text-field
             ref="title-input"
             v-show="editTitle"
-            dense
-            solo
+            density="compact"
+            variant="solo"
             flat
             v-model="editedItem.chartValues.title"
             @keydown.enter.exact.prevent
@@ -62,13 +63,13 @@
             @mouseleave="showIcon = false"
           >
             {{ editedItem.chartValues.subtitle }}
-            <v-icon dense v-show="showIcon">mdi-pencil</v-icon>
+            <v-icon size="small" v-show="showIcon">mdi-pencil</v-icon>
           </span>
           <v-text-field
             ref="subtitle-input"
             v-show="editSubtitle"
-            dense
-            solo
+            density="compact"
+            variant="solo"
             flat
             v-model="editedItem.chartValues.subtitle"
             @keydown.enter.exact.prevent
@@ -92,17 +93,15 @@
             @mouseleave="showDescriptionIcon = false"
           >
             {{ editedItem.description }}
-            <v-icon dense v-show="showDescriptionIcon">mdi-pencil</v-icon>
+            <v-icon size="small" v-show="showDescriptionIcon">mdi-pencil</v-icon>
           </span>
           <v-textarea
             ref="description-input"
             counter="5"
-            :allow-overflow="false"
             v-show="editDescription"
-            item-color="primary"
-            dense
+            density="compact"
             height="90"
-            solo
+            variant="solo"
             flat
             maxlength="140"
             hide-details
@@ -114,15 +113,15 @@
             @blur="save"
           />
         </div>
-        <v-divider class="my-1" />
+        <v-divider class="my-1"/>
         <v-combobox
           class="tag-box"
-          solo
+          variant="solo"
           flat
           chips
           multiple
           hide-details
-          deletable-chips
+          closable-chips
           color="primary"
           label="Agregar etiquetas"
           v-model="editedItem.tags"
@@ -131,58 +130,54 @@
           @blur="save"
           @click.stop="editedTags = true"
         >
-          <template v-slot:selection="{ attrs, item, parent }">
-            <v-chip v-bind="attrs" color="primary">
+          <template v-slot:chip="{ props, item }">
+            <v-chip
+              v-bind="props"
+              color="primary"
+            >
               <span class="pr-2 font-weight-light">
-                {{ item }}
+                {{ item.value }}
               </span>
-              <v-icon small @click="parent.selectItem(item)">
-                mdi-close
-              </v-icon>
             </v-chip>
           </template>
         </v-combobox>
         <v-card-actions>
           <v-row align="center">
             <span
-              @click="
-                editedItem.permissions === 'public'
-                  ? (editedItem.permissions = 'private')
-                  : (editedItem.permissions = 'public');
-                save();
-              "
+              @click="editedItem.permissions === 'public' ? editedItem.permissions = 'private' : editedItem.permissions = 'public'; save()"
               class="link text-uppercase mr-2 font-weight-bold"
-              :class="{
-                'green--text': editedItem.permissions.toLowerCase() === 'public',
-                'red--text': editedItem.permissions.toLowerCase() !== 'public'
-              }"
+              :class="{ 'text-green': editedItem.permissions.toLowerCase() === 'public', 'text-red': editedItem.permissions.toLowerCase() !== 'public' }"
             >
               {{ editedItem.permissions }}
             </span>
-            <v-spacer />
-            <span class="grey--text">
-              <v-icon small>mdi-clock-outline</v-icon>
-              {{ updated | dateFormat }}
+            <v-spacer/>
+            <span class="text-grey">
+              <v-icon size="small">mdi-clock-outline</v-icon>
+              {{ dateFormat(updated) }}
             </span>
-            <v-spacer />
-            <v-btn icon x-small color="primary" @click="shareChart">
+            <v-spacer/>
+            <v-btn icon size="x-small" color="primary" @click="shareChart">
               <v-icon>mdi-share-variant-outline</v-icon>
             </v-btn>
-            <v-spacer />
-            <v-btn icon x-small color="primary" @click="dialogConfirmDeletion = true">
+            <v-spacer/>
+            <v-btn icon size="x-small" color="primary" @click="dialogConfirmDeletion = true">
               <v-icon>mdi-trash-can-outline</v-icon>
             </v-btn>
-            <v-spacer />
+            <v-spacer/>
           </v-row>
         </v-card-actions>
       </div>
     </v-card>
-    <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
+    <v-dialog
+      v-model="dialogConfirmDeletion"
+      max-width="500px"
+      scrollable
+    >
       <v-card>
-        <v-toolbar dark flat color="primary">
+        <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click="dialogConfirmDeletion = false">
+          <v-btn icon @click="dialogConfirmDeletion = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -199,7 +194,11 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="dialogConfirmDeletion = false">
+          <v-btn
+            color="primary"
+            variant="text"
+            @click="dialogConfirmDeletion = false"
+          >
             Cancelar
           </v-btn>
           <v-btn color="primary" @click="deleteChart" :loading="loading">Eliminar</v-btn>
@@ -209,9 +208,12 @@
   </div>
 </template>
 <script>
-import { clone } from 'lodash';
-import { loaderMixin, editorMixin } from '../mixins/index.js';
-import api from '../utils/axios';
+import { clone } from 'lodash'
+import { mapStores } from 'pinia'
+import { loaderMixin, editorMixin } from '../mixins/index.js'
+import { useNotificationsStore } from '../store/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
+import api from '../utils/axios'
 
 export default {
   name: 'VpressChartCard',
@@ -223,7 +225,7 @@ export default {
     },
     value: {
       type: String,
-      required: true
+      required:true
     },
     dataset_id: {
       type: String,
@@ -251,10 +253,11 @@ export default {
       required: true
     }
   },
+  emits: ['onDeleted'],
   data: () => ({
+    loading: false,
     showIcon: false,
     showDescriptionIcon: false,
-    loading: false,
     chartValues: {},
     editTitle: false,
     editSubtitle: false,
@@ -263,7 +266,7 @@ export default {
     editedItem: {
       chartValues: {
         title: '',
-        subtitle: ''
+        subtitle: '',
       },
       description: '',
       tags: '',
@@ -272,95 +275,98 @@ export default {
     dialogConfirmDeletion: false
   }),
   created() {
-    this.chartValues = JSON.parse(this.value);
+    this.chartValues = JSON.parse(this.value)
     this.editedItem = {
       chartValues: clone(this.chartValues),
       description: clone(this.description),
       tags: clone(this.tags),
       permissions: clone(this.permissions)
-    };
-  },
-  filters: {
-    dateFormat(update) {
-      const date = new Date(update).toLocaleString().replace(', ', ' | ');
-      return date;
     }
   },
+  computed: {
+    ...mapStores(useNotificationsStore)
+  },
   methods: {
+    dateFormat(update) {
+      const date = new Date(update)
+        .toLocaleString()
+        .replace( ', ', ' | ' )
+      return date
+    },
     requireImg(url) {
       try {
-        const vizType = JSON.parse(this.value).chart;
-        return url && url.length > 0 ? url : require(`../assets/images/${vizType}.png`);
+        const vizType = JSON.parse(this.value).chart
+        return url && url.length > 0
+          ? url
+          : imageUrl(`${vizType}.png`);
       } catch (error) {
-        return require('../assets/images/spineplot.png');
+        return imageUrl('spineplot.png')
       }
     },
-    async toggleInput(field, element) {
-      this[field] = true;
+     async toggleInput(field, element) {
+      this[field] = true
       await this.$nextTick();
       //Focus on the deepest node (input) of the vuetify element
-      this.$refs[element].focus();
+      this.$refs[element].focus()
     },
-    async createChart() {
+    async createChart () {
       try {
-        this.loading = true;
-        const viz = await api.chart.get(this.id);
-        const dataset = await api.dataset.get(this.dataset_id);
-        await this.loadSavedViz(viz.data.data, dataset.data.data);
-        this.$router.push({ path: `/editor/config`, query: { tab: 1 } });
-        this.loading = false;
+        this.loading = true
+        const viz = await api.chart.get(this.id)
+        const dataset = await api.dataset.get(this.dataset_id)
+        await this.loadSavedViz(viz.data.data, dataset.data.data)
+        this.$router.push({ path: `/editor/config`, query: { tab: 1 } })
+        this.loading = false
       } catch (error) {
-        this.loading = false;
+        this.loading = false
         throw new Error(error.message);
       }
     },
     async deleteChart() {
       try {
-        this.loading = true;
-        const response = await api.chart.delete({ data: { id: parseInt(this.id) } });
-        this.$emit('onDeleted');
-        this.loading = false;
-        this.dialogConfirmDeletion = false;
-        return response;
+        this.loading = true
+        const response = await api.chart.delete({ data: { id: parseInt(this.id) }});
+        this.$emit('onDeleted')
+        this.loading = false
+        this.dialogConfirmDeletion = false
+        return response
       } catch (error) {
-        this.loading = false;
-        this.dialogConfirmDeletion = false;
-        throw new Error(error.message);
+        this.loading = false
+        this.dialogConfirmDeletion = false
+        throw new Error(error.message)
       }
     },
-    async save() {
+    async save () {
       try {
-        this.editTitle = false;
-        this.editSubtitle = false;
-        this.editDescription = false;
-        this.editedTags = false;
-        this.showIcon = false;
-        this.showDescriptionIcon = false;
-        this.loading = true;
+        this.editTitle = false
+        this.editSubtitle = false
+        this.editDescription = false
+        this.editedTags = false
+        this.loading = true
         const body = {
           id: parseInt(this.id),
           value: JSON.stringify(this.editedItem.chartValues),
           description: this.editedItem.description.trim(),
           tags: this.editedItem.tags.join(', '),
           permissions: this.editedItem.permissions
-        };
+        }
         const response = await api.chart.update(body);
         this.chartValues = this.editedItem.chartValues;
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Gráfica actualizada con éxito'
-        });
+        })
       } catch (error) {
-        throw new Error(error.message);
+        throw new Error(error.message)
       }
-      this.loading = false;
+      this.loading = false
     },
     shareChart() {
       try {
-        const chartId = this.id;
+        const chartId = this.id
         if (chartId) {
           const el = document.createElement('textarea');
           el.value = `[vpress id=${chartId}]`;
@@ -369,7 +375,9 @@ export default {
           el.style.left = '-9999px';
           document.body.appendChild(el);
           const selected =
-            document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+            document.getSelection().rangeCount > 0
+              ? document.getSelection().getRangeAt(0)
+              : false;
           el.select();
           document.execCommand('copy');
           document.body.removeChild(el);
@@ -377,40 +385,39 @@ export default {
             document.getSelection().removeAllRanges();
             document.getSelection().addRange(selected);
           }
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'success',
             text: 'Gráfica guardada al portapapeles'
-          });
+          })
         } else {
-          this.$store.dispatch('notifications/open', {
+          this.notificationsStore.open({
             color: 'warning',
             text: 'Primero debes de guardar la gráfica'
-          });
-          throw new Error('Gráfica no guardada.');
+          })
+          throw new Error('Gráfica no guardada.')
         }
       } catch (error) {
         throw new Error(error.message);
       }
-    }
+    },
   }
-};
+}
 </script>
 <style lang="scss" scoped>
-.link {
-  cursor: pointer;
+a {
+  color: rgba(0, 0, 0, 0.87) !important;
 }
-// .link:hover {
-//   text-decoration: underline;
-// }
-
-::v-deep.v-text-field > .v-input__control > .v-input__slot {
+a:hover {
+  text-decoration: underline;
+}
+:deep(.v-text-field > .v-input__control > .v-input__slot) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-::v-deep.v-text-field .v-input__append-inner {
+:deep(.v-text-field .v-input__append-inner) {
   display: none !important;
 }
-::v-deep.v-textarea textarea {
+:deep(.v-textarea textarea) {
   line-height: normal;
 }
 
@@ -422,7 +429,7 @@ export default {
 }
 
 .viz-card-subtitle {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 1.2rem;
   font-weight: 500;
   margin-top: 2%;
@@ -430,15 +437,16 @@ export default {
 }
 
 .viz-card-title {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 1.4rem;
   font-weight: 500;
   margin-top: 2%;
   height: 35px;
 }
 
-.add-text-toggle {
-  color: #21a7f3;
+.add-text-toggle{
+  color: #21A7F3;
   font-weight: 400;
 }
+
 </style>

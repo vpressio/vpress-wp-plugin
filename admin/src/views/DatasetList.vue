@@ -5,11 +5,32 @@
       btnLabel="Nueva base de datos"
       btnRoute="/data?upload=1"
     />
-    <v-row v-show="loading" class="min-height-container" justify="center" align-content="center">
-      <v-progress-circular :size="70" :width="7" color="primary" indeterminate />
+    <v-row
+      v-show="loading"
+      class="min-height-container"
+      justify="center"
+      align-content="center"
+    >
+      <v-progress-circular
+        :size="70"
+        :width="7"
+        color="primary"
+        indeterminate
+      />
     </v-row>
-    <v-row class="min-height-container" v-show="!loading && total === 0" justify-center>
-      <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+    <v-row
+      class="min-height-container"
+      v-show="!loading && total === 0"
+      justify="center"
+    >
+      <v-col
+        offset="2"
+        offset-sm="3"
+        offset-md="3"
+        cols="10"
+        sm="6"
+        md="6"
+      >
         <h1 class="initial-msg-title">Vpress</h1>
         <span class="initial-msg">
           Parece que no hay nada aquí.
@@ -22,15 +43,20 @@
       :perPage="perPage"
       @onPageChange="handlePageChange"
     >
-      <VpressDatasetPanel :items="items" @on-dataset-delete="getDatasets" />
+      <VpressDatasetPanel
+        :items="items"
+        @on-dataset-delete="getDatasets"
+      />
     </VpressPaginator>
   </v-container>
 </template>
 <script>
-import VpressDatasetPanel from '../components/vpress-dataset-panel.vue';
-import VpressSearchBar from '../components/vpress-search-bar.vue';
-import VpressPaginator from '../components/vpress-paginator.vue';
-import api from '../utils/axios';
+import { mapStores } from 'pinia'
+import VpressDatasetPanel from '../components/vpress-dataset-panel.vue'
+import VpressSearchBar from '../components/vpress-search-bar.vue'
+import VpressPaginator from '../components/vpress-paginator.vue'
+import { useNotificationsStore } from '../store/index.js'
+import api from '../utils/axios'
 
 export default {
   name: 'VpressDatasetList',
@@ -50,52 +76,57 @@ export default {
     totalDelete: 0,
     itemToDelete: null
   }),
+  computed: {
+    ...mapStores(useNotificationsStore)
+  },
   mounted() {
-    this.getDatasets();
+    this.getDatasets()
   },
   methods: {
     handlePageChange(page) {
-      this.page = page;
-      this.getDatasets();
+      this.page = page
+      this.getDatasets()
     },
     handleSearch(query) {
-      this.query = query;
-      this.getDatasets();
+      this.query = query
+      this.getDatasets()
     },
     async getDatasets() {
-      this.loading = true;
-      let hueDatasets = null;
+      this.loading = true
+      let hueDatasets
       const obj = {
         page: this.page,
         itemsPerPage: this.perPage,
         q: this.query
-      };
+      }
       try {
-        hueDatasets = await api.dataset.listHue(obj);
+        hueDatasets = await api.dataset.listHue(obj)
       } catch (error) {
         hueDatasets = {
           data: []
-        };
+        }
       }
       try {
         const { data } = await api.dataset.list(obj);
         data.data.forEach(element => {
-          element.tag = element.tag ? element.tag.split(', ') : (element.tag = []);
+          element.tag = element.tag
+            ? element.tag.split(', ')
+            : element.tag = []
         });
-        const allDatasets = data.data.concat(hueDatasets.data);
-        this.items = allDatasets;
-        this.total = data.total;
-        this.loading = false;
+        const allDatasets = data.data.concat(hueDatasets.data)
+        this.items = allDatasets
+        this.total = data.total
+        this.loading = false
       } catch (error) {
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'error',
           text: 'Hubo un error al intentar obtener el dataset'
-        });
-        this.loading = false;
+        })
+        this.loading = false
       }
     }
   }
-};
+}
 </script>
 <style lang="scss" scoped>
 .min-height-container {

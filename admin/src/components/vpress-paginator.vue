@@ -1,11 +1,15 @@
 <template>
   <v-row>
     <v-col cols="12">
-      <slot />
-      <v-divider />
+      <slot/>
+      <v-divider/>
     </v-col>
     <v-col>
-      <v-pagination v-model="page" :length="length" @input="handlePageChange" />
+      <v-pagination
+        v-model="page"
+        :length="length"
+        @update:modelValue="handlePageChange"
+      />
     </v-col>
   </v-row>
 </template>
@@ -22,11 +26,12 @@ export default {
       default: 1
     }
   },
+  emits: ['onPageChange'],
   data() {
     return {
       page: 1,
       length: 1
-    };
+    }
   },
   watch: {
     total(newTotal) {
@@ -35,8 +40,8 @@ export default {
   },
   methods: {
     handlePageChange() {
-      this.$emit('onPageChange', this.page);
+      this.$emit('onPageChange', this.page)
     }
   }
-};
+}
 </script>

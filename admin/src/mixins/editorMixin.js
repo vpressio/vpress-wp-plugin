@@ -1,5 +1,7 @@
+import { mapStores } from 'pinia'
 import api from '../utils/axios.js'
 import vpress from '../vpress/index.js'
+import { useEditorStore, useWorkspaceStore } from '../store/index.js'
 
 const {
   queryByChart,
@@ -11,33 +13,31 @@ const {
 
 export default {
   computed: {
+    ...mapStores(useEditorStore, useWorkspaceStore),
     loadingViz() {
-      return this.$store.getters['editor/loadingState']
+      return this.editorStore.loadingState
     }
   },
   methods: {
     async merge_value(payload) {
       try {
-        this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+        this.editorStore.UPDATE_LOADING_STATE(true)
         const newValue = payload
         const chartValues = mergeChartVal(
-          this.$store.getters['editor/viz'].getValues(),
+          this.editorStore.viz.getValues(),
           {
             newValue: newValue.value,
             mutationType: newValue.mutationType
           }
         )
-        await this.$store.dispatch(
-          'editor/UPDATE_VIZ',
-          { values: chartValues }
-        )
+        await this.editorStore.UPDATE_VIZ({ values: chartValues })
       } catch (error) {
         throw new Error(error.message);
       }
     },
     async merge_query(value, mutationType) {
       try {
-        const activeChart = this.$store.getters['editor/viz'].getValues()
+        const activeChart = this.editorStore.viz.getValues()
         const payload = {
           values: {},
           data: []
@@ -50,10 +50,7 @@ export default {
           }
         )
         payload.data = await this.createVizQuery(payload.values)
-        await this.$store.dispatch(
-          'editor/UPDATE_VIZ',
-          payload
-        )
+        await this.editorStore.UPDATE_VIZ(payload)
       } catch (error) {
         throw new Error(error.message);
       }
@@ -61,7 +58,7 @@ export default {
     async filter_params(payload) {
       try {
         const body = {
-          dataset: `vpress_${this.$store.getters['workspace/activeDataset'].slug}`,
+          dataset: `vpress_${this.workspaceStore.activeDatasetMeta.slug}`,
           context:{
             getFilters:{
               'slug': payload.column,
@@ -88,7 +85,7 @@ export default {
     },
     async createVizQuery(
         chartValues,
-        dataSetSlug = this.$store.getters['workspace/activeDataset']
+        dataSetSlug = this.workspaceStore.activeDatasetMeta
     ) {
       const dataSetSlugo = dataSetSlug ?  dataSetSlug.slug : ''
       const datasetSource = dataSetSlug ? dataSetSlug.source : 'wordpress'
@@ -97,7 +94,7 @@ export default {
           chartValues.xAxis.slug !== '' &&
           chartValues.yAxis.slug !== ''
         ) {
-          this.$store.dispatch('editor/UPDATE_LOADING_STATE', true)
+          this.editorStore.UPDATE_LOADING_STATE(true)
           const body = await queryBody(
             chartValues,
             dataSetSlugo,
@@ -109,7 +106,7 @@ export default {
           return []
         }
       } catch (error) {
-        this.$store.dispatch('editor/UPDATE_LOADING_STATE', false)
+        this.editorStore.UPDATE_LOADING_STATE(false)
         throw new Error(error.message)
       }
     },

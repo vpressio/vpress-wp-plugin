@@ -9,13 +9,13 @@
         @mouseleave="showIcon = false"
       >
         {{ this.dataset ? this.datasetName : '' }}
-        <v-icon dense v-show="showIcon">mdi-pencil</v-icon>
+        <v-icon size="small" v-show="showIcon">mdi-pencil</v-icon>
       </span>
       <v-text-field
         ref="edit-title"
         v-show="editTitle"
-        dense
-        solo
+        density="compact"
+        variant="solo"
         flat
         v-model="datasetName"
         @keydown.enter.exact.prevent
@@ -23,71 +23,73 @@
         @blur="save"
         @click.stop
       />
-      <v-divider class="mb-5" />
+      <v-divider class="mb-5"/>
     </div>
-    <v-data-table
-      disable-sort
-      calculate-widths
+    <v-data-table-server
       :headers="headers"
       :items="items"
-      :item-key="headers[0] ? headers[0].value : ''"
-      :options.sync="options"
-      :server-items-length="total"
+      :item-value="headers[0] ? headers[0].key : ''"
+      :items-length="total"
       :loading="loading"
       class="elevation-0"
       :mobile-breakpoint="0"
+      @update:options="updateOptions"
     >
-      <template v-slot:[`header.${header.value}`]="props" v-for="header in headers">
-        <div :key="header.value" class="thead-container">
+      <template v-for="header in headers" v-slot:[`header.${header.key}`]="{ column }" :key="header.key">
+        <div class="thead-container">
           <div class="header-text">
-            {{ props.header.text }}
+            {{ column.title }}
           </div>
-          <v-spacer />
-          <v-menu fixed left nudge-left="135" :close-on-content-click="false">
-            <template v-slot:activator="{ on }">
-              <v-btn v-on="on" x-small icon>
-                <v-icon dense>mdi-dots-vertical</v-icon>
+          <v-spacer/>
+          <v-menu
+            location="left"
+            :close-on-content-click="false"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                size="x-small"
+                icon
+              >
+                <v-icon size="small">mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-list>
-              <v-list-item
-                @click="
-                  dialog = true;
-                  oldName = props.header.value;
-                "
-              >
+              <v-list-item @click="dialog = true; oldName = column.key">
                 <v-list-item-title class="font-weight-regular">
                   Renombrar
                 </v-list-item-title>
               </v-list-item>
               <v-list-group>
-                <template v-slot:activator>
-                  <v-list-item-title class="font-weight-regular">
-                    Cambiar tipo de dato
-                  </v-list-item-title>
+                <template v-slot:activator="{ props }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-title class="font-weight-regular">
+                      Cambiar tipo de dato
+                    </v-list-item-title>
+                  </v-list-item>
                 </template>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'text')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'text')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     String
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'int')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'int')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Number
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'date')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'date')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Date
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="changeDataTypeColumn(props.header.value, 'boolean')">
+                <v-list-item @click="changeDataTypeColumn(column.key, 'boolean')">
                   <v-list-item-title class="font-weight-regular pl-4">
                     Boolean
                   </v-list-item-title>
                 </v-list-item>
               </v-list-group>
-              <v-list-item @click="deleteColumn(props.header)">
+              <v-list-item @click="deleteColumn(column)">
                 <v-list-item-title class="font-weight-regular">
                   Eliminar columna
                 </v-list-item-title>
@@ -96,25 +98,35 @@
           </v-menu>
         </div>
       </template>
-      <template v-slot:item="props">
+      <template v-slot:item="{ item, columns }">
         <tr class="eltr">
-          <td class="eltd" v-for="header in props.headers" :key="header.value">
-            {{ props.item[header.value] }}
+          <td
+            class="eltd"
+            v-for="column in columns"
+            :key="column.key"
+          >
+            {{ item[column.key] }}
           </td>
         </tr>
       </template>
-    </v-data-table>
-    <v-dialog v-model="dialog" max-width="500px">
+    </v-data-table-server>
+    <v-dialog
+      v-model="dialog"
+      max-width="500px"
+    >
       <v-card>
         <v-card-title>
-          <span class="headline">Renombrar</span>
+          <span class="text-h5">Renombrar</span>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text>
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="newName" label="Nombre"></v-text-field>
+                <v-text-field
+                  v-model="newName"
+                  label="Nombre"
+                ></v-text-field>
               </v-col>
             </v-row>
           </v-container>
@@ -122,10 +134,17 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="dialog = false">
+          <v-btn
+            color="blue-darken-1"
+            variant="text"
+            @click="dialog = false"
+          >
             Cerrar
           </v-btn>
-          <v-btn color="primary" @click="renameColumn">
+          <v-btn
+            color="primary"
+            @click="renameColumn"
+          >
             Guardar
           </v-btn>
         </v-card-actions>
@@ -134,34 +153,38 @@
   </div>
 </template>
 <script>
-import api from '../utils/axios';
+import { mapStores } from 'pinia'
+import { useNotificationsStore } from '../store/index.js'
+import api from '../utils/axios'
 
 export default {
-  name: 'VpressDataTable',
+  name:'VpressDataTable',
   props: {
     dataset: {
-      type: Object
+      type: Object,
     }
   },
   data() {
     return {
       showIcon: false,
+      editTitle: false,
+      datasetName: '',
       dialog: false,
       loading: false,
-      editTitle: false,
       total: 0,
       headers: [],
       items: [],
       options: {},
-      datasetName: '',
       newName: null,
       oldName: null
-    };
+    }
+  },
+  computed: {
+    ...mapStores(useNotificationsStore)
   },
   mounted() {
     if (this.dataset) {
       this.datasetName = `${this.dataset.name}`;
-      this.getDataFromApi();
     }
   },
   watch: {
@@ -172,7 +195,8 @@ export default {
       }
     },
     dataset() {
-      this.getDataFromApi();
+      if (this.dataset) this.datasetName = `${this.dataset.name}`;
+      this.getDataFromApi()
     }
   },
   methods: {
@@ -186,7 +210,7 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Base de datos actualizada con éxito'
         });
@@ -202,37 +226,42 @@ export default {
       // Focus on the deepest node (input) of the vuetify element
       this.$refs[element].focus();
     },
-    async getDataFromApi() {
+    updateOptions(options) {
+      this.options = options
+      this.getDataFromApi()
+    },
+    async getDataFromApi () {
       try {
-        this.loading = true;
-        this.items = [];
-        this.total = 0;
-        this.headers = [];
-        const { page, itemsPerPage } = this.options;
-        if (this.dataset) {
+        this.loading = true
+        this.items = []
+        this.headers = []
+        // NOTE: total is NOT zeroed here — :items-length="0" would make
+        // Vuetify clamp the pager back to page 1 mid-request.
+        const { page, itemsPerPage } = this.options
+        if(this.dataset) {
           const obj = {
             page,
             dataset: this.dataset.slug,
             itemsPerPage,
             dataSource: this.dataset.source
-          };
+          }
           const response = await api.dataset.data(obj);
-          const data = response.data;
-          this.items = data.data;
-          this.total = data.total;
+          const data = response.data
+          this.items = data.data
+          this.total = data.total
           this.headers = this.extractHeaders(this.items[0]);
         }
-        this.loading = false;
+        this.loading = false
       } catch (error) {
-        this.loading = false;
-        throw new Error(error.message);
+        this.loading = false
+        throw new Error(error.message)
       }
     },
     extractHeaders(data) {
       return Object.keys(data).map(o => ({
-        text: o,
-        value: o,
-        sortable: true
+        title: o,
+        key: o,
+        sortable: false
       }));
     },
     async renameColumn() {
@@ -240,42 +269,42 @@ export default {
         dataset: this.dataset.slug,
         new: this.newName,
         old: this.oldName
-      };
+      }
       await api.dataset.rename_column(obj);
-      await this.getDataFromApi();
+      await this.getDataFromApi()
       this.dialog = false;
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Columna renombrada con éxito'
-      });
+      })
     },
     async changeDataTypeColumn(column, type) {
       const obj = {
         dataset: this.dataset.slug,
         column: column,
         type
-      };
+      }
       await api.dataset.change_data_type_column(obj);
-      await this.getDataFromApi();
-      this.$store.dispatch('notifications/open', {
+      await this.getDataFromApi()
+      this.notificationsStore.open({
         color: 'success',
         text: 'Tipo de dato modificado con éxito'
-      });
+      })
     },
     async deleteColumn(column) {
       const obj = {
         dataset: this.dataset.slug,
-        column: column.value
-      };
+        column: column.key
+      }
       await api.dataset.delete_column(obj);
-      await this.getDataFromApi();
-      this.$store.dispatch('notifications/open', {
+      await this.getDataFromApi()
+      this.notificationsStore.open({
         color: 'success',
         text: 'Columna eliminada con éxito'
-      });
-    }
-  }
-};
+      })
+    },
+  },
+}
 </script>
 <style lang="scss" scoped>
 .table-title {
@@ -283,12 +312,13 @@ export default {
   display: inline-flex;
   width: 50%;
 }
-::v-deep .v-data-table-header {
+:deep(.v-data-table__thead) {
   th {
     white-space: nowrap;
-    border-bottom: solid 1.5px !important;
-    background-color: #f3f3f3;
+    border-bottom: solid  1.5px !important;
+    background-color: #F3F3F3;
   }
+
 }
 
 .thead-container {
@@ -301,4 +331,5 @@ export default {
   display: flex;
   align-items: center;
 }
+
 </style>

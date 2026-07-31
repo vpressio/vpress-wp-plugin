@@ -2,7 +2,7 @@
   <div class="text-center">
     <v-dialog v-model="dialog" attach="#app" scrollable persistent width="500">
       <v-card>
-        <v-card-title class="primary white--text">
+        <v-card-title class="bg-primary text-white">
           <span v-if="type == 'linear'">
             Selecciona un rango
           </span>
@@ -34,7 +34,7 @@
               v-model="linearFilter"
               :min="min"
               :max="max"
-              dense
+              density="compact"
               hide-details
               step= "1"
               thumb-size= "32"
@@ -63,7 +63,7 @@
         <v-divider></v-divider>
         <v-card-actions class="py-4">
           <v-spacer></v-spacer>
-          <v-btn color="secondary" outlined @click="closeDialog">
+          <v-btn color="secondary" variant="outlined" @click="closeDialog">
             Cancelar
           </v-btn>
           <v-btn color="primary" @click="applyFilter">
@@ -97,6 +97,7 @@ export default {
     },
     openFilterDialog: Boolean
   },
+  emits: ['update:openFilterDialog'],
   data() {
     return {
       loading: true,

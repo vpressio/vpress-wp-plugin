@@ -21,9 +21,9 @@
     <v-row
       class="min-height-container"
       v-show="!loading && total === 0"
-      justify-center
+      justify="center"
     >
-      <v-col offset-md="3" offset-sm="3" offset-xs="2" md="6" sm="6" xs="10">
+      <v-col offset="2" offset-sm="3" offset-md="3" cols="10" sm="6" md="6">
         <h1 class="initial-msg-title">Te damos la bienvenida a Vpress</h1>
         <span class="initial-msg">
           Aquí se mostrarán tus visualizaciones, una vez que se hayan creado.
@@ -40,11 +40,11 @@
         <v-col
           v-for="item in items"
           :key="item.id"
-          xl="3"
-          lg="4"
-          md="6"
+          cols="12"
           sm="6"
-          xs="12"
+          md="6"
+          lg="4"
+          xl="3"
         >
           <vpress-chart-card
             :id="item.id"

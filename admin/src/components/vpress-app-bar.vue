@@ -1,13 +1,13 @@
 <template>
-  <v-app-bar dense flat class="gradient v-step-0 v-step-3" :style="cssProps">
+  <v-app-bar density="compact" flat class="gradient v-step-0 v-step-3" :style="cssProps">
     <v-img
       :src="appBarLogo"
       class="ml-5 vpress-image"
-      :max-width="`${this.cssProps['--logo-width']}px`"
+      :max-width="`${cssProps['--logo-width']}px`"
       alt="Vpress logo"
     />
     <v-img
-      :src="require(`../assets/images/btn-beta.png`)"
+      :src="betaIcon"
       class="ml-1"
       max-width="35px"
       alt="Beta image"
@@ -18,11 +18,11 @@
       v-for="(item, index) in items"
       :key="index"
       :to="item.path"
-      text
-      dark
-      small
+      variant="text"
+      theme="dark"
+      size="small"
     >
-      <v-icon left dark>
+      <v-icon start theme="dark">
         {{ item.icon }}
       </v-icon>
       {{ item.title }}
@@ -30,9 +30,13 @@
   </v-app-bar>
 </template>
 <script>
+import { imageUrl } from '../utils/assetUrl.js'
+import vpressConfig from '../assets/vpress.theme.json'
+
 export default {
   name: 'VpressAppBar',
   data: () => ({
+    betaIcon: imageUrl('btn-beta.png'),
     items: [
       {
         title: 'Gráficas',
@@ -48,14 +52,16 @@ export default {
   }),
   computed: {
     cssProps() {
+      // Logo + gradient are vpress config, not Vuetify colors — in Vuetify 3
+      // non-color theme entries are no longer smuggled through $vuetify.theme.
       return {
-        '--logo': this.$vuetify.theme.themes.light.logo.file_name,
-        '--logo-width': this.$vuetify.theme.themes.light.logo.width,
-        '--bg-linear-gradient': this.$vuetify.theme.themes.light.gradient.bg
+        '--logo': vpressConfig.themes.light.logo.file_name,
+        '--logo-width': vpressConfig.themes.light.logo.width,
+        '--bg-linear-gradient': vpressConfig.themes.light.gradient.bg
       }
     },
     appBarLogo() {
-      return require(`../assets/images/${this.cssProps['--logo']}`)
+      return imageUrl(this.cssProps['--logo'])
     }
   }
 };

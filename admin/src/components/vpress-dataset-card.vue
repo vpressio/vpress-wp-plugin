@@ -7,13 +7,12 @@
             <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
+            <v-tooltip location="bottom">
+              <template v-slot:activator="{ props }">
                 <span
                   v-if="!emptyValue('name') && !editTitle"
                   @click.stop="setDataset(dataset)"
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                 >
                   {{ editedDataset.name }}
                 </span>
@@ -27,13 +26,12 @@
             <span v-if="emptyValue('name') && !editTitle" @click.stop="setDataset(dataset)">
               Sin título
             </span>
-            <v-tooltip left>
-              <template v-slot:activator="{ on, attrs }">
+            <v-tooltip location="start">
+              <template v-slot:activator="{ props }">
                 <span
                   v-if="!emptyValue('name') && !editTitle"
                   @click.stop="setDataset(dataset)"
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                 >
                   {{ editedDataset.name }}
                 </span>
@@ -45,8 +43,8 @@
             <v-text-field
               ref="title-input"
               v-show="editTitle"
-              dense
-              solo
+              density="compact"
+              variant="solo"
               flat
               v-model="editedDataset.name"
               @keydown.enter.exact.prevent
@@ -79,14 +77,14 @@
               @mouseleave="showDescriptionIcon = false"
             >
               {{ editedDataset.description }}
-              <v-icon dense v-show="showDescriptionIcon">mdi-pencil</v-icon>
+              <v-icon size="small" v-show="showDescriptionIcon">mdi-pencil</v-icon>
             </span>
             <v-textarea
               ref="description-input"
               v-show="editDescription"
-              dense
+              density="compact"
               height="75"
-              solo
+              variant="solo"
               flat
               maxlength="140"
               hide-details
@@ -108,8 +106,8 @@
             <v-text-field
               ref="tags-input"
               v-show="editTags"
-              dense
-              solo
+              density="compact"
+              variant="solo"
               flat
               v-model="newTag"
               @keydown.enter.exact.prevent
@@ -127,7 +125,7 @@
           <div>
             <v-chip-group column>
               <v-chip
-                close
+                closable
                 v-for="(tag, i) in editedDataset.tag"
                 :key="i"
                 @click:close="
@@ -147,8 +145,8 @@
                 @click.stop="togglePermissions()"
                 class="link permissions-label"
                 :class="{
-                  'green--text': editedDataset.permissions === 'public',
-                  'red--text': editedDataset.permissions !== 'public'
+                  'text-green': editedDataset.permissions === 'public',
+                  'text-red': editedDataset.permissions !== 'public'
                 }"
               >
                 {{ editedDataset.permissions }}
@@ -158,10 +156,10 @@
                 {{ dataset.size }}
               </span>
               <v-spacer />
-              <span class="dataset-label"> ~{{ dataset.rows | intFormat }} filas </span>
+              <span class="dataset-label"> ~{{ intFormat(dataset.rows) }} filas </span>
               <v-spacer />
               <span class="dataset-label ">
-                {{ dataset.updated | dateFormat }}
+                {{ dateFormat(dataset.updated) }}
               </span>
             </v-col>
             <v-col cols="2">
@@ -177,10 +175,10 @@
     <v-divider />
     <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
       <v-card>
-        <v-toolbar dark flat color="primary">
+        <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click="closeDialogConfirmDeletion">
+          <v-btn icon @click="closeDialogConfirmDeletion">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -199,7 +197,7 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="closeDialogConfirmDeletion">
+          <v-btn color="primary" variant="text" @click="closeDialogConfirmDeletion">
             Cancelar
           </v-btn>
           <v-btn color="primary" @click="deleteItem">Eliminar</v-btn>
@@ -210,8 +208,10 @@
 </template>
 <script>
 import { clone } from 'lodash';
+import { mapStores } from 'pinia';
 import api from '../utils/axios.js';
 import { loaderMixin } from '../mixins/index.js';
+import { useNotificationsStore } from '../store/index.js';
 
 export default {
   name: 'VpressDatasetCard',
@@ -230,6 +230,7 @@ export default {
       default: false
     }
   },
+  emits: ['on-dataset-delete'],
   data() {
     return {
       loading: false,
@@ -257,6 +258,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useNotificationsStore),
     emptyValue() {
       return field => {
         return this.editedDataset[field] === null || this.editedDataset[field].trim().length === 0;
@@ -268,16 +270,14 @@ export default {
       };
     }
   },
-  filters: {
+  methods: {
     intFormat(number) {
       return new Intl.NumberFormat().format(number);
     },
     dateFormat(update) {
       const date = new Date(update);
       return date.toLocaleString().replace(', ', ' | ');
-    }
-  },
-  methods: {
+    },
     addTag() {
       if (this.newTag.trim().length > 0) {
         this.editedDataset.tag.push(this.newTag);
@@ -322,7 +322,7 @@ export default {
         if (response.data.error) {
           throw new Error(response.data.error);
         }
-        this.$store.dispatch('notifications/open', {
+        this.notificationsStore.open({
           color: 'success',
           text: 'Base de datos actualizada con éxito'
         });
@@ -345,7 +345,7 @@ export default {
       if (response.data.error) {
         throw new Error(response.data.error);
       }
-      this.$store.dispatch('notifications/open', {
+      this.notificationsStore.open({
         color: 'success',
         text: 'Base de datos eliminada con éxito'
       });
@@ -374,14 +374,14 @@ export default {
   font-weight: 400;
 }
 
-::v-deep.v-text-field > .v-input__control > .v-input__slot {
+:deep(.v-text-field > .v-input__control > .v-input__slot) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-::v-deep.v-text-field .v-input__append-inner {
+:deep(.v-text-field .v-input__append-inner) {
   display: none !important;
 }
-::v-deep.v-textarea textarea {
+:deep(.v-textarea textarea) {
   line-height: normal;
 }
 
@@ -410,26 +410,26 @@ export default {
   text-transform: uppercase;
 }
 
-* >>> .tags-input > .v-input__control > .v-input__slot {
+* :deep(.tags-input > .v-input__control > .v-input__slot) {
   background-color: var(--background) !important;
 }
 
-* >>> .tags-input > .v-input__control > .v-input__slot > .v-select__slot label {
+* :deep(.tags-input > .v-input__control > .v-input__slot > .v-select__slot label) {
   right: 0px !important;
   left: auto !important;
 }
 
 *
-  >>> .tags-input
+  :deep(.tags-input
   > .v-input__control
   > .v-input__slot
   > .v-select__slot
   > .v-select__selections
-  > input {
+  > input) {
   background-color: var(--background) !important;
 }
 
-* >>> .tags-input > .v-input__control > .v-input__slot > .v-select__slot > .v-select__selections {
+* :deep(.tags-input > .v-input__control > .v-input__slot > .v-select__slot > .v-select__selections) {
   flex-direction: row-reverse;
 }
 

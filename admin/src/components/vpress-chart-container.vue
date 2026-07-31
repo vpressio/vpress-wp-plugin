@@ -1,26 +1,33 @@
-<template lang="pug">
-  .chart-container.center-align(
+<template>
+  <div
+    class="chart-container center-align"
     :class="`${chartConfig ? chartConfig.theme : 'light'}-themed`"
-
-    )
-    .layout-row.left-align.label-font.bold.layout-align-start-end.titles-container
-      .col-12.py-0
-        h2.generated-title.mb-2.mt-2 {{ chartTitle('title', iframe ? '' : 'Título') }}
-      .col-12.py-0
-        h3.generated-subtitle.mb-2.mt-2 {{ chartTitle('subtitle', iframe ? '' : 'Subtítulo') }}
-    .empty-chart( :id="this.id")
-      .vertical-align
-        p.tiny.label-font(v-if="!iframe") Arrastra algún valor a filas, columnas o color
-        div(
+  >
+    <div class="layout-row left-align label-font bold layout-align-start-end titles-container">
+      <div class="col-12 py-0">
+        <h2 class="generated-title mb-2 mt-2">{{ chartTitle('title', iframe ? '' : 'Título') }}</h2>
+      </div>
+      <div class="col-12 py-0">
+        <h3 class="generated-subtitle mb-2 mt-2">{{ chartTitle('subtitle', iframe ? '' : 'Subtítulo') }}</h3>
+      </div>
+    </div>
+    <div class="empty-chart" :id="id">
+      <div class="vertical-align">
+        <p class="tiny label-font" v-if="!iframe">Arrastra algún valor a filas, columnas o color</p>
+        <div
           v-show="iframe"
           class="progress--layer"
-        )
-          v-progress-circular(
+        >
+          <v-progress-circular
             :size="70"
             :width="7"
             color="primary"
             indeterminate
-          )
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
 import { includes, cloneDeep, uniq } from 'lodash';
@@ -48,8 +55,11 @@ import {
   bars
 } from '@dboxjs/core';
 
+let uidCounter = 0;
+
 export default {
   name: 'VpressChartContainer',
+  emits: ['chart_loaded'],
   props: {
     id: String,
     data: Array,
@@ -98,6 +108,7 @@ export default {
   },
   data() {
     return {
+      uid: ++uidCounter,
       windowWidth: window.innerWidth,
       locale: timeFormatLocale({
         dateTime: '%A, %e %B %Y г. %X',
@@ -137,7 +148,7 @@ export default {
       })
     };
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeChart()
   },
   mounted() {
@@ -495,7 +506,7 @@ export default {
             // }
         },
         tooltip: {
-          classed: `tip-${vm._uid}`
+          classed: `tip-${vm.uid}`
         },
         events: {
           onClickLegend: function(d, i) {
@@ -1140,7 +1151,7 @@ export default {
         .select(`#${this.id}`)
         .selectAll('*')
         .remove();
-      selectAll(`.d3-tip.tip-${this._uid}`).remove();
+      selectAll(`.d3-tip.tip-${this.uid}`).remove();
       selectAll('.title-tip').remove();
       if(this.chart && this.chart.destroy){
         this.chart.destroy()
@@ -1238,7 +1249,6 @@ export default {
   color: #fff;
   border-radius: 2px;
 }
-
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
   box-sizing: border-box;
@@ -1253,7 +1263,6 @@ export default {
   top: -5px;
   bottom: 5px;
 }
-
 /* Style northward tooltips differently */
 .d3-tip.n:after {
   margin: 3px 0 0 0;
@@ -1271,6 +1280,8 @@ export default {
   margin: 0.2em;
   background-color: #57779c;
 }
+
+
 
 .leaflet-container {
   z-index: 0;

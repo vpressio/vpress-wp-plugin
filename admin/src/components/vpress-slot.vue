@@ -3,7 +3,7 @@
     <v-icon
       v-if="slotIcon.length === 0"
       color="secondary"
-      dense
+      size="small"
     >
       {{ icon }}
     </v-icon>
@@ -25,9 +25,8 @@
         v-for="(card, cardIndex) in storeVariables"
         :key="`card_${cardIndex}`"
         :min-height="80"
-        outlined
-        :raised="changeSlotStyle"
-        light
+        variant="outlined"
+        :elevation="changeSlotStyle ? 8 : undefined"
       >
         <div
           class="slot_placeholder pa-2"
@@ -67,9 +66,8 @@
       <v-card
         class="card-container"
         :min-height="80"
-        outlined
-        :raised="changeSlotStyle"
-        light
+        variant="outlined"
+        :elevation="changeSlotStyle ? 8 : undefined"
       >
         <div
           v-for="(card, cardIndex) in storeVariables"
@@ -112,14 +110,15 @@
       :column="filterColumn"
       :type="filterType"
       :value="filterPayload"
-      :openFilterDialog.sync="openFilterDialog"
+      v-model:openFilterDialog="openFilterDialog"
     />
   </div>
 </template>
 <script>
-import VpressVariableCard from './vpress-variable-card';
-import VpressSlotFilter from './vpress-filter';
+import VpressVariableCard from './vpress-variable-card.vue';
+import VpressSlotFilter from './vpress-filter.vue';
 import { editorMixin } from '../mixins/index.js'
+import { imageUrl } from '../utils/assetUrl.js'
 
 export default {
   name: 'VpressSlot',
@@ -147,10 +146,10 @@ export default {
   },
   computed: {
     storeVariables() {
-      return this.$store.getters[`editor/${this.slotId}`]
+      return this.editorStore[this.slotId]
     },
     iconSrc() {
-      return require(`../assets/images/${this.slotIcon}.svg`);
+      return imageUrl(`${this.slotIcon}.svg`);
     }
   },
   methods: {
@@ -194,7 +193,7 @@ export default {
       this.openFilterDialog = true;
     },
     changeCurrentFilter(event, index) {
-      const filterCard = this.$store.getters['editor/chart'].filters[index]
+      const filterCard = this.editorStore.chart.filters[index]
       const payload = {
         type: filterCard.type
       }
