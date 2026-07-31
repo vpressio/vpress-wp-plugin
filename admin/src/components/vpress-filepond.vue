@@ -54,13 +54,17 @@
       >
         <v-card-text>
           <v-card-title class="px-0 text-subtitle-1">
-            Subiendo, por favor espera
+            {{ progress.phase === 'upload' ? 'Subiendo archivo…' : 'Importando datos…' }}
           </v-card-title>
           <v-progress-linear
-            indeterminate
+            :model-value="progress.pct"
             color="white"
-            class="mb-0"
+            height="8"
+            class="mb-2"
           ></v-progress-linear>
+          <div v-if="progress.phase === 'import'" class="text-caption">
+            {{ new Intl.NumberFormat().format(progress.rowsInserted) }} filas importadas
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -69,6 +73,7 @@
 <script>
 import { mapStores } from 'pinia'
 import api from '../utils/axios'
+import { runImport, abortImport } from '../utils/importPipeline.js'
 import { useNotificationsStore } from '../store/index.js'
 import vueFilePond from 'vue-filepond';
 import 'filepond/dist/filepond.min.css';
@@ -84,6 +89,7 @@ export default {
   data() {
     return {
       loading: false,
+      progress: { phase: 'upload', pct: 0, rowsInserted: 0 },
       inPondFiles: [],
       showFilepond: false,
       fileTypeMessage: ''
@@ -101,16 +107,23 @@ export default {
   },
   methods: {
     async handleFile(file) {
+      const cap = (window.vpressImportConfig || {}).maxUploadBytes || 20 * 1024 * 1024;
+      if (file.size > cap) {
+        this.notificationsStore.open({
+          color: 'warning',
+          text: `El archivo excede el máximo de ${Math.round(cap / 1048576)} MB.`
+        });
+        return;
+      }
       this.loading = true
-      let formData = new FormData();
-      formData.append('file', file);
+      this.progress = { phase: 'upload', pct: 0, rowsInserted: 0 };
       try {
-        const uploadRes = await api.dataset.upload(
-          formData
-        )
+        const result = await runImport(file, {
+          onProgress: (p) => { this.progress = p; }
+        });
         const createRes = await api.dataset.create({
-          name: uploadRes.data.data,
-          slug: uploadRes.data.data,
+          name: result.datasetName,
+          slug: result.datasetName,
           permissions: "public",
           owner_id: window.userSettings.uid
         })
@@ -121,11 +134,12 @@ export default {
         this.$emit('uploaded', createRes.data.data[0]);
         this.loading = false
       } catch (error) {
+        if (error.sessionId) abortImport(error.sessionId);
         this.notificationsStore.open({
           color: 'error',
-          text: 'Hubo un error al intentar guardar el dataset'
+          text: error.status ? error.message : 'Hubo un error al intentar guardar el dataset'
         })
-        this.$refs.fileInput.value = '';
+        if (this.$refs.fileInput) this.$refs.fileInput.value = '';
         this.loading = false
       }
     },

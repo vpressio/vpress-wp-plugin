@@ -150,6 +150,9 @@ class Vpress_Admin {
 			'root' => esc_url_raw( rest_url() ),
 			'nonce' => wp_create_nonce( 'wp_rest' )
 	) );
+		wp_localize_script( $this->plugin_name, 'vpressImportConfig', array(
+			'maxUploadBytes' => (int) apply_filters( 'vpress_max_upload_bytes', 20 * MB_IN_BYTES ),
+		) );
 	}
 
 	/**
