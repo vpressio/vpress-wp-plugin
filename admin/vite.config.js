@@ -21,7 +21,11 @@ export default defineConfig(({ mode }) => ({
     port: 5180,
     strictPort: true,
     cors: true,
-    origin: 'http://localhost:5180'
+    origin: 'http://localhost:5180',
+    // Standalone dev (opening :5180 directly) proxies REST calls to MAMP's WP.
+    proxy: {
+      '/wp-json': 'http://localhost:8888'
+    }
   },
   build: {
     outDir: 'dist',
