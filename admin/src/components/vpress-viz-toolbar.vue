@@ -68,15 +68,15 @@
       <div class="tri-actions-container">
         <v-divider class="tri-actions-divider" vertical/>
         <v-spacer/>
-        <v-btn icon @click="saveChart">
+        <v-btn icon variant="text" @click="saveChart">
           <img :src="imageUrl('Guardar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
-        <v-btn icon @click="downloadChartImg">
+        <v-btn icon variant="text" @click="downloadChartImg">
           <img :src="imageUrl('Descargar.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>
-        <v-btn icon @click="clipboardCopy">
+        <v-btn icon variant="text" @click="clipboardCopy">
           <img :src="imageUrl('Compartir.svg')" alt="" width="20" height="20"/>
         </v-btn>
         <v-spacer/>

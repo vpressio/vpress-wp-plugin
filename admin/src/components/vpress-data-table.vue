@@ -48,6 +48,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 v-bind="props"
+                variant="text"
                 size="x-small"
                 icon
               >

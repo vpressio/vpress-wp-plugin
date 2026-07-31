@@ -47,6 +47,7 @@
                     class="ml-3 mr-2"
                     size="x-small"
                     icon
+                    variant="text"
                     color="primary"
                     @click.stop.prevent="removeViz(chartIndex)"
                   >

@@ -1,5 +1,6 @@
 <template>
-  <div :style="cssProps">
+  <!-- w-100: v3 expansion-panel titles no longer stretch slot content. -->
+  <div :style="cssProps" class="w-100">
     <v-card flat :color="cardColor" :loading="loading">
       <v-row>
         <v-col :cols="12" :sm="12" :md="5" :lg="6" :xl="6">
@@ -164,7 +165,7 @@
             </v-col>
             <v-col cols="2">
               <v-spacer />
-              <v-btn v-if="!readonly" icon color="primary" @click.stop="confirmDeletion">
+              <v-btn v-if="!readonly" icon variant="text" color="primary" @click.stop="confirmDeletion">
                 <v-icon>mdi-trash-can-outline</v-icon>
               </v-btn>
             </v-col>
@@ -178,7 +179,7 @@
         <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon @click="closeDialogConfirmDeletion">
+          <v-btn icon variant="text" @click="closeDialogConfirmDeletion">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>

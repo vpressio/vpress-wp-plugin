@@ -8,6 +8,8 @@
       <v-pagination
         v-model="page"
         :length="length"
+        color="primary"
+        active-color="primary"
         @update:modelValue="handlePageChange"
       />
     </v-col>

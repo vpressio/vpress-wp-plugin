@@ -83,7 +83,7 @@
               Arrastra tu selección
             </div>
             <v-spacer/>
-            <v-btn icon size="small" color="secondary" @click="resetViz">
+            <v-btn icon variant="text" size="small" color="secondary" @click="resetViz">
               <v-icon>mdi-restart</v-icon>
             </v-btn>
             <v-spacer/>

@@ -50,6 +50,7 @@
             <v-btn
               class="operationButton"
               v-bind="props"
+              variant="text"
               size="small"
               icon
             >

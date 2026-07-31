@@ -156,11 +156,11 @@
               {{ dateFormat(updated) }}
             </span>
             <v-spacer/>
-            <v-btn icon size="x-small" color="primary" @click="shareChart">
+            <v-btn icon variant="text" size="x-small" color="primary" @click="shareChart">
               <v-icon>mdi-share-variant-outline</v-icon>
             </v-btn>
             <v-spacer/>
-            <v-btn icon size="x-small" color="primary" @click="dialogConfirmDeletion = true">
+            <v-btn icon variant="text" size="x-small" color="primary" @click="dialogConfirmDeletion = true">
               <v-icon>mdi-trash-can-outline</v-icon>
             </v-btn>
             <v-spacer/>
@@ -177,7 +177,7 @@
         <v-toolbar theme="dark" flat color="primary">
           <v-toolbar-title>Confirmar eliminación</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialogConfirmDeletion = false">
+          <v-btn icon variant="text" @click="dialogConfirmDeletion = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
