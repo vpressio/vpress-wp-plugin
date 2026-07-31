@@ -1,7 +1,9 @@
 <template>
   <div class="vpress-navigation-view">
     <VpressAppBar/>
-    <v-row class="px-5">
+    <!-- mt-0 neutralizes v3's four-sided -12px row margin so the columns'
+         top padding shows — the v2 gap between nav bar and content. -->
+    <v-row class="px-5 mt-0">
       <v-col
         cols="12"
         sm="12"
