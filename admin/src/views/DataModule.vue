@@ -48,7 +48,7 @@
         <v-card
           v-if="proxyScreen"
         >
-          <v-row>
+          <v-row class="mt-0 px-2" align="center">
             <v-col cols="12" sm="12" md="8" lg="9" style="display:flex;">
 
               <v-slide-group
@@ -83,7 +83,7 @@
                     </div>
                   </v-slide-group-item>
                 </div>
-                <v-btn size="x-small" class="mr-4" icon color="primary" @click="proxyScreen = false">
+                <v-btn size="small" class="mr-4 align-self-center" icon color="primary" @click="proxyScreen = false">
                   <v-icon>
                     mdi-plus
                   </v-icon>
