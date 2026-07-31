@@ -45,11 +45,11 @@ POST dataset/create (unchanged) ────────▶ register dataset met
 | `import/chunk` | POST multipart `{session_id, index, blob}` | Append to tmp file iff `index == chunks_received` (ordered, idempotent retry safe); update `bytes_received` |
 | `import/finish-upload` | POST `{session_id}` | Verify `bytes_received == total_bytes`; mime-sniff; encoding-detect (first 64 KB: BOM / `mb_check_encoding` UTF-8 else assume Windows-1252); parse+clean header (existing dedup/clean logic); `dbDelta` CREATE TABLE; store `columns`+`encoding`; status → `importing` |
 | `import/tick` | POST `{session_id}` | Read ≤ `rows_per_tick` rows from `byte_offset`; `iconv(encoding→UTF-8)` per row when needed; `vpress_insert_rows()` (existing); advance `byte_offset`/`rows_inserted` only after successful insert; on EOF: status → `done`, delete tmp file. Reply `{status, rows_inserted, bytes_done, total_bytes}` |
-| `import/abort` | POST `{session_id}` | Delete tmp file; DROP the created table if empty-or-partial; status → `aborted` |
+| `import/abort` | POST `{session_id}` | Delete tmp file; DROP the table **only if this session created it** (`table_created` flag — re-imports into pre-existing tables never drop); status → `aborted` |
 
 ### 2. Session model — table `wp_vpresscore_imports` (dbDelta, created lazily by `import/start`)
 
-`id BIGINT PK · file_name · table_name · tmp_path · total_bytes · bytes_received · chunks_received · byte_offset · rows_inserted · columns TEXT (json) · encoding VARCHAR(16) · status ENUM-ish VARCHAR(16) (uploading|importing|done|error|aborted) · error TEXT · created · updated`
+`id BIGINT PK · file_name · table_name · tmp_path · total_bytes · bytes_received · chunks_received · byte_offset · rows_inserted · columns TEXT (json) · encoding VARCHAR(16) · table_created TINYINT · status VARCHAR(16) (uploading|importing|done|error|aborted) · error TEXT · created · updated`
 
 - Doubles as the **duplicate-import lock**: `import/start` rejects if an active session exists for the same `table_name`.
 - **Failure recovery**: a failed/aborted tick is re-runnable — offset advances only on committed batch. Client retries a failed request up to 3× with backoff, then surfaces the session error state with a *Reanudar* (resume) action.
