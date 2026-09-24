@@ -32,10 +32,11 @@
 	<file>includes</file>
 	<file>public</file>
 	<file>admin/class-vpress-admin.php</file>
-	<!-- blocks/ is in the brief's file list but does not exist yet at this base
-	     commit (79ff3bd5) — a <file> entry pointing at a missing path is a hard
-	     PHPCS config error (exit 3), not a report finding, so it is omitted here.
-	     Add `<file>blocks</file>` back once block source lands. -->
+	<!-- blocks/ landed via night/integration (merge 22968316); re-added now
+	     that it exists (was omitted earlier at base commit 79ff3bd5 — see
+	     git history — because a <file> entry for a missing path is a hard
+	     PHPCS config error, exit 3, not a report finding). -->
+	<file>blocks</file>
 
 	<!-- type="relative" matches each pattern against the path relative to the
 	     file/dir entry being scanned, not PHPCS's default (the absolute

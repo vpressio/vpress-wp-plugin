@@ -18,6 +18,6 @@ Five stages: `lint` → `test` → `build` → `package` → `e2e`.
 ## Flipping a report-only job to blocking
 
 `lint:php` and `plugin-check` carry `allow_failure: true` while their
-baselines aren't clean (PHPCS: 2935 errors / 862 warnings; Plugin Check: 74
+baselines aren't clean (PHPCS: 2990 errors / 908 warnings; Plugin Check: 74
 `plugin_repo` errors — both measured 2026-09-24). Once a backlog hits zero,
 delete that job's `allow_failure: true` line — nothing else changes.
