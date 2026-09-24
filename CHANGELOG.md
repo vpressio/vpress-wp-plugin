@@ -79,6 +79,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Removed
 - The unreferenced 2023 public-embed spike (`public/vpress.js`, `public/components/`, `public/dboxjs/`, `public/vpress/`, `public/helpers/`, `public/utils/`) and the commented-out iframe shortcode.
 
+### Upgrade notes
+- **Datasets carrying a non-null legacy `source` are no longer queryable, in the editor or on a public page: `/chart/query` answers 400 `vpress_unknown_dataset`.** Their rows never lived in this WordPress database — the column named the external relay that served them, and that relay was removed with the caller-supplied SQL path (see Security, above). `queryBody()` still resolves such a dataset to the bare slug rather than a `vpress_`-prefixed table, and the dataset guard refuses it. Re-import the data as a Vpress dataset (upload the CSV, or point **Desde URL** at the source) and rebuild the charts on the new dataset; charts on datasets with `source` NULL — every dataset Vpress itself imported — are unaffected.
+
 ### Verified
 - 15 MB / 260,000 rows: 4 chunks, 52 ticks, 100% progress, exact row count.
 - Cap rejection (413) client- and server-side; CP1252 accents (`Nuevo León`, `Suscripción`) decode correctly.
