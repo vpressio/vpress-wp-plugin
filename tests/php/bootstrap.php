@@ -153,10 +153,16 @@ function rest_ensure_response( $response ) {
 class FakeRestRequest implements ArrayAccess {
 	private $json;
 	private $params;
+	private $route;
 
-	public function __construct( array $params = array(), array $json = array() ) {
+	public function __construct( array $params = array(), array $json = array(), string $route = '' ) {
 		$this->params = $params;
 		$this->json   = $json;
+		$this->route  = $route;
+	}
+
+	public function get_route() {
+		return $this->route;
 	}
 
 	public function get_json_params() {
@@ -184,6 +190,35 @@ class FakeRestRequest implements ArrayAccess {
 
 	public function offsetUnset( mixed $offset ): void {
 		unset( $this->params[ $offset ] );
+	}
+}
+
+/** Stand-in for WP_REST_Response: data, status and headers. */
+class WP_REST_Response {
+	private $data;
+	private $status;
+	private $headers = array();
+
+	public function __construct( $data = null, $status = 200, $headers = array() ) {
+		$this->data    = $data;
+		$this->status  = $status;
+		$this->headers = $headers;
+	}
+
+	public function get_data() {
+		return $this->data;
+	}
+
+	public function get_status() {
+		return $this->status;
+	}
+
+	public function header( $key, $value, $replace = true ) {
+		$this->headers[ $key ] = $value;
+	}
+
+	public function get_headers() {
+		return $this->headers;
 	}
 }
 
@@ -369,6 +404,27 @@ function wp_json_encode( $data, $options = 0, $depth = 512 ) {
 	return json_encode( $data, $options, $depth );
 }
 
+function home_url( $path = '' ) {
+	return 'http://example.test/' . ltrim( (string) $path, '/' );
+}
+
+function get_bloginfo( $show = '' ) {
+	return 'name' === $show ? 'Datos Abiertos MX' : '';
+}
+
+/** add_query_arg( $key, $value, $url ) form only. */
+function add_query_arg( $key, $value, $url ) {
+	return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . rawurlencode( $key ) . '=' . rawurlencode( (string) $value );
+}
+
+/** Site timezone for wp_date(); tests may change it. */
+$GLOBALS['vpress_test_timezone'] = 'UTC';
+
+function wp_date( $format, $timestamp = null, $timezone = null ) {
+	$timezone = $timezone ?? new DateTimeZone( $GLOBALS['vpress_test_timezone'] );
+	return ( new DateTimeImmutable( '@' . ( $timestamp ?? time() ) ) )->setTimezone( $timezone )->format( $format );
+}
+
 function admin_url( $path = '' ) {
 	return 'http://example.test/wp-admin/' . ltrim( $path, '/' );
 }
@@ -376,6 +432,7 @@ function admin_url( $path = '' ) {
 // Plugin boot order: the figure is required before the API services.
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-text.php';
+require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-source.php';
 require_once dirname( __DIR__, 2 ) . '/includes/vpress-shortcode.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-blocks.php';
 if ( ! defined( 'KB_IN_BYTES' ) ) {
@@ -456,10 +513,26 @@ function get_current_user_id() {
 	return 7;
 }
 
-function sanitize_text_field( $str ) {
-	return trim( preg_replace( '/[\r\n\t ]+/', ' ', strip_tags( (string) $str ) ) );
+/** wp_strip_all_tags(): script/style elements go with their contents. */
+function wp_strip_all_tags( $text ) {
+	return strip_tags( preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', (string) $text ) );
 }
 
+function sanitize_text_field( $str ) {
+	return trim( preg_replace( '/[\r\n\t ]+/', ' ', wp_strip_all_tags( (string) $str ) ) );
+}
+
+/** sanitize_textarea_field(): like sanitize_text_field() but keeps line breaks. */
+function sanitize_textarea_field( $str ) {
+	$lines = preg_split( '/\r\n|\r|\n/', wp_strip_all_tags( (string) $str ) );
+	return trim( implode( "\n", array_map( static fn( $l ) => trim( preg_replace( '/[\t ]+/', ' ', $l ) ), $lines ) ) );
+}
+
+/** esc_url_raw(): http(s) URLs pass unchanged, anything else becomes ''. */
+function esc_url_raw( $url ) {
+	$url = trim( (string) $url );
+	return preg_match( '#^https?://[^\s<>"]+$#i', $url ) ? $url : '';
+}
 
 function delete_option( $name ) {
 	unset( $GLOBALS['vpress_test_options'][ $name ] );

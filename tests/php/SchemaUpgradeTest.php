@@ -34,6 +34,11 @@ final class SchemaUpgradeTest extends TestCase {
 		$this->assertStringContainsString( "refresh_interval VARCHAR(16) NOT NULL DEFAULT 'none',", $sql );
 		$this->assertStringContainsString( 'last_refreshed_at DATETIME NULL,', $sql );
 		$this->assertStringContainsString( 'last_refresh_error TEXT NULL,', $sql );
+		// Provenance (M1): who published the data, under which licence, as of when.
+		$this->assertStringContainsString( 'source_name TINYTEXT NULL,', $sql );
+		$this->assertStringContainsString( 'license VARCHAR(64) NULL,', $sql );
+		$this->assertStringContainsString( 'retrieved_at DATE NULL,', $sql );
+		$this->assertStringContainsString( 'source_notes TEXT NULL,', $sql );
 		// dbDelta needs two spaces after PRIMARY KEY or it re-adds the key on every run.
 		$this->assertStringContainsString( 'PRIMARY KEY  (id)', $sql );
 		$this->assertSame( VPRESS_VERSION, $GLOBALS['vpress_test_options']['vpress_db_version'] );
