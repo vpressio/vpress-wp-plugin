@@ -52,7 +52,13 @@ function vpress_get_public_chart( int $chart_id ): ?object {
  * @param int   $chart_id Chart id.
  * @param array $args     {
  *     Optional.
- *     @type string $align One of 'wide', 'full', 'center', 'none'.
+ *     @type string $align              One of 'wide', 'full', 'center', 'none'.
+ *     @type bool   $show_caption       Print the `<figcaption>`. Default true.
+ *     @type string $wrapper_attributes Attribute string from get_block_wrapper_attributes();
+ *                                      its classes are merged into the figure's, its id
+ *                                      (block anchor) replaces the generated one and other
+ *                                      attributes (e.g. style) are copied, except
+ *                                      `data-vpress-*` and event handlers.
  * }
  * @return string Figure markup, or '' when the chart is not viewable.
  */
@@ -95,6 +101,15 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 		$classes[] = $align_classes[ $align ];
 	}
 
+	$wrapper = vpress_parse_html_attributes( isset( $args['wrapper_attributes'] ) ? (string) $args['wrapper_attributes'] : '' );
+	if ( isset( $wrapper['class'] ) ) {
+		// Block classes first (wp-block-vpress-chart, alignwide, …), then ours.
+		$classes = array_merge( preg_split( '/\s+/', $wrapper['class'], -1, PREG_SPLIT_NO_EMPTY ), $classes );
+	}
+	$classes = array_values( array_unique( $classes ) );
+
+	$show_caption = ! array_key_exists( 'show_caption', $args ) || (bool) $args['show_caption'];
+
 	/* translators: %d: chart id. */
 	$label = '' !== $title ? $title : sprintf( __( 'Gráfica %d', 'vpress' ), $chart_id );
 
@@ -107,6 +122,10 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 	static $renders = array();
 	$renders[ $id ] = isset( $renders[ $id ] ) ? $renders[ $id ] + 1 : 1;
 	$dom_id         = 'vpress-figure-' . $id . ( $renders[ $id ] > 1 ? '-' . $renders[ $id ] : '' );
+	// A block anchor is the author's chosen id; it wins over the generated one.
+	if ( isset( $wrapper['id'] ) && '' !== trim( $wrapper['id'] ) ) {
+		$dom_id = trim( $wrapper['id'] );
+	}
 
 	$html  = '<figure class="' . esc_attr( implode( ' ', $classes ) ) . '"';
 	$html .= ' id="' . esc_attr( $dom_id ) . '"';
@@ -117,17 +136,49 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 	if ( is_user_logged_in() ) {
 		$html .= ' data-vpress-nonce="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '"';
 	}
+	foreach ( $wrapper as $name => $value ) {
+		// class/id are merged above; the renderer owns data-vpress-*; no event handlers.
+		if ( 'class' === $name || 'id' === $name || 0 === strpos( $name, 'data-vpress-' ) || 0 === strpos( $name, 'on' ) ) {
+			continue;
+		}
+		$html .= ' ' . $name . '="' . esc_attr( $value ) . '"';
+	}
 	$html .= '>';
 	$html .= '<div class="vpress-figure__chart" role="img" aria-label="' . esc_attr( $label ) . '" aria-busy="true"></div>';
-	$html .= '<figcaption class="vpress-figure__caption">';
-	$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
-	if ( '' !== $subtitle ) {
-		$html .= '<span class="vpress-figure__subtitle">' . esc_html( $subtitle ) . '</span>';
+	if ( $show_caption ) {
+		$html .= '<figcaption class="vpress-figure__caption">';
+		$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
+		if ( '' !== $subtitle ) {
+			$html .= '<span class="vpress-figure__subtitle">' . esc_html( $subtitle ) . '</span>';
+		}
+		$html .= '</figcaption>';
 	}
-	$html .= '</figcaption>';
 	$html .= '</figure>';
 
 	return $html;
+}
+
+/**
+ * Parse an HTML attribute string such as get_block_wrapper_attributes() returns.
+ *
+ * Only double-quoted `name="value"` pairs are read (the form core prints);
+ * names are lower-cased and restricted to a safe charset, values are
+ * entity-decoded so they can be escaped once on output.
+ *
+ * @param string $attributes Attribute string, e.g. `class="a b" style="margin:0"`.
+ * @return array<string,string> name => raw value.
+ */
+function vpress_parse_html_attributes( string $attributes ): array {
+	$parsed = array();
+	if ( '' === trim( $attributes ) ) {
+		return $parsed;
+	}
+	if ( preg_match_all( '/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*"([^"]*)"/', $attributes, $matches, PREG_SET_ORDER ) ) {
+		foreach ( $matches as $match ) {
+			$parsed[ strtolower( $match[1] ) ] = html_entity_decode( $match[2], ENT_QUOTES, 'UTF-8' );
+		}
+	}
+	return $parsed;
 }
 
 /**
