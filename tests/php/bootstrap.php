@@ -353,6 +353,7 @@ function admin_url( $path = '' ) {
 
 // Plugin boot order: the figure is required before the API services.
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure.php';
+require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-text.php';
 require_once dirname( __DIR__, 2 ) . '/includes/vpress-shortcode.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-blocks.php';
 require_once dirname( __DIR__, 2 ) . '/api/services/chart.php';
