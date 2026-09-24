@@ -14,11 +14,18 @@ final class VpressFixtures {
 	}
 
 	/**
-	 * The flat body admin/src/vpress/helpers/index.js queryBody() sends for
-	 * chart #1 (dataset.source NULL), derived by hand from its
-	 * ordinal-x / linear-y branch.
+	 * The flat body the admin's real queryBody() sends for chart #1, as
+	 * generated in Node (see fixtures/README.md).
 	 */
 	public static function chart_1_flat_body(): array {
+		return json_decode( file_get_contents( __DIR__ . '/fixtures/chart-1-flat-body.json' ), true );
+	}
+
+	/**
+	 * The same body derived by hand from queryBody()'s ordinal-x /
+	 * linear-y branch; kept as a cross-check of the generated fixture.
+	 */
+	public static function chart_1_flat_body_hand_derived(): array {
 		return array(
 			'dataset'            => 'vpress_vpress_test_ventas',
 			'dataSource'         => 'wordpress',

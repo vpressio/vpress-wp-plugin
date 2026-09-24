@@ -46,7 +46,7 @@ final class QueryBodyTest extends TestCase {
 		);
 	}
 
-	public function test_chart_1_matches_the_js_body_key_by_key(): void {
+	public function test_chart_1_matches_the_real_js_output_key_by_key(): void {
 		$expected = VpressFixtures::chart_1_flat_body();
 		$actual   = vpress_query_body_from_context( VpressFixtures::chart_1_context(), VpressFixtures::DATASET_SLUG, null );
 
@@ -55,6 +55,11 @@ final class QueryBodyTest extends TestCase {
 		foreach ( $expected as $key => $value ) {
 			$this->assertSame( $value, $actual[ $key ], $key );
 		}
+	}
+
+	public function test_generated_fixture_agrees_with_the_hand_derivation_and_the_saved_config(): void {
+		$this->assertSame( VpressFixtures::chart_1_flat_body_hand_derived(), VpressFixtures::chart_1_flat_body() );
+		$this->assertSame( VpressFixtures::CHART_1_VALUE, trim( file_get_contents( __DIR__ . '/fixtures/chart-1-value.json' ) ) );
 	}
 
 	public static function branches(): array {
