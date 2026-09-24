@@ -237,6 +237,17 @@ function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
   ) );
 }
 
+/**
+ * Drops fields only editors may see from a registry row (in place).
+ * last_refresh_error can carry fetch diagnostics (host names, transport
+ * errors) that are not public provenance like source_url.
+ */
+function vpress_dataset_hide_private_fields( $row ): void {
+  if ( is_object( $row ) && ! current_user_can( 'edit_posts' ) ) {
+    unset( $row->last_refresh_error );
+  }
+}
+
 function vpress_get_dataset( $request ) {
   try {
     global $wpdb;
@@ -250,6 +261,7 @@ function vpress_get_dataset( $request ) {
     if ( $data && ! current_user_can( 'edit_posts' ) && ! vpress_anonymous_can_read_dataset( $id, $data->permissions ) ) {
       return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
     }
+    vpress_dataset_hide_private_fields( $data );
     $response = array(
       'data' => $data,
       'query' => vpress_debug_sql( $wpdb->last_query ),
@@ -307,6 +319,9 @@ function vpress_list_datasets( $request ) {
     $data = $wpdb->get_results($query);
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error );
+    }
+    foreach ( (array) $data as $row ) {
+      vpress_dataset_hide_private_fields( $row );
     }
     $response = array(
       'data' => $data,
@@ -606,4 +621,74 @@ function vpress_change_data_type_column( $request ) {
   } catch (Exception $e) {
     return vpress_db_error( $e->getMessage() );
   }
+}
+
+/**
+ * Stamps the outcome of a live-source refresh on every registry row of
+ * $slug (duplicate slugs share one physical table): success sets
+ * last_refreshed_at and clears the error, failure stores the message and
+ * leaves last_refreshed_at alone.
+ */
+function vpress_dataset_record_refresh( string $slug, ?WP_Error $error = null ): void {
+	global $wpdb;
+	$fields = null === $error
+		? array(
+			'last_refreshed_at'  => current_time( 'mysql', true ),
+			'last_refresh_error' => null,
+		)
+		: array( 'last_refresh_error' => $error->get_error_message() );
+	$wpdb->update( $wpdb->prefix . 'vpresscore_datasets', $fields, array( 'slug' => $slug ) );
+}
+
+/**
+ * Replaces the rows of dataset $slug with the CSV at $tmp_csv_path without
+ * a window where readers see a partial table: import into
+ * vpress_<slug>__new, swap both names in one RENAME TABLE (atomic in MySQL),
+ * then drop the old copy. Any failure drops __new only; the live table is
+ * never touched. The outcome is recorded on the registry row; errors are
+ * returned, never thrown. The CSV is deleted either way.
+ *
+ * @return true|WP_Error
+ */
+function vpress_dataset_replace_table( string $slug, string $tmp_csv_path ) {
+	global $wpdb;
+	$live = 'vpress_' . $slug;
+	$new  = $live . '__new';
+	$old  = $live . '__old';
+
+	if ( ! vpress_guard_identifier( $slug ) || ! vpress_guard_identifier( $new ) || ! vpress_guard_identifier( $old ) ) {
+		wp_delete_file( $tmp_csv_path );
+		$error = vpress_guard_unknown_dataset();
+		vpress_dataset_record_refresh( $slug, $error );
+		return $error;
+	}
+
+	// Leftovers of an interrupted refresh: a stale __new would be appended
+	// to (CREATE TABLE IF NOT EXISTS), a stale __old would block the RENAME.
+	$wpdb->query( "DROP TABLE IF EXISTS `$new`" );
+	$wpdb->query( "DROP TABLE IF EXISTS `$old`" );
+
+	$error = vpress_import_from_file( $tmp_csv_path, $new );
+	if ( true === $error ) {
+		$error       = null;
+		$live_exists = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $live ) ) === $live );
+		$wpdb->query(
+			$live_exists
+				? "RENAME TABLE `$live` TO `$old`, `$new` TO `$live`"
+				: "RENAME TABLE `$new` TO `$live`"
+		);
+		if ( $wpdb->last_error ) {
+			$error = vpress_db_error( $wpdb->last_error, 500, 'vpress_swap_failed' );
+		} elseif ( $live_exists ) {
+			$wpdb->query( "DROP TABLE IF EXISTS `$old`" );
+		}
+	}
+
+	if ( null !== $error ) {
+		$wpdb->query( "DROP TABLE IF EXISTS `$new`" );
+		vpress_dataset_record_refresh( $slug, $error );
+		return $error;
+	}
+	vpress_dataset_record_refresh( $slug );
+	return true;
 }

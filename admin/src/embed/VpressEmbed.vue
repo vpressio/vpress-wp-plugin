@@ -14,6 +14,8 @@
       :data="chartData"
       :chart-config="chartConfig"
       :date-format="dateFormat"
+      :alt-text="altText"
+      :alt-title="altTitle"
       @chart_loaded="onLoaded"
       @chart_error="onChartError"
     />
@@ -53,11 +55,18 @@ export default {
       chartConfig: {},
       chartData: [],
       dateFormat: undefined,
+      // The figure's server-rendered text alternative and label, handed to
+      // the chart's <svg> as <desc>/<title>.
+      altText: '',
+      altTitle: '',
       error: ''
     };
   },
   created() {
     this.load();
+  },
+  mounted() {
+    this.readAltText();
   },
   methods: {
     endpoint(path) {
@@ -120,8 +129,19 @@ export default {
     onLoaded() {
       this.setBusy(false);
     },
+    host() {
+      return (this.$el && this.$el.closest && this.$el.closest('.vpress-figure__chart')) || null;
+    },
+    readAltText() {
+      const host = this.host();
+      if (!host) return;
+      this.altTitle = host.getAttribute('aria-label') || '';
+      const descId = host.getAttribute('aria-describedby');
+      const desc = descId ? host.ownerDocument.getElementById(descId) : null;
+      this.altText = desc ? desc.textContent.trim() : '';
+    },
     setBusy(busy) {
-      const host = this.$el && this.$el.closest && this.$el.closest('.vpress-figure__chart');
+      const host = this.host();
       if (host) host.setAttribute('aria-busy', busy ? 'true' : 'false');
     }
   }

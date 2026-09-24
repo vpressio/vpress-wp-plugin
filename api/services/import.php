@@ -81,11 +81,18 @@ function vpress_import_chunk_bytes() {
   return (int) min( max( floor( $limit * 0.75 ), 256 * KB_IN_BYTES ), 4 * MB_IN_BYTES );
 }
 
+/**
+ * Largest CSV the plugin imports, uploaded or fetched from a live source.
+ */
+function vpress_import_max_bytes() {
+  return (int) apply_filters( 'vpress_max_upload_bytes', 20 * MB_IN_BYTES );
+}
+
 function vpress_import_start( $request ) {
   global $wpdb;
   $filename    = sanitize_file_name( (string) $request->get_param( 'filename' ) );
   $total_bytes = (int) $request->get_param( 'total_bytes' );
-  $cap         = (int) apply_filters( 'vpress_max_upload_bytes', 20 * MB_IN_BYTES );
+  $cap         = vpress_import_max_bytes();
 
   if ( strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) !== 'csv' ) {
     return new WP_Error( 'invalid_extension', 'Solo se permiten archivos CSV.', array( 'status' => 400 ) );
@@ -166,22 +173,20 @@ function vpress_import_detect_encoding( $sample ) {
   return mb_check_encoding( $sample, 'UTF-8' ) ? 'UTF-8' : 'Windows-1252';
 }
 
-function vpress_import_finish_upload( $request ) {
-  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
-  if ( ! $session || $session->status !== 'uploading' ) {
-    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+/**
+ * Reads a CSV's header row: detects the encoding (UTF-8, BOM stripped, or
+ * Windows-1252 transcoded to UTF-8) and returns where the data rows start.
+ * Shared by finish-upload and vpress_import_from_file().
+ *
+ * @return array|WP_Error array( header cells, encoding, data byte offset ).
+ */
+function vpress_import_read_header( $path ) {
+  $handle = fopen( $path, 'r' );
+  if ( ! $handle ) {
+    return new WP_Error( 'tmp_read_failed', 'No se pudo leer el archivo temporal.', array( 'status' => 500 ) );
   }
-  if ( (int) $session->bytes_received !== (int) $session->total_bytes ) {
-    return new WP_Error( 'incomplete_upload', 'La carga está incompleta.', array( 'status' => 400 ) );
-  }
-  $mime = mime_content_type( $session->tmp_path );
-  if ( ! in_array( $mime, array( 'text/csv', 'text/plain', 'application/csv' ), true ) ) {
-    return new WP_Error( 'invalid_mime', 'El archivo no es un CSV válido.', array( 'status' => 400 ) );
-  }
-
-  $handle = fopen( $session->tmp_path, 'r' );
   $sample = fread( $handle, 64 * KB_IN_BYTES );
-  $encoding = vpress_import_detect_encoding( $sample );
+  $encoding = vpress_import_detect_encoding( (string) $sample );
   rewind( $handle );
   // Strip BOM if present so the first header cell is clean.
   $bom = fread( $handle, 3 );
@@ -200,6 +205,69 @@ function vpress_import_finish_upload( $request ) {
   }
   $data_offset = ftell( $handle );
   fclose( $handle );
+  return array( $header, $encoding, $data_offset );
+}
+
+/**
+ * Parses up to $max_rows data rows starting at byte $offset: blank lines
+ * skipped, cells transcoded to UTF-8, each row padded/truncated to
+ * $column_count. The one row parser behind the REST tick and
+ * vpress_import_from_file().
+ *
+ * @return array|WP_Error array( 'rows' => array[], 'offset' => int, 'eof' => bool ).
+ */
+function vpress_import_parse_slice( $path, $offset, $encoding, $column_count, $max_rows ) {
+  $handle = fopen( $path, 'r' );
+  if ( ! $handle ) {
+    return new WP_Error( 'tmp_read_failed', 'No se pudo leer el archivo temporal.', array( 'status' => 500 ) );
+  }
+  fseek( $handle, (int) $offset );
+
+  $rows = array();
+  $eof  = false;
+  while ( count( $rows ) < $max_rows ) {
+    $data = fgetcsv( $handle, 0, ',' );
+    if ( $data === false ) {
+      $eof = true;
+      break;
+    }
+    if ( $data === array( null ) ) {
+      continue;
+    }
+    if ( $encoding !== 'UTF-8' ) {
+      $data = array_map( function ( $v ) use ( $encoding ) {
+        return iconv( $encoding, 'UTF-8//TRANSLIT', (string) $v );
+      }, $data );
+    }
+    $rows[] = array_slice( array_pad( $data, $column_count, '' ), 0, $column_count );
+  }
+  $new_offset = ftell( $handle );
+  fclose( $handle );
+  return array( 'rows' => $rows, 'offset' => (int) $new_offset, 'eof' => $eof );
+}
+
+function vpress_import_rows_per_tick() {
+  return max( 1, (int) apply_filters( 'vpress_import_rows_per_tick', 5000 ) );
+}
+
+function vpress_import_finish_upload( $request ) {
+  $session = vpress_import_get_session( (int) $request->get_param( 'session_id' ) );
+  if ( ! $session || $session->status !== 'uploading' ) {
+    return new WP_Error( 'invalid_session', 'Sesión de importación inválida.', array( 'status' => 404 ) );
+  }
+  if ( (int) $session->bytes_received !== (int) $session->total_bytes ) {
+    return new WP_Error( 'incomplete_upload', 'La carga está incompleta.', array( 'status' => 400 ) );
+  }
+  $mime = mime_content_type( $session->tmp_path );
+  if ( ! in_array( $mime, array( 'text/csv', 'text/plain', 'application/csv' ), true ) ) {
+    return new WP_Error( 'invalid_mime', 'El archivo no es un CSV válido.', array( 'status' => 400 ) );
+  }
+
+  $head = vpress_import_read_header( $session->tmp_path );
+  if ( is_wp_error( $head ) ) {
+    return $head;
+  }
+  list( $header, $encoding, $data_offset ) = $head;
 
   global $wpdb;
   $table_existed = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $session->table_name ) ) === $session->table_name );
@@ -225,34 +293,13 @@ function vpress_import_tick( $request ) {
   if ( empty( $columns ) ) {
     return new WP_Error( 'invalid_session', 'Sesión sin columnas.', array( 'status' => 500 ) );
   }
-  $rows_per_tick = (int) apply_filters( 'vpress_import_rows_per_tick', 5000 );
-
-  $handle = fopen( $session->tmp_path, 'r' );
-  if ( ! $handle ) {
-    return new WP_Error( 'tmp_read_failed', 'No se pudo leer el archivo temporal.', array( 'status' => 500 ) );
+  $slice = vpress_import_parse_slice( $session->tmp_path, $session->byte_offset, $session->encoding, count( $columns ), vpress_import_rows_per_tick() );
+  if ( is_wp_error( $slice ) ) {
+    return $slice;
   }
-  fseek( $handle, (int) $session->byte_offset );
-
-  $rows = array();
-  $eof  = false;
-  while ( count( $rows ) < $rows_per_tick ) {
-    $data = fgetcsv( $handle, 0, ',' );
-    if ( $data === false ) {
-      $eof = true;
-      break;
-    }
-    if ( $data === array( null ) ) {
-      continue;
-    }
-    if ( $session->encoding !== 'UTF-8' ) {
-      $data = array_map( function ( $v ) use ( $session ) {
-        return iconv( $session->encoding, 'UTF-8//TRANSLIT', (string) $v );
-      }, $data );
-    }
-    $rows[] = array_slice( array_pad( $data, count( $columns ), '' ), 0, count( $columns ) );
-  }
-  $new_offset = ftell( $handle );
-  fclose( $handle );
+  $rows       = $slice['rows'];
+  $eof        = $slice['eof'];
+  $new_offset = $slice['offset'];
 
   $inserted = 0;
   if ( count( $rows ) > 0 ) {
@@ -299,4 +346,69 @@ function vpress_import_abort( $request ) {
   }
   vpress_import_update_session( $session->id, array( 'status' => 'aborted', 'tmp_path' => '' ) );
   return array( 'status' => 'aborted' );
+}
+
+/**
+ * True when the file starts like an HTML document — what a Google Sheet
+ * that is not shared publicly returns (a 200 sign-in page) instead of CSV.
+ */
+function vpress_import_looks_like_html( $path ) {
+  $handle = fopen( $path, 'r' );
+  if ( ! $handle ) {
+    return false;
+  }
+  $start = strtolower( ltrim( (string) fread( $handle, 512 ), "\xEF\xBB\xBF \t\r\n" ) );
+  fclose( $handle );
+  return 0 === strpos( $start, '<!doctype html' ) || 0 === strpos( $start, '<html' );
+}
+
+/**
+ * Server-side import of a whole CSV into $table_name, synchronously: the
+ * same header reader, table builder and slice parser the chunked pipeline
+ * uses, looped to the end of the file. Bounded by vpress_import_max_bytes()
+ * (the fetch caps the download). The file is deleted afterwards, success or
+ * not; a table it created is left for the caller to drop.
+ *
+ * @return true|WP_Error
+ */
+function vpress_import_from_file( string $path, string $table_name ) {
+  global $wpdb;
+  try {
+    if ( ! vpress_guard_identifier( $table_name ) ) {
+      return vpress_guard_unknown_dataset();
+    }
+    if ( vpress_import_looks_like_html( $path ) ) {
+      return new WP_Error(
+        'vpress_source_not_csv',
+        __( 'The source returned a web page, not CSV. If it is a Google Sheet, share it as "Anyone with the link" or publish it.', 'vpress' ),
+        array( 'status' => 422 )
+      );
+    }
+    $head = vpress_import_read_header( $path );
+    if ( is_wp_error( $head ) ) {
+      return $head;
+    }
+    list( $header, $encoding, $offset ) = $head;
+
+    $columns = vpress_prepare_dataset_table( $table_name, $header );
+    if ( $wpdb->last_error ) {
+      return vpress_db_error( $wpdb->last_error, 500, 'create_failed' );
+    }
+    do {
+      $slice = vpress_import_parse_slice( $path, $offset, $encoding, count( $columns ), vpress_import_rows_per_tick() );
+      if ( is_wp_error( $slice ) ) {
+        return $slice;
+      }
+      if ( count( $slice['rows'] ) > 0 ) {
+        vpress_insert_rows( $table_name, $columns, $slice['rows'] );
+        if ( $wpdb->last_error ) {
+          return vpress_db_error( $wpdb->last_error, 500, 'insert_failed' );
+        }
+      }
+      $offset = $slice['offset'];
+    } while ( ! $slice['eof'] );
+    return true;
+  } finally {
+    wp_delete_file( $path );
+  }
 }

@@ -43,6 +43,7 @@
       <VpressDatasetPanel
         :items="items"
         @on-dataset-delete="getDatasets"
+        @on-dataset-refresh="getDatasets"
       />
     </VpressPaginator>
   </v-container>

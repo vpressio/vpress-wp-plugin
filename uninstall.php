@@ -105,13 +105,20 @@ function vpress_uninstall_site() {
 			$slugs = $wpdb->get_col( "SELECT slug FROM `{$registry}`" );
 
 			foreach ( (array) $slugs as $slug ) {
-				// Only identifiers we could have created; anything else is skipped, never interpolated.
-				if ( ! is_string( $slug ) || ! preg_match( '/^[A-Za-z0-9_]{1,64}$/', $slug ) ) {
+				if ( ! is_string( $slug ) ) {
 					continue;
 				}
-				$dataset_table = 'vpress_' . $slug;
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- identifier validated above.
-				$wpdb->query( "DROP TABLE IF EXISTS `{$dataset_table}`" );
+				// The live table plus the __new/__old copies a live-source refresh
+				// leaves behind if it dies mid-swap.
+				foreach ( array( '', '__new', '__old' ) as $suffix ) {
+					$dataset_table = 'vpress_' . $slug . $suffix;
+					// Only identifiers we could have created; anything else is skipped, never interpolated.
+					if ( ! preg_match( '/^[A-Za-z0-9_]{1,64}$/D', $slug ) || ! preg_match( '/^[A-Za-z0-9_]{1,64}$/D', $dataset_table ) ) {
+						continue;
+					}
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- identifier validated above.
+					$wpdb->query( "DROP TABLE IF EXISTS `{$dataset_table}`" );
+				}
 			}
 		}
 

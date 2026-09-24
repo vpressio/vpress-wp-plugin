@@ -320,7 +320,7 @@
 				},
 				el( 'div', {
 					className: 'vpress-figure__chart',
-					role: 'img',
+					role: 'group',
 					'aria-label': title || sprintf( __( 'Chart #%d', 'vpress' ), props.chartId ),
 					'aria-busy': 'true',
 				} ),

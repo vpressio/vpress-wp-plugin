@@ -17,6 +17,10 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState( false )]
 final class BlocksTest extends TestCase {
 
+	protected function setUp(): void {
+		$GLOBALS['wpdb'] = new Vpress_Test_Wpdb();
+	}
+
 	private function seed_public_chart(): void {
 		$GLOBALS['wpdb']->rows[1] = array(
 			'id'          => '1',

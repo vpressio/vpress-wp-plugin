@@ -1,0 +1,122 @@
+[
+ {
+  "estado": "Nuevo León",
+  "canal": "Distribuidor",
+  "ventas": "237070"
+ },
+ {
+  "estado": "Jalisco",
+  "canal": "Distribuidor",
+  "ventas": "299536"
+ },
+ {
+  "estado": "Ciudad de México",
+  "canal": "Distribuidor",
+  "ventas": "367894"
+ },
+ {
+  "estado": "Yucatán",
+  "canal": "Distribuidor",
+  "ventas": "417904"
+ },
+ {
+  "estado": "Chihuahua",
+  "canal": "Distribuidor",
+  "ventas": "477132"
+ },
+ {
+  "estado": "Nuevo León",
+  "canal": "Web",
+  "ventas": "511788"
+ },
+ {
+  "estado": "Puebla",
+  "canal": "Distribuidor",
+  "ventas": "563968"
+ },
+ {
+  "estado": "Sonora",
+  "canal": "Distribuidor",
+  "ventas": "646400"
+ },
+ {
+  "estado": "Jalisco",
+  "canal": "Web",
+  "ventas": "669924"
+ },
+ {
+  "estado": "Nuevo León",
+  "canal": "Directo",
+  "ventas": "677082"
+ },
+ {
+  "estado": "Veracruz",
+  "canal": "Distribuidor",
+  "ventas": "691772"
+ },
+ {
+  "estado": "Ciudad de México",
+  "canal": "Web",
+  "ventas": "834656"
+ },
+ {
+  "estado": "Jalisco",
+  "canal": "Directo",
+  "ventas": "882524"
+ },
+ {
+  "estado": "Yucatán",
+  "canal": "Web",
+  "ventas": "1002356"
+ },
+ {
+  "estado": "Ciudad de México",
+  "canal": "Directo",
+  "ventas": "1084366"
+ },
+ {
+  "estado": "Chihuahua",
+  "canal": "Web",
+  "ventas": "1149470"
+ },
+ {
+  "estado": "Puebla",
+  "canal": "Web",
+  "ventas": "1277572"
+ },
+ {
+  "estado": "Yucatán",
+  "canal": "Directo",
+  "ventas": "1308792"
+ },
+ {
+  "estado": "Sonora",
+  "canal": "Web",
+  "ventas": "1455152"
+ },
+ {
+  "estado": "Chihuahua",
+  "canal": "Directo",
+  "ventas": "1534280"
+ },
+ {
+  "estado": "Veracruz",
+  "canal": "Web",
+  "ventas": "1597290"
+ },
+ {
+  "estado": "Puebla",
+  "canal": "Directo",
+  "ventas": "1763386"
+ },
+ {
+  "estado": "Sonora",
+  "canal": "Directo",
+  "ventas": "1976412"
+ },
+ {
+  "estado": "Veracruz",
+  "canal": "Directo",
+  "ventas": "2090218"
+ }
+]

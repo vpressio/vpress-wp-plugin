@@ -80,6 +80,68 @@
   height: 100%;
 }
 
+/* Text alternative: read by screen readers, not shown. Themes usually ship
+   .screen-reader-text too; this keeps the figure right where they do not. */
+.vpress-figure__alt.screen-reader-text {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Data-table fallback (collapsed <details> after the caption). */
+.vpress-figure__data {
+  margin-top: 0.5em;
+  font-size: 0.875em;
+  text-align: left;
+}
+
+.vpress-figure__data > summary {
+  cursor: pointer;
+  width: max-content;
+}
+
+.vpress-figure__data > summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.vpress-figure__table {
+  width: 100%;
+  margin-top: 0.5em;
+  border-collapse: collapse;
+  font: inherit;
+  color: inherit;
+}
+
+.vpress-figure__table caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: 0.25em;
+}
+
+.vpress-figure__table th,
+.vpress-figure__table td {
+  padding: 0.25em 0.5em;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.35);
+  text-align: left;
+}
+
+.vpress-figure__table .vpress-figure__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.vpress-figure--dark .vpress-figure__data {
+  padding: 0 0.75em 0.75em;
+}
+
 /* .vpress-spinner + @keyframes vpress-spin live with the chart container
    (vpress-chart-container.vue) so the admin editor shares them; the build
    folds them into css/embed.css. */
@@ -98,5 +160,12 @@
 .vpress-chart-page__footer {
   margin-top: 1em;
   font-size: 0.8125em;
-  opacity: 0.7;
+  /* A solid grey (7.5:1 on white) rather than opacity, which also faded the
+     theme's link colour below 4.5:1. */
+  color: #555;
+}
+
+.vpress-chart-page__footer a {
+  color: inherit;
+  text-decoration: underline;
 }

@@ -36,6 +36,9 @@ class Vpress_Deactivator {
 		// first so the flush stores the rules without /chart/{id}.
 		unset( $wp_rewrite->extra_rules_top[ Vpress_Public::CHART_RULE ] );
 		flush_rewrite_rules();
+
+		require_once __DIR__ . '/class-vpress-upgrader.php';
+		vpress_unschedule_refresh();
 	}
 
 }
