@@ -145,13 +145,11 @@ final class ProvenanceFigureTest extends TestCase {
 	}
 
 	public function test_live_sources_date_the_data_by_their_last_refresh(): void {
-		// Named, because a sheet-sourced dataset with no name has nothing a
-		// visitor may see once the sheet URL is withheld — see
-		// test_a_google_sheet_url_is_withheld_from_visitors_on_every_public_surface.
+		// Unnamed on purpose: withholding the sheet URL must not cost the
+		// footer, so the date segment still prints without a source_name.
 		$this->seed(
 			array(
 				'source_type'       => 'gsheet',
-				'source_name'       => 'Hoja de presupuesto',
 				'source_url'        => 'https://docs.google.com/spreadsheets/d/abc/edit#gid=0',
 				'retrieved_at'      => '2026-01-01',
 				'last_refreshed_at' => '2026-09-23 23:30:00',
@@ -188,6 +186,42 @@ final class ProvenanceFigureTest extends TestCase {
 		$export = vpress_chart_export_payload( 1 );
 		$payload = is_array( $export ) ? $export : (array) $export;
 		$this->assertStringNotContainsString( 'SECRET_WORKBOOK_ID', wp_json_encode( $payload ), 'export.json must not print the sheet URL' );
+	}
+
+	public function test_a_nameless_sheet_keeps_its_footer_and_its_data_download(): void {
+		$this->seed(
+			array(
+				'source_type' => 'gsheet',
+				'source_name' => '',
+				'source_url'  => 'https://docs.google.com/spreadsheets/d/SECRET_WORKBOOK_ID/edit#gid=0',
+				'license'     => 'CC-BY-4.0',
+			)
+		);
+
+		$footer = $this->footer( vpress_render_figure( 1 ) );
+
+		// Withholding the URL must cost the link, nothing else: the source
+		// prints as plain text and the visitor still gets the data.
+		$this->assertSame(
+			'<footer class="vpress-figure__source">Source: Google Sheets · CC-BY-4.0 · <a class="vpress-figure__export" href="' . self::EXPORT_URL . '">Download data (JSON)</a></footer>',
+			$footer
+		);
+		// Never the host: it would read as a link that is not there.
+		$this->assertStringNotContainsString( 'docs.google.com', vpress_render_figure( 1 ) );
+	}
+
+	public function test_a_sheet_without_a_name_still_counts_as_provenance(): void {
+		$dataset = (object) array(
+			'source_type' => 'gsheet',
+			'source_name' => '',
+			'source_url'  => 'https://docs.google.com/spreadsheets/d/SECRET_WORKBOOK_ID/edit#gid=0',
+		);
+
+		// has_provenance decides whether a footer prints at all, so it reads
+		// the URL's existence; the value stays withheld.
+		$this->assertTrue( vpress_figure_has_provenance( $dataset ) );
+		$this->assertTrue( vpress_provenance_has_url( $dataset ) );
+		$this->assertSame( '', vpress_provenance_url( $dataset ) );
 	}
 
 	public function test_an_editor_still_sees_the_google_sheet_url(): void {

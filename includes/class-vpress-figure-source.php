@@ -102,13 +102,34 @@ function vpress_provenance_url( ?object $dataset ): string {
 }
 
 /**
+ * Whether the dataset carries a usable http(s) source URL at all, whatever
+ * this viewer may see of it.
+ *
+ * Deliberately a bool rather than a second URL getter: existence is all the
+ * footer needs in order to keep printing, and a bool can never become a path
+ * that emits a withheld URL. vpress_provenance_url() remains the only way to
+ * read the value, and it stays gated.
+ *
+ * @param object|null $dataset Registry row.
+ * @return bool
+ */
+function vpress_provenance_has_url( ?object $dataset ): bool {
+	return 1 === preg_match( '#^https?://#i', vpress_provenance_field( $dataset, 'source_url' ) );
+}
+
+/**
  * Whether there is provenance to print: a source name or a source URL.
+ *
+ * Reads the URL's EXISTENCE, not its value, so a sheet-backed dataset with no
+ * source_name still prints its footer for a visitor who may not see the link.
+ * Withholding the URL must not also cost the visitor the source line, the
+ * licence, the "data as of" date and the "Download data (JSON)" link.
  *
  * @param object|null $dataset Registry row.
  * @return bool
  */
 function vpress_figure_has_provenance( ?object $dataset ): bool {
-	return '' !== vpress_provenance_field( $dataset, 'source_name' ) || '' !== vpress_provenance_url( $dataset );
+	return '' !== vpress_provenance_field( $dataset, 'source_name' ) || vpress_provenance_has_url( $dataset );
 }
 
 /**
@@ -177,11 +198,21 @@ function vpress_figure_source_footer( object $chart, ?object $dataset ): string 
 
 	$name = vpress_provenance_field( $dataset, 'source_name' );
 	$url  = vpress_provenance_url( $dataset );
-	if ( '' === $name && '' !== $url ) {
-		$name = (string) wp_parse_url( $url, PHP_URL_HOST );
+	if ( '' === $name ) {
+		if ( '' !== $url ) {
+			$name = (string) wp_parse_url( $url, PHP_URL_HOST );
+		} elseif ( vpress_provenance_has_url( $dataset ) ) {
+			// The dataset has a URL this viewer may not see — a Google Sheet,
+			// the only source vpress_provenance_url() withholds. Name the
+			// kind of source, never its host: "docs.google.com" would read as
+			// a link that is not there, and is half the secret anyway.
+			$name = __( 'Google Sheets', 'vpress' );
+		}
 	}
 
 	$source = esc_html( $name );
+	// A withheld URL is '' here, so the source prints as plain text and the
+	// rest of the line — licence, date, data download — still prints.
 	if ( '' !== $url && '' !== esc_url( $url ) ) {
 		$source = '<a href="' . esc_url( $url ) . '" rel="noopener">' . $source . '</a>';
 	}
