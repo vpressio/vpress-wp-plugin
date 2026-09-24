@@ -1,5 +1,7 @@
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { realpathSync } from 'node:fs';
+import process from 'node:process';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig(({ mode }) => ({
@@ -27,6 +29,15 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     cors: true,
     origin: 'http://localhost:5180',
+    // Git worktrees symlink admin/node_modules to the main checkout; Vite's
+    // default fs.allow stops at the worktree root and 403s /@fs/ requests
+    // into the real node_modules (e.g. the MDI icon font) — allow it.
+    fs: {
+      allow: [
+        searchForWorkspaceRoot(process.cwd()),
+        realpathSync(fileURLToPath(new URL('./node_modules', import.meta.url)))
+      ]
+    },
     // Standalone dev (opening :5180 directly) proxies REST calls to MAMP's WP.
     proxy: {
       '/wp-json': 'http://localhost:8888'
