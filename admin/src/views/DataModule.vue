@@ -138,6 +138,16 @@
             </div>
             </v-tabs-window-item>
             <v-tabs-window-item
+              :value="'url'"
+            >
+              <div
+                class="pa-10"
+                style="height:100%;"
+              >
+                <VpressDataUrl @uploaded="uploaded" />
+              </div>
+            </v-tabs-window-item>
+            <v-tabs-window-item
               :value="'paste'"
             >
               <div class="pa-10" style="height:100%;">
@@ -184,6 +194,7 @@
 import { mapStores } from 'pinia'
 import VpressAppBar from '../components/vpress-app-bar.vue'
 import VpressFilepond from '../components/vpress-filepond.vue'
+import VpressDataUrl from '../components/vpress-data-url.vue'
 import VpressDatasetSelect from '../components/vpress-dataset-select.vue'
 import VpressDataTable from '../components/vpress-data-table.vue'
 import VpressSectionBar from '../components/vpress-section-bar.vue'
@@ -197,6 +208,7 @@ export default {
   components: {
     VpressAppBar,
     VpressFilepond,
+    VpressDataUrl,
     VpressDatasetSelect,
     VpressDataTable,
     VpressSectionBar
@@ -208,6 +220,7 @@ export default {
       sections: [
         { ref: 'search', name: 'Tus bases de datos' },
         { ref: 'upload', name: 'Sube datos' },
+        { ref: 'url', name: 'Desde URL' },
         // { ref: 'paste', name: 'Pegar datos' },
       ]
     }

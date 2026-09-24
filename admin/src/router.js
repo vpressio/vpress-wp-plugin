@@ -30,7 +30,7 @@ export const privateRouter = {
         { path: '', component: EmptyView },
         { path: 'upload', component: EmptyView },
         { path: 'paste', component: EmptyView },
-        { path: 'api', component: EmptyView },
+        { path: 'url', component: EmptyView },
       ]
     },
     {
