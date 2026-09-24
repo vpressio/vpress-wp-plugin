@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "vpress/chart",
+	"title": "Vpress chart",
+	"category": "embed",
+	"icon": "chart-bar",
+	"description": "Insert an interactive Vpress chart.",
+	"keywords": [ "chart", "gráfica", "vpress", "data" ],
+	"textdomain": "vpress",
+	"attributes": {
+		"chartId": {
+			"type": "integer"
+		},
+		"showCaption": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"align": [ "wide", "full" ],
+		"html": false,
+		"anchor": true,
+		"spacing": {
+			"margin": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"render": "file:./render.php"
+}
