@@ -23,6 +23,20 @@
 class Vpress_Public {
 
 	/**
+	 * Rewrite rule regex for the public chart page, /chart/{id}.
+	 *
+	 * @since    0.3.0
+	 */
+	const CHART_RULE = 'chart/(\d+)/?$';
+
+	/**
+	 * Rewrite target for CHART_RULE.
+	 *
+	 * @since    0.3.0
+	 */
+	const CHART_RULE_TARGET = 'index.php?chart=$matches[1]';
+
+	/**
 	 * The ID of this plugin.
 	 *
 	 * @since    0.1.0
@@ -90,11 +104,7 @@ class Vpress_Public {
 	 * @since    0.1.0
 	 */
 	public static function add_chart_rule() {
-		add_rewrite_rule(
-			'chart/(\d+)/?$',
-			'index.php?chart=$matches[1]',
-			'top'
-		);
+		add_rewrite_rule( self::CHART_RULE, self::CHART_RULE_TARGET, 'top' );
 	}
 	
 	/**
