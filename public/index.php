@@ -1,10 +1,41 @@
-<?php wp_head();?>
-<noscript>
-  <strong>We're sorry but Vpress doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-</noscript>
-<div id="front"></div>
-  <!-- Todo: change script enquue -->
-<script type="text/javascript">
-  var vpress_id = <?= $gdata; ?>
-</script>
-<?php wp_footer();?>
+<?php
+/**
+ * Standalone `/chart/{id}` page: one chart figure, nothing else.
+ *
+ * @package    Vpress
+ * @subpackage Vpress/public
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+$vpress_chart_id = (int) get_query_var( 'chart' );
+// Render before any output: the figure decides the status code and enqueues its assets.
+$vpress_figure = vpress_render_figure( $vpress_chart_id );
+
+if ( '' === $vpress_figure ) {
+	status_header( 404 );
+	nocache_headers();
+}
+?><!doctype html>
+<html <?php language_attributes(); ?>>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php wp_head(); ?>
+</head>
+<body class="vpress-chart-page">
+<main class="vpress-chart-page__main">
+<?php
+if ( '' !== $vpress_figure ) {
+	echo $vpress_figure; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside vpress_render_figure().
+} else {
+	echo '<p class="vpress-chart-page__missing">' . esc_html__( 'Gráfica no disponible', 'vpress' ) . '</p>';
+}
+?>
+</main>
+<footer class="vpress-chart-page__footer"><a href="<?php echo esc_url( home_url() ); ?>"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></a> · <a href="https://gitlab.com/vpress/vpress-wp-plugin">Vpress</a></footer>
+<?php wp_footer(); ?>
+</body>
+</html>

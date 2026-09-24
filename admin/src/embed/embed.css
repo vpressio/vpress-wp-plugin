@@ -1,0 +1,102 @@
+/* Public Vpress figure (server-rendered by vpress_render_figure()). */
+.vpress-figure {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 1.5em 0;
+  font: inherit;
+  color: inherit;
+}
+
+.vpress-figure.aligncenter {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.vpress-figure__chart {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.vpress-figure--dark {
+  background: #222;
+  color: #eee;
+}
+
+.vpress-figure--dark .vpress-figure__caption {
+  padding: 0 0.75em 0.75em;
+}
+
+.vpress-figure__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  margin-top: 0.5em;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.vpress-figure__title {
+  font-weight: 600;
+}
+
+.vpress-figure__subtitle {
+  font-size: 0.875em;
+  opacity: 0.8;
+}
+
+.vpress-figure__error {
+  margin: 0;
+  padding: 1em;
+  font: inherit;
+  color: inherit;
+}
+
+.vpress-embed,
+.vpress-embed__loading {
+  position: absolute;
+  inset: 0;
+}
+
+.vpress-embed__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The chart container's own title slots stay empty in the embed (the
+   <figcaption> carries title and subtitle); drop their default margins. */
+.vpress-figure__chart .generated-title:empty,
+.vpress-figure__chart .generated-subtitle:empty {
+  display: none;
+}
+
+/* …and give the plot the height those title rows used to reserve. */
+.vpress-figure__chart .empty-chart {
+  height: 100%;
+}
+
+/* .vpress-spinner + @keyframes vpress-spin live with the chart container
+   (vpress-chart-container.vue) so the admin editor shares them; the build
+   folds them into css/embed.css. */
+
+/* Standalone /chart/{id} page. */
+.vpress-chart-page {
+  margin: 0;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.vpress-chart-page__main .vpress-figure {
+  margin: 0;
+}
+
+.vpress-chart-page__footer {
+  margin-top: 1em;
+  font-size: 0.8125em;
+  opacity: 0.7;
+}

@@ -44,6 +44,10 @@ define( 'VPRESS_VERSION', '0.3.0' );
  */
 define( 'VPRESS_PLUGIN_FILE', __FILE__ );
 
+if ( ! defined( 'VPRESS_PLUGIN_FILE' ) ) {
+	define( 'VPRESS_PLUGIN_FILE', __FILE__ );
+}
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-vpress-activator.php
