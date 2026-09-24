@@ -25,3 +25,13 @@ yarn-error.log
 *.njsproj
 *.sln
 *.sw?
+
+# Build and release artifacts
+/admin/dist/
+/build/
+/bin/*.phar
+/admin/tests/e2e/.auth/
+
+# Local tooling
+/.worktrees/
+/.superpowers/
