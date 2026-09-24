@@ -16,6 +16,8 @@
 	<testsuites>
 		<testsuite name="vpress">
 			<directory suffix="Test.php">.</directory>
+			<!-- FigureTest runs under its own shims: php bin/phpunit.phar --bootstrap tests/php/bootstrap-figure.php tests/php/FigureTest.php -->
+			<exclude>FigureTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<source>
