@@ -1,0 +1,35 @@
+/* Vpress chart block — editor canvas only (block.json editorStyle). */
+
+.wp-block-vpress-chart .components-placeholder {
+	min-height: 240px;
+}
+
+.wp-block-vpress-chart .vpress-block__combobox {
+	width: 100%;
+	max-width: 420px;
+}
+
+.wp-block-vpress-chart .vpress-block__actions {
+	margin-top: 12px;
+}
+
+/* Clicks on the drawn chart select the block instead of hitting the SVG. */
+.wp-block-vpress-chart .vpress-figure svg,
+.wp-block-vpress-chart .vpress-figure canvas {
+	pointer-events: none;
+}
+
+.wp-block-vpress-chart .vpress-figure {
+	margin: 0;
+	outline: 1px solid transparent;
+	outline-offset: 4px;
+	transition: outline-color 0.15s ease;
+}
+
+.wp-block-vpress-chart.is-selected .vpress-figure {
+	outline-color: rgba(30, 30, 30, 0.2);
+}
+
+.wp-block-vpress-chart .vpress-figure__chart {
+	min-height: 240px;
+}

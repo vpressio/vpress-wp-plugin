@@ -49,6 +49,13 @@ if ( ! defined( 'VPRESS_PLUGIN_FILE' ) ) {
 }
 
 /**
+ * Absolute path to the plugin folder, with a trailing slash.
+ */
+if ( ! defined( 'VPRESS_PLUGIN_DIR' ) ) {
+	define( 'VPRESS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+}
+
+/**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-vpress-activator.php
  */
