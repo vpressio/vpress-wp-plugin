@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/class-vpress-query-guard.php';
+require_once __DIR__ . '/class-vpress-query-body.php';
 
 /**
  * Single error shape for rejected chart query input.
