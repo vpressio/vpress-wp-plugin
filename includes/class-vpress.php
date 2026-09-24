@@ -83,6 +83,9 @@ class Vpress {
 		}
 		$this->plugin_name = 'vpress';
 		$this->client = $this->is_develop_serve('5180');
+		// Share the dev/prod decision with procedural code (e.g. the public
+		// figure renderer) without repeating the port probe.
+		add_filter( 'vpress_client', array( $this, 'get_client' ) );
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
@@ -134,6 +137,7 @@ class Vpress {
 		/**
 		 * Vpress Shortcode
 		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-figure.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/vpress-shortcode.php';
 
 		/**
@@ -194,10 +198,7 @@ class Vpress {
 		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_chart_query');
 		$this->loader->add_filter( 'template_include', $plugin_public, 'include_html');
 		$this->loader->add_filter('style_loader_tag', $plugin_public, 'add_style_attributes', 10, 2);
-		$this->loader->add_filter('script_loader_tag', $plugin_public, 'script_type_module', 10, 3);
 		$this->loader->add_action('init', $plugin_public, 'add_chart_rule');
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
 	}
 
 	private function is_develop_serve($PORT) {
@@ -215,6 +216,17 @@ class Vpress {
 			'env' => $env,
 			'location' => $location
 		);
+	}
+
+	/**
+	 * The dev/prod client decision made once at boot by is_develop_serve().
+	 *
+	 * Exposed through the `vpress_client` filter.
+	 *
+	 * @return    array    { env: 'dev'|'prod', location: string }.
+	 */
+	public function get_client() {
+		return $this->client;
 	}
 
 	/**

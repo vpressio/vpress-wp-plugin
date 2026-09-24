@@ -36,6 +36,10 @@ if ( ! defined( 'WPINC' ) ) {
  */
 define( 'VPRESS_VERSION', '0.2.0' );
 
+if ( ! defined( 'VPRESS_PLUGIN_FILE' ) ) {
+	define( 'VPRESS_PLUGIN_FILE', __FILE__ );
+}
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-vpress-activator.php
