@@ -296,7 +296,7 @@ final class FigureTextTest extends TestCase {
 		$chart = self::chart( self::bars(), array( 'id' => '4' ) );
 		$html  = vpress_figure_data_table( $chart, array( array( 'estado' => 'A', 'ventas' => '1' ) ) );
 
-		$this->assertStringContainsString( '<caption>Gráfica 4</caption>', $html );
+		$this->assertStringContainsString( '<caption>Chart 4</caption>', $html );
 		$this->assertStringContainsString( '<th scope="col">Estado</th><th scope="col">Ventas</th>', $html );
 	}
 

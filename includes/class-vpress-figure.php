@@ -111,7 +111,7 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 	$show_caption = ! array_key_exists( 'show_caption', $args ) || (bool) $args['show_caption'];
 
 	/* translators: %d: chart id. */
-	$label = '' !== $title ? $title : sprintf( __( 'Gráfica %d', 'vpress' ), $chart_id );
+	$label = '' !== $title ? $title : sprintf( __( 'Chart %d', 'vpress' ), $chart_id );
 
 	vpress_enqueue_embed_assets();
 

@@ -25,7 +25,7 @@ function fakeVm(overrides = {}) {
   const vm = {
     id: 'vpress-chart-1-1',
     altText: 'Bar chart of ventas by estado, 8 categories.',
-    altTitle: 'Gráfica 1',
+    altTitle: 'Chart 1',
     chartConfig: chart1,
     groupByOptions: ['Web', 'Directo', 'Distribuidor'],
     dateFormat: '%Y-%m-%d',
@@ -68,7 +68,7 @@ describe('vpress-chart-container accessibility pass', () => {
     expect(svg.getAttribute('role')).toBe('graphics-document');
     expect(svg.getAttribute('focusable')).toBe('false');
     expect(svg.firstElementChild.tagName.toLowerCase()).toBe('title');
-    expect(svg.querySelector('title').textContent).toBe('Gráfica 1');
+    expect(svg.querySelector('title').textContent).toBe('Chart 1');
     expect(svg.querySelector('desc').textContent).toBe('Bar chart of ventas by estado, 8 categories.');
     expect(svg.getAttribute('aria-labelledby')).toBe('vpress-chart-1-1-svg-title');
     expect(svg.getAttribute('aria-describedby')).toBe('vpress-chart-1-1-svg-desc');
@@ -82,6 +82,12 @@ describe('vpress-chart-container accessibility pass', () => {
     // desc equal to the title adds nothing, so it is left out.
     expect(svg.querySelector('desc')).toBeNull();
     expect(svg.hasAttribute('aria-describedby')).toBe(false);
+  });
+
+  it('falls back to "Chart" when there is no title or label at all', () => {
+    const svg = drawGroupedBars();
+    fakeVm({ altText: '', altTitle: '' }).applyA11y(svg);
+    expect(svg.querySelector('title').textContent).toBe('Chart');
   });
 
   it('does not stack titles on redraw', () => {

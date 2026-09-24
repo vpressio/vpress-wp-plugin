@@ -1024,7 +1024,7 @@ export default {
       if (!svg) return;
       const doc = svg.ownerDocument;
       const base = `${this.id || 'vpress-chart'}-svg`;
-      const name = (this.chartConfig.title || this.altTitle || '').trim() || 'Gráfica';
+      const name = (this.chartConfig.title || this.altTitle || '').trim() || 'Chart';
       const description = (this.altText || this.chartConfig.title || '').trim();
 
       svg.querySelectorAll(':scope > title, :scope > desc').forEach((el) => el.remove());

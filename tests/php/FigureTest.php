@@ -89,7 +89,7 @@ final class FigureTest extends TestCase {
 		$this->assertStringNotContainsString( 'vpress-figure__subtitle', $html );
 
 		$this->seed( $this->chart( array( 'id' => '2', 'title' => '', 'value' => '{}' ) ) );
-		$this->assertStringContainsString( 'aria-label="Gráfica 2"', vpress_render_figure( 2 ) );
+		$this->assertStringContainsString( 'aria-label="Chart 2"', vpress_render_figure( 2 ) );
 	}
 
 	public function test_title_and_attributes_are_escaped(): void {

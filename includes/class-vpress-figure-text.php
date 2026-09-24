@@ -638,7 +638,7 @@ function vpress_figure_data_table( object $chart, array $rows ): string {
 	$title = vpress_figure_title( $chart );
 	if ( '' === $title ) {
 		/* translators: %d: chart id. */
-		$title = sprintf( __( 'Gráfica %d', 'vpress' ), (int) ( $chart->id ?? 0 ) );
+		$title = sprintf( __( 'Chart %d', 'vpress' ), (int) ( $chart->id ?? 0 ) );
 	}
 
 	$html  = '<details class="vpress-figure__data"><summary>' . esc_html__( 'View data', 'vpress' ) . '</summary>';
