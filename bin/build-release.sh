@@ -49,6 +49,8 @@ rsync -a --delete \
 	--exclude='/admin/yarn.lock' \
 	--exclude='/admin/eslint.config.*' \
 	--exclude='/admin/.env*' \
+	--exclude='/admin/.editorconfig' \
+	--exclude='/admin/.gitignore' \
 	--exclude='.DS_Store' \
 	"$ROOT/" "$STAGE/"
 
