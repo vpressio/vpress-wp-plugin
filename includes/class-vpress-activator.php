@@ -37,8 +37,6 @@ class Vpress_Activator {
 		
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$query_1 = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_datasets ) );
-		$query_2 = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_charts ) );
 		
 		$sql_datasets = "CREATE TABLE $table_datasets (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
@@ -72,8 +70,8 @@ class Vpress_Activator {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		if ( 
-			! $wpdb->get_var( $query_1 ) == $table_datasets && 
-			! $wpdb->get_var( $query_2 ) == $table_charts
+			! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_datasets ) ) ) == $table_datasets && 
+			! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_charts ) ) ) == $table_charts
 		) {
 			dbDelta( [ $sql_datasets, $sql_charts ] );
 		}

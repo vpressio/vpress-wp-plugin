@@ -108,7 +108,10 @@ class Vpress_Public {
 			$this->plugin_name . '_vite_client',
 		);
 		if ( in_array( $handle, $module_handles, true ) ) {
-			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+			// Rewrite WordPress's own tag instead of building one: drop any
+			// type attribute, then mark the src-bearing tag as a module.
+			$tag = preg_replace( '/\stype=(["\'])[^"\']*\1/', '', $tag );
+			$tag = preg_replace( '/\ssrc=/', ' type="module" src=', $tag, 1 );
 		}
 		return $tag;
 	}
