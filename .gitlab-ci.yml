@@ -29,14 +29,14 @@ lint:js:
   script:
     - yarn --cwd admin install --frozen-lockfile
     # ratchet: lower this number, never raise it. 731 is today's exact
-    # warning count (2026-09-24, after merging night/integration and fixing
-    # the 2 pre-existing no-undef errors — see the fix(lint) commit); --max-
-    # warnings only gates warnings, so a real lint ERROR still fails this
-    # job regardless of the ratchet.
+    # warning count (2026-09-24), re-verified after both the H4/M3 merge and
+    # the earlier fix for 2 pre-existing no-undef errors (see the fix(lint)
+    # commit) — unchanged by either. --max-warnings only gates warnings, so
+    # a real lint ERROR still fails this job regardless of the ratchet.
     - yarn --cwd admin eslint . --max-warnings 731
 
 lint:php:
-  stage: test
+  stage: lint
   image: php:8.3-cli
   before_script:
     # php:8.3-cli is Debian-based (apt); the conditional keeps this working
@@ -79,16 +79,11 @@ test:php:
     # copy under the same path so the commands below match local dev 1:1.
     - curl -sL -o bin/phpunit.phar https://phar.phpunit.de/phpunit-11.phar
   script:
-    - php bin/phpunit.phar -c tests/php/phpunit.xml --log-junit tests/php/junit-main.xml
-    - php bin/phpunit.phar --bootstrap tests/php/bootstrap-figure.php tests/php/FigureTest.php --log-junit tests/php/junit-figure.xml
-    - php bin/phpunit.phar --bootstrap tests/php/bootstrap-blocks.php --log-junit tests/php/junit-blocks.xml tests/php/BlocksTest.php
+    - php bin/phpunit.phar -c tests/php/phpunit.xml --log-junit tests/php/junit.xml
   artifacts:
     when: always
     reports:
-      junit:
-        - tests/php/junit-main.xml
-        - tests/php/junit-figure.xml
-        - tests/php/junit-blocks.xml
+      junit: tests/php/junit.xml
 
 plugin-check:
   stage: test
@@ -110,6 +105,11 @@ plugin-check:
   before_script:
     - apk add --no-cache rsync
   script:
+    # pipefail so a `wp plugin check | tee` whose left side crashes can't be
+    # masked by tee's own exit 0 — the final `! grep -q ERROR` gate stays as
+    # the content check, this only stops a crash from reading as "no ERROR
+    # string found" and quietly passing.
+    - set -o pipefail
     - wp core download --path=/tmp/wp --allow-root
     - wp config create --path=/tmp/wp --dbname=wp --dbuser=root --dbpass=root --dbhost=mysql --allow-root
     # Wait for the mysql service to accept connections before `wp core
