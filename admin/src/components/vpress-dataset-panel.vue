@@ -14,6 +14,7 @@
         <VpressDatasetCard
           :dataset="item"
           @on-dataset-delete="$emit('on-dataset-delete')"
+          @on-dataset-refresh="$emit('on-dataset-refresh', $event)"
         />
       </v-expansion-panel-title>
       <v-expansion-panel-text
@@ -123,7 +124,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['on-dataset-delete'],
+  emits: ['on-dataset-delete', 'on-dataset-refresh'],
   data() {
     return {
       loading: false,

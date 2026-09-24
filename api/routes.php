@@ -25,6 +25,9 @@ define('VPRESS_API_CREATE_DATASET_ROUTE','/dataset/create');
 define('VPRESS_API_UPDATE_DATASET_ROUTE','/dataset/update');
 define('VPRESS_API_DELETE_DATASET_ROUTE','/dataset/delete');
 define('VPRESS_API_GET_DATASET_DATA','/dataset/data/(?P<dataset>(.|%20)+)');
+//EDITABLE: live data sources (CSV URL / Google Sheets)
+define('VPRESS_API_DATASET_FROM_URL_ROUTE','/dataset/from-url');
+define('VPRESS_API_DATASET_REFRESH_ROUTE','/dataset/refresh');
 
 define('VPRESS_API_IMPORT_START','/import/start');
 define('VPRESS_API_IMPORT_CHUNK','/import/chunk');

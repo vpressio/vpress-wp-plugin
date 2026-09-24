@@ -194,6 +194,7 @@ class FakeRestRequest implements ArrayAccess {
  */
 class FakeWpdb {
 	public $prefix     = 'wp_';
+	public $options    = 'wp_options';
 	public $last_query = '';
 	public $last_error = '';
 	public $insert_id  = 0;
@@ -232,6 +233,10 @@ class FakeWpdb {
 			},
 			$query
 		);
+	}
+
+	public function get_charset_collate() {
+		return 'DEFAULT CHARSET=utf8mb4';
 	}
 
 	public function esc_like( $text ) {
@@ -273,6 +278,23 @@ class FakeWpdb {
 
 	public function delete( $table, $where, $format = null ) {
 		return $this->respond( "DELETE FROM $table" ) ?? 1;
+	}
+
+	/** Every insert()/update() call, verbatim: array( op, table, data, where ). */
+	public $writes = array();
+
+	public function insert( $table, $data, $format = null ) {
+		$this->writes[] = array( 'insert', $table, $data, null );
+		$result = $this->respond( "INSERT INTO $table" );
+		if ( '' === $this->last_error ) {
+			++$this->insert_id;
+		}
+		return $result ?? 1;
+	}
+
+	public function update( $table, $data, $where, $format = null, $where_format = null ) {
+		$this->writes[] = array( 'update', $table, $data, $where );
+		return $this->respond( "UPDATE $table" ) ?? 1;
 	}
 
 	private function respond( $sql ) {
@@ -356,6 +378,179 @@ require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-text.php';
 require_once dirname( __DIR__, 2 ) . '/includes/vpress-shortcode.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-blocks.php';
+if ( ! defined( 'KB_IN_BYTES' ) ) {
+	define( 'KB_IN_BYTES', 1024 );
+	define( 'MB_IN_BYTES', 1024 * KB_IN_BYTES );
+	define( 'MINUTE_IN_SECONDS', 60 );
+	define( 'HOUR_IN_SECONDS', 60 * MINUTE_IN_SECONDS );
+	define( 'DAY_IN_SECONDS', 24 * HOUR_IN_SECONDS );
+	define( 'WEEK_IN_SECONDS', 7 * DAY_IN_SECONDS );
+}
+
+/** dbDelta routes each statement through $wpdb->query() so tests see it. */
+function dbDelta( $queries ) {
+	foreach ( (array) $queries as $sql ) {
+		$GLOBALS['wpdb']->query( $sql );
+	}
+	return array();
+}
+
+/** Options, transients and the cron schedule; tests read and seed these directly. */
+$GLOBALS['vpress_test_options']    = array();
+$GLOBALS['vpress_test_transients'] = array();
+$GLOBALS['vpress_test_cron']       = array();
+
+function get_option( $name, $default = false ) {
+	return array_key_exists( $name, $GLOBALS['vpress_test_options'] ) ? $GLOBALS['vpress_test_options'][ $name ] : $default;
+}
+
+function update_option( $name, $value ) {
+	$GLOBALS['vpress_test_options'][ $name ] = $value;
+	return true;
+}
+
+function add_option( $name, $value = '' ) {
+	if ( array_key_exists( $name, $GLOBALS['vpress_test_options'] ) ) {
+		return false;
+	}
+	$GLOBALS['vpress_test_options'][ $name ] = $value;
+	return true;
+}
+
+function get_transient( $name ) {
+	return $GLOBALS['vpress_test_transients'][ $name ] ?? false;
+}
+
+function set_transient( $name, $value, $expiration = 0 ) {
+	$GLOBALS['vpress_test_transients'][ $name ] = $value;
+	return true;
+}
+
+function delete_transient( $name ) {
+	unset( $GLOBALS['vpress_test_transients'][ $name ] );
+	return true;
+}
+
+function wp_next_scheduled( $hook ) {
+	return $GLOBALS['vpress_test_cron'][ $hook ]['timestamp'] ?? false;
+}
+
+function wp_schedule_event( $timestamp, $recurrence, $hook ) {
+	$GLOBALS['vpress_test_cron'][ $hook ] = array( 'timestamp' => $timestamp, 'recurrence' => $recurrence );
+	return true;
+}
+
+function wp_clear_scheduled_hook( $hook ) {
+	unset( $GLOBALS['vpress_test_cron'][ $hook ] );
+	return 1;
+}
+
+/** "Now" for current_time(); tests pin it (UTC, MySQL format). */
+$GLOBALS['vpress_test_now'] = '2026-09-24 12:00:00';
+
+function current_time( $type, $gmt = 0 ) {
+	return 'mysql' === $type ? $GLOBALS['vpress_test_now'] : strtotime( $GLOBALS['vpress_test_now'] . ' UTC' );
+}
+
+function get_current_user_id() {
+	return 7;
+}
+
+function sanitize_text_field( $str ) {
+	return trim( preg_replace( '/[\r\n\t ]+/', ' ', strip_tags( (string) $str ) ) );
+}
+
+
+function delete_option( $name ) {
+	unset( $GLOBALS['vpress_test_options'][ $name ] );
+	return true;
+}
+
+function is_multisite() {
+	return false;
+}
+
+function trailingslashit( $value ) {
+	return rtrim( $value, '/\\' ) . '/';
+}
+
+function wp_parse_url( $url, $component = -1 ) {
+	return parse_url( $url, $component );
+}
+
+/**
+ * wp_http_validate_url(): http(s) with a host; URLs listed in
+ * $GLOBALS['vpress_test_rejected_urls'] are refused (the private/loopback verdict).
+ */
+$GLOBALS['vpress_test_rejected_urls'] = array();
+
+function wp_http_validate_url( $url ) {
+	if ( in_array( $url, $GLOBALS['vpress_test_rejected_urls'], true ) ) {
+		return false;
+	}
+	$parts = parse_url( (string) $url );
+	if ( ! $parts || empty( $parts['host'] ) || ! in_array( $parts['scheme'] ?? '', array( 'http', 'https' ), true ) ) {
+		return false;
+	}
+	return $url;
+}
+
+/** Scripted HTTP: $GLOBALS['vpress_test_http'] = fn( $url, $args ) => response|WP_Error. */
+$GLOBALS['vpress_test_http']       = null;
+$GLOBALS['vpress_test_http_calls'] = array();
+
+function wp_safe_remote_get( $url, $args = array() ) {
+	$GLOBALS['vpress_test_http_calls'][] = array( $url, $args );
+	return call_user_func( $GLOBALS['vpress_test_http'], $url, $args );
+}
+
+function wp_remote_retrieve_response_code( $response ) {
+	return is_array( $response ) ? ( $response['response']['code'] ?? '' ) : '';
+}
+
+function wp_upload_dir() {
+	return array( 'basedir' => $GLOBALS['vpress_test_upload_dir'] );
+}
+
+$GLOBALS['vpress_test_upload_dir'] = sys_get_temp_dir() . '/vpress-phpunit-' . getmypid();
+register_shutdown_function(
+	function () {
+		$dir = $GLOBALS['vpress_test_upload_dir'];
+		if ( is_dir( $dir ) ) {
+			foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::CHILD_FIRST ) as $f ) {
+				$f->isDir() ? rmdir( $f->getPathname() ) : unlink( $f->getPathname() );
+			}
+			rmdir( $dir );
+		}
+	}
+);
+
+function wp_mkdir_p( $dir ) {
+	return is_dir( $dir ) || mkdir( $dir, 0777, true );
+}
+
+function wp_generate_password( $length = 12, $special_chars = true ) {
+	return substr( bin2hex( random_bytes( $length ) ), 0, $length );
+}
+
+function wp_delete_file( $file ) {
+	if ( file_exists( $file ) ) {
+		unlink( $file );
+	}
+}
+
+/** Writes a CSV fixture under the fake uploads dir and returns its path. */
+function vpress_test_csv( string $contents ): string {
+	$dir = $GLOBALS['vpress_test_upload_dir'] . '/fixtures';
+	wp_mkdir_p( $dir );
+	$path = $dir . '/' . wp_generate_password( 12, false ) . '.csv';
+	file_put_contents( $path, $contents );
+	return $path;
+}
+
 require_once dirname( __DIR__, 2 ) . '/api/services/chart.php';
 require_once dirname( __DIR__, 2 ) . '/api/services/dataset.php';
+require_once dirname( __DIR__, 2 ) . '/api/services/import.php';
+require_once dirname( __DIR__, 2 ) . '/api/services/class-vpress-sources.php';
+require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-upgrader.php';
 require_once __DIR__ . '/fixtures.php';
