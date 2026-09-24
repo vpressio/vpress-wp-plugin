@@ -196,7 +196,7 @@ final class ImportFromFileTest extends TestCase {
 		$this->assertCount( 5, $ddl );
 		$this->assertSame( array( "INSERT INTO `vpress_live__new` (`a`) VALUES ('1')" ), $this->inserts() );
 		$this->assertSame(
-			array( 'update', 'wp_vpresscore_datasets', array( 'last_refreshed_at' => '2026-09-24 12:00:00', 'last_refresh_error' => null ), array( 'slug' => 'live' ) ),
+			array( 'update', 'wp_vpresscore_datasets', array( 'last_refresh_error' => null, 'last_refreshed_at' => '2026-09-24 12:00:00' ), array( 'slug' => 'live' ) ),
 			end( $this->wpdb->writes )
 		);
 		$this->assertFileDoesNotExist( $path );
@@ -262,10 +262,25 @@ final class ImportFromFileTest extends TestCase {
 		$this->assertStringContainsString( 'removed ventas', $result->get_error_message() );
 		// The swap still happens: the new rows are what the source says.
 		$this->assertContains( 'RENAME TABLE `vpress_live` TO `vpress_live__old`, `vpress_live__new` TO `vpress_live`', $this->ddl() );
-		// But the dataset carries the drift instead of a fresh, clean timestamp.
+		// The dataset carries the drift AND the timestamp: the rows really were
+		// replaced, and last_refreshed_at is what vpress_source_is_due() reads.
+		// Recording only the error would leave the source permanently due, so
+		// the hourly sweep would re-download and re-swap it forever.
 		$this->assertSame(
-			array( 'update', 'wp_vpresscore_datasets', array( 'last_refresh_error' => $result->get_error_message() ), array( 'slug' => 'live' ) ),
+			array(
+				'update',
+				'wp_vpresscore_datasets',
+				array(
+					'last_refresh_error' => $result->get_error_message(),
+					'last_refreshed_at'  => '2026-09-24 12:00:00',
+				),
+				array( 'slug' => 'live' ),
+			),
 			end( $this->wpdb->writes )
+		);
+		$this->assertFalse(
+			vpress_source_is_due( 'hourly', '2026-09-24 12:00:00', strtotime( '2026-09-24 12:30:00 UTC' ) ),
+			'a drifted source must not stay due after its rows were replaced'
 		);
 	}
 
@@ -276,7 +291,7 @@ final class ImportFromFileTest extends TestCase {
 		$this->assertTrue( vpress_dataset_replace_table( 'live', vpress_test_csv( "estado,ventas\nNL,10\n" ) ) );
 
 		$this->assertSame(
-			array( 'last_refreshed_at' => '2026-09-24 12:00:00', 'last_refresh_error' => null ),
+			array( 'last_refresh_error' => null, 'last_refreshed_at' => '2026-09-24 12:00:00' ),
 			end( $this->wpdb->writes )[2]
 		);
 	}

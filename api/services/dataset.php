@@ -719,18 +719,26 @@ function vpress_change_data_type_column( $request ) {
 
 /**
  * Stamps the outcome of a live-source refresh on every registry row of
- * $slug (duplicate slugs share one physical table): success sets
- * last_refreshed_at and clears the error, failure stores the message and
- * leaves last_refreshed_at alone.
+ * $slug (duplicate slugs share one physical table).
+ *
+ * "When did the rows last change" and "is the dataset healthy" are separate
+ * facts, so they are separate arguments. $data_replaced stamps
+ * last_refreshed_at; $error stores a message (null clears it). Column drift is
+ * the case that needs both: the swap completed, so the rows ARE new, but the
+ * saved charts no longer match the schema.
+ *
+ * $data_replaced defaults to false so that forgetting it costs a redundant
+ * refresh rather than a false claim that the data is current. Stamping it on a
+ * failed fetch would be the lie; NOT stamping it after a completed swap is
+ * also a bug — vpress_source_is_due() reads last_refreshed_at, so a drifted
+ * source would stay permanently due and re-download on every cron sweep.
  */
-function vpress_dataset_record_refresh( string $slug, ?WP_Error $error = null ): void {
+function vpress_dataset_record_refresh( string $slug, ?WP_Error $error = null, bool $data_replaced = false ): void {
 	global $wpdb;
-	$fields = null === $error
-		? array(
-			'last_refreshed_at'  => current_time( 'mysql', true ),
-			'last_refresh_error' => null,
-		)
-		: array( 'last_refresh_error' => $error->get_error_message() );
+	$fields = array( 'last_refresh_error' => null === $error ? null : $error->get_error_message() );
+	if ( $data_replaced ) {
+		$fields['last_refreshed_at'] = current_time( 'mysql', true );
+	}
 	$wpdb->update( $wpdb->prefix . 'vpresscore_datasets', $fields, array( 'slug' => $slug ) );
 }
 
@@ -848,10 +856,11 @@ function vpress_dataset_replace_table( string $slug, string $tmp_csv_path ) {
 		return $error;
 	}
 	// The rows are in place; the schema underneath the saved charts is not.
+	// Stamped as replaced so the sweep does not treat it as permanently due.
 	if ( null !== $drift ) {
-		vpress_dataset_record_refresh( $slug, $drift );
+		vpress_dataset_record_refresh( $slug, $drift, true );
 		return $drift;
 	}
-	vpress_dataset_record_refresh( $slug );
+	vpress_dataset_record_refresh( $slug, null, true );
 	return true;
 }

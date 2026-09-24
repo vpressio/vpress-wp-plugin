@@ -50,6 +50,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - *Tests:* PHPUnit `ProvenanceRestTest` + `ProvenanceFigureTest`; Vitest `dataset-card-provenance.spec.js`.
 
 ### Fixed
+- **A live source whose columns changed no longer re-downloads every hour, forever.** The swap completes in that case — the rows really are new — but only the error was recorded, so `last_refreshed_at` never advanced and `vpress_source_is_due()` stayed true: the hourly sweep refetched and re-swapped the dataset on every run regardless of its interval, consuming one of the ten batch slots each time, while the figure kept dating the new rows by the previous refresh. The timestamp and the error are now independent: a completed swap stamps the time whether or not it also reports drift, and a failed fetch stamps neither.
 - `tests/php/phpunit.xml` was not valid XML (a `--` inside a comment), so the default PHPUnit suite did not run.
 - Production bundle resolved fonts/images from a hard-coded `/wp-content/plugins/vpress/admin/dist/` base, so on any install whose folder is not named `vpress` the MDI icon font and every non-inlined image (`btn-beta.png`, `db-gear.svg`, `map.svg`, …) 404'd — icons rendered blank. The Vite build now uses a relative base.
 - The dataset list and dataset picker always called the optional Hue connector at `http://localhost:8000` (dev default baked into the bundle), firing a failing cross-origin request at the visitor's machine on every load. The connector is now only used when `VITE_HUE_API_BASE_URL` is set at build time.
