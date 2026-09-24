@@ -222,12 +222,13 @@ function vpress_get_dataset( $request ) {
     global $wpdb;
     $id = (int)$request->get_param('id');
     $table_name = $wpdb->prefix.'vpresscore_datasets';
-  
-    $query = "SELECT * FROM $table_name WHERE id = $id";
-  
-    $data = $wpdb->get_row($query);
+
+    $data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error);
+    }
+    if ( $data && 'public' !== $data->permissions && ! current_user_can( 'edit_posts' ) ) {
+      return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
     }
     $response = array(
       'data' => $data,
@@ -248,11 +249,11 @@ function vpress_list_datasets( $request ) {
     global $wpdb;
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
-    $q = strtolower($request->get_param('q'));
+    $q = strtolower((string)$request->get_param('q'));
     $start_at = $per_page * ($page - 1);
     $table_name = $wpdb->prefix.'vpresscore_datasets';
   
-    $query_total = "SELECT COUNT(*) AS total FROM $table_name";
+    $query_total = "SELECT COUNT(*) AS total FROM $table_name as d";
     $query = 
     "SELECT
       d.*,
@@ -269,15 +270,24 @@ function vpress_list_datasets( $request ) {
     LEFT JOIN information_schema.tables as i
     ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
   
-    if ($q) {
-      $where .= " WHERE lower(slug) like '%$q%' OR lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
-      $query_total .= $where;
-      $query .= $where;
+    $conditions = array();
+    $args = array();
+    if ( ! current_user_can( 'edit_posts' ) ) {
+      $conditions[] = "d.permissions = 'public'";
     }
-    $query .= " ORDER BY updated DESC";
-    $query .= " LIMIT $start_at, $per_page";
-  
-    $total = $wpdb->get_var($query_total);
+    if ($q) {
+      $like = '%' . $wpdb->esc_like( $q ) . '%';
+      $conditions[] = '(lower(d.slug) LIKE %s OR lower(d.name) LIKE %s OR lower(d.description) LIKE %s OR lower(d.tag) LIKE %s)';
+      array_push( $args, $like, $like, $like, $like );
+    }
+    $where = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
+    $query_total .= $where;
+    $query = $wpdb->prepare(
+      $query . $where . ' ORDER BY updated DESC LIMIT %d, %d',
+      array_merge( $args, array( $start_at, $per_page ) )
+    );
+
+    $total = $wpdb->get_var( $args ? $wpdb->prepare( $query_total, $args ) : $query_total );
     $data = $wpdb->get_results($query);
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error );
@@ -451,8 +461,17 @@ function vpress_datasets_charts( $request ) {
     $id = (int)$request->get_param('id');
     $table_name = $wpdb->prefix.'vpresscore_charts';
   
-    $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id";
-    $query = "SELECT * FROM $table_name WHERE dataset_id = $id";
+    $visibility = '';
+    if ( ! current_user_can( 'edit_posts' ) ) {
+      $dataset = $wpdb->get_row( $wpdb->prepare( "SELECT permissions FROM {$wpdb->prefix}vpresscore_datasets WHERE id = %d", $id ) );
+      if ( $dataset && 'public' !== $dataset->permissions ) {
+        return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
+      }
+      $visibility = " AND permissions = 'public'";
+    }
+
+    $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id$visibility";
+    $query = "SELECT * FROM $table_name WHERE dataset_id = $id$visibility";
     $query .= " ORDER BY updated DESC";
     $query .= " LIMIT 10";
     $total = $wpdb->get_var($query_total);

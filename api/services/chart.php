@@ -481,13 +481,14 @@ function vpress_get_chart( $request ) {
     global $wpdb;
     $id = (int)$request->get_param('id');
     $table_name = $wpdb->prefix.'vpresscore_charts';
-  
-    $query = "SELECT * FROM $table_name WHERE id = $id";
-  
-    $data = $wpdb->get_row($query);
-    
+
+    $data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
+    }
+    if ( $data && 'public' !== $data->permissions && ! current_user_can( 'edit_posts' ) ) {
+      return new WP_Error( 'vpress_forbidden', __( 'This chart is private.', 'vpress' ), array( 'status' => 403 ) );
     }
     $response = array(
       'data' => $data,
@@ -506,25 +507,32 @@ function vpress_get_chart( $request ) {
 function vpress_list_charts( $request ) {
   try {
     global $wpdb;
-    $q = strtolower($request->get_param('q'));
+    $q = strtolower((string)$request->get_param('q'));
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
     $start_at = $per_page * ($page - 1);
     $table_name = $wpdb->prefix.'vpresscore_charts';
-  
-    $query_total = "SELECT COUNT(*) AS total FROM $table_name";
-    $query = "SELECT * FROM $table_name";
-    
-    if ($q) {
-      $where .= " WHERE lower(value) like '%$q%' OR lower(description) like '%$q%' OR lower(tags) like '%$q%'";
-      $query_total .= $where;
-      $query .= $where;
+
+    $conditions = array();
+    $args = array();
+    if ( ! current_user_can( 'edit_posts' ) ) {
+      $conditions[] = "permissions = 'public'";
     }
-    $query .= " ORDER BY updated DESC";
-    $query .= " LIMIT $start_at, $per_page";
-    $total = $wpdb->get_var($query_total);
+    if ($q) {
+      $like = '%' . $wpdb->esc_like( $q ) . '%';
+      $conditions[] = '(lower(value) LIKE %s OR lower(description) LIKE %s OR lower(tags) LIKE %s)';
+      array_push( $args, $like, $like, $like );
+    }
+    $where = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
+
+    $query_total = "SELECT COUNT(*) AS total FROM $table_name$where";
+    $query = $wpdb->prepare(
+      "SELECT * FROM $table_name$where ORDER BY updated DESC LIMIT %d, %d",
+      array_merge( $args, array( $start_at, $per_page ) )
+    );
+    $total = $wpdb->get_var( $args ? $wpdb->prepare( $query_total, $args ) : $query_total );
     $data = $wpdb->get_results($query);
-  
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
