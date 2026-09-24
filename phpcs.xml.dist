@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<ruleset name="Vpress">
+	<description>WordPress Coding Standards for the Vpress plugin. Report-only baseline tonight — do not run phpcbf or hand-fix violations as part of M7; the count in this run is the starting point future work ratchets down from.</description>
+
+	<config name="testVersion" value="8.1-"/>
+	<config name="minimum_wp_version" value="6.5"/>
+
+	<rule ref="WordPress"/>
+	<rule ref="WordPress-Extra"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="vpress"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="vpress"/>
+				<element value="Vpress"/>
+				<element value="VPRESS"/>
+			</property>
+		</properties>
+	</rule>
+
+	<file>vpress.php</file>
+	<file>uninstall.php</file>
+	<file>api</file>
+	<file>includes</file>
+	<file>public</file>
+	<file>admin/class-vpress-admin.php</file>
+	<!-- blocks/ landed via night/integration (merge 22968316); re-added now
+	     that it exists (was omitted earlier at base commit 79ff3bd5 — see
+	     git history — because a <file> entry for a missing path is a hard
+	     PHPCS config error, exit 3, not a report finding). -->
+	<file>blocks</file>
+
+	<!-- type="relative" matches each pattern against the path relative to the
+	     file/dir entry being scanned, not PHPCS's default (the absolute
+	     path). Without it, */.worktrees/* matches every file whenever the
+	     checkout itself sits under a path containing ".worktrees" (true of
+	     this task's own worktree, .worktrees/m7-ci, and of any contributor
+	     working from a git worktree) — PHPCS then silently reports 0 files
+	     scanned, a false-clean baseline rather than a report of real
+	     violations. Verified 2026-09-24: without type="relative", running
+	     from inside .worktrees/m7-ci scans 0 files; with it, the same run
+	     scans the full file list. -->
+	<exclude-pattern type="relative">*/node_modules/*</exclude-pattern>
+	<exclude-pattern type="relative">*/dist/*</exclude-pattern>
+	<exclude-pattern type="relative">*/vendor/*</exclude-pattern>
+	<exclude-pattern type="relative">*/tests/*</exclude-pattern>
+	<exclude-pattern type="relative">*/.worktrees/*</exclude-pattern>
+	<exclude-pattern type="relative">*/assets/vendor/*</exclude-pattern>
+</ruleset>

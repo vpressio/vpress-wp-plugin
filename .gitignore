@@ -34,6 +34,8 @@ yarn-error.log
 /admin/dist/
 /build/
 /bin/*.phar
+/bin/wpcs/
+/bin/CodeSniffer.conf
 /admin/tests/e2e/.auth/
 
 # Local tooling
