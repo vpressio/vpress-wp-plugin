@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/class-vpress-query-guard.php';
+require_once __DIR__ . '/class-vpress-debug-output.php';
 
 function vpress_clean_string($string) {
   $string = str_replace(' ', '', $string);
@@ -52,11 +53,11 @@ function vpress_get_dataset_data( $request ) {
 	$total    = $wpdb->get_var( "SELECT COUNT(*) AS total FROM $table" );
 
 	if ( $wpdb->last_error ) {
-		return new WP_Error( 'db_error', $wpdb->last_error, array( 'status' => 400 ) );
+		return vpress_db_error( $wpdb->last_error );
 	}
 	return array(
 		'data'  => $data,
-		'query' => $query,
+		'query' => vpress_debug_sql( $query ),
 		'total' => (int) $total,
 	);
 }
@@ -207,11 +208,7 @@ function vpress_upload_dataset( $request ) {
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $wpdb->last_error,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 
 
@@ -247,15 +244,11 @@ function vpress_get_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $wpdb->last_error,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -310,15 +303,11 @@ function vpress_list_datasets( $request ) {
     $response = array(
       'data' => $data,
       'total' => (int)$total,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -378,15 +367,11 @@ function vpress_create_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -429,15 +414,11 @@ function vpress_update_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -461,15 +442,11 @@ function vpress_delete_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -501,15 +478,11 @@ function vpress_datasets_charts( $request ) {
     $response = array(
       'data' => $data,
       'total' => (int)$total,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -551,15 +524,11 @@ function vpress_delete_column( $request ) {
     }
     $response = array(
       'data' => $sql,
-      'query' => $query
+      'query' => vpress_debug_sql( $query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -593,15 +562,11 @@ function vpress_rename_column( $request ) {
     }
     $response = array(
       'data' => $sql,
-      'query' => $query,
+      'query' => vpress_debug_sql( $query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -627,14 +592,10 @@ function vpress_change_data_type_column( $request ) {
     }
     $response = array(
       'data' => $sql,
-      'query' => $query,
+      'query' => vpress_debug_sql( $query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }

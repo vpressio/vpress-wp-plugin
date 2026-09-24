@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/class-vpress-query-guard.php';
+require_once __DIR__ . '/class-vpress-debug-output.php';
 require_once __DIR__ . '/class-vpress-query-body.php';
 
 /**
@@ -285,10 +286,10 @@ function vpress_query_chart_data( $request ) {
 
 	$data = $wpdb->get_results( $sql );
 	if ( $wpdb->last_error ) {
-		return new WP_Error( 'db_error', $wpdb->last_error, array( 'status' => 400 ) );
+		return vpress_db_error( $wpdb->last_error );
 	}
 	return array(
-		'query' => $wpdb->last_query,
+		'query' => vpress_debug_sql( $wpdb->last_query ),
 		'data'  => $data,
 	);
 }
@@ -327,11 +328,7 @@ function vpress_get_chart_data( $request ) {
 
    return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -351,15 +348,11 @@ function vpress_get_chart( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -397,16 +390,12 @@ function vpress_list_charts( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
       'total' => (int)$total
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -448,15 +437,11 @@ function vpress_create_chart( $request ) {
     }
     $response = array(
       'data' => $wpdb->insert_id,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -494,14 +479,10 @@ function vpress_update_chart( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -526,18 +507,14 @@ function vpress_update_image_url_chart( $request ) {
   
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
-      'error' => $wpdb->last_error ? $wpdb->last_error : false,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
+      'error' => $wpdb->last_error ? vpress_debug_text( $wpdb->last_error ) : false,
     );
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -560,16 +537,12 @@ function vpress_delete_chart( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
-      'error' => $wpdb->last_error ? $wpdb->last_error : false,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
+      'error' => $wpdb->last_error ? vpress_debug_text( $wpdb->last_error ) : false,
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -584,10 +557,6 @@ function vpress_image_chart( $request ) {
     $upload_file = file_put_contents($file, $decoded);
     return $fileurl;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }

@@ -7,6 +7,8 @@
 define( 'ABSPATH', __DIR__ . '/' );
 define( 'OBJECT', 'OBJECT' );
 define( 'ARRAY_A', 'ARRAY_A' );
+// Debug output is gated on edit_posts AND WP_DEBUG; tests vary the capability.
+define( 'WP_DEBUG', true );
 
 class WP_Error {
 	private $code;
@@ -115,9 +117,15 @@ class FakeWpdb {
 	public $insert_id  = 0;
 	public $queries    = array();
 	private $responders = array();
+	private $failures   = array();
 
 	public function on( string $pattern, $result ): void {
 		$this->responders[] = array( $pattern, $result );
+	}
+
+	/** Makes queries matching $pattern set last_error, like a failing MySQL call. */
+	public function fail_on( string $pattern, string $error ): void {
+		$this->failures[] = array( $pattern, $error );
 	}
 
 	public function prepare( $query, ...$args ) {
@@ -188,6 +196,13 @@ class FakeWpdb {
 	private function respond( $sql ) {
 		$this->last_query = $sql;
 		$this->queries[]  = $sql;
+		$this->last_error = '';
+		foreach ( $this->failures as list( $pattern, $error ) ) {
+			if ( preg_match( $pattern, $sql ) ) {
+				$this->last_error = $error;
+				return null;
+			}
+		}
 		foreach ( $this->responders as list( $pattern, $result ) ) {
 			if ( preg_match( $pattern, $sql ) ) {
 				return $result;
