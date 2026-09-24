@@ -25,6 +25,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Server-side encoding detection (UTF-8 BOM / Windows-1252 → UTF-8) — Excel-on-Windows Spanish CSVs import correctly.
 - `importPipeline.js` client driver with Vitest coverage (15 tests total).
 - **Playwright end-to-end smoke suite** (`admin/tests/e2e`, `yarn test:e2e`): logs into WordPress, checks the public REST routes, asserts the public chart page `/chart/1` draws its bars with zero console errors, and drives the editor for real — dataset list → data module → editor, native drag of `estado`/`ventas` onto the X/Y slots, asserts dbox/d3 draws ≥ 5 bar marks under Vue 3, saves through the toolbar, and deletes the chart it created. Optional GitLab `e2e` job runs it when `E2E_BASE_URL` (+ `E2E_USER`/`E2E_PASSWORD`) is set.
+- CI pipeline: JS lint ratchet, PHPCS (WordPress standards, report-only), Vitest + PHPUnit with JUnit reports, build, release package, Plugin Check, optional E2E.
 
 ### Fixed
 - Production bundle resolved fonts/images from a hard-coded `/wp-content/plugins/vpress/admin/dist/` base, so on any install whose folder is not named `vpress` the MDI icon font and every non-inlined image (`btn-beta.png`, `db-gear.svg`, `map.svg`, …) 404'd — icons rendered blank. The Vite build now uses a relative base.
