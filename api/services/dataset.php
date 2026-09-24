@@ -433,10 +433,13 @@ function vpress_delete_dataset( $request ) {
     $table_name = $wpdb->prefix.'vpresscore_datasets';
   
     $table = $wpdb->get_row("SELECT slug FROM $table_name WHERE id = $id");
-    $slug = "vpress_" . $table->slug;
+    $slug = $table ? 'vpress_' . $table->slug : '';
+    if ( ! vpress_guard_identifier( $slug ) ) {
+      return new WP_Error( 'vpress_unknown_dataset', __( 'Unknown dataset.', 'vpress' ), array( 'status' => 400 ) );
+    }
     $data = $wpdb->delete( $table_name, array( 'id' => $id ), array( '%d' ) );
     $charts = $wpdb->delete( $wpdb->prefix.'vpresscore_charts', array( 'dataset_id' => $id ), array( '%d' ) );
-    $remove = $wpdb->query( "DROP TABLE IF EXISTS $slug" );
+    $remove = $wpdb->query( "DROP TABLE IF EXISTS `$slug`" );
   
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
@@ -495,15 +498,39 @@ function vpress_datasets_charts( $request ) {
   }
 }
 
+/**
+ * Resolves a column-op target: the guarded dataset table plus one of its
+ * real columns.
+ *
+ * @return array|WP_Error array( quoted table, bare table, bare column ).
+ */
+function vpress_dataset_column_target( $dataset, $column ) {
+  $table = vpress_guard_dataset_table( (string) $dataset );
+  if ( is_wp_error( $table ) ) {
+    return $table;
+  }
+  if ( ! is_string( $column ) || ! in_array( $column, vpress_guard_columns( $table ), true ) ) {
+    return vpress_dataset_bad_column();
+  }
+  return array( $table, vpress_guard_unquote( $table ), $column );
+}
+
+function vpress_dataset_bad_column(): WP_Error {
+  return new WP_Error( 'vpress_bad_column', __( 'Unknown column.', 'vpress' ), array( 'status' => 400 ) );
+}
+
 function vpress_delete_column( $request ) {
   try {
     global $wpdb;
-    $table_name = $request['dataset'];
-    $column = $request->get_param('column');
-  
-    $query = "ALTER TABLE `vpress_$table_name` DROP COLUMN `$column`;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('column') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    list( $table, , $column ) = $target;
+
+    $query = "ALTER TABLE $table DROP COLUMN `$column`;";
     $sql = $wpdb->query($query);
-  
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
@@ -524,16 +551,28 @@ function vpress_delete_column( $request ) {
 function vpress_rename_column( $request ) {
   try {
     global $wpdb;
-    $table_name = $request['dataset'];
     $new = $request->get_param('new');
-    $old = $request->get_param('old');
-  
-    $query_type = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'vpress_$table_name' AND COLUMN_NAME = '$old';";
-    $type = $wpdb->get_var($query_type);
-  
-    $query = "ALTER TABLE `vpress_$table_name` CHANGE `$old` `$new` $type;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('old') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    if ( ! is_string( $new ) || ! vpress_guard_identifier( $new ) ) {
+      return vpress_dataset_bad_column();
+    }
+    list( $table, $bare_table, $old ) = $target;
+
+    $type = $wpdb->get_var( $wpdb->prepare(
+      'SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = %s AND COLUMN_NAME = %s;',
+      $bare_table,
+      $old
+    ) );
+    if ( ! is_string( $type ) || ! preg_match( '/^[a-z]+$/D', $type ) ) {
+      return new WP_Error( 'vpress_bad_type', __( 'Unsupported column type.', 'vpress' ), array( 'status' => 400 ) );
+    }
+
+    $query = "ALTER TABLE $table CHANGE `$old` `$new` $type;";
     $sql = $wpdb->query($query);
-  
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
@@ -554,15 +593,20 @@ function vpress_rename_column( $request ) {
 function vpress_change_data_type_column( $request ) {
   try {
     global $wpdb;
-    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-  
-    $table_name = $request['dataset'];
-    $column = $request->get_param('column');
     $type = $request->get_param('type');
-  
-    $query = "ALTER TABLE `vpress_$table_name` CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('column') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    // The column types the admin data table offers.
+    if ( ! in_array( $type, array( 'text', 'int', 'date', 'boolean' ), true ) ) {
+      return new WP_Error( 'vpress_bad_type', __( 'Unsupported column type.', 'vpress' ), array( 'status' => 400 ) );
+    }
+    list( $table, , $column ) = $target;
+
+    $query = "ALTER TABLE $table CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
     $sql = $wpdb->query($query);
-    
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
