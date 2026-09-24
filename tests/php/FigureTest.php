@@ -17,6 +17,10 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState( false )]
 final class FigureTest extends TestCase {
 
+	protected function setUp(): void {
+		$GLOBALS['wpdb'] = new Vpress_Test_Wpdb();
+	}
+
 	private function chart( array $overrides = array() ): array {
 		return array_merge(
 			array(
@@ -71,7 +75,7 @@ final class FigureTest extends TestCase {
 		$this->assertStringContainsString( 'id="vpress-figure-1"', $html );
 		$this->assertStringContainsString( 'data-vpress-chart="1"', $html );
 		$this->assertStringContainsString( 'data-vpress-rest="http://example.test/wp-json/vpress/v1/"', $html );
-		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="img" aria-label="Ventas por estado" aria-busy="true"></div>', $html );
+		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="group" aria-label="Ventas por estado" aria-busy="true"></div>', $html );
 		$this->assertStringContainsString( '<span class="vpress-figure__title">Ventas por estado</span>', $html );
 		$this->assertStringContainsString( '<span class="vpress-figure__subtitle">Suma de ventas, 2026</span>', $html );
 		$this->assertStringEndsWith( '</figcaption></figure>', $html );
@@ -85,7 +89,7 @@ final class FigureTest extends TestCase {
 		$this->assertStringNotContainsString( 'vpress-figure__subtitle', $html );
 
 		$this->seed( $this->chart( array( 'id' => '2', 'title' => '', 'value' => '{}' ) ) );
-		$this->assertStringContainsString( 'aria-label="Gráfica 2"', vpress_render_figure( 2 ) );
+		$this->assertStringContainsString( 'aria-label="Chart 2"', vpress_render_figure( 2 ) );
 	}
 
 	public function test_title_and_attributes_are_escaped(): void {
