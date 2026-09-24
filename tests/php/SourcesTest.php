@@ -244,7 +244,7 @@ final class SourcesTest extends TestCase {
 		$this->assertSame( array( 'insert', 'wp_vpresscore_datasets' ), array( $op, $table ) );
 		$this->assertSame(
 			array(
-				'permissions'       => 'public',
+				'permissions'       => 'private',
 				'name'              => 'Ventas',
 				'slug'              => 'ventas',
 				'owner_id'          => 7,
@@ -257,6 +257,39 @@ final class SourcesTest extends TestCase {
 		);
 		$this->assertSame( 'ventas', $result['data']->slug );
 		$this->assertArrayNotHasKey( 'vpress_import_ventas', $GLOBALS['vpress_test_transients'] );
+	}
+
+	/** Seeds a successful one-row CSV download. */
+	private function script_csv_download(): void {
+		$this->wpdb->on( '/FROM wp_vpresscore_datasets WHERE id = 1$/', (object) array( 'id' => '1', 'slug' => 'ventas' ) );
+		$GLOBALS['vpress_test_http'] = function ( $url, $args ) {
+			file_put_contents( $args['filename'], "estado,ventas\nNL,10\n" );
+			return array( 'response' => array( 'code' => 200 ) );
+		};
+	}
+
+	public function test_from_url_registers_a_private_dataset_unless_told_otherwise(): void {
+		$this->script_csv_download();
+
+		vpress_dataset_from_url( new FakeRestRequest( array(), array( 'name' => 'Ventas', 'url' => 'https://example.com/v.csv', 'refresh_interval' => 'none' ) ) );
+
+		$this->assertSame( 'private', $this->wpdb->writes[0][2]['permissions'] );
+	}
+
+	public function test_from_url_honours_an_explicit_public_permission(): void {
+		$this->script_csv_download();
+
+		vpress_dataset_from_url( new FakeRestRequest( array(), array( 'name' => 'Ventas', 'url' => 'https://example.com/v.csv', 'refresh_interval' => 'none', 'permissions' => 'public' ) ) );
+
+		$this->assertSame( 'public', $this->wpdb->writes[0][2]['permissions'] );
+	}
+
+	public function test_from_url_refuses_an_unknown_permission_before_fetching(): void {
+		$result = vpress_dataset_from_url( new FakeRestRequest( array(), array( 'name' => 'Ventas', 'url' => 'https://example.com/v.csv', 'permissions' => 'world-readable' ) ) );
+
+		$this->assertWpError( 'vpress_bad_permissions', 400, $result );
+		$this->assertSame( array(), $GLOBALS['vpress_test_http_calls'] );
+		$this->assertSame( array(), $this->wpdb->writes );
 	}
 
 	public function test_from_url_drops_the_half_built_table_when_the_import_fails(): void {
@@ -367,6 +400,55 @@ final class SourcesTest extends TestCase {
 			$this->assertObjectNotHasProperty( 'last_refresh_error', $row );
 			$this->assertSame( 'daily', $row->refresh_interval );
 		}
+	}
+
+	/** A public dataset built from a Google Sheet: its source_url is the sheet's access. */
+	private function gsheet_row(): object {
+		$row              = $this->registry_row();
+		$row->source_type = 'gsheet';
+		$row->source_url  = 'https://docs.google.com/spreadsheets/d/SECRET/edit#gid=0';
+		return $row;
+	}
+
+	public function test_anonymous_get_omits_the_source_url_of_a_google_sheet(): void {
+		$GLOBALS['vpress_test_caps'] = array();
+		$this->wpdb->on( '/FROM wp_vpresscore_datasets WHERE id = 3$/', $this->gsheet_row() );
+
+		$row = vpress_get_dataset( new FakeRestRequest( array( 'id' => '3' ) ) )['data'];
+
+		$this->assertObjectNotHasProperty( 'source_url', $row, 'a "anyone with the link" sheet is protected only by that link' );
+		$this->assertSame( 'gsheet', $row->source_type );
+		$this->assertSame( '2026-09-24 10:00:00', $row->last_refreshed_at );
+	}
+
+	public function test_editor_get_keeps_the_source_url_of_a_google_sheet(): void {
+		$GLOBALS['vpress_test_caps'] = array( 'edit_posts' );
+		$this->wpdb->on( '/FROM wp_vpresscore_datasets WHERE id = 3$/', $this->gsheet_row() );
+
+		$row = vpress_get_dataset( new FakeRestRequest( array( 'id' => '3' ) ) )['data'];
+
+		$this->assertSame( 'https://docs.google.com/spreadsheets/d/SECRET/edit#gid=0', $row->source_url );
+	}
+
+	public function test_anonymous_list_omits_the_source_url_of_google_sheets_only(): void {
+		$GLOBALS['vpress_test_caps'] = array();
+		$this->wpdb->on( '/d\.\*/', array( $this->gsheet_row(), $this->registry_row(), (object) array( 'source_type' => 'upload', 'source_url' => 'https://datos.gob.mx/p.csv' ) ) );
+
+		list( $sheet, $url, $upload ) = vpress_list_datasets( new FakeRestRequest( array( 'page' => '1', 'perPage' => '6' ) ) )['data'];
+
+		$this->assertObjectNotHasProperty( 'source_url', $sheet );
+		// Provenance: a plain URL and an editor-entered source stay public.
+		$this->assertSame( 'https://example.com/3.csv', $url->source_url );
+		$this->assertSame( 'https://datos.gob.mx/p.csv', $upload->source_url );
+	}
+
+	public function test_editor_list_keeps_the_source_url_of_a_google_sheet(): void {
+		$GLOBALS['vpress_test_caps'] = array( 'edit_posts' );
+		$this->wpdb->on( '/d\.\*/', array( $this->gsheet_row() ) );
+
+		$rows = vpress_list_datasets( new FakeRestRequest( array( 'page' => '1', 'perPage' => '6' ) ) )['data'];
+
+		$this->assertSame( 'https://docs.google.com/spreadsheets/d/SECRET/edit#gid=0', $rows[0]->source_url );
 	}
 
 	public function test_editor_list_keeps_last_refresh_error(): void {

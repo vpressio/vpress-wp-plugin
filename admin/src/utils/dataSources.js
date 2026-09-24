@@ -9,6 +9,13 @@ export const REFRESH_INTERVALS = [
   { title: 'Semanal', value: 'weekly' }
 ];
 
+// Private first: it is the default for a dataset created from a URL, because
+// a Google Sheet's source URL is the access to the whole workbook.
+export const DATASET_VISIBILITIES = [
+  { title: 'Privado', value: 'private' },
+  { title: 'Público', value: 'public' }
+];
+
 function parse(url) {
   try {
     return new URL(String(url || '').trim());

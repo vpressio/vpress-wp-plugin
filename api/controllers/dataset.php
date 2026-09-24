@@ -145,6 +145,9 @@ function vpress_register_dataset_routes(){
         'name' => array( 'type' => 'string', 'required' => true ),
         'url' => array( 'type' => 'string', 'required' => true ),
         'refresh_interval' => array( 'type' => 'string', 'enum' => array( 'none', 'hourly', 'daily', 'weekly' ), 'default' => 'none' ),
+        // A live source is private unless the operator says otherwise; the
+        // service re-checks (vpress_dataset_from_url).
+        'permissions' => array( 'type' => 'string', 'enum' => array( 'public', 'private' ), 'default' => 'private' ),
       ),
     )
   );

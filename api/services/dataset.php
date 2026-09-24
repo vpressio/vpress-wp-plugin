@@ -237,14 +237,30 @@ function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
   ) );
 }
 
+/** The visibility values a dataset row may carry. */
+function vpress_dataset_permission_values(): array {
+  return array( 'public', 'private' );
+}
+
 /**
  * Drops fields only editors may see from a registry row (in place).
+ *
  * last_refresh_error can carry fetch diagnostics (host names, transport
- * errors) that are not public provenance like source_url.
+ * errors) and is never public.
+ *
+ * source_url is public provenance for an uploaded dataset and for a plain
+ * `url` source — the figure's source line and the schema.org metadata are
+ * built on it — but NOT for `gsheet`. A sheet shared as "anyone with the
+ * link" is protected by nothing but that link's secrecy, so the URL is the
+ * credential rather than a citation: publishing it hands every anonymous
+ * caller access to the whole workbook, not just the tab that was imported.
  */
 function vpress_dataset_hide_private_fields( $row ): void {
   if ( is_object( $row ) && ! current_user_can( 'edit_posts' ) ) {
     unset( $row->last_refresh_error );
+    if ( isset( $row->source_type ) && 'gsheet' === $row->source_type ) {
+      unset( $row->source_url );
+    }
   }
 }
 

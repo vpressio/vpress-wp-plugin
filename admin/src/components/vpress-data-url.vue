@@ -39,6 +39,18 @@
       variant="outlined"
       data-test="interval"
     />
+    <v-select
+      v-model="permissions"
+      :items="visibilities"
+      item-title="title"
+      item-value="value"
+      label="Visibilidad"
+      hint="Privado: solo quien puede editar ve los datos y el enlace de origen."
+      persistent-hint
+      variant="outlined"
+      class="mb-6"
+      data-test="permissions"
+    />
     <v-btn
       type="submit"
       color="primary"
@@ -57,6 +69,7 @@ import api from '../utils/axios.js';
 import { useNotificationsStore } from '../store/index.js';
 import {
   REFRESH_INTERVALS,
+  DATASET_VISIBILITIES,
   isHttpUrl,
   isGoogleSheetUrl,
   suggestDatasetName,
@@ -73,6 +86,10 @@ export default {
       nameTouched: false,
       refreshInterval: 'none',
       intervals: REFRESH_INTERVALS,
+      // A live source is private until the operator publishes it: for a
+      // Google Sheet the source URL is the access to the whole workbook.
+      permissions: 'private',
+      visibilities: DATASET_VISIBILITIES,
       loading: false
     };
   },
@@ -88,7 +105,8 @@ export default {
       return {
         name: this.name.trim(),
         url: this.url.trim(),
-        refresh_interval: this.refreshInterval
+        refresh_interval: this.refreshInterval,
+        permissions: this.permissions
       };
     }
   },

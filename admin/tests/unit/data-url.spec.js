@@ -71,7 +71,19 @@ describe('vpress-data-url', () => {
     expect(w.find('[data-test="name"] input').element.value).toBe('Mis municipios');
   });
 
-  it('posts { name, url, refresh_interval } and emits the created dataset', async () => {
+  it('imports as private unless the visibility is changed', async () => {
+    api.dataset.fromUrl.mockReturnValue(new Promise(() => {}));
+    const w = mountForm();
+    await w.find('[data-test="url"] input').setValue('https://docs.google.com/spreadsheets/d/abc/edit');
+    await w.find('[data-test="name"] input').setValue('Censo');
+    await w.find('form').trigger('submit');
+
+    expect(api.dataset.fromUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ permissions: 'private' })
+    );
+  });
+
+  it('posts { name, url, refresh_interval, permissions } and emits the created dataset', async () => {
     const dataset = { id: '9', slug: 'ventas', name: 'Ventas', source_type: 'url' };
     let resolve;
     api.dataset.fromUrl.mockReturnValue(new Promise(r => { resolve = r; }));
@@ -79,12 +91,14 @@ describe('vpress-data-url', () => {
     await w.find('[data-test="url"] input').setValue('  https://example.com/ventas.csv ');
     await w.find('[data-test="name"] input').setValue('Ventas ');
     w.vm.refreshInterval = 'daily';
+    w.vm.permissions = 'public';
     await w.find('form').trigger('submit');
 
     expect(api.dataset.fromUrl).toHaveBeenCalledWith({
       name: 'Ventas',
       url: 'https://example.com/ventas.csv',
-      refresh_interval: 'daily'
+      refresh_interval: 'daily',
+      permissions: 'public'
     });
     expect(w.vm.loading).toBe(true);
 

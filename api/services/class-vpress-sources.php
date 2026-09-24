@@ -230,22 +230,30 @@ function vpress_source_dataset_response( int $id ): array {
 }
 
 /**
- * POST /dataset/from-url { name, url, refresh_interval }: import a live
- * source and register it.
+ * POST /dataset/from-url { name, url, refresh_interval, permissions }: import
+ * a live source and register it.
+ *
+ * `permissions` defaults to `private`: a live source is imported from a link
+ * the operator holds, and for a Google Sheet that link is the access itself,
+ * so the row must not become world-readable unless it is asked for.
  *
  * @return array|WP_Error
  */
 function vpress_dataset_from_url( $request ) {
 	global $wpdb;
-	$registry = $wpdb->prefix . 'vpresscore_datasets';
-	$name     = sanitize_text_field( (string) $request->get_param( 'name' ) );
-	$interval = (string) ( $request->get_param( 'refresh_interval' ) ?? 'none' );
+	$registry    = $wpdb->prefix . 'vpresscore_datasets';
+	$name        = sanitize_text_field( (string) $request->get_param( 'name' ) );
+	$interval    = (string) ( $request->get_param( 'refresh_interval' ) ?? 'none' );
+	$permissions = (string) ( $request->get_param( 'permissions' ) ?? 'private' );
 
 	if ( '' === $name ) {
 		return new WP_Error( 'vpress_missing_name', __( 'The dataset needs a name.', 'vpress' ), array( 'status' => 400 ) );
 	}
 	if ( ! array_key_exists( $interval, vpress_source_intervals() ) ) {
 		return new WP_Error( 'vpress_bad_interval', __( 'Unsupported refresh interval.', 'vpress' ), array( 'status' => 400 ) );
+	}
+	if ( ! in_array( $permissions, vpress_dataset_permission_values(), true ) ) {
+		return new WP_Error( 'vpress_bad_permissions', __( 'Unsupported dataset visibility.', 'vpress' ), array( 'status' => 400 ) );
 	}
 	$source = vpress_source_normalize( (string) $request->get_param( 'url' ) );
 	if ( is_wp_error( $source ) ) {
@@ -282,7 +290,7 @@ function vpress_dataset_from_url( $request ) {
 		$wpdb->insert(
 			$registry,
 			array(
-				'permissions'       => 'public',
+				'permissions'       => $permissions,
 				'name'              => $name,
 				'slug'              => $slug,
 				'owner_id'          => get_current_user_id(),
