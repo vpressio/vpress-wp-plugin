@@ -145,4 +145,44 @@ final class FigureTest extends TestCase {
 		$this->assertContains( array( 'wp_enqueue_script_module', array( 'vpress-embed' ) ), $GLOBALS['vpress_test_calls'] );
 		$this->assertNotContains( 'wp_enqueue_style', array_column( $GLOBALS['vpress_test_calls'], 0 ), 'dev CSS comes from the Vite module' );
 	}
+
+	public function test_logged_in_viewers_get_a_rest_nonce_anonymous_markup_has_none(): void {
+		$this->seed( $this->chart() );
+
+		$this->assertStringNotContainsString( 'data-vpress-nonce', vpress_render_figure( 1 ) );
+
+		$GLOBALS['vpress_test_logged_in'] = true;
+		$this->assertStringContainsString( ' data-vpress-nonce="nonce-wp_rest">', vpress_render_figure( 1 ) );
+	}
+
+	public function test_repeat_renders_of_a_chart_get_distinct_ids(): void {
+		$this->seed( $this->chart() );
+
+		$first  = vpress_render_figure( 1 );
+		$second = vpress_render_figure( 1 );
+		$third  = vpress_render_figure( 1 );
+
+		$this->assertStringContainsString( 'id="vpress-figure-1"', $first );
+		$this->assertStringContainsString( 'id="vpress-figure-1-2"', $second );
+		$this->assertStringContainsString( 'id="vpress-figure-1-3"', $third );
+		$this->assertStringContainsString( 'data-vpress-chart="1"', $second, 'the chart id itself is unchanged' );
+	}
+
+	public function test_shortcode_rejects_non_numeric_ids(): void {
+		$this->seed( $this->chart() );
+
+		foreach ( array( '1 or 1', '-1', 'abc', '', '1.5', ' ' ) as $id ) {
+			$this->assertSame( '', vpress_shortcode( array( 'id' => $id ) ), "id '{$id}'" );
+		}
+		$this->assertSame( '', vpress_shortcode( '' ), 'no attributes at all' );
+		$this->assertSame( array(), $GLOBALS['vpress_test_calls'], 'nothing enqueued for rejected ids' );
+	}
+
+	public function test_shortcode_renders_the_figure_with_its_alignment(): void {
+		$this->seed( $this->chart() );
+
+		$this->assertStringStartsWith( '<figure class="vpress-figure vpress-figure--bars vpress-figure--light alignfull"', vpress_shortcode( array( 'id' => '1', 'align' => 'full', 'url' => 'http://legacy.test' ) ) );
+		$this->assertStringContainsString( 'vpress-figure--light" id=', vpress_shortcode( array( 'id' => '1', 'align' => 'none' ) ) );
+		$this->assertArrayHasKey( 'vpress', $GLOBALS['vpress_test_shortcodes'] );
+	}
 }

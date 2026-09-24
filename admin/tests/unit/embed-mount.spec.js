@@ -2,25 +2,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defineComponent, h } from 'vue';
 
 const mounted = [];
+const behaviour = { throwFor: null };
 
 vi.mock('../../src/embed/VpressEmbed.vue', () => ({
   default: defineComponent({
     name: 'VpressEmbed',
-    props: ['chartId', 'restRoot'],
+    props: ['chartId', 'restRoot', 'nonce'],
     setup(props) {
+      if (props.chartId === behaviour.throwFor) throw new Error('boom');
       mounted.push({ ...props });
       return () => h('div', { class: 'embed-stub' });
     }
   })
 }));
 
-const figure = (id, rest = 'http://example.test/wp-json/vpress/v1/') =>
-  `<figure class="vpress-figure" data-vpress-chart="${id}" data-vpress-rest="${rest}">` +
+const figure = (id, rest = 'http://example.test/wp-json/vpress/v1/', extra = '') =>
+  `<figure class="vpress-figure" data-vpress-chart="${id}" data-vpress-rest="${rest}"${extra}>` +
   '<div class="vpress-figure__chart" role="img" aria-busy="true"></div></figure>';
 
 describe('embed.js', () => {
   beforeEach(() => {
     mounted.length = 0;
+    behaviour.throwFor = null;
     vi.resetModules();
     delete window.vpress;
   });
@@ -60,5 +63,31 @@ describe('embed.js', () => {
       '<figure data-vpress-chart="4"></figure>';
     await import('../../src/embed.js');
     expect(mounted).toHaveLength(0);
+  });
+
+  it('passes the nonce through only when the figure carries one', async () => {
+    document.body.innerHTML = figure(1) + figure(2, undefined, ' data-vpress-nonce="n0nce"');
+    await import('../../src/embed.js');
+
+    expect(mounted[0].nonce).toBeUndefined();
+    expect(mounted[1].nonce).toBe('n0nce');
+  });
+
+  it('leaves a figure unmarked when mounting it fails, so it can be retried', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    behaviour.throwFor = 1;
+    document.body.innerHTML = figure(1) + figure(2);
+    await import('../../src/embed.js');
+
+    const [first, second] = document.querySelectorAll('[data-vpress-chart]');
+    expect(first.dataset.vpressMounted).toBeUndefined();
+    expect(second.dataset.vpressMounted).toBe('true');
+    expect(errors).toHaveBeenCalledWith('[vpress] could not mount chart 1:', expect.any(Error));
+
+    behaviour.throwFor = null;
+    expect(window.vpress.mount(first)).toHaveLength(1);
+    expect(first.dataset.vpressMounted).toBe('true');
+    errors.mockRestore();
   });
 });

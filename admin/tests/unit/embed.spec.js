@@ -7,7 +7,7 @@ vi.mock('../../src/components/vpress-chart-container.vue', () => ({
   default: defineComponent({
     name: 'VpressChartContainer',
     props: { id: String, data: Array, chartConfig: Object, dateFormat: String, iframe: Boolean },
-    emits: ['chart_loaded'],
+    emits: ['chart_loaded', 'chart_error'],
     render() {
       return h('div', { class: 'chart-container-stub' });
     }
@@ -57,13 +57,18 @@ function stubFetch(overrides = {}) {
   return fetchMock;
 }
 
-function mountEmbed() {
+function mountEmbed(extraProps = {}) {
   const host = document.createElement('div');
   host.className = 'vpress-figure__chart';
   host.setAttribute('aria-busy', 'true');
   document.body.appendChild(host);
-  return { host, wrapper: mount(VpressEmbed, { props: { chartId: 1, restRoot: REST }, attachTo: host }) };
+  return {
+    host,
+    wrapper: mount(VpressEmbed, { props: { chartId: 1, restRoot: REST, ...extraProps }, attachTo: host })
+  };
 }
+
+const headersOf = (fetchMock) => fetchMock.mock.calls.map(([, init]) => init.headers);
 
 describe('VpressEmbed', () => {
   beforeEach(() => {
@@ -128,6 +133,66 @@ describe('VpressEmbed', () => {
     expect(error.text()).toBe('No se pudo cargar la gráfica.');
     expect(wrapper.findComponent({ name: 'VpressChartContainer' }).exists()).toBe(false);
     expect(console.error).toHaveBeenCalled();
+    expect(host.getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('sends X-WP-Nonce on every request when a nonce is given', async () => {
+    const fetchMock = stubFetch();
+    mountEmbed({ nonce: 'abc123' });
+    await flushPromises();
+
+    const headers = headersOf(fetchMock);
+    expect(headers).toHaveLength(3);
+    headers.forEach((h) => expect(h['X-WP-Nonce']).toBe('abc123'));
+  });
+
+  it('sends no X-WP-Nonce for anonymous viewers', async () => {
+    const fetchMock = stubFetch();
+    mountEmbed();
+    await flushPromises();
+
+    const headers = headersOf(fetchMock);
+    expect(headers).toHaveLength(3);
+    headers.forEach((h) => expect(h).not.toHaveProperty('X-WP-Nonce'));
+  });
+
+  it('renders the generic error when fetch itself rejects (network failure)', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))));
+    const { host, wrapper } = mountEmbed();
+    await flushPromises();
+
+    expect(wrapper.find('.vpress-figure__error').text()).toBe('No se pudo cargar la gráfica.');
+    expect(console.error).toHaveBeenCalledWith('[vpress] chart 1:', expect.any(TypeError));
+    expect(host.getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('renders the empty-data message when the query returns no rows', async () => {
+    const fetchMock = stubFetch();
+    fetchMock.mockImplementation((url) =>
+      url.endsWith('chart/query')
+        ? json({ data: [] })
+        : url.endsWith('chart/get/1')
+          ? json({ data: { id: '1', dataset_id: '7', value: JSON.stringify(values) } })
+          : json({ data: { id: '7', slug: 'ventas_2026', source: null } })
+    );
+    const { host, wrapper } = mountEmbed();
+    await flushPromises();
+
+    expect(wrapper.find('.vpress-figure__error').text()).toBe('Esta gráfica no tiene datos.');
+    expect(wrapper.findComponent({ name: 'VpressChartContainer' }).exists()).toBe(false);
+    expect(host.getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('turns a chart_error from the container (e.g. leaflet failed) into the visible error', async () => {
+    stubFetch();
+    const { host, wrapper } = mountEmbed();
+    await flushPromises();
+
+    wrapper.findComponent({ name: 'VpressChartContainer' }).vm.$emit('chart_error', new Error('leaflet offline'));
+    await flushPromises();
+
+    expect(wrapper.find('.vpress-figure__error').text()).toBe('No se pudo cargar la gráfica.');
+    expect(wrapper.findComponent({ name: 'VpressChartContainer' }).exists()).toBe(false);
     expect(host.getAttribute('aria-busy')).toBe('false');
   });
 });

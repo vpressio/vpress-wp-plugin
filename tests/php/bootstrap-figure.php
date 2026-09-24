@@ -1,7 +1,7 @@
 <?php
 /**
  * Self-contained bootstrap for FigureTest: just enough WordPress to exercise
- * includes/class-vpress-figure.php without a database or a WP install.
+ * includes/class-vpress-figure.php and includes/vpress-shortcode.php without a database or a WP install.
  *
  * Usage: php bin/phpunit.phar --bootstrap tests/php/bootstrap-figure.php tests/php/FigureTest.php
  *
@@ -49,6 +49,30 @@ function rest_url( $path = '' ) {
 
 function plugins_url( $path = '', $plugin = '' ) {
 	return 'http://example.test/wp-content/plugins/' . basename( dirname( $plugin ) ) . '/' . ltrim( $path, '/' );
+}
+
+/** Whether the fake visitor is logged in. */
+$GLOBALS['vpress_test_logged_in'] = false;
+
+function is_user_logged_in() {
+	return $GLOBALS['vpress_test_logged_in'];
+}
+
+function wp_create_nonce( $action = -1 ) {
+	return 'nonce-' . $action;
+}
+
+function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
+	$atts = (array) $atts;
+	$out  = array();
+	foreach ( $pairs as $name => $default ) {
+		$out[ $name ] = array_key_exists( $name, $atts ) ? $atts[ $name ] : $default;
+	}
+	return $out;
+}
+
+function add_shortcode( $tag, $callback ) {
+	$GLOBALS['vpress_test_shortcodes'][ $tag ] = $callback;
 }
 
 function current_user_can( $cap ) {
@@ -99,3 +123,4 @@ class Vpress_Test_Wpdb {
 $GLOBALS['wpdb'] = new Vpress_Test_Wpdb();
 
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure.php';
+require_once dirname( __DIR__, 2 ) . '/includes/vpress-shortcode.php';
