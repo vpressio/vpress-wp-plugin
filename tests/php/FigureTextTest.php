@@ -64,10 +64,45 @@ final class FigureTextTest extends TestCase {
 		$this->assertSame( self::chart_1_rows(), $rows );
 		$select = end( $this->wpdb->queries );
 		$this->assertSame(
-			'SELECT f1.`estado`,f1.`canal`,SUM(`ventas`) AS `ventas` FROM `vpress_vpress_test_ventas` as f1 GROUP BY f1.`estado`,f1.`canal` ORDER BY `ventas` ASC',
+			'SELECT f1.`estado`,f1.`canal`,SUM(`ventas`) AS `ventas` FROM `vpress_vpress_test_ventas` as f1 GROUP BY f1.`estado`,f1.`canal` ORDER BY `ventas` ASC LIMIT 5000',
 			$select,
-			'the same SQL the anonymous /chart/query builds for chart #1'
+			'the SQL the anonymous /chart/query builds for chart #1, bounded to 5000 rows'
 		);
+	}
+
+	public function test_every_saved_chart_query_is_bounded(): void {
+		$this->script_chart_1_database();
+		$value          = VpressFixtures::chart_1_context();
+		$value['limit'] = 10;
+		// queryBody() carries no limit from the config; a body limit only comes
+		// from the builder's own clamp, so a saved chart always gets LIMIT 5000.
+		vpress_figure_rows( (object) array( 'id' => '1', 'dataset_id' => '2', 'value' => json_encode( $value ) ) );
+		$this->assertStringEndsWith( ' LIMIT 5000', end( $this->wpdb->queries ) );
+	}
+
+	private static function many_rows( int $n ): array {
+		$rows = array();
+		for ( $i = 1; $i <= $n; $i++ ) {
+			$rows[] = array( 'estado' => "E$i", 'ventas' => (string) $i );
+		}
+		return $rows;
+	}
+
+	public function test_a_result_at_the_row_bound_says_it_is_partial(): void {
+		$chart = self::chart( self::bars() );
+
+		$alt = vpress_figure_alt_text( $chart, self::many_rows( 5000 ) );
+		$this->assertStringEndsWith( 'lowest: E1 (1). (first 5,000 rows)', $alt );
+
+		$this->assertStringNotContainsString( 'first', vpress_figure_alt_text( $chart, self::many_rows( 3 ) ) );
+		$this->assertStringNotContainsString( 'first', vpress_figure_alt_text( $chart, self::many_rows( 4999 ) ) );
+	}
+
+	public function test_a_table_at_the_row_bound_prints_200_and_says_more_exist(): void {
+		$html = vpress_figure_data_table( self::chart( self::bars() ), self::many_rows( 5000 ) );
+
+		$this->assertSame( 201, substr_count( $html, '<tr><td' ) );
+		$this->assertStringContainsString( '<tr><td colspan="2">… and 4,800 more rows (first 5,000 rows)</td></tr>', $html );
 	}
 
 	public function test_rows_are_cached_per_request_by_chart_id(): void {

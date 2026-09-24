@@ -18,6 +18,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Maximum rows printed in the data-table fallback. */
 const VPRESS_FIGURE_TABLE_MAX_ROWS = 200;
 
+/** Maximum rows the server fetches for the text alternative (the builder's LIMIT clamp). */
+const VPRESS_FIGURE_QUERY_MAX_ROWS = 5000;
+
+/**
+ * Whether a result stopped at the row bound (so more rows may exist).
+ *
+ * @param array $rows Rows from vpress_figure_rows().
+ * @return bool
+ */
+function vpress_figure_rows_truncated( array $rows ): bool {
+	return count( $rows ) >= VPRESS_FIGURE_QUERY_MAX_ROWS;
+}
+
+/**
+ * " (first 5,000 rows)", appended where a description or table is partial.
+ *
+ * @return string
+ */
+function vpress_figure_partial_suffix(): string {
+	/* translators: %s: number of rows the description is based on. */
+	return sprintf( __( ' (first %s rows)', 'vpress' ), number_format_i18n( VPRESS_FIGURE_QUERY_MAX_ROWS ) );
+}
+
 /**
  * The per-request rows cache, by reference (keyed by chart id).
  *
@@ -123,6 +146,10 @@ function vpress_figure_query_rows( $chart, $wpdb ) {
 		return $body;
 	}
 	$body['dataset'] = $table;
+	// Bound the fetch; the builder clamps any limit to 1..5000 itself.
+	if ( empty( $body['limit'] ) ) {
+		$body['limit'] = VPRESS_FIGURE_QUERY_MAX_ROWS;
+	}
 
 	$sql = vpress_build_chart_sql( $body, vpress_guard_columns( $table ), $wpdb );
 	if ( is_wp_error( $sql ) ) {
@@ -310,6 +337,22 @@ function vpress_figure_alt_text( object $chart, array $rows ): string {
 		return vpress_figure_format_number( $number, $values );
 	};
 
+	$text = vpress_figure_alt_for_type( $type, $values, $rows, $x, $y, $fmt );
+	return vpress_figure_rows_truncated( $rows ) ? $text . vpress_figure_partial_suffix() : $text;
+}
+
+/**
+ * The per-type sentence of vpress_figure_alt_text().
+ *
+ * @param string   $type   Chart type.
+ * @param array    $values Chart config.
+ * @param array    $rows   Rows (non-empty).
+ * @param array    $x      x axis.
+ * @param array    $y      y axis.
+ * @param callable $fmt    Number formatter.
+ * @return string
+ */
+function vpress_figure_alt_for_type( string $type, array $values, array $rows, array $x, array $y, callable $fmt ): string {
 	switch ( $type ) {
 		case 'bars':
 			return vpress_figure_alt_bars( $values, $rows, $x, $y, $fmt );
@@ -626,7 +669,7 @@ function vpress_figure_data_table( object $chart, array $rows ): string {
 				/* translators: %s: number of rows not shown. */
 				_n( '… and %s more row', '… and %s more rows', $more, 'vpress' ),
 				number_format_i18n( $more )
-			)
+			) . ( vpress_figure_rows_truncated( $rows ) ? vpress_figure_partial_suffix() : '' )
 		) . '</td></tr>';
 	}
 
