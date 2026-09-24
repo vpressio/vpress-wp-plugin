@@ -69,17 +69,6 @@ function vpress_register_chart_routes() {
   );
   register_rest_route(
     VPRESS_API_BASE_URL,
-    VPRESS_API_GET_CHART_DATA_ROUTE_TEST,
-    array(
-      'methods' => WP_REST_SERVER::EDITABLE,
-      'callback' => 'get_data',
-      'permission_callback' => function ( WP_REST_Request $request ) {
-        return current_user_can( 'edit_posts' );
-      }
-    )
-  );
-  register_rest_route(
-    VPRESS_API_BASE_URL,
     VPRESS_API_QUERY_CHART_DATA,
     array(
       'methods' => WP_REST_SERVER::EDITABLE,

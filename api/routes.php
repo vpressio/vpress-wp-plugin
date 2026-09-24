@@ -15,7 +15,6 @@ define('VPRESS_API_UPDATE_IMAGE_URL_CHART_ROUTE','/chart/update_image_url');
 //EDITABLE
 define('VPRESS_API_QUERY_CHART_DATA', '/chart/query');
 define('VPRESS_API_GET_CHART_DATA_ROUTE','/chart/columns');
-define('VPRESS_API_GET_CHART_DATA_ROUTE_TEST','/test/columns');
 //---- DATASET ROUTES
 //READABLE
 define('VPRESS_API_UPLOAD_DATASET','/dataset/upload');
