@@ -19,10 +19,16 @@ final class SourcesTest extends TestCase {
 		$GLOBALS['vpress_test_transients']    = array();
 		$GLOBALS['vpress_test_http_calls']    = array();
 		$GLOBALS['vpress_test_filters']       = array();
+		$GLOBALS['vpress_test_caps']          = array();
 		$GLOBALS['vpress_test_now']           = '2026-09-24 12:00:00';
 		$GLOBALS['vpress_test_http']          = function () {
 			return array( 'response' => array( 'code' => 200 ) );
 		};
+	}
+
+	protected function tearDown(): void {
+		// Other suites assume the anonymous default.
+		$GLOBALS['vpress_test_caps'] = array();
 	}
 
 	private function assertWpError( string $code, int $status, $result ): void {
@@ -315,5 +321,60 @@ final class SourcesTest extends TestCase {
 			return 3;
 		};
 		$this->assertSame( array( 1, 2, 3 ), vpress_refresh_due_sources()['failed'] );
+	}
+
+	private function registry_row(): object {
+		return (object) array(
+			'id'                 => '3',
+			'slug'               => 'live3',
+			'permissions'        => 'public',
+			'source_type'        => 'url',
+			'source_url'         => 'https://example.com/3.csv',
+			'refresh_interval'   => 'daily',
+			'last_refreshed_at'  => '2026-09-24 10:00:00',
+			'last_refresh_error' => 'Could not download the source: cURL error 6: Could not resolve host: intranet',
+		);
+	}
+
+	public function test_anonymous_get_omits_last_refresh_error(): void {
+		$GLOBALS['vpress_test_caps'] = array();
+		$this->wpdb->on( '/FROM wp_vpresscore_datasets WHERE id = 3$/', $this->registry_row() );
+
+		$row = vpress_get_dataset( new FakeRestRequest( array( 'id' => '3' ) ) )['data'];
+
+		$this->assertObjectNotHasProperty( 'last_refresh_error', $row );
+		$this->assertSame( 'https://example.com/3.csv', $row->source_url );
+		$this->assertSame( '2026-09-24 10:00:00', $row->last_refreshed_at );
+	}
+
+	public function test_editor_get_keeps_last_refresh_error(): void {
+		$GLOBALS['vpress_test_caps'] = array( 'edit_posts' );
+		$this->wpdb->on( '/FROM wp_vpresscore_datasets WHERE id = 3$/', $this->registry_row() );
+
+		$row = vpress_get_dataset( new FakeRestRequest( array( 'id' => '3' ) ) )['data'];
+
+		$this->assertStringContainsString( 'cURL error 6', $row->last_refresh_error );
+	}
+
+	public function test_anonymous_list_omits_last_refresh_error_on_every_row(): void {
+		$GLOBALS['vpress_test_caps'] = array();
+		$this->wpdb->on( '/d\.\*/', array( $this->registry_row(), $this->registry_row() ) );
+
+		$rows = vpress_list_datasets( new FakeRestRequest( array( 'page' => '1', 'perPage' => '6' ) ) )['data'];
+
+		$this->assertCount( 2, $rows );
+		foreach ( $rows as $row ) {
+			$this->assertObjectNotHasProperty( 'last_refresh_error', $row );
+			$this->assertSame( 'daily', $row->refresh_interval );
+		}
+	}
+
+	public function test_editor_list_keeps_last_refresh_error(): void {
+		$GLOBALS['vpress_test_caps'] = array( 'edit_posts' );
+		$this->wpdb->on( '/d\.\*/', array( $this->registry_row() ) );
+
+		$rows = vpress_list_datasets( new FakeRestRequest( array( 'page' => '1', 'perPage' => '6' ) ) )['data'];
+
+		$this->assertObjectHasProperty( 'last_refresh_error', $rows[0] );
 	}
 }

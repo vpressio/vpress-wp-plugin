@@ -237,6 +237,17 @@ function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
   ) );
 }
 
+/**
+ * Drops fields only editors may see from a registry row (in place).
+ * last_refresh_error can carry fetch diagnostics (host names, transport
+ * errors) that are not public provenance like source_url.
+ */
+function vpress_dataset_hide_private_fields( $row ): void {
+  if ( is_object( $row ) && ! current_user_can( 'edit_posts' ) ) {
+    unset( $row->last_refresh_error );
+  }
+}
+
 function vpress_get_dataset( $request ) {
   try {
     global $wpdb;
@@ -250,6 +261,7 @@ function vpress_get_dataset( $request ) {
     if ( $data && ! current_user_can( 'edit_posts' ) && ! vpress_anonymous_can_read_dataset( $id, $data->permissions ) ) {
       return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
     }
+    vpress_dataset_hide_private_fields( $data );
     $response = array(
       'data' => $data,
       'query' => vpress_debug_sql( $wpdb->last_query ),
@@ -307,6 +319,9 @@ function vpress_list_datasets( $request ) {
     $data = $wpdb->get_results($query);
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error );
+    }
+    foreach ( (array) $data as $row ) {
+      vpress_dataset_hide_private_fields( $row );
     }
     $response = array(
       'data' => $data,
