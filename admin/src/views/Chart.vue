@@ -52,7 +52,9 @@ export default {
           const datasetRes = await api.dataset.get(chart.dataset_id)
           const dataset = datasetRes.data.data
           const values = JSON.parse(chart.value)
-          const query = queryBody(values, dataset.slug, dataset.source)
+          // Anonymous viewers are served the saved chart by id; the body is
+          // only honoured for editors (see vpress_resolve_chart_query).
+          const query = { ...queryBody(values, dataset.slug, dataset.source), chart_id: Number(chart_id) }
           const dataResponse = await api.chart.query(query)
           this.chartConfig = values
           this.chartData = dataResponse.data.data

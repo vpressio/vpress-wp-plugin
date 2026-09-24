@@ -224,18 +224,61 @@ function vpress_build_chart_sql( array $body, array $allowed_columns, $wpdb ) {
 	return $args ? $wpdb->prepare( $sql, $args ) : $sql;
 }
 
-function vpress_query_chart_data( $request ) {
+/**
+ * Decides which flat query body /chart/query runs. Editors (edit_posts) send
+ * it themselves. Anyone else must name a public chart by integer `chart_id`;
+ * its SAVED config is used and any client-supplied dataset/context ignored.
+ * Either way the dataset is resolved through the registry guard.
+ *
+ * @return array|WP_Error Flat body whose 'dataset' is the quoted physical table.
+ */
+function vpress_resolve_chart_query( array $body, bool $can_edit ) {
 	global $wpdb;
-	$body = $request->get_json_params();
-	$body = is_array( $body ) ? $body : array();
+
+	if ( ! $can_edit ) {
+		$chart_id = $body['chart_id'] ?? null;
+		if ( ! ( is_int( $chart_id ) || ( is_string( $chart_id ) && ctype_digit( $chart_id ) ) ) || (int) $chart_id < 1 ) {
+			return new WP_Error( 'vpress_missing_chart_id', __( 'A chart_id is required.', 'vpress' ), array( 'status' => 400 ) );
+		}
+		$chart = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}vpresscore_charts WHERE id = %d", (int) $chart_id ) );
+		if ( ! $chart ) {
+			return new WP_Error( 'vpress_chart_not_found', __( 'Chart not found.', 'vpress' ), array( 'status' => 404 ) );
+		}
+		if ( 'public' !== $chart->permissions ) {
+			return new WP_Error( 'vpress_forbidden', __( 'This chart is private.', 'vpress' ), array( 'status' => 403 ) );
+		}
+		$dataset = $wpdb->get_row( $wpdb->prepare( "SELECT slug, source FROM {$wpdb->prefix}vpresscore_datasets WHERE id = %d", (int) $chart->dataset_id ) );
+		if ( ! $dataset ) {
+			return new WP_Error( 'vpress_dataset_not_found', __( 'Dataset not found.', 'vpress' ), array( 'status' => 404 ) );
+		}
+		$context = json_decode( (string) $chart->value, true );
+		if ( ! is_array( $context ) ) {
+			return new WP_Error( 'vpress_invalid_chart', __( 'Invalid chart configuration.', 'vpress' ), array( 'status' => 400 ) );
+		}
+		$body = vpress_query_body_from_context( $context, (string) $dataset->slug, $dataset->source );
+		if ( is_wp_error( $body ) ) {
+			return $body;
+		}
+	}
 
 	$table = vpress_guard_dataset_table( is_string( $body['dataset'] ?? null ) ? $body['dataset'] : '' );
 	if ( is_wp_error( $table ) ) {
 		return $table;
 	}
 	$body['dataset'] = $table;
+	return $body;
+}
 
-	$sql = vpress_build_chart_sql( $body, vpress_guard_columns( $table ), $wpdb );
+function vpress_query_chart_data( $request ) {
+	global $wpdb;
+	$body = $request->get_json_params();
+
+	$body = vpress_resolve_chart_query( is_array( $body ) ? $body : array(), current_user_can( 'edit_posts' ) );
+	if ( is_wp_error( $body ) ) {
+		return $body;
+	}
+
+	$sql = vpress_build_chart_sql( $body, vpress_guard_columns( $body['dataset'] ), $wpdb );
 	if ( is_wp_error( $sql ) ) {
 		return $sql;
 	}
