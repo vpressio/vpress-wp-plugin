@@ -45,6 +45,8 @@ rsync -a --delete \
 	--exclude='/admin/node_modules' \
 	--exclude='/admin/src' \
 	--exclude='/admin/tests' \
+	--exclude='/admin/playwright-report' \
+	--exclude='/admin/test-results' \
 	--exclude='/admin/index.html' \
 	--exclude='/admin/vite.config.js' \
 	--exclude='/admin/package.json' \
@@ -67,6 +69,10 @@ for required in \
 	vpress/admin/dist/js/app.js \
 	vpress/admin/dist/js/chunk-vendors.js \
 	vpress/admin/dist/css/app.css \
+	vpress/admin/dist/js/embed.js \
+	vpress/admin/dist/css/embed.css \
+	vpress/blocks/chart/render.php \
+	vpress/blocks/chart/block.json \
 	vpress/assets/vendor/leaflet/leaflet.css \
 	vpress/api/ \
 	vpress/includes/ \
@@ -76,7 +82,11 @@ for required in \
 		status=1
 	fi
 done
-for forbidden in 'admin/src' 'node_modules' 'tests'; do
+# playwright-report/ and test-results/ hold Playwright traces, and with
+# trace: 'retain-on-failure' a trace archive carries the logged-in admin
+# session cookie. rsync copies the working tree, not git, so .gitignore does
+# not keep them out of the zip — only these excludes do.
+for forbidden in 'admin/src' 'node_modules' 'tests' 'playwright-report' 'test-results'; do
 	if grep -qE "(^|/)${forbidden}(/|$)" <<<"$LISTING"; then
 		echo "build-release: FORBIDDEN path in zip: $forbidden" >&2
 		grep -E "(^|/)${forbidden}(/|$)" <<<"$LISTING" | head -n 5 >&2
