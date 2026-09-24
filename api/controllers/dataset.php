@@ -1,8 +1,12 @@
 <?php
 include plugin_dir_path( __FILE__ ) . '../services/dataset.php';
+require_once plugin_dir_path( __FILE__ ) . '../services/class-vpress-sources.php';
 
 // Hook: Register REST API endpoints
 add_action( 'rest_api_init', 'vpress_register_dataset_routes');
+
+// Hook: hourly sweep of live data sources (scheduled by vpress_schedule_refresh()).
+add_action( 'vpress_refresh_sources', 'vpress_refresh_due_sources' );
 
 function vpress_register_dataset_routes(){
   register_rest_route(
@@ -125,6 +129,38 @@ function vpress_register_dataset_routes(){
       'permission_callback' => function ( WP_REST_Request $request ) {
         return current_user_can( 'publish_posts' );
       }
+    )
+  );
+
+  register_rest_route(
+    VPRESS_API_BASE_URL,
+    VPRESS_API_DATASET_FROM_URL_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'vpress_dataset_from_url',
+      'permission_callback' => function ( WP_REST_Request $request ) {
+        return current_user_can( 'publish_posts' );
+      },
+      'args' => array(
+        'name' => array( 'type' => 'string', 'required' => true ),
+        'url' => array( 'type' => 'string', 'required' => true ),
+        'refresh_interval' => array( 'type' => 'string', 'enum' => array( 'none', 'hourly', 'daily', 'weekly' ), 'default' => 'none' ),
+      ),
+    )
+  );
+
+  register_rest_route(
+    VPRESS_API_BASE_URL,
+    VPRESS_API_DATASET_REFRESH_ROUTE,
+    array(
+      'methods' => WP_REST_SERVER::CREATABLE,
+      'callback' => 'vpress_dataset_refresh',
+      'permission_callback' => function ( WP_REST_Request $request ) {
+        return current_user_can( 'publish_posts' );
+      },
+      'args' => array(
+        'id' => array( 'type' => 'integer', 'required' => true ),
+      ),
     )
   );
 };

@@ -23,21 +23,35 @@
 class Vpress_Activator {
 
 	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
+	 * Create the registry tables and record the schema version.
 	 *
 	 * @since    0.1.0
 	 */
 	public static function create_tables() {
+		self::install_schema();
+		update_option( 'vpress_db_version', defined( 'VPRESS_VERSION' ) ? VPRESS_VERSION : '0.1.0' );
+
+		// Opt-in switch read by uninstall.php; data is kept unless this is true.
+		add_option( 'vpress_erase_data_on_uninstall', false );
+	}
+
+	/**
+	 * The CREATE TABLE statements for the registry, in dbDelta's dialect
+	 * (one column per line, two spaces after PRIMARY KEY) so re-running them
+	 * on an existing install only adds what is missing.
+	 *
+	 * @since    0.3.0
+	 * @return   string[]
+	 */
+	public static function schema_sql() {
 		global $wpdb;
 
-		$table_datasets = $wpdb->prefix . 'vpresscore_datasets';
-		$table_charts = $wpdb->prefix . 'vpresscore_charts';
-		
+		$table_datasets  = $wpdb->prefix . 'vpresscore_datasets';
+		$table_charts    = $wpdb->prefix . 'vpresscore_charts';
 		$charset_collate = $wpdb->get_charset_collate();
 
-		
+		// source is legacy free text (null = WordPress-hosted); source_type
+		// is what the live-sources refresh reads.
 		$sql_datasets = "CREATE TABLE $table_datasets (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			permissions TINYTEXT NOT NULL,
@@ -46,10 +60,15 @@ class Vpress_Activator {
 			slug TINYTEXT NOT NULL,
 			tag TINYTEXT NULL,
 			source TINYTEXT NULL,
+			source_type VARCHAR(16) NOT NULL DEFAULT 'upload',
+			source_url TEXT NULL,
+			refresh_interval VARCHAR(16) NOT NULL DEFAULT 'none',
+			last_refreshed_at DATETIME NULL,
+			last_refresh_error TEXT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 
 		$sql_charts = "CREATE TABLE $table_charts (
@@ -64,24 +83,32 @@ class Vpress_Activator {
 			img_url TINYTEXT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		return array( $sql_datasets, $sql_charts );
+	}
 
-		if ( 
-			! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_datasets ) ) ) == $table_datasets && 
-			! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_charts ) ) ) == $table_charts
-		) {
-			dbDelta( [ $sql_datasets, $sql_charts ] );
-		}
+	/**
+	 * Create or upgrade the registry tables. Idempotent: dbDelta only adds
+	 * missing tables and columns, existing rows keep their values and the
+	 * new columns take their defaults.
+	 *
+	 * @since    0.3.0
+	 */
+	public static function install_schema() {
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( self::schema_sql() );
+	}
 
-		add_option( 'vpress_db_version', '0.1.0' );
-
-		// Opt-in switch read by uninstall.php; data is kept unless this is true.
-		add_option( 'vpress_erase_data_on_uninstall', false );
-
-		
+	/**
+	 * Schedule the live-sources refresh event.
+	 *
+	 * @since    0.3.0
+	 */
+	public static function schedule_refresh() {
+		require_once __DIR__ . '/class-vpress-upgrader.php';
+		vpress_schedule_refresh();
 	}
 
 	/**

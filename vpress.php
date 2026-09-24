@@ -57,6 +57,7 @@ function activate_vpress() {
 	Vpress_Activator::create_tables();
 	Vpress_Activator::create_uploads_folder();
 	Vpress_Activator::flush_rewrite_rules();
+	Vpress_Activator::schedule_refresh();
 }
 
 /**
