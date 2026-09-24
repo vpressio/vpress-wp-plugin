@@ -54,6 +54,22 @@ final class FigureA11yTest extends TestCase {
 		$this->assertCount( 1, $chart_queries, 'the chart query ran once for both renders' );
 	}
 
+	public function test_description_id_follows_a_block_anchor_and_survives_a_hidden_caption(): void {
+		$html = vpress_render_figure(
+			1,
+			array(
+				'wrapper_attributes' => 'class="wp-block-vpress-chart" id="ventas-anchor"',
+				'show_caption'       => false,
+			)
+		);
+
+		$this->assertStringContainsString( ' id="ventas-anchor"', $html );
+		$this->assertStringContainsString( 'aria-describedby="ventas-anchor-desc"', $html );
+		$this->assertStringContainsString( '<p class="vpress-figure__alt screen-reader-text" id="ventas-anchor-desc">', $html );
+		$this->assertStringNotContainsString( '<figcaption', $html );
+		$this->assertMatchesRegularExpression( '#</p><details class="vpress-figure__data">.*</details></figure>$#s', $html, 'the table stays without a caption' );
+	}
+
 	public function test_alt_text_filter_can_override_and_is_escaped(): void {
 		$seen = array();
 		$GLOBALS['vpress_test_filters']['vpress_figure_alt_text'] = static function ( $text, $chart, $rows ) use ( &$seen ) {
