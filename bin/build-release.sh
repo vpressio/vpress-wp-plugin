@@ -39,6 +39,8 @@ rsync -a --delete \
 	--exclude='/scripts' \
 	--exclude='/tests' \
 	--exclude='/_mock' \
+	--exclude='/blocks/**/tests' \
+	--exclude='/vendor' \
 	--exclude='/CHANGELOG.md' \
 	--exclude='/admin/node_modules' \
 	--exclude='/admin/src' \
