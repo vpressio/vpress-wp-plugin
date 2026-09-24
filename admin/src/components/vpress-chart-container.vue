@@ -31,6 +31,8 @@
 import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
 import { isLeafletReady, loadLeaflet } from '../utils/lazyLeaflet.js';
+import { enhanceMarks } from '../a11y/marks.js';
+import { ensureGraphicContrast, textColorFor } from '../a11y/contrast.js';
 import {
   timeFormatLocale,
   select,
@@ -55,6 +57,14 @@ import {
 } from '@dboxjs/core';
 
 let uidCounter = 0;
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+// Plot backgrounds the series colours must reach 3:1 against (WCAG 1.4.11).
+// vpress.theme.json defines no background, so these are the chart's own.
+const THEME_BACKGROUND = { light: '#ffffff', dark: '#1e1e1e' };
+// Sequential scales encode value in lightness; shifting them would change
+// what the colour says, so only categorical palettes are adjusted.
+const SEQUENTIAL_CHARTS = ['heatmap', 'map'];
 
 export default {
   name: 'VpressChartContainer',
@@ -104,6 +114,18 @@ export default {
       labels: Boolean
     },
     iframe: Boolean,
+    // Text alternative for the <svg>'s <desc> (the public figure passes its
+    // server-rendered description); the editor falls back to the title.
+    altText: {
+      type: String,
+      default: ''
+    },
+    // Accessible name for the <svg>'s <title> when chartConfig.title is blank
+    // (the embed blanks it because the figure caption shows it).
+    altTitle: {
+      type: String,
+      default: ''
+    }
   },
   data() {
     return {
@@ -194,6 +216,18 @@ export default {
         return vm.chartConfig.yAxis;
       } else {
         return vm.chartConfig.xAxis;
+      }
+    },
+    /** Series colours, adjusted to ≥ 3:1 against the plot background. */
+    palette() {
+      const colors = (this.chartConfig && this.chartConfig.colors) || [];
+      if (SEQUENTIAL_CHARTS.includes(this.chartConfig.chart)) return colors;
+      const theme = this.chartConfig.theme === 'dark' ? 'dark' : 'light';
+      try {
+        return ensureGraphicContrast(colors, THEME_BACKGROUND[theme]);
+      } catch {
+        // A non-hex colour (e.g. a CSS name) is left to dbox as saved.
+        return colors;
       }
     },
     linearAxis() {
@@ -555,8 +589,8 @@ export default {
                 .selectAll('.x.axis .tick text')
                 .attr('transform', 'translate(-14, 18)rotate(-90)');
             }
-            /** Hide labels if are not set as visible */
-            if (!vm.chartConfig.labels) {
+            /** Hide labels if are not set as visible (multi-series keeps them, see labelsOn) */
+            if (!vm.labelsOn()) {
               chart._svg.selectAll('.dbox-label').style('display', 'none');
             }
 
@@ -574,6 +608,10 @@ export default {
                 select(this).style('font-size', '11');
               }
             });
+            if (vm.labelsOn()) {
+              vm.labelBars(chart._svg && chart._svg.node ? chart._svg.node() : null);
+            }
+            vm.applyA11y(chart._svg && chart._svg.node ? chart._svg.node() : null);
             vm.$emit('chart_loaded', vm.$el);
           }
         }
@@ -738,7 +776,7 @@ export default {
         }
         b.x(this.chartConfig.xAxis.slug).y(this.chartConfig.yAxis.slug);
       }
-      b.sortBy().colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+      b.sortBy().colors(this.palette.slice(0, this.legendOptions.length).reverse());
     },
     drawHeatmap() {
       const hm = this.chart.layer(heatmap);
@@ -767,14 +805,14 @@ export default {
       }
       sp
         .category(this.ordinalAxis.slug)
-        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+        .colors(this.palette.slice(0, this.legendOptions.length).reverse());
     },
     drawTreemap() {
       const vm = this
       const tm = this.chart.layer(treemap);
       tm
         .nestBy(vm.chartConfig.xAxis.slug)
-        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse())
+        .colors(this.palette.slice(0, this.legendOptions.length).reverse())
 
     },
     drawScatter() {
@@ -786,7 +824,7 @@ export default {
         .x(this.chartConfig.xAxis.slug)
         .y(this.chartConfig.yAxis.slug)
         .figure()
-        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+        .colors(this.palette.slice(0, this.legendOptions.length).reverse());
 
       if (
         !vm.linearAxis &&
@@ -837,7 +875,7 @@ export default {
       }
       tl
         .x(this.chartConfig.xAxis.slug)
-        .colors(this.chartConfig.colors.slice(0, this.legendOptions.length).reverse());
+        .colors(this.palette.slice(0, this.legendOptions.length).reverse());
     },
     drawMap() {
       const vm = this;
@@ -974,6 +1012,156 @@ export default {
           })
           .text(d => d.id);
       }
+    },
+    /**
+     * Accessibility pass after dbox draws: <title>/<desc> and role on the
+     * <svg>, chrome hidden from assistive tech, and keyboard-reachable marks.
+     */
+    applyA11y(root) {
+      const svg = root && root.tagName && root.tagName.toLowerCase() === 'svg'
+        ? root
+        : root && root.closest && root.closest('svg');
+      if (!svg) return;
+      const doc = svg.ownerDocument;
+      const base = `${this.id || 'vpress-chart'}-svg`;
+      const name = (this.chartConfig.title || this.altTitle || '').trim() || 'Gráfica';
+      const description = (this.altText || this.chartConfig.title || '').trim();
+
+      svg.querySelectorAll(':scope > title, :scope > desc').forEach((el) => el.remove());
+      const title = doc.createElementNS(SVG_NS, 'title');
+      title.setAttribute('id', `${base}-title`);
+      title.textContent = name;
+      let desc = null;
+      if (description && description !== name) {
+        desc = doc.createElementNS(SVG_NS, 'desc');
+        desc.setAttribute('id', `${base}-desc`);
+        desc.textContent = description;
+      }
+      svg.insertBefore(title, svg.firstChild);
+      if (desc) title.after(desc);
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-labelledby', `${base}-title`);
+      if (desc) svg.setAttribute('aria-describedby', `${base}-desc`);
+      else svg.removeAttribute('aria-describedby');
+      svg.setAttribute('focusable', 'false');
+
+      // Axes and gridlines carry no data of their own.
+      svg.querySelectorAll('.axis, .grid, .gridline, .domain').forEach((el) => {
+        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('focusable', 'false');
+      });
+
+      enhanceMarks(svg, { getLabel: (datum, el) => this.markLabel(datum, el) });
+    },
+    /**
+     * Direct value labels: as configured, but always on when several series
+     * share the plot, so colour is never the only way to tell them apart.
+     * (A method: groupByOptions is set per draw, not reactive.)
+     */
+    labelsOn() {
+      return Boolean(this.chartConfig.labels) || (this.groupByOptions || []).length > 1;
+    },
+    /**
+     * dbox prints bar labels scaled to the axis unit without the unit ("2.1"
+     * for 2,090,218), and stacked-bar labels in their own segment's colour.
+     * Rewrite each with its bar's value in compact notation ("2,1 M") and,
+     * inside a stack, a text colour that reaches 4.5:1 on the segment.
+     */
+    labelBars(svg) {
+      if (!svg) return;
+      const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
+      let compact;
+      try {
+        compact = new Intl.NumberFormat(lang, { notation: 'compact', maximumSignificantDigits: 2 });
+      } catch {
+        return;
+      }
+      const text = (value) => `${this.chartConfig.preffix || ''}${compact.format(value)}${this.chartConfig.suffix || ''}`;
+      const relabel = (bars, labels, valueOf) => {
+        if (bars.length !== labels.length) return;
+        bars.forEach((bar, i) => {
+          const value = valueOf(bar.__data__);
+          if (value !== null && Number.isFinite(value)) labels[i].textContent = text(value);
+        });
+      };
+      // Grouped bars: one label per bar, in bar order.
+      svg.querySelectorAll('.grouped').forEach((group) => {
+        relabel(
+          Array.from(group.querySelectorAll('rect')),
+          Array.from(group.querySelectorAll('.dbox-label')),
+          (d) => (d && d.value !== undefined && d.value !== null ? Number(d.value) : null)
+        );
+      });
+      // Stacked bars: dbox labels only segments taller than 35px.
+      svg.querySelectorAll('.division').forEach((division) => {
+        const labels = Array.from(division.querySelectorAll('.dbox-label'));
+        if (!labels.length) return;
+        const bars = Array.from(division.querySelectorAll('rect')).filter(
+          (rect) => typeof rect.getBBox === 'function' && rect.getBBox().height > 35
+        );
+        relabel(bars, labels, (d) => (Array.isArray(d) ? Number(d[1]) - Number(d[0]) : null));
+        const fill = division.getAttribute('fill');
+        if (fill && /^#[0-9a-f]{3,6}$/i.test(fill)) {
+          labels.forEach((label) => label.style.setProperty('fill', textColorFor(fill)));
+        }
+      });
+    },
+    /** Value formatted like the chart: decimals, prefix, suffix. */
+    formatValue(value) {
+      const number = Number(value);
+      if (value === null || value === undefined || value === '' || Number.isNaN(number)) {
+        return value === undefined || value === null ? '' : String(value);
+      }
+      const decimals = Number.isInteger(this.chartConfig.decimals) ? this.chartConfig.decimals : null;
+      const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
+      let text;
+      try {
+        text = new Intl.NumberFormat(lang, decimals === null
+          ? { maximumFractionDigits: 2 }
+          : { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(number);
+      } catch {
+        text = String(number);
+      }
+      return `${this.chartConfig.preffix || ''}${text}${this.chartConfig.suffix || ''}`;
+    },
+    /** "{category}: {value}" for a dbox datum of any chart type. */
+    markLabel(d, el) {
+      if (d === null || d === undefined) return '';
+      if (typeof d !== 'object') return String(d);
+      const c = this.chartConfig;
+      const slug = (axis) => (axis && axis.slug) || '';
+      const title = (axis) => (axis && (axis.title || axis.slug)) || '';
+      // Heat map cells: { x, y, value }.
+      if (c.chart === 'heatmap') {
+        const value = 'value' in d ? d.value : d[slug(c.collapseBy)];
+        return `${'x' in d ? d.x : d[slug(c.xAxis)]}, ${'y' in d ? d.y : d[slug(c.yAxis)]}: ${this.formatValue(value)}`;
+      }
+      // Scatter points: { datum: row, x, y }.
+      if (c.chart === 'scatter') {
+        const row = d.datum || d;
+        const x = 'x' in d ? d.x : row[slug(c.xAxis)];
+        const y = 'y' in d ? d.y : row[slug(c.yAxis)];
+        const who = slug(c.groupBy) ? row[slug(c.groupBy)] : undefined;
+        const point = `${title(c.xAxis)} ${this.formatValue(x)}, ${title(c.yAxis)} ${this.formatValue(y)}`;
+        return who !== undefined && who !== '' ? `${who}: ${point}` : point;
+      }
+      // Timeline points: { name, x: Date, y }.
+      if (c.chart === 'timeline' && 'x' in d && 'y' in d) {
+        const when = d.x instanceof Date ? this.locale.format(this.dateFormat || '%Y-%m-%d')(d.x) : d.x;
+        return `${d.name !== undefined ? `${d.name}, ` : ''}${when}: ${this.formatValue(d.y)}`;
+      }
+      // Grouped bars and spineplot segments: { key, value, axis }.
+      if ('key' in d && 'value' in d) {
+        const category = d.axis !== undefined && d.axis !== d.key ? `${d.axis}, ${d.key}` : d.key;
+        return `${category}: ${this.formatValue(d.value)}`;
+      }
+      // d3.stack() segments: [y0, y1] with .data; the series key is on the parent.
+      if (Array.isArray(d) && d.data) {
+        const series = el && el.parentNode && el.parentNode.__data__ && el.parentNode.__data__.key;
+        const category = d.data[slug(this.ordinalAxis)];
+        return `${series !== undefined ? `${category}, ${series}` : category}: ${this.formatValue(d[1] - d[0])}`;
+      }
+      return `${d[slug(this.ordinalAxis)]}: ${this.formatValue(d[slug(this.linearAxis)])}`;
     },
     legendChanged(legendOptions) {
       this.legendOptions = legendOptions;
@@ -1264,6 +1452,15 @@ export default {
 .empty-chart > svg {
   width: 100%;
   min-height: 100%;
+}
+
+/* Keyboard focus on a data mark (admin/src/a11y/marks.js). */
+.vpress-mark:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.vpress-mark:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .d3-tip {

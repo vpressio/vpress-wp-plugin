@@ -110,11 +110,11 @@ describe('enhanceMarks', () => {
     first.focus();
     expect(tip.visible).toBe(true);
 
-    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    first.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(tip.visible).toBe(false);
     expect(document.activeElement).toBe(first);
 
-    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    first.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(tip.visible).toBe(false);
   });
 
@@ -135,9 +135,9 @@ describe('enhanceMarks', () => {
     enhanceMarks(svg, { getLabel });
     const bar = findMarks(svg)[1];
 
-    bar.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    bar.dispatchEvent(new window.MouseEvent('mouseover', { bubbles: true }));
     expect(tip.datum).toEqual({ estado: 'Puebla', ventas: 20 });
-    bar.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
+    bar.dispatchEvent(new window.MouseEvent('mouseout', { bubbles: true }));
     expect(tip.visible).toBe(false);
   });
 

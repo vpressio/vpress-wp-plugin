@@ -6,7 +6,7 @@ import { defineComponent, h } from 'vue';
 vi.mock('../../src/components/vpress-chart-container.vue', () => ({
   default: defineComponent({
     name: 'VpressChartContainer',
-    props: { id: String, data: Array, chartConfig: Object, dateFormat: String, iframe: Boolean },
+    props: { id: String, data: Array, chartConfig: Object, dateFormat: String, iframe: Boolean, altText: String, altTitle: String },
     emits: ['chart_loaded', 'chart_error'],
     render() {
       return h('div', { class: 'chart-container-stub' });
@@ -98,6 +98,36 @@ describe('VpressEmbed', () => {
     // Saved config, minus the title/subtitle the server-rendered caption shows.
     expect(container.props('chartConfig')).toEqual({ ...values, title: '', subtitle: '' });
     expect(wrapper.find('.vpress-figure__error').exists()).toBe(false);
+  });
+
+  it('passes the figure\'s server-rendered description and label down to the chart', async () => {
+    stubFetch();
+    const desc = document.createElement('p');
+    desc.id = 'vpress-figure-1-2-desc';
+    desc.textContent = 'Bar chart of ventas by estado, 2 categories.';
+    document.body.appendChild(desc);
+    const host = document.createElement('div');
+    host.className = 'vpress-figure__chart';
+    host.setAttribute('aria-label', 'Ventas por estado');
+    host.setAttribute('aria-describedby', 'vpress-figure-1-2-desc');
+    document.body.appendChild(host);
+
+    const wrapper = mount(VpressEmbed, { props: { chartId: 1, restRoot: REST }, attachTo: host });
+    await flushPromises();
+
+    const container = wrapper.findComponent({ name: 'VpressChartContainer' });
+    expect(container.props('altText')).toBe('Bar chart of ventas by estado, 2 categories.');
+    expect(container.props('altTitle')).toBe('Ventas por estado');
+  });
+
+  it('passes empty alt props when the figure has no description', async () => {
+    stubFetch();
+    const { wrapper } = mountEmbed();
+    await flushPromises();
+
+    const container = wrapper.findComponent({ name: 'VpressChartContainer' });
+    expect(container.props('altText')).toBe('');
+    expect(container.props('altTitle')).toBe('');
   });
 
   it('sends chart_id alongside the query body built from the saved config', async () => {
