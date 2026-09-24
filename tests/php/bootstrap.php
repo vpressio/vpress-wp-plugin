@@ -113,6 +113,7 @@ class FakeRestRequest implements ArrayAccess {
  */
 class FakeWpdb {
 	public $prefix     = 'wp_';
+	public $options    = 'wp_options';
 	public $last_query = '';
 	public $last_error = '';
 	public $insert_id  = 0;
@@ -318,6 +319,19 @@ function sanitize_text_field( $str ) {
 
 function wp_json_encode( $data ) {
 	return json_encode( $data );
+}
+
+function delete_option( $name ) {
+	unset( $GLOBALS['vpress_test_options'][ $name ] );
+	return true;
+}
+
+function is_multisite() {
+	return false;
+}
+
+function trailingslashit( $value ) {
+	return rtrim( $value, '/\\' ) . '/';
 }
 
 function wp_parse_url( $url, $component = -1 ) {
