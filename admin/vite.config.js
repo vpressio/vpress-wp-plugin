@@ -52,6 +52,8 @@ export default defineConfig(({ mode }) => ({
     }
   },
   test: {
+    // tests/e2e holds Playwright specs (yarn test:e2e), not Vitest suites.
+    include: ['tests/unit/**/*.spec.js'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/unit/setup.js'],
