@@ -152,6 +152,13 @@ class Vpress {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'api/index.php';
 
+		/**
+		 * Schema upgrades and the live-sources refresh schedule.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-upgrader.php';
+		add_action( 'plugins_loaded', 'vpress_maybe_upgrade_db' );
+		add_action( 'init', 'vpress_schedule_refresh' );
+
 		$this->loader = new Vpress_Loader();
 
 	}

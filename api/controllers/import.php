@@ -1,5 +1,5 @@
 <?php
-include plugin_dir_path( __FILE__ ) . '../services/import.php';
+require_once plugin_dir_path( __FILE__ ) . '../services/import.php';
 
 add_action( 'rest_api_init', 'vpress_register_import_routes' );
 

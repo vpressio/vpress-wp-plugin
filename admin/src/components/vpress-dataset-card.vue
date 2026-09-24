@@ -163,6 +163,45 @@
                 {{ dateFormat(dataset.updated) }}
               </span>
             </v-col>
+            <v-col
+              v-if="isLiveSource"
+              cols="12"
+              class="dataset-info pt-0"
+              data-test="freshness"
+            >
+              <span
+                class="dataset-label"
+                :title="freshness.last_refresh_error || freshness.source_url"
+              >
+                {{ freshnessText }}
+              </span>
+              <v-icon
+                v-if="freshness.last_refresh_error"
+                size="small"
+                color="error"
+                class="ml-1"
+                :title="freshness.last_refresh_error"
+                data-test="refresh-error"
+              >
+                mdi-alert-circle-outline
+              </v-icon>
+              <v-btn
+                v-if="!readonly"
+                icon
+                size="x-small"
+                variant="text"
+                color="primary"
+                class="ml-1"
+                title="Actualizar ahora"
+                aria-label="Actualizar ahora"
+                :loading="refreshing"
+                :disabled="refreshing"
+                data-test="refresh"
+                @click.stop="refreshNow"
+              >
+                <v-icon>mdi-refresh</v-icon>
+              </v-btn>
+            </v-col>
             <v-col cols="2">
               <v-spacer />
               <v-btn v-if="!readonly" icon variant="text" color="primary" @click.stop="confirmDeletion">
@@ -213,6 +252,17 @@ import { mapStores } from 'pinia';
 import api from '../utils/axios.js';
 import { loaderMixin } from '../mixins/index.js';
 import { useNotificationsStore } from '../store/index.js';
+import { intervalLabel, relativeTime, restErrorMessage } from '../utils/dataSources.js';
+
+function freshnessOf(dataset) {
+  return {
+    source_type: dataset.source_type || 'upload',
+    source_url: dataset.source_url || '',
+    refresh_interval: dataset.refresh_interval || 'none',
+    last_refreshed_at: dataset.last_refreshed_at || null,
+    last_refresh_error: dataset.last_refresh_error || null
+  };
+}
 
 export default {
   name: 'VpressDatasetCard',
@@ -231,10 +281,12 @@ export default {
       default: false
     }
   },
-  emits: ['on-dataset-delete'],
+  emits: ['on-dataset-delete', 'on-dataset-refresh'],
   data() {
     return {
       loading: false,
+      refreshing: false,
+      freshness: freshnessOf(this.dataset),
       showDescriptionIcon: false,
       editDescription: false,
       editTitle: false,
@@ -269,6 +321,20 @@ export default {
       return {
         '--background': this.cardColor
       };
+    },
+    isLiveSource() {
+      return this.freshness.source_type !== 'upload';
+    },
+    freshnessText() {
+      const text = `Actualizado ${relativeTime(this.freshness.last_refreshed_at)}`;
+      return this.freshness.refresh_interval !== 'none'
+        ? `${text} · ${intervalLabel(this.freshness.refresh_interval)}`
+        : text;
+    }
+  },
+  watch: {
+    dataset(value) {
+      this.freshness = freshnessOf(value);
     }
   },
   methods: {
@@ -331,6 +397,26 @@ export default {
       } catch (error) {
         this.loading = false;
         throw new Error(error.message);
+      }
+    },
+    async refreshNow() {
+      if (this.refreshing) return;
+      this.refreshing = true;
+      try {
+        const response = await api.dataset.refresh(parseInt(this.dataset.id));
+        const updated = response.data.data;
+        this.freshness = freshnessOf(updated);
+        this.notificationsStore.open({
+          color: 'success',
+          text: 'Datos actualizados'
+        });
+        this.$emit('on-dataset-refresh', updated);
+      } catch (error) {
+        const text = restErrorMessage(error, 'No se pudieron actualizar los datos');
+        this.freshness = { ...this.freshness, last_refresh_error: text };
+        this.notificationsStore.open({ color: 'error', text });
+      } finally {
+        this.refreshing = false;
       }
     },
     closeDialogConfirmDeletion() {
