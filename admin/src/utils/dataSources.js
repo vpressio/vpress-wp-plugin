@@ -76,6 +76,64 @@ export function relativeTime(mysqlUtc, now = Date.now()) {
   return rtf.format(0, 'minute');
 }
 
+// ---- Provenance (source name / licence / data date / notes) ----
+
+/**
+ * Suggested licences for the combobox. Free text is allowed: the field is a
+ * v-combobox, and the server only trims and caps the value.
+ */
+export const LICENSE_SUGGESTIONS = ['CC0-1.0', 'CC-BY-4.0', 'ODbL-1.0', 'Public domain', 'Otra'];
+
+/** Whether a value is '' or a real YYYY-MM-DD calendar date (the server re-checks). */
+export function isProvenanceDate(value) {
+  const text = String(value == null ? '' : value).trim();
+  if (text === '') return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const date = new Date(`${text}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
+}
+
+/** "1 de septiembre de 2026" for a YYYY-MM-DD date, in UTC so the day never shifts. */
+export function provenanceDateLabel(value) {
+  if (!isProvenanceDate(value) || !String(value || '').trim()) return '';
+  return new Intl.DateTimeFormat('es', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC'
+  }).format(new Date(`${value}T00:00:00Z`));
+}
+
+/**
+ * The source line as the figure will print it, for the editor's preview.
+ * Mirrors vpress_figure_source_footer(): nothing without a name or URL, the
+ * host standing in for a missing name, and the live-source refresh date
+ * winning over the editor's own date.
+ */
+export function provenanceLine(fields = {}) {
+  const url = String(fields.source_url || '').trim();
+  const linkable = /^https?:\/\//i.test(url);
+  let name = String(fields.source_name || '').trim();
+  if (!name && linkable) {
+    const parsed = parse(url);
+    name = parsed ? parsed.hostname : '';
+  }
+  if (!name) return '';
+
+  const parts = [`Fuente: ${name}`];
+  const license = String(fields.license || '').trim();
+  if (license) parts.push(license);
+
+  const live = fields.source_type && fields.source_type !== 'upload';
+  const date = live && fields.last_refreshed_at
+    ? relativeTime(fields.last_refreshed_at)
+    : provenanceDateLabel(fields.retrieved_at);
+  if (date) parts.push(live && fields.last_refreshed_at ? `Datos ${date}` : `Datos al ${date}`);
+
+  parts.push('Descargar datos (JSON)');
+  return parts.join(' · ');
+}
+
 /** The message of a WP_Error REST response, or a fallback. */
 export function restErrorMessage(error, fallback) {
   const data = error && error.response && error.response.data;

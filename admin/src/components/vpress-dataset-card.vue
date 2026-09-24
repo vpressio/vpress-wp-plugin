@@ -138,6 +138,14 @@
               </v-chip>
             </v-chip-group>
           </div>
+          <div v-if="!readonly">
+            <span class="link add-text-toggle" data-test="source-open" @click.stop="openSourceDialog">
+              {{ sourcePreview ? 'Editar fuente...' : 'Agregar fuente...' }}
+            </span>
+            <div v-if="sourcePreview" class="dataset-label source-preview" data-test="source-preview">
+              {{ sourcePreview }}
+            </div>
+          </div>
         </v-col>
         <v-col :cols="12" :sm="12" :md="7" :lg="6" :xl="6">
           <v-row align="center">
@@ -213,6 +221,102 @@
       </v-row>
     </v-card>
     <v-divider />
+    <v-dialog v-model="dialogSource" max-width="600px" scrollable>
+      <v-card data-test="source-dialog">
+        <v-toolbar theme="dark" flat color="primary">
+          <v-toolbar-title>Fuente</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon variant="text" @click="dialogSource = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedSource.source_name"
+                  label="Nombre de la fuente"
+                  placeholder="Secretaría de Hacienda"
+                  density="compact"
+                  variant="outlined"
+                  maxlength="255"
+                  hide-details="auto"
+                  data-test="source-name"
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editedSource.source_url"
+                  label="URL de la fuente"
+                  placeholder="https://datos.gob.mx/..."
+                  density="compact"
+                  variant="outlined"
+                  :readonly="isLiveSource"
+                  :hint="
+                    isLiveSource
+                      ? 'Esta base se actualiza desde esta URL; cámbiala desde \'Desde URL\'.'
+                      : 'Enlace público a los datos originales.'
+                  "
+                  persistent-hint
+                  data-test="source-url"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-combobox
+                  v-model="editedSource.license"
+                  :items="licenseSuggestions"
+                  label="Licencia"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                  data-test="source-license"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editedSource.retrieved_at"
+                  label="Fecha de los datos"
+                  type="date"
+                  placeholder="AAAA-MM-DD"
+                  density="compact"
+                  variant="outlined"
+                  :error-messages="dateError"
+                  hide-details="auto"
+                  data-test="source-date"
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-textarea
+                  v-model="editedSource.source_notes"
+                  label="Notas"
+                  placeholder="Cifras preliminares, metodología, ajustes..."
+                  rows="3"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                  data-test="source-notes"
+                />
+              </v-col>
+              <v-col cols="12">
+                <div class="dataset-label" data-test="source-dialog-preview">
+                  {{ sourceDialogPreview || 'Agrega un nombre o una URL para mostrar la fuente bajo la gráfica.' }}
+                </div>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="text" @click="dialogSource = false">Cancelar</v-btn>
+          <v-btn color="primary" :disabled="!!dateError" data-test="source-save" @click="saveSource">
+            Guardar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="dialogConfirmDeletion" max-width="500px" scrollable>
       <v-card>
         <v-toolbar theme="dark" flat color="primary">
@@ -252,7 +356,14 @@ import { mapStores } from 'pinia';
 import api from '../utils/axios.js';
 import { loaderMixin } from '../mixins/index.js';
 import { useNotificationsStore } from '../store/index.js';
-import { intervalLabel, relativeTime, restErrorMessage } from '../utils/dataSources.js';
+import {
+  LICENSE_SUGGESTIONS,
+  intervalLabel,
+  isProvenanceDate,
+  provenanceLine,
+  relativeTime,
+  restErrorMessage
+} from '../utils/dataSources.js';
 
 function freshnessOf(dataset) {
   return {
@@ -261,6 +372,17 @@ function freshnessOf(dataset) {
     refresh_interval: dataset.refresh_interval || 'none',
     last_refreshed_at: dataset.last_refreshed_at || null,
     last_refresh_error: dataset.last_refresh_error || null
+  };
+}
+
+/** The provenance fields as the edit dialog holds them (never null). */
+function provenanceOf(dataset) {
+  return {
+    source_name: dataset.source_name || '',
+    source_url: dataset.source_url || '',
+    license: dataset.license || '',
+    retrieved_at: dataset.retrieved_at || '',
+    source_notes: dataset.source_notes || ''
   };
 }
 
@@ -292,6 +414,10 @@ export default {
       editTitle: false,
       editTags: false,
       dialogConfirmDeletion: false,
+      dialogSource: false,
+      provenance: provenanceOf(this.dataset),
+      editedSource: provenanceOf(this.dataset),
+      licenseSuggestions: LICENSE_SUGGESTIONS,
       totalDelete: 0,
       newTag: '',
       editedDataset: {
@@ -325,6 +451,15 @@ export default {
     isLiveSource() {
       return this.freshness.source_type !== 'upload';
     },
+    dateError() {
+      return isProvenanceDate(this.editedSource.retrieved_at) ? '' : 'Usa el formato AAAA-MM-DD.';
+    },
+    sourcePreview() {
+      return provenanceLine({ ...this.provenance, ...this.freshness });
+    },
+    sourceDialogPreview() {
+      return provenanceLine({ ...this.editedSource, source_type: this.freshness.source_type, last_refreshed_at: this.freshness.last_refreshed_at });
+    },
     freshnessText() {
       const text = `Actualizado ${relativeTime(this.freshness.last_refreshed_at)}`;
       return this.freshness.refresh_interval !== 'none'
@@ -335,6 +470,7 @@ export default {
   watch: {
     dataset(value) {
       this.freshness = freshnessOf(value);
+      this.provenance = provenanceOf(value);
     }
   },
   methods: {
@@ -383,8 +519,17 @@ export default {
           name: this.editedDataset.name,
           description: this.editedDataset.description,
           tag: this.editedDataset.tag.join(', '),
-          permissions: this.editedDataset.permissions
+          permissions: this.editedDataset.permissions,
+          source_name: this.provenance.source_name,
+          license: this.provenance.license,
+          retrieved_at: this.provenance.retrieved_at,
+          source_notes: this.provenance.source_notes
         };
+        // A live source's URL is the refresh URL, owned by "Desde URL"; the
+        // server ignores it here, and we do not even send it.
+        if (!this.isLiveSource) {
+          body.source_url = this.provenance.source_url;
+        }
         const response = await api.dataset.update(body);
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -398,6 +543,16 @@ export default {
         this.loading = false;
         throw new Error(error.message);
       }
+    },
+    openSourceDialog() {
+      this.editedSource = { ...this.provenance };
+      this.dialogSource = true;
+    },
+    async saveSource() {
+      if (this.dateError) return;
+      this.provenance = { ...this.editedSource };
+      this.dialogSource = false;
+      await this.save();
     },
     async refreshNow() {
       if (this.refreshing) return;
@@ -491,6 +646,9 @@ export default {
 .dataset-label {
   font-size: 0.8rem;
   color: #a19f9f;
+}
+.source-preview {
+  margin-top: 2px;
 }
 .permissions-label {
   font-size: 0.8rem;
