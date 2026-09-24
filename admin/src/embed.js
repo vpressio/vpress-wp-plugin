@@ -13,13 +13,23 @@ function mountFigure(figure) {
   const target = figure.querySelector('.vpress-figure__chart');
   if (!Number.isInteger(chartId) || chartId <= 0 || !target) return null;
 
-  figure.dataset.vpressMounted = 'true';
-  const app = createApp(VpressEmbed, {
+  const props = {
     chartId,
     restRoot: figure.dataset.vpressRest || DEFAULT_REST_ROOT
-  });
-  app.mount(target);
-  return app;
+  };
+  // Present only for logged-in viewers; anonymous markup carries no nonce.
+  if (figure.dataset.vpressNonce) props.nonce = figure.dataset.vpressNonce;
+
+  try {
+    const app = createApp(VpressEmbed, props);
+    app.mount(target);
+    // Marked only once mounted, so a failed mount can be retried by mount().
+    figure.dataset.vpressMounted = 'true';
+    return app;
+  } catch (error) {
+    console.error(`[vpress] could not mount chart ${chartId}:`, error);
+    return null;
+  }
 }
 
 /**

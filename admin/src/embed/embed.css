@@ -68,6 +68,18 @@
   justify-content: center;
 }
 
+/* The chart container's own title slots stay empty in the embed (the
+   <figcaption> carries title and subtitle); drop their default margins. */
+.vpress-figure__chart .generated-title:empty,
+.vpress-figure__chart .generated-subtitle:empty {
+  display: none;
+}
+
+/* …and give the plot the height those title rows used to reserve. */
+.vpress-figure__chart .empty-chart {
+  height: 100%;
+}
+
 /* .vpress-spinner + @keyframes vpress-spin live with the chart container
    (vpress-chart-container.vue) so the admin editor shares them; the build
    folds them into css/embed.css. */

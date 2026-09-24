@@ -15,6 +15,7 @@
       :chart-config="chartConfig"
       :date-format="dateFormat"
       @chart_loaded="onLoaded"
+      @chart_error="onChartError"
     />
     <div
       v-else
@@ -42,7 +43,9 @@ export default {
   components: { VpressChartContainer },
   props: {
     chartId: { type: Number, required: true },
-    restRoot: { type: String, default: '/wp-json/vpress/v1/' }
+    restRoot: { type: String, default: '/wp-json/vpress/v1/' },
+    // wp_rest nonce, set for logged-in viewers only.
+    nonce: { type: String, default: '' }
   },
   data() {
     return {
@@ -62,10 +65,12 @@ export default {
       return root + path;
     },
     async request(path, init) {
+      const headers = { Accept: 'application/json', ...(init && init.headers) };
+      if (this.nonce) headers['X-WP-Nonce'] = this.nonce;
       const res = await window.fetch(this.endpoint(path), {
         credentials: 'same-origin',
         ...init,
-        headers: { Accept: 'application/json', ...(init && init.headers) }
+        headers
       });
       if (!res.ok) {
         throw new Error(`${path} → HTTP ${res.status}`);
@@ -108,6 +113,9 @@ export default {
       console.error(`[vpress] chart ${this.chartId}:`, detail);
       this.error = message;
       this.setBusy(false);
+    },
+    onChartError(error) {
+      this.fail(GENERIC_ERROR, error);
     },
     onLoaded() {
       this.setBusy(false);

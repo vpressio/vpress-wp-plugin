@@ -58,7 +58,7 @@ let uidCounter = 0;
 
 export default {
   name: 'VpressChartContainer',
-  emits: ['chart_loaded'],
+  emits: ['chart_loaded', 'chart_error'],
   props: {
     id: String,
     data: Array,
@@ -237,7 +237,10 @@ export default {
       if (this.chartConfig && this.chartConfig.chart === 'map' && !isLeafletReady()) {
         loadLeaflet()
           .then(() => this.vizInitValidator())
-          .catch((error) => console.error('[vpress] leaflet failed to load', error));
+          .catch((error) => {
+            console.error('[vpress] leaflet failed to load', error);
+            this.$emit('chart_error', error);
+          });
         return;
       }
       if (
