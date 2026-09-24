@@ -39,6 +39,8 @@ export default [
         Image: 'readonly',
         FileReader: 'readonly',
         Blob: 'readonly',
+        File: 'readonly',
+        fetch: 'readonly',
         self: 'readonly',
         globalThis: 'readonly'
       }
