@@ -144,7 +144,28 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 		$html .= ' ' . $name . '="' . esc_attr( $value ) . '"';
 	}
 	$html .= '>';
-	$html .= '<div class="vpress-figure__chart" role="img" aria-label="' . esc_attr( $label ) . '" aria-busy="true"></div>';
+
+	// Text alternative + data table (includes/class-vpress-figure-text.php).
+	// A failed query never breaks the page: the figure just goes without them.
+	$desc_id  = $dom_id . '-desc';
+	$alt_text = null;
+	$table    = '';
+	$rows     = function_exists( 'vpress_figure_rows' ) ? vpress_figure_rows( $chart ) : null;
+	if ( is_array( $rows ) ) {
+		$alt_text = (string) apply_filters( 'vpress_figure_alt_text', vpress_figure_alt_text( $chart, $rows ), $chart, $rows );
+		$table    = vpress_figure_data_table( $chart, $rows );
+	} elseif ( is_wp_error( $rows ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( sprintf( '[vpress] chart %d text alternative unavailable: %s', $id, $rows->get_error_code() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
+
+	$html .= '<div class="vpress-figure__chart" role="img" aria-label="' . esc_attr( $label ) . '"';
+	if ( null !== $alt_text ) {
+		$html .= ' aria-describedby="' . esc_attr( $desc_id ) . '"';
+	}
+	$html .= ' aria-busy="true"></div>';
+	if ( null !== $alt_text ) {
+		$html .= '<p class="vpress-figure__alt screen-reader-text" id="' . esc_attr( $desc_id ) . '">' . esc_html( $alt_text ) . '</p>';
+	}
 	if ( $show_caption ) {
 		$html .= '<figcaption class="vpress-figure__caption">';
 		$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
@@ -153,6 +174,9 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 		}
 		$html .= '</figcaption>';
 	}
+	// The data table is the fallback for the chart itself, so it stays even
+	// when the block hides the caption.
+	$html .= $table;
 	$html .= '</figure>';
 
 	return $html;
