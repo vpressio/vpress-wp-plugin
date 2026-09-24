@@ -102,10 +102,22 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 
 	$id = (int) $chart->id;
 
+	// The first render of a chart in a request keeps the plain id; repeats
+	// (the same chart twice on one page) get -2, -3, … so ids stay unique.
+	static $renders = array();
+	$renders[ $id ] = isset( $renders[ $id ] ) ? $renders[ $id ] + 1 : 1;
+	$dom_id         = 'vpress-figure-' . $id . ( $renders[ $id ] > 1 ? '-' . $renders[ $id ] : '' );
+
 	$html  = '<figure class="' . esc_attr( implode( ' ', $classes ) ) . '"';
-	$html .= ' id="vpress-figure-' . esc_attr( (string) $id ) . '"';
+	$html .= ' id="' . esc_attr( $dom_id ) . '"';
 	$html .= ' data-vpress-chart="' . esc_attr( (string) $id ) . '"';
-	$html .= ' data-vpress-rest="' . esc_url( rest_url( 'vpress/v1/' ) ) . '">';
+	$html .= ' data-vpress-rest="' . esc_url( rest_url( 'vpress/v1/' ) ) . '"';
+	// Logged-in viewers (e.g. editors seeing a private chart) authenticate the
+	// embed's REST calls with a nonce; anonymous markup stays nonce-free and cacheable.
+	if ( is_user_logged_in() ) {
+		$html .= ' data-vpress-nonce="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '"';
+	}
+	$html .= '>';
 	$html .= '<div class="vpress-figure__chart" role="img" aria-label="' . esc_attr( $label ) . '" aria-busy="true"></div>';
 	$html .= '<figcaption class="vpress-figure__caption">';
 	$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
