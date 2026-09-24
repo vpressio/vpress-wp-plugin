@@ -303,6 +303,100 @@ function vpress_query_chart_data( $request ) {
 	);
 }
 
+/**
+ * The public JSON export of a chart: its saved config, the dataset's
+ * provenance and the rows it plots (the same rows as the figure's table).
+ *
+ * @param int $chart_id Chart id.
+ * @return array|WP_Error 404 when the visitor may not see the chart (same
+ *                        rule and answer as the figure and the chart page).
+ */
+function vpress_chart_export_payload( int $chart_id ) {
+	$chart = vpress_get_public_chart( $chart_id );
+	if ( ! $chart ) {
+		return new WP_Error( 'vpress_chart_not_found', __( 'Chart not found.', 'vpress' ), array( 'status' => 404 ) );
+	}
+
+	$rows = vpress_figure_rows( $chart );
+	if ( is_wp_error( $rows ) ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( sprintf( '[vpress] chart %d export unavailable: %s', $chart_id, $rows->get_error_code() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+		return new WP_Error( 'vpress_export_unavailable', __( 'The chart data could not be exported.', 'vpress' ), array( 'status' => 500 ) );
+	}
+
+	$dataset  = vpress_figure_dataset( $chart );
+	$field    = static function ( string $name ) use ( $dataset ) {
+		$value = vpress_provenance_field( $dataset, $name );
+		return '' === $value ? null : $value;
+	};
+
+	return array(
+		'chart'        => array(
+			'id'          => (int) $chart->id,
+			'title'       => vpress_figure_title( $chart ),
+			'description' => (string) ( $chart->description ?? '' ),
+			'value'       => vpress_figure_config( $chart ),
+		),
+		'dataset'      => array(
+			'name'              => $field( 'name' ),
+			'source_name'       => $field( 'source_name' ),
+			'source_url'        => '' === vpress_provenance_url( $dataset ) ? null : vpress_provenance_url( $dataset ),
+			'license'           => $field( 'license' ),
+			'retrieved_at'      => $field( 'retrieved_at' ),
+			'last_refreshed_at' => $field( 'last_refreshed_at' ),
+			'source_type'       => $field( 'source_type' ),
+		),
+		'rows'         => array_values( $rows ),
+		'generated_at' => gmdate( 'Y-m-d\TH:i:s\Z' ),
+	);
+}
+
+/**
+ * GET /chart/{id}/export.json.
+ *
+ * @param WP_REST_Request $request Request.
+ * @return WP_REST_Response|WP_Error
+ */
+function vpress_export_chart( $request ) {
+	$chart_id = (int) $request->get_param( 'id' );
+	$payload  = vpress_chart_export_payload( $chart_id );
+	if ( is_wp_error( $payload ) ) {
+		return $payload;
+	}
+	$response = new WP_REST_Response( $payload, 200 );
+	$response->header( 'Content-Disposition', 'inline; filename="vpress-chart-' . $chart_id . '.json"' );
+	return $response;
+}
+
+/**
+ * JSON flags for a REST response: pretty-printed for export.json when
+ * $debug, never otherwise; other routes are untouched.
+ *
+ * @param int    $options JSON flags.
+ * @param object $request REST request.
+ * @param bool   $debug   Whether WP_DEBUG is on.
+ * @return int
+ */
+function vpress_export_json_flags( int $options, $request, bool $debug ): int {
+	$route = is_object( $request ) && method_exists( $request, 'get_route' ) ? (string) $request->get_route() : '';
+	if ( ! preg_match( '#^/vpress/v1/chart/\d+/export\.json$#D', $route ) ) {
+		return $options;
+	}
+	return $debug ? ( $options | JSON_PRETTY_PRINT ) : ( $options & ~JSON_PRETTY_PRINT );
+}
+
+/**
+ * `rest_json_encode_options` filter.
+ *
+ * @param int             $options JSON flags.
+ * @param WP_REST_Request $request Request being served.
+ * @return int
+ */
+function vpress_export_json_encode_options( $options, $request ) {
+	return vpress_export_json_flags( (int) $options, $request, defined( 'WP_DEBUG' ) && WP_DEBUG );
+}
+
 function vpress_get_chart_data( $request ) {
   try {
     global $wpdb;
