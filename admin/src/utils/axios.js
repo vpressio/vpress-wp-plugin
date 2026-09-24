@@ -10,9 +10,11 @@ const instance = create({
   }
 })
 
-const hueApi = create({
-  baseURL: import.meta.env.VITE_HUE_API_BASE_URL || 'http://localhost:8000',
-});
+// Optional Hue SQL connector. Only wired when VITE_HUE_API_BASE_URL is set at
+// build time — a hard-coded localhost:8000 fallback made every production
+// dataset list fire a cross-origin request at the visitor's own machine.
+const hueBaseURL = import.meta.env.VITE_HUE_API_BASE_URL;
+const hueApi = hueBaseURL ? create({ baseURL: hueBaseURL }) : null;
 
 // ENV
 // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjYjY0ZWZhZGJmNmM4MDAxN2QzYzYyNCIsInJvbGUiOiJBRE1JTiIsImdvb2dsZSI6IiIsImV4cCI6MTYyNTE3NDE2NSwiaWF0IjoxNjI1MDg3NzY1fQ.TAGrUgZJJm6WZwrDeCdzRuzo3IgqBhlpULfC8Bk7bLA';
@@ -35,7 +37,9 @@ const dataset = {
     const { page, itemsPerPage, q } = fillValues(payload, defaultPayload)
     return instance.get(`/wp-json/vpress/v1/dataset/list/?page=${page}&perPage=${itemsPerPage}&q=${q}`)
   },
-  listHue: payload => hueApi.get(`/sql/datasets`, payload),
+  listHue: payload => hueApi
+    ? hueApi.get(`/sql/datasets`, payload)
+    : Promise.resolve({ data: [] }),
   charts: id => instance.get(`/wp-json/vpress/v1/dataset/charts/${id}`),
   rename_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/rename`, payload),
   delete_column: payload => instance.post(`/wp-json/vpress/v1/dataset/column/delete`, payload),
