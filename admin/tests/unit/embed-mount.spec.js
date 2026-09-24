@@ -18,7 +18,7 @@ vi.mock('../../src/embed/VpressEmbed.vue', () => ({
 
 const figure = (id, rest = 'http://example.test/wp-json/vpress/v1/', extra = '') =>
   `<figure class="vpress-figure" data-vpress-chart="${id}" data-vpress-rest="${rest}"${extra}>` +
-  '<div class="vpress-figure__chart" role="img" aria-busy="true"></div></figure>';
+  '<div class="vpress-figure__chart" role="group" aria-busy="true"></div></figure>';
 
 describe('embed.js', () => {
   beforeEach(() => {

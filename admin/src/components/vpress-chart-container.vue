@@ -1039,7 +1039,8 @@ export default {
       }
       svg.insertBefore(title, svg.firstChild);
       if (desc) title.after(desc);
-      svg.setAttribute('role', 'img');
+      // graphics-document, not img: the marks inside are focusable and labelled.
+      svg.setAttribute('role', 'graphics-document');
       svg.setAttribute('aria-labelledby', `${base}-title`);
       if (desc) svg.setAttribute('aria-describedby', `${base}-desc`);
       else svg.removeAttribute('aria-describedby');

@@ -34,7 +34,7 @@ final class FigureA11yTest extends TestCase {
 		$html = vpress_render_figure( 1 );
 
 		$this->assertStringContainsString(
-			'<div class="vpress-figure__chart" role="img" aria-label="Gráfica 1" aria-describedby="vpress-figure-1-desc" aria-busy="true"></div>',
+			'<div class="vpress-figure__chart" role="group" aria-label="Gráfica 1" aria-describedby="vpress-figure-1-desc" aria-busy="true"></div>',
 			$html,
 			'aria-label stays the title; the description is referenced'
 		);
@@ -107,7 +107,7 @@ final class FigureA11yTest extends TestCase {
 
 		$html = vpress_render_figure( 1 );
 
-		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="img" aria-label="Gráfica 1" aria-busy="true"></div>', $html );
+		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="group" aria-label="Gráfica 1" aria-busy="true"></div>', $html );
 		$this->assertStringNotContainsString( 'aria-describedby', $html );
 		$this->assertStringNotContainsString( 'vpress-figure__alt', $html );
 		$this->assertStringNotContainsString( '<details', $html );

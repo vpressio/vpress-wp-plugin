@@ -158,7 +158,9 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 		error_log( sprintf( '[vpress] chart %d text alternative unavailable: %s', $id, $rows->get_error_code() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 
-	$html .= '<div class="vpress-figure__chart" role="img" aria-label="' . esc_attr( $label ) . '"';
+	// role=group, not img: the slot holds focusable, individually labelled marks,
+	// and an img's children are presentational.
+	$html .= '<div class="vpress-figure__chart" role="group" aria-label="' . esc_attr( $label ) . '"';
 	if ( null !== $alt_text ) {
 		$html .= ' aria-describedby="' . esc_attr( $desc_id ) . '"';
 	}

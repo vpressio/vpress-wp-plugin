@@ -49,7 +49,8 @@ export const hoverTooltip = {
  * @param {Element[]} [options.marks]   Explicit marks instead of findMarks(svgEl).
  * @param {{show: Function, hide: Function}} [options.tooltip] Defaults to replaying mouseover/mouseout.
  * @param {string} [options.role]       'graphics-symbol' (default) or 'img'.
- * @returns {Element[]} the marks that were enhanced
+ * @returns {Element[]} the marks that were enhanced (the <svg> root, when it has
+ *   marks, becomes role=graphics-document)
  */
 export function enhanceMarks(svgEl, options = {}) {
   const {
@@ -58,6 +59,13 @@ export function enhanceMarks(svgEl, options = {}) {
     role = 'graphics-symbol'
   } = options;
   const marks = options.marks || findMarks(svgEl);
+
+  // A graphic with focusable, labelled parts is a graphics-document; role=img
+  // would make its children presentational.
+  const root = svgEl && svgEl.tagName && svgEl.tagName.toLowerCase() === 'svg' ? svgEl : null;
+  if (root && marks.length && (!root.hasAttribute('role') || root.getAttribute('role') === 'img')) {
+    root.setAttribute('role', 'graphics-document');
+  }
 
   marks.forEach((el) => {
     if (el.getAttribute('data-vpress-mark') === 'true') return;

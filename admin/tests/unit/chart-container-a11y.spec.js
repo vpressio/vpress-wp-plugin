@@ -61,11 +61,11 @@ function drawGroupedBars() {
 }
 
 describe('vpress-chart-container accessibility pass', () => {
-  it('gives the svg a <title>, a <desc> from the figure and role=img', () => {
+  it('gives the svg a <title>, a <desc> from the figure and role=graphics-document', () => {
     const svg = drawGroupedBars();
     fakeVm().applyA11y(svg);
 
-    expect(svg.getAttribute('role')).toBe('img');
+    expect(svg.getAttribute('role')).toBe('graphics-document');
     expect(svg.getAttribute('focusable')).toBe('false');
     expect(svg.firstElementChild.tagName.toLowerCase()).toBe('title');
     expect(svg.querySelector('title').textContent).toBe('Gráfica 1');

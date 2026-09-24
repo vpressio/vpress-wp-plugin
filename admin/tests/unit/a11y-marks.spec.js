@@ -141,6 +141,16 @@ describe('enhanceMarks', () => {
     expect(tip.visible).toBe(false);
   });
 
+  it('makes an <svg> with marks a graphics-document, not an img', () => {
+    svg.setAttribute('role', 'img');
+    enhanceMarks(svg, { getLabel });
+    expect(svg.getAttribute('role')).toBe('graphics-document');
+
+    const empty = document.createElementNS(SVG, 'svg');
+    enhanceMarks(empty, { getLabel });
+    expect(empty.hasAttribute('role')).toBe(false);
+  });
+
   it('does nothing without a root', () => {
     expect(enhanceMarks(null)).toEqual([]);
   });

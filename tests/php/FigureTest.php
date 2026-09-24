@@ -75,7 +75,7 @@ final class FigureTest extends TestCase {
 		$this->assertStringContainsString( 'id="vpress-figure-1"', $html );
 		$this->assertStringContainsString( 'data-vpress-chart="1"', $html );
 		$this->assertStringContainsString( 'data-vpress-rest="http://example.test/wp-json/vpress/v1/"', $html );
-		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="img" aria-label="Ventas por estado" aria-busy="true"></div>', $html );
+		$this->assertStringContainsString( '<div class="vpress-figure__chart" role="group" aria-label="Ventas por estado" aria-busy="true"></div>', $html );
 		$this->assertStringContainsString( '<span class="vpress-figure__title">Ventas por estado</span>', $html );
 		$this->assertStringContainsString( '<span class="vpress-figure__subtitle">Suma de ventas, 2026</span>', $html );
 		$this->assertStringEndsWith( '</figcaption></figure>', $html );
