@@ -39,7 +39,11 @@ final class FigureA11yTest extends TestCase {
 			'aria-label stays the title; the description is referenced'
 		);
 		$this->assertStringContainsString( '<p class="vpress-figure__alt screen-reader-text" id="vpress-figure-1-desc">' . self::CHART_1_ALT . '</p>', $html );
-		$this->assertMatchesRegularExpression( '#</figcaption><details class="vpress-figure__data">.*</details></figure>$#s', $html, 'the table follows the caption' );
+		$this->assertMatchesRegularExpression(
+			'#^<figure [^>]*><div class="vpress-figure__chart"[^>]*></div><p class="vpress-figure__alt screen-reader-text"[^>]*>[^<]*</p><details class="vpress-figure__data">.*</details><figcaption class="vpress-figure__caption">.*</figcaption></figure>$#s',
+			$html,
+			'child order: chart slot, description, data table, caption (last)'
+		);
 		$this->assertSame( 24, substr_count( $html, '<tr><td>' ), 'every chart #1 row is in the table' );
 	}
 
@@ -67,7 +71,7 @@ final class FigureA11yTest extends TestCase {
 		$this->assertStringContainsString( 'aria-describedby="ventas-anchor-desc"', $html );
 		$this->assertStringContainsString( '<p class="vpress-figure__alt screen-reader-text" id="ventas-anchor-desc">', $html );
 		$this->assertStringNotContainsString( '<figcaption', $html );
-		$this->assertMatchesRegularExpression( '#</p><details class="vpress-figure__data">.*</details></figure>$#s', $html, 'the table stays without a caption' );
+		$this->assertMatchesRegularExpression( '#</p><details class="vpress-figure__data">.*</details></figure>$#s', $html, 'the table stays, last, without a caption' );
 	}
 
 	public function test_alt_text_filter_can_override_and_is_escaped(): void {

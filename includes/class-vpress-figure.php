@@ -166,6 +166,10 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 	if ( null !== $alt_text ) {
 		$html .= '<p class="vpress-figure__alt screen-reader-text" id="' . esc_attr( $desc_id ) . '">' . esc_html( $alt_text ) . '</p>';
 	}
+	// The data table is the fallback for the chart itself, so it stays even
+	// when the block hides the caption. It precedes the <figcaption>, which
+	// stays the figure's last child when present.
+	$html .= $table;
 	if ( $show_caption ) {
 		$html .= '<figcaption class="vpress-figure__caption">';
 		$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
@@ -174,9 +178,6 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 		}
 		$html .= '</figcaption>';
 	}
-	// The data table is the fallback for the chart itself, so it stays even
-	// when the block hides the caption.
-	$html .= $table;
 	$html .= '</figure>';
 
 	return $html;
