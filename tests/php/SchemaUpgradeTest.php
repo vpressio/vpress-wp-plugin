@@ -36,11 +36,11 @@ final class SchemaUpgradeTest extends TestCase {
 		$this->assertStringContainsString( 'last_refresh_error TEXT NULL,', $sql );
 		// dbDelta needs two spaces after PRIMARY KEY or it re-adds the key on every run.
 		$this->assertStringContainsString( 'PRIMARY KEY  (id)', $sql );
-		$this->assertSame( '0.3.0', $GLOBALS['vpress_test_options']['vpress_db_version'] );
+		$this->assertSame( VPRESS_VERSION, $GLOBALS['vpress_test_options']['vpress_db_version'] );
 	}
 
 	public function test_upgrade_is_a_no_op_when_the_version_matches(): void {
-		$GLOBALS['vpress_test_options']['vpress_db_version'] = '0.3.0';
+		$GLOBALS['vpress_test_options']['vpress_db_version'] = VPRESS_VERSION;
 
 		$this->assertFalse( vpress_maybe_upgrade_db() );
 		$this->assertSame( array(), $this->wpdb->queries );
