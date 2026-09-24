@@ -90,6 +90,7 @@ class Vpress {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_block_hooks();
 
 	}
 
@@ -139,6 +140,11 @@ class Vpress {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-figure.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/vpress-shortcode.php';
+
+		/**
+		 * Vpress blocks (vpress/chart)
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-blocks.php';
 
 		/**
 		 * Vpress API
@@ -198,6 +204,16 @@ class Vpress {
 		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_chart_query');
 		$this->loader->add_filter( 'template_include', $plugin_public, 'include_html');
 		$this->loader->add_action('init', $plugin_public, 'add_chart_rule');
+	}
+
+	/**
+	 * Register the block editor blocks.
+	 *
+	 * @since    0.3.0
+	 * @access   private
+	 */
+	private function define_block_hooks() {
+		$this->loader->add_action( 'init', 'Vpress_Blocks', 'register' );
 	}
 
 	private function is_develop_serve($PORT) {

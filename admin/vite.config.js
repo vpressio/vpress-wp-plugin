@@ -63,7 +63,9 @@ export default defineConfig(({ mode }) => ({
     fs: {
       allow: [
         searchForWorkspaceRoot(process.cwd()),
-        realpathSync(fileURLToPath(new URL('./node_modules', import.meta.url)))
+        realpathSync(fileURLToPath(new URL('./node_modules', import.meta.url))),
+        // Vitest also collects the block editor tests in ../blocks.
+        ...(mode === 'test' ? [here('../blocks')] : [])
       ]
     },
     // Standalone dev (opening :5180 directly) proxies REST calls to MAMP's WP.
@@ -132,7 +134,8 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     // tests/e2e holds Playwright specs (yarn test:e2e), not Vitest suites.
-    include: ['tests/unit/**/*.spec.js'],
+    // ../blocks holds the block editor scripts' JSDOM tests.
+    include: ['tests/unit/**/*.spec.js', '../blocks/**/tests/*.test.js'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/unit/setup.js'],

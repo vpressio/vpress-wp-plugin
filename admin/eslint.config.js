@@ -1,5 +1,10 @@
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
+import { fileURLToPath } from 'node:url';
+
+// The plugin root, so the ../blocks override resolves the same way whether
+// ESLint runs from admin/ or from the root with -c admin/eslint.config.js.
+const pluginRoot = fileURLToPath(new URL('..', import.meta.url));
 
 export default [
   js.configs.recommended,
@@ -36,6 +41,41 @@ export default [
         Blob: 'readonly',
         self: 'readonly',
         globalThis: 'readonly'
+      }
+    }
+  },
+  // Block editor scripts (../blocks): plain, unbuilt browser scripts on the
+  // `wp.*` globals WordPress prints; their tests are Vitest ES modules.
+  // Lint with `yarn lint:blocks` (runs ESLint from the plugin root: files
+  // outside admin/ are otherwise outside this config's base path).
+  {
+    basePath: pluginRoot,
+    files: ['blocks/**/*.js'],
+    ignores: ['blocks/**/tests/**'],
+    languageOptions: {
+      ecmaVersion: 2017,
+      sourceType: 'script',
+      globals: {
+        wp: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        Promise: 'readonly',
+        WeakMap: 'readonly'
+      }
+    }
+  },
+  {
+    basePath: pluginRoot,
+    files: ['blocks/**/tests/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        Event: 'readonly'
       }
     }
   },
