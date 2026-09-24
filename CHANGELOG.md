@@ -5,6 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **`/chart/query` no longer runs caller-supplied SQL fragments.** Every column must exist in the dataset table, aggregates and function operations are whitelisted, `ORDER BY`/`LIMIT` are validated, and filter values are bound through `$wpdb->prepare()`. Anonymous callers must send the `chart_id` of a public chart (403 for private). The query is then built from the saved chart config and any client-supplied dataset or context is ignored.
+- **`/dataset/data/{dataset}` is guarded.** The dataset resolves through the registry, the quote-to-backtick rewrite is gone, and `page`/`perPage` are clamped (`perPage` 1–500). Anonymous callers only read public datasets. The hard-coded external SQL relay to `hue.devf.la` was removed; other sources can hook in through the `vpress_external_dataset_data` filter.
+- **Private charts and datasets are hidden from anonymous callers** on the list and get endpoints, including dataset charts; a private item returns 403. Search terms are bound instead of interpolated. Column delete, rename and type-change, plus dataset delete, only interpolate guarded identifiers.
+
 ### Added
 - **Chunked CSV import pipeline** (route D′): chunked upload → server-side parse → client-driven ticks. Works on any shared hosting — no `LOAD DATA`, no WP-Cron, no php.ini flags. Progress dialog with row counts; sessions tracked in `wp_vpresscore_imports` with idempotent chunk retries, orphan sweep, and abort. Free tier capped at 20 MB via `vpress_max_upload_bytes` filter (Pro seam: `vpress_import_engine`).
 - Server-side encoding detection (UTF-8 BOM / Windows-1252 → UTF-8) — Excel-on-Windows Spanish CSVs import correctly.
