@@ -51,7 +51,9 @@ class Vpress_Activator {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// source is legacy free text (null = WordPress-hosted); source_type
-		// is what the live-sources refresh reads.
+		// is what the live-sources refresh reads. source_name, license,
+		// retrieved_at and source_notes are the provenance printed under
+		// every figure and in the chart page's JSON-LD.
 		$sql_datasets = "CREATE TABLE $table_datasets (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			permissions TINYTEXT NOT NULL,
@@ -65,6 +67,10 @@ class Vpress_Activator {
 			refresh_interval VARCHAR(16) NOT NULL DEFAULT 'none',
 			last_refreshed_at DATETIME NULL,
 			last_refresh_error TEXT NULL,
+			source_name TINYTEXT NULL,
+			license VARCHAR(64) NULL,
+			retrieved_at DATE NULL,
+			source_notes TEXT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
