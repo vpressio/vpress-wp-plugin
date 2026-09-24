@@ -103,4 +103,26 @@ final class ChartQueryResolverTest extends TestCase {
 
 		$this->assertWpError( 'vpress_forbidden', 403, $response );
 	}
+
+	public function test_anonymous_chart_uses_its_own_dataset_row_when_slugs_collide(): void {
+		// Registry holds both `test_ventas` (table vpress_test_ventas) and
+		// `vpress_test_ventas` (table vpress_vpress_test_ventas).
+		$this->wpdb->on( '/vpresscore_charts WHERE id = 5$/', (object) array( 'id' => '5', 'dataset_id' => '6', 'permissions' => 'public', 'value' => VpressFixtures::CHART_1_VALUE ) );
+		$this->wpdb->on( '/vpresscore_datasets WHERE id = 6$/', (object) array( 'slug' => 'test_ventas', 'source' => null ) );
+		$this->wpdb->on( "/vpresscore_datasets WHERE slug = 'test_ventas' LIMIT 1/", array( array( '1' => '1' ) ) );
+		$this->wpdb->on( '/^SHOW COLUMNS FROM `vpress_test_ventas`$/', VpressFixtures::real_columns() );
+
+		$this->assertSame( '`vpress_test_ventas`', vpress_resolve_chart_query( array( 'chart_id' => 5 ), false )['dataset'] );
+
+		vpress_query_chart_data( new FakeRestRequest( array(), array( 'chart_id' => 5 ) ) );
+		$this->assertStringContainsString( 'FROM `vpress_test_ventas` as f1', $this->wpdb->last_query );
+		$this->assertSame( array(), preg_grep( '/vpress_vpress_test_ventas/', $this->wpdb->queries ) );
+	}
+
+	public function test_anonymous_chart_on_a_dataset_with_an_invalid_slug_is_rejected(): void {
+		$this->wpdb->on( '/vpresscore_charts WHERE id = 11$/', (object) array( 'id' => '11', 'dataset_id' => '12', 'permissions' => 'public', 'value' => VpressFixtures::CHART_1_VALUE ) );
+		$this->wpdb->on( '/vpresscore_datasets WHERE id = 12$/', (object) array( 'slug' => 'x, wp_users', 'source' => null ) );
+
+		$this->assertWpError( 'vpress_unknown_dataset', 400, vpress_resolve_chart_query( array( 'chart_id' => 11 ), false ) );
+	}
 }

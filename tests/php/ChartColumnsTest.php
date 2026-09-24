@@ -34,7 +34,7 @@ final class ChartColumnsTest extends TestCase {
 
 	public function test_selects_two_or_three_quoted_columns(): void {
 		$response = vpress_get_chart_data( $this->request( array() ) );
-		vpress_get_chart_data( $this->request( array( 'dataset' => 'vpress_test_ventas', 'column_3' => 'canal' ) ) );
+		vpress_get_chart_data( $this->request( array( 'column_3' => 'canal' ) ) );
 
 		$this->assertEquals( array( (object) array( 'estado' => 'Jalisco', 'ventas' => '10' ) ), $response['data'] );
 		$this->assertSame(
@@ -56,6 +56,8 @@ final class ChartColumnsTest extends TestCase {
 
 	public function test_rejects_injection_in_the_dataset(): void {
 		$this->assertWpError( 'vpress_unknown_dataset', vpress_get_chart_data( $this->request( array( 'dataset' => 'wp_users; DROP TABLE wp_posts' ) ) ) );
+		// Takes the physical table name, like /chart/query; a bare slug is not one.
+		$this->assertWpError( 'vpress_unknown_dataset', vpress_get_chart_data( $this->request( array( 'dataset' => 'test_ventas' ) ) ) );
 		$this->assertSame( array(), $this->wpdb->queries );
 	}
 

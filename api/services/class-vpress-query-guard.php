@@ -28,38 +28,52 @@ function vpress_guard_unquote( string $name ): string {
 }
 
 /**
- * Resolves a dataset reference (registry slug, or physical `vpress_` + slug
- * table name) to its backtick-quoted physical table, provided a registry row
- * exists for the slug.
- *
- * @return string|WP_Error
+ * The backtick-quoted physical table (`vpress_` + slug) of a registry slug.
  */
-function vpress_guard_dataset_table( string $dataset ) {
-	global $wpdb;
-	$dataset    = vpress_guard_unquote( $dataset );
-	$candidates = array( $dataset );
-	if ( 0 === strpos( $dataset, 'vpress_' ) ) {
-		$candidates[] = substr( $dataset, strlen( 'vpress_' ) );
-	}
+function vpress_guard_slug_table( string $slug ): ?string {
+	$table = 'vpress_' . $slug;
+	return ( vpress_guard_identifier( $slug ) && vpress_guard_identifier( $table ) ) ? '`' . $table . '`' : null;
+}
 
-	foreach ( $candidates as $slug ) {
-		$table = 'vpress_' . $slug;
-		if ( ! vpress_guard_identifier( $slug ) || ! vpress_guard_identifier( $table ) ) {
-			continue;
-		}
-		$exists = $wpdb->get_var(
-			$wpdb->prepare( "SELECT 1 FROM {$wpdb->prefix}vpresscore_datasets WHERE slug = %s LIMIT 1", $slug )
-		);
-		if ( null !== $exists ) {
-			return '`' . $table . '`';
-		}
-	}
-
+function vpress_guard_unknown_dataset(): WP_Error {
 	return new WP_Error(
 		'vpress_unknown_dataset',
 		__( 'Unknown dataset.', 'vpress' ),
 		array( 'status' => 400 )
 	);
+}
+
+/**
+ * Resolves a registry slug (what /dataset/data and the column ops receive)
+ * to its backtick-quoted physical table, provided a registry row exists.
+ *
+ * @return string|WP_Error
+ */
+function vpress_guard_dataset_slug( string $slug ) {
+	global $wpdb;
+	$table = vpress_guard_slug_table( $slug );
+	if ( null === $table ) {
+		return vpress_guard_unknown_dataset();
+	}
+	$exists = $wpdb->get_var(
+		$wpdb->prepare( "SELECT 1 FROM {$wpdb->prefix}vpresscore_datasets WHERE slug = %s LIMIT 1", $slug )
+	);
+	return null === $exists ? vpress_guard_unknown_dataset() : $table;
+}
+
+/**
+ * Resolves a physical table name (what the admin's queryBody() sends as
+ * `dataset`): it must start with `vpress_`; that prefix is stripped exactly
+ * once and the remaining slug must be in the registry.
+ *
+ * @return string|WP_Error
+ */
+function vpress_guard_dataset_table( string $table ) {
+	$table = vpress_guard_unquote( $table );
+	if ( 0 !== strpos( $table, 'vpress_' ) ) {
+		return vpress_guard_unknown_dataset();
+	}
+	return vpress_guard_dataset_slug( substr( $table, strlen( 'vpress_' ) ) );
 }
 
 /**

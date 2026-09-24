@@ -256,12 +256,21 @@ function vpress_resolve_chart_query( array $body, bool $can_edit ) {
 		if ( ! is_array( $context ) ) {
 			return new WP_Error( 'vpress_invalid_chart', __( 'Invalid chart configuration.', 'vpress' ), array( 'status' => 400 ) );
 		}
+		// The table comes from the loaded dataset row itself, never from a
+		// name round-tripped through the body.
+		$table = vpress_guard_slug_table( (string) $dataset->slug );
+		if ( null === $table ) {
+			return vpress_guard_unknown_dataset();
+		}
 		$body = vpress_query_body_from_context( $context, (string) $dataset->slug, $dataset->source );
 		if ( is_wp_error( $body ) ) {
 			return $body;
 		}
+		$body['dataset'] = $table;
+		return $body;
 	}
 
+	// Editors send the physical table name, as queryBody() builds it.
 	$table = vpress_guard_dataset_table( is_string( $body['dataset'] ?? null ) ? $body['dataset'] : '' );
 	if ( is_wp_error( $table ) ) {
 		return $table;

@@ -24,32 +24,56 @@ final class QueryGuardTest extends TestCase {
 		}
 	}
 
-	public function test_dataset_table_accepts_registry_slug(): void {
-		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_table( 'vpress_test_ventas' ) );
-		$this->assertSame(
-			"SELECT 1 FROM wp_vpresscore_datasets WHERE slug = 'vpress_test_ventas' LIMIT 1",
-			$this->wpdb->queries[0]
-		);
-	}
-
-	public function test_dataset_table_accepts_physical_name(): void {
-		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_table( 'vpress_vpress_test_ventas' ) );
-	}
-
-	public function test_dataset_table_rejects_injection_without_querying(): void {
-		$result = vpress_guard_dataset_table( 'vpress_test_ventas; DROP TABLE wp_users' );
-
+	private function assertUnknownDataset( $result ): void {
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'vpress_unknown_dataset', $result->get_error_code() );
 		$this->assertSame( array( 'status' => 400 ), $result->get_error_data() );
+	}
+
+	public function test_dataset_slug_resolves_a_registry_slug(): void {
+		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_slug( 'vpress_test_ventas' ) );
+		$this->assertSame(
+			array( "SELECT 1 FROM wp_vpresscore_datasets WHERE slug = 'vpress_test_ventas' LIMIT 1" ),
+			$this->wpdb->queries
+		);
+	}
+
+	public function test_dataset_slug_rejects_injection_without_querying(): void {
+		$this->assertUnknownDataset( vpress_guard_dataset_slug( 'vpress_test_ventas; DROP TABLE wp_users' ) );
+		$this->assertUnknownDataset( vpress_guard_dataset_slug( str_repeat( 'a', 58 ) ) );
 		$this->assertSame( array(), $this->wpdb->queries );
 	}
 
-	public function test_dataset_table_rejects_unknown_slug(): void {
-		$result = vpress_guard_dataset_table( 'nope' );
+	public function test_dataset_slug_rejects_an_unknown_slug(): void {
+		$this->assertUnknownDataset( vpress_guard_dataset_slug( 'nope' ) );
+	}
 
-		$this->assertInstanceOf( WP_Error::class, $result );
-		$this->assertSame( 'vpress_unknown_dataset', $result->get_error_code() );
+	public function test_dataset_table_strips_the_prefix_exactly_once(): void {
+		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_table( 'vpress_vpress_test_ventas' ) );
+		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_table( '`vpress_vpress_test_ventas`' ) );
+		$this->assertSame(
+			array_fill( 0, 2, "SELECT 1 FROM wp_vpresscore_datasets WHERE slug = 'vpress_test_ventas' LIMIT 1" ),
+			$this->wpdb->queries
+		);
+	}
+
+	public function test_dataset_table_rejects_names_without_the_prefix_and_injection(): void {
+		$this->assertUnknownDataset( vpress_guard_dataset_table( 'test_ventas' ) );
+		$this->assertUnknownDataset( vpress_guard_dataset_table( 'wp_users' ) );
+		$this->assertUnknownDataset( vpress_guard_dataset_table( 'vpress_' ) );
+		$this->assertUnknownDataset( vpress_guard_dataset_table( 'vpress_test_ventas; DROP TABLE wp_users' ) );
+		$this->assertSame( array(), $this->wpdb->queries );
+	}
+
+	public function test_slug_and_physical_name_never_cross_datasets(): void {
+		$this->wpdb = new FakeWpdb();
+		$GLOBALS['wpdb'] = $this->wpdb;
+		$this->wpdb->on( "/WHERE slug = 'test_ventas' LIMIT 1/", array( array( '1' => '1' ) ) );
+		$this->wpdb->on( "/WHERE slug = 'vpress_test_ventas' LIMIT 1/", array( array( '1' => '1' ) ) );
+
+		$this->assertSame( '`vpress_test_ventas`', vpress_guard_dataset_table( 'vpress_test_ventas' ) );
+		$this->assertSame( array( "SELECT 1 FROM wp_vpresscore_datasets WHERE slug = 'test_ventas' LIMIT 1" ), $this->wpdb->queries );
+		$this->assertSame( '`vpress_vpress_test_ventas`', vpress_guard_dataset_slug( 'vpress_test_ventas' ) );
 	}
 
 	public function test_columns_reads_show_columns_once_per_table(): void {

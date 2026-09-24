@@ -14,6 +14,10 @@ function vpress_clean_string($string) {
 /**
  * True when every registry row for the dataset behind $table is public
  * (duplicate slugs share one physical table, so one private row wins).
+ *
+ * Stricter than vpress_anonymous_can_read_dataset() on purpose: /dataset/data
+ * returns the raw rows, so a public chart on a dataset (which only exposes
+ * the chart's own aggregate query) does not make its rows readable.
  */
 function vpress_dataset_is_public( string $table ): bool {
 	global $wpdb;
@@ -38,7 +42,7 @@ function vpress_get_dataset_data( $request ) {
 		return new WP_Error( 'vpress_unsupported_source', __( 'Unsupported data source.', 'vpress' ), array( 'status' => 400 ) );
 	}
 
-	$table = vpress_guard_dataset_table( (string) $request['dataset'] );
+	$table = vpress_guard_dataset_slug( (string) $request['dataset'] );
 	if ( is_wp_error( $table ) ) {
 		return $table;
 	}
@@ -217,6 +221,10 @@ function vpress_upload_dataset( $request ) {
 /**
  * Whether a caller without edit_posts may read dataset $id: it is public,
  * or a public chart is built on it (its viewers need the dataset row).
+ *
+ * Covers the registry row only (get and dataset-charts). The raw rows behind
+ * /dataset/data use the stricter vpress_dataset_is_public(), which a public
+ * chart does not satisfy.
  */
 function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
   global $wpdb;
@@ -493,7 +501,7 @@ function vpress_datasets_charts( $request ) {
  * @return array|WP_Error array( quoted table, bare table, bare column ).
  */
 function vpress_dataset_column_target( $dataset, $column ) {
-  $table = vpress_guard_dataset_table( (string) $dataset );
+  $table = vpress_guard_dataset_slug( (string) $dataset );
   if ( is_wp_error( $table ) ) {
     return $table;
   }
