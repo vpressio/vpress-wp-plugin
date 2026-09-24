@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import assertEntryCss from './vite/assert-entry-css.js';
 import cssPerEntry from './vite/css-per-entry.js';
 
 const here = (path) => fileURLToPath(new URL(path, import.meta.url));
@@ -20,7 +21,7 @@ const packageOf = (id) => {
 
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/wp-content/plugins/vpress/admin/dist/' : '/',
-  plugins: [vue(), cssPerEntry()],
+  plugins: [vue(), cssPerEntry(), assertEntryCss()],
   resolve: {
     alias: [
       { find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
