@@ -3,7 +3,7 @@
 /**
  * Fired during plugin deactivation
  *
- * @link       data4.mx
+ * @link       https://gitlab.com/vpress/vpress-wp-plugin
  * @since      0.1.0
  *
  * @package    Vpress

@@ -8,18 +8,21 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              data4.mx
+ * @link              https://gitlab.com/vpress/vpress-wp-plugin
  * @since             0.2.0
  * @package           Vpress
  *
  * @wordpress-plugin
  * Plugin Name:       Vpress
- * Plugin URI:        vpress.io
- * Description:       Transforma tus datos en impacto ¡Publica y cuenta tu historia!
- * Version:           0.1.0
- * Author:            Vpress
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Plugin URI:        https://gitlab.com/vpress/vpress-wp-plugin
+ * Description:       Turn data into stories. Import datasets, build interactive charts and maps, and publish them anywhere on your WordPress site.
+ * Version:           0.3.0
+ * Requires at least: 6.5
+ * Requires PHP:      8.1
+ * Author:            Vpress contributors
+ * Author URI:        https://gitlab.com/vpress
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       vpress
  * Domain Path:       /languages
  */
@@ -34,7 +37,12 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 0.1.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'VPRESS_VERSION', '0.2.0' );
+define( 'VPRESS_VERSION', '0.3.0' );
+
+/**
+ * Absolute path to the main plugin file (used for plugins_url()).
+ */
+define( 'VPRESS_PLUGIN_FILE', __FILE__ );
 
 /**
  * The code that runs during plugin activation.
