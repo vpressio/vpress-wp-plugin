@@ -3,7 +3,12 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/wp-content/plugins/vpress/admin/dist/' : '/',
+  // Relative base: the bundle resolves its fonts/images from its own URL, so
+  // it works whatever folder the plugin is installed under. The old absolute
+  // '/wp-content/plugins/vpress/admin/dist/' 404'd every non-inlined asset
+  // (MDI icon font, btn-beta.png, db-gear.svg, map.svg…) on any install not
+  // named exactly "vpress" — e.g. this repo's own vpress-wp-plugin checkout.
+  base: mode === 'production' ? './' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
