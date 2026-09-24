@@ -29,7 +29,8 @@ class Vpress_Activator {
 	 */
 	public static function create_tables() {
 		self::install_schema();
-		update_option( 'vpress_db_version', defined( 'VPRESS_VERSION' ) ? VPRESS_VERSION : '0.1.0' );
+		// The schema counter, not the release version (see VPRESS_DB_VERSION).
+		update_option( 'vpress_db_version', defined( 'VPRESS_DB_VERSION' ) ? VPRESS_DB_VERSION : '1' );
 
 		// Opt-in switch read by uninstall.php; data is kept unless this is true.
 		add_option( 'vpress_erase_data_on_uninstall', false );
@@ -51,7 +52,9 @@ class Vpress_Activator {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// source is legacy free text (null = WordPress-hosted); source_type
-		// is what the live-sources refresh reads.
+		// is what the live-sources refresh reads. source_name, license,
+		// retrieved_at and source_notes are the provenance printed under
+		// every figure and in the chart page's JSON-LD.
 		$sql_datasets = "CREATE TABLE $table_datasets (
 			id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 			permissions TINYTEXT NOT NULL,
@@ -65,6 +68,10 @@ class Vpress_Activator {
 			refresh_interval VARCHAR(16) NOT NULL DEFAULT 'none',
 			last_refreshed_at DATETIME NULL,
 			last_refresh_error TEXT NULL,
+			source_name TINYTEXT NULL,
+			license VARCHAR(64) NULL,
+			retrieved_at DATE NULL,
+			source_notes TEXT NULL,
 			owner_id MEDIUMINT(9) NOT NULL,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

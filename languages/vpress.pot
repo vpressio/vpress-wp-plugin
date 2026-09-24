@@ -1,0 +1,314 @@
+# Copyright (C) 2026 D4
+# This file is distributed under the same license as the Vpress plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Vpress 0.3.0\n"
+"Report-Msgid-Bugs-To: https://gitlab.com/vpress/vpress-wp-plugin/-/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-24T09:43:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: vpress\n"
+
+#: api/services/chart.php:27 api/services/dataset.php:608
+msgid "Unknown column."
+msgstr ""
+
+#: api/services/chart.php:47
+msgid "Unsupported function operation."
+msgstr ""
+
+#: api/services/chart.php:56 api/services/chart.php:180
+msgid "Invalid filter."
+msgstr ""
+
+#: api/services/chart.php:110 api/services/class-vpress-query-guard.php:41
+#: api/services/class-vpress-sources.php:316 api/services/dataset.php:535
+msgid "Unknown dataset."
+msgstr ""
+
+#: api/services/chart.php:162
+msgid "Invalid column alias."
+msgstr ""
+
+#: api/services/chart.php:173
+msgid "Nothing to select."
+msgstr ""
+
+#: api/services/chart.php:194
+msgid "Invalid sort order."
+msgstr ""
+
+#: api/services/chart.php:206
+msgid "Invalid limit."
+msgstr ""
+
+#: api/services/chart.php:242
+msgid "A chart_id is required."
+msgstr ""
+
+#: api/services/chart.php:246 api/services/chart.php:317
+msgid "Chart not found."
+msgstr ""
+
+#: api/services/chart.php:249 api/services/chart.php:450
+msgid "This chart is private."
+msgstr ""
+
+#: api/services/chart.php:253 includes/class-vpress-figure-text.php:136
+msgid "Dataset not found."
+msgstr ""
+
+#: api/services/chart.php:257 api/services/class-vpress-query-body.php:40
+#: includes/class-vpress-figure-text.php:129
+msgid "Invalid chart configuration."
+msgstr ""
+
+#: api/services/chart.php:325
+msgid "The chart data could not be exported."
+msgstr ""
+
+#: api/services/class-vpress-debug-output.php:28
+msgid "A database error occurred."
+msgstr ""
+
+#: api/services/class-vpress-query-guard.php:130
+msgid "Unsupported aggregate function."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:33
+msgid "Enter a public http(s) URL of a CSV file or a Google Sheet."
+msgstr ""
+
+#. translators: %s: transport error message.
+#: api/services/class-vpress-sources.php:128
+#, php-format
+msgid "Could not download the source: %s"
+msgstr ""
+
+#. translators: %d: HTTP status code returned by the source.
+#: api/services/class-vpress-sources.php:138
+#, php-format
+msgid "The source responded with HTTP %d."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:147
+msgid "The source returned no data."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:153
+msgid "The source exceeds the maximum allowed size."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:245
+msgid "The dataset needs a name."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:248
+msgid "Unsupported refresh interval."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:257
+msgid "The dataset name is too long."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:260
+msgid "A dataset with this name already exists."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:319
+msgid "Only datasets imported from a URL can be refreshed."
+msgstr ""
+
+#: api/services/class-vpress-sources.php:322
+msgid "This dataset is already being refreshed."
+msgstr ""
+
+#: api/services/dataset.php:42
+msgid "Unsupported data source."
+msgstr ""
+
+#: api/services/dataset.php:50 api/services/dataset.php:262
+#: api/services/dataset.php:564
+msgid "This dataset is private."
+msgstr ""
+
+#: api/services/dataset.php:415
+msgid "The data date must be a valid YYYY-MM-DD date."
+msgstr ""
+
+#: api/services/dataset.php:655 api/services/dataset.php:684
+msgid "Unsupported column type."
+msgstr ""
+
+#: api/services/import.php:383
+msgid ""
+"The source returned a web page, not CSV. If it is a Google Sheet, share it "
+"as \"Anyone with the link\" or publish it."
+msgstr ""
+
+#. translators: %d: chart id.
+#: blocks/chart/render.php:37
+#, php-format
+msgid "Vpress: chart #%d is not available. Choose another chart in the editor."
+msgstr ""
+
+#: blocks/chart/render.php:38
+msgid "Vpress: no chart selected for this block."
+msgstr ""
+
+#: includes/class-vpress-figure-source.php:171
+msgid "Source:"
+msgstr ""
+
+#. translators: %s: date the data was retrieved or last refreshed.
+#: includes/class-vpress-figure-source.php:181
+#, php-format
+msgid "Data as of %s"
+msgstr ""
+
+#: includes/class-vpress-figure-source.php:190
+msgid "Download data (JSON)"
+msgstr ""
+
+#. translators: %d: chart id.
+#: includes/class-vpress-figure-source.php:215
+#: includes/class-vpress-figure-text.php:641
+#: includes/class-vpress-figure.php:114
+#, php-format
+msgid "Chart %d"
+msgstr ""
+
+#. translators: %s: number of rows the description is based on.
+#: includes/class-vpress-figure-text.php:41
+#, php-format
+msgid " (first %s rows)"
+msgstr ""
+
+#: includes/class-vpress-figure-text.php:124
+msgid "The chart query service is not loaded."
+msgstr ""
+
+#: includes/class-vpress-figure-text.php:329
+#: includes/class-vpress-figure-text.php:406
+#: includes/class-vpress-figure-text.php:454
+#: includes/class-vpress-figure-text.php:506
+#: includes/class-vpress-figure-text.php:546
+#: includes/class-vpress-figure-text.php:576
+msgid "No data available for this chart."
+msgstr ""
+
+#. translators: chart type name at the start of a sentence.
+#: includes/class-vpress-figure-text.php:371
+msgid "Spine plot"
+msgstr ""
+
+#. translators: chart type name at the start of a sentence.
+#: includes/class-vpress-figure-text.php:373
+msgid "Treemap"
+msgstr ""
+
+#: includes/class-vpress-figure-text.php:375
+msgid "Chart"
+msgstr ""
+
+#. translators: 1: chart type, 2: measure title, 3: category title, 4: number of data points.
+#: includes/class-vpress-figure-text.php:379
+#, php-format
+msgid "%1$s of %2$s by %3$s, %4$s data point."
+msgid_plural "%1$s of %2$s by %3$s, %4$s data points."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-vpress-figure-text.php:413
+#, php-format
+msgid ""
+"Bar chart of %1$s by %2$s, %3$s category. Highest: %4$s (%5$s); lowest: %6$s "
+"(%7$s)."
+msgid_plural ""
+"Bar chart of %1$s by %2$s, %3$s categories. Highest: %4$s (%5$s); lowest: "
+"%6$s (%7$s)."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: grouping title, 2: number of series.
+#: includes/class-vpress-figure-text.php:432
+#, php-format
+msgid "Grouped by %1$s, %2$s series."
+msgid_plural "Grouped by %1$s, %2$s series."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: the value went up over time.
+#: includes/class-vpress-figure-text.php:465
+msgid "rose"
+msgstr ""
+
+#. translators: the value went down over time.
+#: includes/class-vpress-figure-text.php:468
+msgid "fell"
+msgstr ""
+
+#. translators: the value did not change over time.
+#: includes/class-vpress-figure-text.php:471
+msgid "was flat"
+msgstr ""
+
+#: includes/class-vpress-figure-text.php:477
+#, php-format
+msgid ""
+"Line chart of %1$s over %2$s from %3$s to %4$s, %5$s point; %1$s %6$s from "
+"%7$s to %8$s."
+msgid_plural ""
+"Line chart of %1$s over %2$s from %3$s to %4$s, %5$s points; %1$s %6$s from "
+"%7$s to %8$s."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-vpress-figure-text.php:512
+#, php-format
+msgid ""
+"Scatter plot of %1$s against %2$s, %3$s point; %2$s ranges %4$s–%5$s, %1$s "
+"ranges %6$s–%7$s."
+msgid_plural ""
+"Scatter plot of %1$s against %2$s, %3$s points; %2$s ranges %4$s–%5$s, %1$s "
+"ranges %6$s–%7$s."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: value title, 2: x title, 3: y title, 4: number of rows, 5: number of columns, 6: highest value, 7: its x, 8: its y.
+#: includes/class-vpress-figure-text.php:551
+#, php-format
+msgid ""
+"Heat map of %1$s by %2$s and %3$s, %4$s×%5$s cells; highest %6$s at (%7$s,"
+"%8$s)."
+msgstr ""
+
+#: includes/class-vpress-figure-text.php:583
+#, php-format
+msgid ""
+"Map of %1$s by region, %2$s region; highest %3$s (%4$s), lowest %5$s (%6$s)."
+msgid_plural ""
+"Map of %1$s by region, %2$s regions; highest %3$s (%4$s), lowest %5$s (%6$s)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-vpress-figure-text.php:644
+msgid "View data"
+msgstr ""
+
+#. translators: %s: number of rows not shown.
+#: includes/class-vpress-figure-text.php:670
+#, php-format
+msgid "… and %s more row"
+msgid_plural "… and %s more rows"
+msgstr[0] ""
+msgstr[1] ""
+
+#: public/index.php:41
+msgid "Gráfica no disponible"
+msgstr ""

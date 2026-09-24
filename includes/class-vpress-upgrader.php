@@ -18,16 +18,27 @@ require_once __DIR__ . '/class-vpress-activator.php';
 
 /**
  * Re-runs the (idempotent) schema when the stored schema version differs
- * from the plugin's, then records the new version.
+ * from VPRESS_DB_VERSION, then records the new one.
+ *
+ * The comparison is against the schema counter, never the release version:
+ * keying it on VPRESS_VERSION meant a schema change shipped inside an
+ * already-released version could never reach an install that had stamped
+ * that same version, and the columns were simply never created.
+ *
+ * Any stored value that is not the current counter upgrades — whether it is
+ * a counter, an old release version such as '0.3.0', or nothing at all —
+ * because dbDelta only adds what is missing.
  *
  * @return bool Whether an upgrade ran.
  */
 function vpress_maybe_upgrade_db(): bool {
-	if ( get_option( 'vpress_db_version' ) === VPRESS_VERSION ) {
+	// Cast: options come back as strings, but a value stamped as an int by
+	// older code must not read as "different" and re-run dbDelta every request.
+	if ( (string) get_option( 'vpress_db_version' ) === VPRESS_DB_VERSION ) {
 		return false;
 	}
 	Vpress_Activator::install_schema();
-	update_option( 'vpress_db_version', VPRESS_VERSION );
+	update_option( 'vpress_db_version', VPRESS_DB_VERSION );
 	return true;
 }
 

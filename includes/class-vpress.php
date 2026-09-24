@@ -140,6 +140,7 @@ class Vpress {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-figure.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-figure-text.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-figure-source.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/vpress-shortcode.php';
 
 		/**

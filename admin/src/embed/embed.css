@@ -142,6 +142,23 @@
   padding: 0 0.75em 0.75em;
 }
 
+/* Source line (provenance) after the data table. Inherits the text colour
+   (no opacity) so it keeps the page's contrast. */
+.vpress-figure__source {
+  margin-top: 0.5em;
+  font-size: 0.8125em;
+  color: inherit;
+}
+
+.vpress-figure__source a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.vpress-figure--dark .vpress-figure__source {
+  padding: 0 0.75em 0.75em;
+}
+
 /* .vpress-spinner + @keyframes vpress-spin live with the chart container
    (vpress-chart-container.vue) so the admin editor shares them; the build
    folds them into css/embed.css. */

@@ -12,6 +12,8 @@ define('VPRESS_API_UPDATE_CHART_ROUTE','/chart/update');
 define('VPRESS_API_DELETE_CHART_ROUTE','/chart/delete');
 define('VPRESS_API_IMAGE_CHART_ROUTE','/chart/image');
 define('VPRESS_API_UPDATE_IMAGE_URL_CHART_ROUTE','/chart/update_image_url');
+//READABLE: public JSON export (chart config + provenance + plotted rows)
+define('VPRESS_API_EXPORT_CHART_ROUTE','/chart/(?P<id>\\d+)/export\\.json');
 //EDITABLE
 define('VPRESS_API_QUERY_CHART_DATA', '/chart/query');
 define('VPRESS_API_GET_CHART_DATA_ROUTE','/chart/columns');

@@ -18,12 +18,19 @@ if ( '' === $vpress_figure ) {
 	status_header( 404 );
 	nocache_headers();
 }
+// schema.org Dataset for the chart (escaped for a <script> element by the helper).
+$vpress_json_ld = '' !== $vpress_figure ? vpress_chart_json_ld( $vpress_chart_id ) : '';
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <?php wp_head(); ?>
+<?php
+if ( '' !== $vpress_json_ld ) {
+	echo $vpress_json_ld . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON_HEX_TAG-encoded in vpress_chart_json_ld().
+}
+?>
 </head>
 <body class="vpress-chart-page">
 <main class="vpress-chart-page__main">
