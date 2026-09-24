@@ -86,7 +86,7 @@ test:php:
       junit: tests/php/junit.xml
 
 plugin-check:
-  stage: test
+  stage: package
   image: wordpress:cli-php8.3
   allow_failure: true
   # admin/dist (the built Vue admin bundle) is not committed to git, and
