@@ -10,6 +10,9 @@ define( 'ARRAY_A', 'ARRAY_A' );
 // Debug output is gated on edit_posts AND WP_DEBUG; tests vary the capability.
 define( 'WP_DEBUG', true );
 define( 'VPRESS_VERSION', '0.2.0-test' );
+// The schema counter is independent of the release version, so it is the real
+// one: the upgrade path is only meaningful when tested at its true value.
+define( 'VPRESS_DB_VERSION', '2' );
 define( 'VPRESS_PLUGIN_FILE', '/srv/wp-content/plugins/vpress/vpress.php' );
 
 // error_log() goes to a file the tests can read, never to the console.
