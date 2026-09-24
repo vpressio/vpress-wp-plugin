@@ -21,6 +21,70 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
+ * Recursively delete the plugin's uploads folder, `{uploads basedir}/vpress`.
+ *
+ * Only that folder is touched: its real path must sit strictly inside the
+ * real uploads basedir. WP_Filesystem (direct method) is used when the tree
+ * holds no symlinks, because WP_Filesystem_Direct::delete() follows symlinked
+ * directories. Otherwise a guarded walk unlinks each entry, removing symlinks
+ * themselves and never following them.
+ *
+ * @since 0.3.0
+ */
+function vpress_uninstall_remove_uploads() {
+	$uploads = wp_upload_dir( null, false );
+	if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
+		return;
+	}
+
+	$base   = realpath( $uploads['basedir'] );
+	$target = realpath( trailingslashit( $uploads['basedir'] ) . 'vpress' );
+	if ( false === $base || false === $target || ! is_dir( $target ) || is_link( trailingslashit( $uploads['basedir'] ) . 'vpress' ) ) {
+		return;
+	}
+	if ( 0 !== strpos( $target, trailingslashit( $base ) ) ) {
+		return;
+	}
+
+	$entries = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $target, FilesystemIterator::SKIP_DOTS ),
+		RecursiveIteratorIterator::CHILD_FIRST
+	);
+
+	$has_symlink = false;
+	foreach ( $entries as $entry ) {
+		if ( $entry->isLink() ) {
+			$has_symlink = true;
+			break;
+		}
+	}
+
+	if ( ! $has_symlink ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		if ( 'direct' === get_filesystem_method( array(), $target ) && WP_Filesystem() ) {
+			global $wp_filesystem;
+			$wp_filesystem->delete( $target, true );
+			return;
+		}
+	}
+
+	foreach ( $entries as $entry ) {
+		$path = $entry->getPathname();
+		if ( 0 !== strpos( $path, trailingslashit( $target ) ) ) {
+			continue;
+		}
+		if ( $entry->isLink() || ! $entry->isDir() ) {
+			wp_delete_file( $path );
+		} else {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- fallback when WP_Filesystem is unavailable or unsafe.
+			@rmdir( $path );
+		}
+	}
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- see above.
+	@rmdir( $target );
+}
+
+/**
  * Remove Vpress data for the current site (blog).
  *
  * @since 0.3.0
@@ -62,6 +126,8 @@ function vpress_uninstall_site() {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( $prefix ) . '%' ) );
 		}
+
+		vpress_uninstall_remove_uploads();
 	}
 
 	delete_option( 'vpress_db_version' );

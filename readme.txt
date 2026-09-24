@@ -68,7 +68,14 @@ Copy the chart's ID from the Vpress chart list and add the shortcode `[vpress id
 
 = How do I erase all Vpress data when I uninstall? =
 
-By default, deleting the plugin keeps your datasets and charts so a reinstall picks up where you left off. To erase everything on uninstall, set the option `vpress_erase_data_on_uninstall` to true before deleting the plugin (for example with WP-CLI: `wp option update vpress_erase_data_on_uninstall 1`), or return true from the `vpress_erase_data_on_uninstall` filter. Vpress then drops every dataset table, its `vpresscore_` tables, and its options and transients.
+By default, deleting the plugin keeps your datasets and charts so a reinstall picks up where you left off; only the options `vpress_db_version` and `vpress_erase_data_on_uninstall` are removed. To erase your data too, set the option `vpress_erase_data_on_uninstall` to true before deleting the plugin (for example with WP-CLI: `wp option update vpress_erase_data_on_uninstall 1`), or return true from the `vpress_erase_data_on_uninstall` filter. On uninstall Vpress then removes exactly:
+
+* Tables: every dataset table (`vpress_` plus the dataset slug) and the `vpresscore_datasets`, `vpresscore_charts` and `vpresscore_imports` tables.
+* Options: `vpress_db_version` and `vpress_erase_data_on_uninstall`.
+* Transients: every transient whose name starts with `vpress_`.
+* Files: the `wp-content/uploads/vpress` folder and everything in it.
+
+On multisite this runs for every site in the network.
 
 == Screenshots ==
 
@@ -82,7 +89,7 @@ By default, deleting the plugin keeps your datasets and charts so a reinstall pi
 == Changelog ==
 
 = 0.3.0 =
-* Chunked CSV import (up to 20 MB, no server configuration), encoding detection, and WordPress.org readiness: English readme, opt-in data erasure on uninstall, rewrite rules flushed only on activation and deactivation, and Leaflet styles bundled locally. Full details in CHANGELOG.md.
+* Chunked CSV import (up to 20 MB, no server configuration), encoding detection, and WordPress.org readiness: English readme, opt-in data erasure on uninstall, rewrite rules flushed only on activation and deactivation, and Leaflet styles bundled locally. Full details: https://gitlab.com/vpress/vpress-wp-plugin/-/blob/master/CHANGELOG.md
 
 = 0.2.0 =
 * Admin app migrated to Vue 3, Vuetify 3 and Vite.

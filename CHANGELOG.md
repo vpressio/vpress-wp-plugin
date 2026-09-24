@@ -13,7 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### WordPress.org readiness
 - Plugin header: `Requires at least: 6.5`, `Requires PHP: 8.1`, GitLab Plugin/Author URIs, English description, `GPL-2.0-or-later`; header version and `VPRESS_VERSION` both `0.3.0`. Stale `data4.mx` `@link` docblocks replaced.
 - `readme.txt` rewritten in WordPress.org format (English, Tested up to 7.1, Stable tag 0.3.0, five FAQs, six screenshots, external-services disclosure) with a condensed Spanish section.
-- `uninstall.php` erases data only on opt-in (`vpress_erase_data_on_uninstall` option or filter): drops dataset tables with safe slugs, the three `vpresscore_*` tables, and `vpress_` transients; multisite aware. Otherwise removes only the plugin options.
+- `uninstall.php` erases data only on opt-in (`vpress_erase_data_on_uninstall` option or filter): drops dataset tables with safe slugs, the three `vpresscore_*` tables, `vpress_` transients and the `uploads/vpress` folder; multisite aware. Otherwise removes only the plugin options.
 - Rewrite rules are flushed on activation and deactivation instead of on every `init`.
 - Leaflet 1.6.0 CSS and images bundled under `assets/vendor/leaflet/` (with its BSD-2-Clause LICENSE); no more unpkg request or SRI filter.
 - `bin/build-release.sh` builds `build/vpress-<version>.zip` and asserts its contents.
