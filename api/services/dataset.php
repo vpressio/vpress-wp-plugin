@@ -735,12 +735,68 @@ function vpress_dataset_record_refresh( string $slug, ?WP_Error $error = null ):
 }
 
 /**
+ * The column names of a physical table, in declaration order.
+ */
+function vpress_dataset_table_columns( string $table ): array {
+	global $wpdb;
+	if ( ! vpress_guard_identifier( $table ) ) {
+		return array();
+	}
+	return array_map( 'strval', (array) $wpdb->get_col( "SHOW COLUMNS FROM `$table`" ) );
+}
+
+/**
+ * The error describing a refresh whose columns no longer match the live
+ * table, or null when they still do.
+ *
+ * A renamed, dropped or added column breaks every saved chart on the dataset:
+ * each one whitelists its columns against the table, and the figure's text
+ * alternative is built from the same query. The refresh cannot repair that,
+ * but it must not report a clean success either — that is what left the UI
+ * saying "Actualizado hace 2 minutos" over charts that no longer render.
+ *
+ * Compared as SETS: charts name their columns, so a source that reorders the
+ * same columns changes nothing and is not drift.
+ */
+function vpress_dataset_column_drift( array $live, array $fresh ): ?WP_Error {
+	$added   = array_values( array_diff( $fresh, $live ) );
+	$removed = array_values( array_diff( $live, $fresh ) );
+	if ( ! $added && ! $removed ) {
+		return null;
+	}
+
+	$parts = array();
+	if ( $added ) {
+		/* translators: %s: comma-separated column names. */
+		$parts[] = sprintf( __( 'added %s', 'vpress' ), implode( ', ', $added ) );
+	}
+	if ( $removed ) {
+		/* translators: %s: comma-separated column names. */
+		$parts[] = sprintf( __( 'removed %s', 'vpress' ), implode( ', ', $removed ) );
+	}
+
+	return new WP_Error(
+		'vpress_source_columns_changed',
+		sprintf(
+			/* translators: %s: what changed, e.g. "added ingresos; removed ventas". */
+			__( 'The source changed its columns (%s). The new rows were imported, but charts built on the old columns will not render until they are updated.', 'vpress' ),
+			implode( '; ', $parts )
+		),
+		array( 'status' => 409 )
+	);
+}
+
+/**
  * Replaces the rows of dataset $slug with the CSV at $tmp_csv_path without
  * a window where readers see a partial table: import into
  * vpress_<slug>__new, swap both names in one RENAME TABLE (atomic in MySQL),
  * then drop the old copy. Any failure drops __new only; the live table is
  * never touched. The outcome is recorded on the registry row; errors are
  * returned, never thrown. The CSV is deleted either way.
+ *
+ * A source whose column set changed is swapped in anyway — the new rows are
+ * what the source says — but returns vpress_dataset_column_drift()'s error
+ * rather than a success, so nothing claims the dataset is healthy.
  *
  * @return true|WP_Error
  */
@@ -762,10 +818,18 @@ function vpress_dataset_replace_table( string $slug, string $tmp_csv_path ) {
 	$wpdb->query( "DROP TABLE IF EXISTS `$new`" );
 	$wpdb->query( "DROP TABLE IF EXISTS `$old`" );
 
+	$drift = null;
 	$error = vpress_import_from_file( $tmp_csv_path, $new );
 	if ( true === $error ) {
 		$error       = null;
 		$live_exists = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $live ) ) === $live );
+		if ( $live_exists ) {
+			// Both reads must happen before the swap renames either table.
+			$drift = vpress_dataset_column_drift(
+				vpress_dataset_table_columns( $live ),
+				vpress_dataset_table_columns( $new )
+			);
+		}
 		$wpdb->query(
 			$live_exists
 				? "RENAME TABLE `$live` TO `$old`, `$new` TO `$live`"
@@ -782,6 +846,11 @@ function vpress_dataset_replace_table( string $slug, string $tmp_csv_path ) {
 		$wpdb->query( "DROP TABLE IF EXISTS `$new`" );
 		vpress_dataset_record_refresh( $slug, $error );
 		return $error;
+	}
+	// The rows are in place; the schema underneath the saved charts is not.
+	if ( null !== $drift ) {
+		vpress_dataset_record_refresh( $slug, $drift );
+		return $drift;
 	}
 	vpress_dataset_record_refresh( $slug );
 	return true;

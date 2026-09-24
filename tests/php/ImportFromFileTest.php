@@ -241,6 +241,60 @@ final class ImportFromFileTest extends TestCase {
 		$this->assertNotContains( 'DROP TABLE IF EXISTS `vpress_live__old`', array_slice( $this->ddl(), 2 ) );
 	}
 
+	/** Scripts the column set of the live table and of the freshly imported one. */
+	private function columns( array $live, array $fresh ): void {
+		$this->wpdb->on( '/^SHOW COLUMNS FROM `vpress_live`$/', $live );
+		$this->wpdb->on( '/^SHOW COLUMNS FROM `vpress_live__new`$/', $fresh );
+	}
+
+	public function test_a_refresh_that_changed_the_columns_is_not_reported_as_a_success(): void {
+		$this->live_table_exists();
+		$this->columns(
+			array( 'estado', 'ventas', 'created', 'updated' ),
+			array( 'estado', 'ingresos', 'created', 'updated' )
+		);
+
+		$result = vpress_dataset_replace_table( 'live', vpress_test_csv( "estado,ingresos\nNL,10\n" ) );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'vpress_source_columns_changed', $result->get_error_code() );
+		$this->assertStringContainsString( 'added ingresos', $result->get_error_message() );
+		$this->assertStringContainsString( 'removed ventas', $result->get_error_message() );
+		// The swap still happens: the new rows are what the source says.
+		$this->assertContains( 'RENAME TABLE `vpress_live` TO `vpress_live__old`, `vpress_live__new` TO `vpress_live`', $this->ddl() );
+		// But the dataset carries the drift instead of a fresh, clean timestamp.
+		$this->assertSame(
+			array( 'update', 'wp_vpresscore_datasets', array( 'last_refresh_error' => $result->get_error_message() ), array( 'slug' => 'live' ) ),
+			end( $this->wpdb->writes )
+		);
+	}
+
+	public function test_an_unchanged_column_set_is_still_a_clean_success(): void {
+		$this->live_table_exists();
+		$this->columns( array( 'estado', 'ventas' ), array( 'estado', 'ventas' ) );
+
+		$this->assertTrue( vpress_dataset_replace_table( 'live', vpress_test_csv( "estado,ventas\nNL,10\n" ) ) );
+
+		$this->assertSame(
+			array( 'last_refreshed_at' => '2026-09-24 12:00:00', 'last_refresh_error' => null ),
+			end( $this->wpdb->writes )[2]
+		);
+	}
+
+	public function test_reordered_columns_are_not_drift(): void {
+		$this->live_table_exists();
+		$this->columns( array( 'estado', 'ventas' ), array( 'ventas', 'estado' ) );
+
+		// Saved charts whitelist their columns by name, so the order is the source's to pick.
+		$this->assertTrue( vpress_dataset_replace_table( 'live', vpress_test_csv( "ventas,estado\n10,NL\n" ) ) );
+	}
+
+	public function test_a_first_import_has_nothing_to_drift_from(): void {
+		$this->columns( array(), array( 'estado', 'ventas' ) );
+
+		$this->assertTrue( vpress_dataset_replace_table( 'live', vpress_test_csv( "estado,ventas\nNL,10\n" ) ) );
+	}
+
 	public function test_replace_refuses_a_slug_whose_work_tables_would_not_be_identifiers(): void {
 		$path   = vpress_test_csv( "a\n1\n" );
 		$result = vpress_dataset_replace_table( str_repeat( 's', 55 ), $path );
