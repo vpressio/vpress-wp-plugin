@@ -585,7 +585,10 @@ function wp_remote_retrieve_response_code( $response ) {
 }
 
 function wp_upload_dir() {
-	return array( 'basedir' => $GLOBALS['vpress_test_upload_dir'] );
+	return array(
+		'basedir' => $GLOBALS['vpress_test_upload_dir'],
+		'baseurl' => 'http://example.test/uploads',
+	);
 }
 
 $GLOBALS['vpress_test_upload_dir'] = sys_get_temp_dir() . '/vpress-phpunit-' . getmypid();

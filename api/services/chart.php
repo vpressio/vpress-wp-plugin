@@ -649,11 +649,27 @@ function vpress_delete_chart( $request ) {
   }
 }
 
+/**
+ * POST /chart/image: stores the chart's PNG preview as "{chart id}.png".
+ *
+ * `name` IS the chart id — vpress_delete_chart() removes "{id}.png" — so it
+ * is required to be digits only. Unsanitised it was a path segment written
+ * into the uploads directory, which let any Author write attacker-controlled
+ * bytes anywhere the web user can write.
+ */
 function vpress_image_chart( $request ) {
   try {
     $upload_dir = wp_upload_dir();
     $base64_img = $request->get_param('string');
-    $filename = $request->get_param('name') . '.png';
+    $name = (string) $request->get_param('name');
+    if ( ! ctype_digit( $name ) ) {
+      return new WP_Error(
+        'vpress_bad_image_name',
+        __( 'The image name must be a chart id.', 'vpress' ),
+        array( 'status' => 400 )
+      );
+    }
+    $filename = $name . '.png';
     $file = $upload_dir['basedir'].'/vpress/images/'. $filename;
     $fileurl = $upload_dir['baseurl'].'/vpress/images/'. $filename;
     $decoded = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64_img), true);
