@@ -6,6 +6,10 @@ yarn-error.log
 /.firebase
 /admin/tests/e2e/videos/
 /admin/tests/e2e/screenshots/
+/admin/tests/e2e/.auth/
+/admin/test-results/
+/admin/playwright-report/
+/admin/blob-report/
 
 # local env files
 /admin/.env

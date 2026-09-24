@@ -7,3 +7,27 @@ code_quality:
     REPORT_FORMAT: html
   artifacts:
     paths: [gl-code-quality-report.html]
+
+# Playwright end-to-end smoke suite (admin/tests/e2e). Skipped unless the CI
+# variable E2E_BASE_URL points at a WordPress instance with Vpress active and
+# the vpress_test_ventas dataset + chart #1 seeded. E2E_USER / E2E_PASSWORD
+# (masked CI variables, read from the environment by login.setup.js) are the
+# WordPress login; they win over any credentials file.
+e2e:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.63.0-jammy
+  rules:
+    - if: $E2E_BASE_URL
+  before_script:
+    # The Playwright image ships Node; Yarn classic may not be on PATH.
+    - command -v yarn || npm install -g yarn
+  script:
+    - yarn --cwd admin install --frozen-lockfile
+    - yarn --cwd admin test:e2e
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - admin/playwright-report/
+      - admin/test-results/
+      - admin/tests/e2e/screenshots/

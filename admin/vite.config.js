@@ -1,9 +1,16 @@
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { realpathSync } from 'node:fs';
+import process from 'node:process';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/wp-content/plugins/vpress/admin/dist/' : '/',
+  // Relative base: the bundle resolves its fonts/images from its own URL, so
+  // it works whatever folder the plugin is installed under. The old absolute
+  // '/wp-content/plugins/vpress/admin/dist/' 404'd every non-inlined asset
+  // (MDI icon font, btn-beta.png, db-gear.svg, map.svg…) on any install not
+  // named exactly "vpress" — e.g. this repo's own vpress-wp-plugin checkout.
+  base: mode === 'production' ? './' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
@@ -22,6 +29,15 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     cors: true,
     origin: 'http://localhost:5180',
+    // Git worktrees symlink admin/node_modules to the main checkout; Vite's
+    // default fs.allow stops at the worktree root and 403s /@fs/ requests
+    // into the real node_modules (e.g. the MDI icon font) — allow it.
+    fs: {
+      allow: [
+        searchForWorkspaceRoot(process.cwd()),
+        realpathSync(fileURLToPath(new URL('./node_modules', import.meta.url)))
+      ]
+    },
     // Standalone dev (opening :5180 directly) proxies REST calls to MAMP's WP.
     proxy: {
       '/wp-json': 'http://localhost:8888'
@@ -52,6 +68,8 @@ export default defineConfig(({ mode }) => ({
     }
   },
   test: {
+    // tests/e2e holds Playwright specs (yarn test:e2e), not Vitest suites.
+    include: ['tests/unit/**/*.spec.js'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/unit/setup.js'],
