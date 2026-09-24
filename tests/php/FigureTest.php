@@ -17,6 +17,10 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState( false )]
 final class FigureTest extends TestCase {
 
+	protected function setUp(): void {
+		$GLOBALS['wpdb'] = new Vpress_Test_Wpdb();
+	}
+
 	private function chart( array $overrides = array() ): array {
 		return array_merge(
 			array(

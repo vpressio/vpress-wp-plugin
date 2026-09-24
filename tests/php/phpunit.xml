@@ -16,15 +16,12 @@
 	<testsuites>
 		<testsuite name="vpress">
 			<directory suffix="Test.php">.</directory>
-			<!-- FigureTest runs under its own shims: php bin/phpunit.phar, bootstrap tests/php/bootstrap-figure.php, file tests/php/FigureTest.php (no double hyphen allowed in XML comments). -->
-			<exclude>FigureTest.php</exclude>
-			<!-- BlocksTest too, under tests/php/bootstrap-blocks.php (same invocation as FigureTest). -->
-			<exclude>BlocksTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<source>
 		<include>
 			<directory>../../api</directory>
+			<directory>../../includes</directory>
 		</include>
 	</source>
 </phpunit>
