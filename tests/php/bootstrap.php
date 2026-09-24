@@ -36,7 +36,13 @@ function is_wp_error( $thing ) {
 	return $thing instanceof WP_Error;
 }
 
+/** Filter callbacks by hook name; tests set this directly. Passthrough otherwise. */
+$GLOBALS['vpress_test_filters'] = array();
+
 function apply_filters( $hook_name, $value, ...$args ) {
+	if ( isset( $GLOBALS['vpress_test_filters'][ $hook_name ] ) ) {
+		return call_user_func( $GLOBALS['vpress_test_filters'][ $hook_name ], $value, ...$args );
+	}
 	return $value;
 }
 
