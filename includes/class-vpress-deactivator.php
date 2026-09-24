@@ -3,7 +3,7 @@
 /**
  * Fired during plugin deactivation
  *
- * @link       data4.mx
+ * @link       https://gitlab.com/vpress/vpress-wp-plugin
  * @since      0.1.0
  *
  * @package    Vpress
@@ -30,7 +30,12 @@ class Vpress_Deactivator {
 	 * @since    0.1.0
 	 */
 	public static function deactivate() {
-
+		global $wp_rewrite;
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-vpress-public.php';
+		// The rule was already registered on this request's `init`; forget it
+		// first so the flush stores the rules without /chart/{id}.
+		unset( $wp_rewrite->extra_rules_top[ Vpress_Public::CHART_RULE ] );
+		flush_rewrite_rules();
 	}
 
 }

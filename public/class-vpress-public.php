@@ -3,7 +3,7 @@
 /**
  * The public-facing functionality of the plugin.
  *
- * @link       data4.mx
+ * @link       https://gitlab.com/vpress/vpress-wp-plugin
  * @since      0.1.0
  *
  * @package    Vpress
@@ -21,6 +21,20 @@
  * @author     D4 <info@data4.mx>
  */
 class Vpress_Public {
+
+	/**
+	 * Rewrite rule regex for the public chart page, /chart/{id}.
+	 *
+	 * @since    0.3.0
+	 */
+	const CHART_RULE = 'chart/(\d+)/?$';
+
+	/**
+	 * Rewrite target for CHART_RULE.
+	 *
+	 * @since    0.3.0
+	 */
+	const CHART_RULE_TARGET = 'index.php?chart=$matches[1]';
 
 	/**
 	 * The ID of this plugin.
@@ -80,32 +94,19 @@ class Vpress_Public {
     return $vars;
 	}
 
-	public function add_chart_rule () {
-		add_rewrite_rule(
-			'chart/(\d+)/?$',
-			'index.php?chart=$matches[1]',
-			'top'
-		);
-		flush_rewrite_rules();
+	/**
+	 * Register the /chart/{id} rewrite rule.
+	 *
+	 * Runs on every `init`. Static so the activator can register the rule
+	 * before flushing; the flush itself happens only on activation and
+	 * deactivation, never per request.
+	 *
+	 * @since    0.1.0
+	 */
+	public static function add_chart_rule() {
+		add_rewrite_rule( self::CHART_RULE, self::CHART_RULE_TARGET, 'top' );
 	}
 	
-	public function add_style_attributes($html, $handle) {
-		$tag = $html;
-		switch ($handle) {
-			case 'vpress_leaflet':
-				$tag = str_replace(
-					'/>',
-					'integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>',
-					$tag
-				);
-				break;
-			default:
-				$tag = $html;
-				break;
-		}
-		return $tag;
-	}
-
 	/**
 	 * Load the Vite bundle (and dev-server client) as ES modules.
 	 *
@@ -117,7 +118,10 @@ class Vpress_Public {
 			$this->plugin_name . '_vite_client',
 		);
 		if ( in_array( $handle, $module_handles, true ) ) {
-			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+			// Rewrite WordPress's own tag instead of building one: drop any
+			// type attribute, then mark the src-bearing tag as a module.
+			$tag = preg_replace( '/\stype=(["\'])[^"\']*\1/', '', $tag );
+			$tag = preg_replace( '/\ssrc=/', ' type="module" src=', $tag, 1 );
 		}
 		return $tag;
 	}
@@ -204,9 +208,9 @@ class Vpress_Public {
 			);
 			wp_enqueue_style(
 				$this->plugin_name . '_leaflet',
-				"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+				plugins_url( 'assets/vendor/leaflet/leaflet.css', VPRESS_PLUGIN_FILE ),
 				array(),
-				null
+				'1.6.0'
 			);
 			wp_enqueue_style(
 				$this->plugin_name . '_roboto-font',

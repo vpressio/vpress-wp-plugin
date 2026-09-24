@@ -6,7 +6,7 @@
  * A class definition that includes attributes and functions used across both the
  * public-facing side of the site and the admin area.
  *
- * @link       data4.mx
+ * @link       https://gitlab.com/vpress/vpress-wp-plugin
  * @since      0.1.0
  *
  * @package    Vpress
@@ -193,7 +193,6 @@ class Vpress {
 		
 		$this->loader->add_filter( 'query_vars', $plugin_public, 'add_chart_query');
 		$this->loader->add_filter( 'template_include', $plugin_public, 'include_html');
-		$this->loader->add_filter('style_loader_tag', $plugin_public, 'add_style_attributes', 10, 2);
 		$this->loader->add_filter('script_loader_tag', $plugin_public, 'script_type_module', 10, 3);
 		$this->loader->add_action('init', $plugin_public, 'add_chart_rule');
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');

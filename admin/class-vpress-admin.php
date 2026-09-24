@@ -3,7 +3,7 @@
 /**
  * The admin-specific functionality of the plugin.
  *
- * @link       data4.mx
+ * @link       https://gitlab.com/vpress/vpress-wp-plugin
  * @since      0.1.0
  *
  * @package    Vpress
@@ -166,7 +166,10 @@ class Vpress_Admin {
 			$this->plugin_name . '_vite_client',
 		);
 		if ( in_array( $handle, $module_handles, true ) ) {
-			$tag = '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+			// Rewrite WordPress's own tag instead of building one: drop any
+			// type attribute, then mark the src-bearing tag as a module.
+			$tag = preg_replace( '/\stype=(["\'])[^"\']*\1/', '', $tag );
+			$tag = preg_replace( '/\ssrc=/', ' type="module" src=', $tag, 1 );
 		}
 		return $tag;
 	}
@@ -204,9 +207,9 @@ class Vpress_Admin {
 		}
 		wp_enqueue_style(
 			$this->plugin_name . '_leaflet',
-			"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+			plugins_url( 'assets/vendor/leaflet/leaflet.css', VPRESS_PLUGIN_FILE ),
 			array(),
-			null
+			'1.6.0'
 		);
 		wp_enqueue_style(
 			$this->plugin_name . '_roboto-font',
