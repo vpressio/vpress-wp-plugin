@@ -75,6 +75,14 @@ final class SchemaUpgradeTest extends TestCase {
 		}
 	}
 
+	/** Options can come back as ints; the counter must still read as current. */
+	public function test_a_counter_stamped_as_an_integer_is_recognised(): void {
+		$GLOBALS['vpress_test_options']['vpress_db_version'] = (int) VPRESS_DB_VERSION;
+
+		$this->assertFalse( vpress_maybe_upgrade_db() );
+		$this->assertSame( array(), $this->wpdb->queries );
+	}
+
 	public function test_the_schema_version_is_independent_of_the_release_version(): void {
 		$this->assertNotSame( VPRESS_VERSION, VPRESS_DB_VERSION, 'the schema counter must not track the release version' );
 	}
