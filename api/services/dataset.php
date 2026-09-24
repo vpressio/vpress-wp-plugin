@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/class-vpress-query-guard.php';
+require_once __DIR__ . '/class-vpress-debug-output.php';
+
 function vpress_clean_string($string) {
   $string = str_replace(' ', '', $string);
   //Replace not allowed characters with _ 
@@ -8,95 +11,59 @@ function vpress_clean_string($string) {
   return strtolower($string);
 }
 
-function callAPI($method, $url, $data){
-  $curl = curl_init();
-  switch ($method){
-     case "POST":
-        curl_setopt($curl, CURLOPT_POST, 1);
-        if ($data)
-           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-        break;
-     case "PUT":
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        if ($data)
-           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);			 					
-        break;
-     default:
-        if ($data)
-           $url = sprintf("%s?%s", $url, http_build_query($data));
-  }
-  // OPTIONS:
-  curl_setopt($curl, CURLOPT_URL, $url);
-  curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-     // 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjYjY0ZWZhZGJmNmM4MDAxN2QzYzYyNCIsInJvbGUiOiJBRE1JTiIsImdvb2dsZSI6IiIsImV4cCI6MTYyNTE3NDE2NSwiaWF0IjoxNjI1MDg3NzY1fQ.TAGrUgZJJm6WZwrDeCdzRuzo3IgqBhlpULfC8Bk7bLA',
-     'Content-Type: application/json',
-  ));
-  curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-  // EXECUTE:
-  $result = curl_exec($curl);
-  if(!$result){die("Connection Failure");}
-  curl_close($curl);
-  return $result;
+/**
+ * True when every registry row for the dataset behind $table is public
+ * (duplicate slugs share one physical table, so one private row wins).
+ *
+ * Stricter than vpress_anonymous_can_read_dataset() on purpose: /dataset/data
+ * returns the raw rows, so a public chart on a dataset (which only exposes
+ * the chart's own aggregate query) does not make its rows readable.
+ */
+function vpress_dataset_is_public( string $table ): bool {
+	global $wpdb;
+	$slug    = substr( vpress_guard_unquote( $table ), strlen( 'vpress_' ) );
+	$private = $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}vpresscore_datasets WHERE slug = %s AND (permissions IS NULL OR permissions <> 'public')",
+			$slug
+		)
+	);
+	return 0 === (int) $private;
 }
 
 function vpress_get_dataset_data( $request ) {
-  try {
-    global $wpdb;
-    $page = (int)$request->get_param('page');
-    $per_page = (int)$request->get_param('perPage');
-    $data_source = $request->get_param('dataSource');
-    $start_at = $per_page * ($page - 1);
-    $query_total = "SELECT COUNT(*) AS total FROM %s";
-    // ENV
-    $hueAPI = 'https://hue.devf.la/sql/query';
+	global $wpdb;
 
-    if ($data_source === 'wordpress') {
-      $table_name =  "vpress_{$request['dataset']}";
-      $query = "SELECT * FROM %s LIMIT  %d ,  %d ";
-      $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
-      $data = $wpdb->get_results($sql);
-      $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
-      $total = $wpdb->get_results($sql);
-    } else {
-      $table_name = $request['dataset'];
-      $query = "SELECT sexo, pais, ciudad, programa_de_interes, edad, como_se_entero_programa_de_becas,
-        tiene_internet, acceso_a_computadora, ocupacion, grado_de_estudios, conocimiento_de_ingles,
-        discapacidad_fisica, grupo_etnico, grupo_subrepresentado_o_vulnerable FROM %s LIMIT  %d ,  %d ";
-      $sql = str_replace("'", '`',$wpdb->prepare($query, array($table_name, $start_at, $per_page)));
-      $data_array =  array(
-        "query" => $sql,
-      );
-      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
-      $data = json_decode($get_data, true);
-      $errors = $response['response']['errors'];
-      
-      $sql = str_replace("'", '`', $wpdb->prepare($query_total, $table_name));
-      $data_array =  array(
-        "query" => $sql,
-      );
-      $get_data = callAPI('POST', $hueAPI, json_encode($data_array));
-      $response = json_decode($get_data, true);
-      $errors = $response['response']['errors'];
-      $total = $response[0];
-    }
+	$external = apply_filters( 'vpress_external_dataset_data', null, $request );
+	if ( null !== $external ) {
+		return $external;
+	}
+	if ( 'wordpress' !== $request->get_param( 'dataSource' ) ) {
+		return new WP_Error( 'vpress_unsupported_source', __( 'Unsupported data source.', 'vpress' ), array( 'status' => 400 ) );
+	}
 
-    if ($wpdb->last_error) {
-      throw new Exception($wpdb->last_error);
-    }
-    $response = array(
-      'data' => $data,
-      'query' => $query,
-      'total' => (int)$total[0]->total,
-    );
-    return $response;
-  } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
-  }
+	$table = vpress_guard_dataset_slug( (string) $request['dataset'] );
+	if ( is_wp_error( $table ) ) {
+		return $table;
+	}
+	if ( ! current_user_can( 'edit_posts' ) && ! vpress_dataset_is_public( $table ) ) {
+		return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
+	}
+
+	$page     = max( 1, (int) $request->get_param( 'page' ) );
+	$per_page = min( 500, max( 1, (int) $request->get_param( 'perPage' ) ) );
+	$query    = $wpdb->prepare( "SELECT * FROM $table LIMIT %d, %d", ( $page - 1 ) * $per_page, $per_page );
+	$data     = $wpdb->get_results( $query );
+	$total    = $wpdb->get_var( "SELECT COUNT(*) AS total FROM $table" );
+
+	if ( $wpdb->last_error ) {
+		return vpress_db_error( $wpdb->last_error );
+	}
+	return array(
+		'data'  => $data,
+		'query' => vpress_debug_sql( $query ),
+		'total' => (int) $total,
+	);
 }
 
 /**
@@ -245,14 +212,29 @@ function vpress_upload_dataset( $request ) {
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $wpdb->last_error,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 
 
+}
+
+/**
+ * Whether a caller without edit_posts may read dataset $id: it is public,
+ * or a public chart is built on it (its viewers need the dataset row).
+ *
+ * Covers the registry row only (get and dataset-charts). The raw rows behind
+ * /dataset/data use the stricter vpress_dataset_is_public(), which a public
+ * chart does not satisfy.
+ */
+function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
+  global $wpdb;
+  if ( 'public' === $permissions ) {
+    return true;
+  }
+  return '1' === (string) $wpdb->get_var( $wpdb->prepare(
+    "SELECT EXISTS (SELECT 1 FROM {$wpdb->prefix}vpresscore_charts WHERE dataset_id = %d AND permissions = 'public')",
+    $id
+  ) );
 }
 
 function vpress_get_dataset( $request ) {
@@ -260,24 +242,21 @@ function vpress_get_dataset( $request ) {
     global $wpdb;
     $id = (int)$request->get_param('id');
     $table_name = $wpdb->prefix.'vpresscore_datasets';
-  
-    $query = "SELECT * FROM $table_name WHERE id = $id";
-  
-    $data = $wpdb->get_row($query);
+
+    $data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error);
     }
+    if ( $data && ! current_user_can( 'edit_posts' ) && ! vpress_anonymous_can_read_dataset( $id, $data->permissions ) ) {
+      return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
+    }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $wpdb->last_error,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -286,11 +265,11 @@ function vpress_list_datasets( $request ) {
     global $wpdb;
     $page = (int)$request->get_param('page');
     $per_page = (int)$request->get_param('perPage');
-    $q = strtolower($request->get_param('q'));
+    $q = strtolower((string)$request->get_param('q'));
     $start_at = $per_page * ($page - 1);
     $table_name = $wpdb->prefix.'vpresscore_datasets';
   
-    $query_total = "SELECT COUNT(*) AS total FROM $table_name";
+    $query_total = "SELECT COUNT(*) AS total FROM $table_name as d";
     $query = 
     "SELECT
       d.*,
@@ -307,15 +286,24 @@ function vpress_list_datasets( $request ) {
     LEFT JOIN information_schema.tables as i
     ON d.slug = SUBSTRING_INDEX(TABLE_NAME, '_', -1)";
   
-    if ($q) {
-      $where .= " WHERE lower(slug) like '%$q%' OR lower(name) like '%$q%' OR lower(description) like '%$q%' OR lower(tag) like '%$q%'";
-      $query_total .= $where;
-      $query .= $where;
+    $conditions = array();
+    $args = array();
+    if ( ! current_user_can( 'edit_posts' ) ) {
+      $conditions[] = "d.permissions = 'public'";
     }
-    $query .= " ORDER BY updated DESC";
-    $query .= " LIMIT $start_at, $per_page";
-  
-    $total = $wpdb->get_var($query_total);
+    if ($q) {
+      $like = '%' . $wpdb->esc_like( $q ) . '%';
+      $conditions[] = '(lower(d.slug) LIKE %s OR lower(d.name) LIKE %s OR lower(d.description) LIKE %s OR lower(d.tag) LIKE %s)';
+      array_push( $args, $like, $like, $like, $like );
+    }
+    $where = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
+    $query_total .= $where;
+    $query = $wpdb->prepare(
+      $query . $where . ' ORDER BY updated DESC LIMIT %d, %d',
+      array_merge( $args, array( $start_at, $per_page ) )
+    );
+
+    $total = $wpdb->get_var( $args ? $wpdb->prepare( $query_total, $args ) : $query_total );
     $data = $wpdb->get_results($query);
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error );
@@ -323,15 +311,11 @@ function vpress_list_datasets( $request ) {
     $response = array(
       'data' => $data,
       'total' => (int)$total,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -391,15 +375,11 @@ function vpress_create_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -442,15 +422,11 @@ function vpress_update_dataset( $request ) {
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query,
+      'query' => vpress_debug_sql( $wpdb->last_query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -461,25 +437,24 @@ function vpress_delete_dataset( $request ) {
     $table_name = $wpdb->prefix.'vpresscore_datasets';
   
     $table = $wpdb->get_row("SELECT slug FROM $table_name WHERE id = $id");
-    $slug = "vpress_" . $table->slug;
+    $slug = $table ? 'vpress_' . $table->slug : '';
+    if ( ! vpress_guard_identifier( $slug ) ) {
+      return new WP_Error( 'vpress_unknown_dataset', __( 'Unknown dataset.', 'vpress' ), array( 'status' => 400 ) );
+    }
     $data = $wpdb->delete( $table_name, array( 'id' => $id ), array( '%d' ) );
     $charts = $wpdb->delete( $wpdb->prefix.'vpresscore_charts', array( 'dataset_id' => $id ), array( '%d' ) );
-    $remove = $wpdb->query( "DROP TABLE IF EXISTS $slug" );
+    $remove = $wpdb->query( "DROP TABLE IF EXISTS `$slug`" );
   
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
     $response = array(
       'data' => $data,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
@@ -489,8 +464,17 @@ function vpress_datasets_charts( $request ) {
     $id = (int)$request->get_param('id');
     $table_name = $wpdb->prefix.'vpresscore_charts';
   
-    $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id";
-    $query = "SELECT * FROM $table_name WHERE dataset_id = $id";
+    $visibility = '';
+    if ( ! current_user_can( 'edit_posts' ) ) {
+      $dataset = $wpdb->get_row( $wpdb->prepare( "SELECT permissions FROM {$wpdb->prefix}vpresscore_datasets WHERE id = %d", $id ) );
+      if ( $dataset && ! vpress_anonymous_can_read_dataset( $id, $dataset->permissions ) ) {
+        return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
+      }
+      $visibility = " AND permissions = 'public'";
+    }
+
+    $query_total = "SELECT COUNT(*) AS total FROM $table_name WHERE dataset_id = $id$visibility";
+    $query = "SELECT * FROM $table_name WHERE dataset_id = $id$visibility";
     $query .= " ORDER BY updated DESC";
     $query .= " LIMIT 10";
     $total = $wpdb->get_var($query_total);
@@ -502,99 +486,124 @@ function vpress_datasets_charts( $request ) {
     $response = array(
       'data' => $data,
       'total' => (int)$total,
-      'query' => $wpdb->last_query
+      'query' => vpress_debug_sql( $wpdb->last_query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
+}
+
+/**
+ * Resolves a column-op target: the guarded dataset table plus one of its
+ * real columns.
+ *
+ * @return array|WP_Error array( quoted table, bare table, bare column ).
+ */
+function vpress_dataset_column_target( $dataset, $column ) {
+  $table = vpress_guard_dataset_slug( (string) $dataset );
+  if ( is_wp_error( $table ) ) {
+    return $table;
+  }
+  if ( ! is_string( $column ) || ! in_array( $column, vpress_guard_columns( $table ), true ) ) {
+    return vpress_dataset_bad_column();
+  }
+  return array( $table, vpress_guard_unquote( $table ), $column );
+}
+
+function vpress_dataset_bad_column(): WP_Error {
+  return new WP_Error( 'vpress_bad_column', __( 'Unknown column.', 'vpress' ), array( 'status' => 400 ) );
 }
 
 function vpress_delete_column( $request ) {
   try {
     global $wpdb;
-    $table_name = $request['dataset'];
-    $column = $request->get_param('column');
-  
-    $query = "ALTER TABLE `vpress_$table_name` DROP COLUMN `$column`;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('column') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    list( $table, , $column ) = $target;
+
+    $query = "ALTER TABLE $table DROP COLUMN `$column`;";
     $sql = $wpdb->query($query);
-  
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
     $response = array(
       'data' => $sql,
-      'query' => $query
+      'query' => vpress_debug_sql( $query )
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
 function vpress_rename_column( $request ) {
   try {
     global $wpdb;
-    $table_name = $request['dataset'];
     $new = $request->get_param('new');
-    $old = $request->get_param('old');
-  
-    $query_type = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'vpress_$table_name' AND COLUMN_NAME = '$old';";
-    $type = $wpdb->get_var($query_type);
-  
-    $query = "ALTER TABLE `vpress_$table_name` CHANGE `$old` `$new` $type;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('old') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    if ( ! is_string( $new ) || ! vpress_guard_identifier( $new ) ) {
+      return vpress_dataset_bad_column();
+    }
+    list( $table, $bare_table, $old ) = $target;
+
+    $type = $wpdb->get_var( $wpdb->prepare(
+      'SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = %s AND COLUMN_NAME = %s;',
+      $bare_table,
+      $old
+    ) );
+    if ( ! is_string( $type ) || ! preg_match( '/^[a-z]+$/D', $type ) ) {
+      return new WP_Error( 'vpress_bad_type', __( 'Unsupported column type.', 'vpress' ), array( 'status' => 400 ) );
+    }
+
+    $query = "ALTER TABLE $table CHANGE `$old` `$new` $type;";
     $sql = $wpdb->query($query);
-  
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
     $response = array(
       'data' => $sql,
-      'query' => $query,
+      'query' => vpress_debug_sql( $query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }
 
 function vpress_change_data_type_column( $request ) {
   try {
     global $wpdb;
-    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-  
-    $table_name = $request['dataset'];
-    $column = $request->get_param('column');
     $type = $request->get_param('type');
-  
-    $query = "ALTER TABLE `vpress_$table_name` CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
+    $target = vpress_dataset_column_target( $request['dataset'], $request->get_param('column') );
+    if ( is_wp_error( $target ) ) {
+      return $target;
+    }
+    // The column types the admin data table offers.
+    if ( ! in_array( $type, array( 'text', 'int', 'date', 'boolean' ), true ) ) {
+      return new WP_Error( 'vpress_bad_type', __( 'Unsupported column type.', 'vpress' ), array( 'status' => 400 ) );
+    }
+    list( $table, , $column ) = $target;
+
+    $query = "ALTER TABLE $table CHANGE `$column` `$column` $type NULL DEFAULT NULL;";
     $sql = $wpdb->query($query);
-    
+
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }
     $response = array(
       'data' => $sql,
-      'query' => $query,
+      'query' => vpress_debug_sql( $query ),
     );
     return $response;
   } catch (Exception $e) {
-    return new WP_Error(
-      'db_error',
-      $e,
-      array( 'status' => 400 )
-    );
+    return vpress_db_error( $e->getMessage() );
   }
 }

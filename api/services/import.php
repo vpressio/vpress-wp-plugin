@@ -1,6 +1,8 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+require_once __DIR__ . '/class-vpress-debug-output.php';
+
 /**
  * Route D′ import pipeline: chunked upload → server-side parse → client-driven
  * ticks. No LOAD DATA, no WP-Cron — works on any shared hosting.
@@ -257,7 +259,7 @@ function vpress_import_tick( $request ) {
     $inserted = vpress_insert_rows( $session->table_name, $columns, $rows );
     if ( $wpdb->last_error ) {
       vpress_import_update_session( $session->id, array( 'status' => 'error', 'error' => $wpdb->last_error ) );
-      return new WP_Error( 'insert_failed', $wpdb->last_error, array( 'status' => 500 ) );
+      return vpress_db_error( $wpdb->last_error, 500, 'insert_failed' );
     }
   }
 
