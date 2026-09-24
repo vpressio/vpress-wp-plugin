@@ -236,9 +236,7 @@ export const useEditorStore = defineStore('editor', {
     },
     getAvailableCharts(state) {
       const chart = this.chart;
-      const requiredReduce = (acc, chartValue) => chartValue[chartValue]
-        ? chart[chartValue].slug === ''
-        : acc;
+      const requiredReduce = (acc, requiredField) => acc || chart[requiredField].slug === '';
       return state.availableGraphs.map(graph => {
         if (chart.xAxis.slug === '' && chart.yAxis.slug === '') {
           return { ...graph, disabled: true };
@@ -322,7 +320,7 @@ export const useEditorStore = defineStore('editor', {
     },
     REMOVE_VIZZES(datasetName = useWorkspaceStore().activeDatasetMeta.slug) {
       const vizzesSubstract = { ...this.vizzes };
-      delete vizzesSubstract[datasetName.slug];
+      delete vizzesSubstract[datasetName];
       this.vizzes = vizzesSubstract;
     },
     UPDATE_VIZ({ values, data, dataset = useWorkspaceStore().activeDatasetMeta }) {
