@@ -160,5 +160,12 @@
 .vpress-chart-page__footer {
   margin-top: 1em;
   font-size: 0.8125em;
-  opacity: 0.7;
+  /* A solid grey (7.5:1 on white) rather than opacity, which also faded the
+     theme's link colour below 4.5:1. */
+  color: #555;
+}
+
+.vpress-chart-page__footer a {
+  color: inherit;
+  text-decoration: underline;
 }
