@@ -145,9 +145,13 @@ final class ProvenanceFigureTest extends TestCase {
 	}
 
 	public function test_live_sources_date_the_data_by_their_last_refresh(): void {
+		// Named, because a sheet-sourced dataset with no name has nothing a
+		// visitor may see once the sheet URL is withheld — see
+		// test_a_google_sheet_url_is_withheld_from_visitors_on_every_public_surface.
 		$this->seed(
 			array(
 				'source_type'       => 'gsheet',
+				'source_name'       => 'Hoja de presupuesto',
 				'source_url'        => 'https://docs.google.com/spreadsheets/d/abc/edit#gid=0',
 				'retrieved_at'      => '2026-01-01',
 				'last_refreshed_at' => '2026-09-23 23:30:00',
@@ -164,6 +168,47 @@ final class ProvenanceFigureTest extends TestCase {
 
 		$this->assertStringNotContainsString( 'Data as of', $footer );
 		$this->assertStringContainsString( 'Source: INEGI · CC0-1.0 · <a class="vpress-figure__export"', $footer );
+	}
+
+	public function test_a_google_sheet_url_is_withheld_from_visitors_on_every_public_surface(): void {
+		$sheet = 'https://docs.google.com/spreadsheets/d/SECRET_WORKBOOK_ID/edit#gid=0';
+		$this->seed(
+			array(
+				'source_type' => 'gsheet',
+				'source_name' => '',
+				'source_url'  => $sheet,
+			)
+		);
+
+		// A sheet shared as "anyone with the link" is protected by the link alone.
+		$figure = vpress_render_figure( 1 );
+		$this->assertStringNotContainsString( 'SECRET_WORKBOOK_ID', $figure, 'the figure footer must not print the sheet URL' );
+		$this->assertStringNotContainsString( 'SECRET_WORKBOOK_ID', vpress_chart_json_ld( 1 ), 'isBasedOn must not print the sheet URL' );
+
+		$export = vpress_chart_export_payload( 1 );
+		$payload = is_array( $export ) ? $export : (array) $export;
+		$this->assertStringNotContainsString( 'SECRET_WORKBOOK_ID', wp_json_encode( $payload ), 'export.json must not print the sheet URL' );
+	}
+
+	public function test_an_editor_still_sees_the_google_sheet_url(): void {
+		$sheet = 'https://docs.google.com/spreadsheets/d/SECRET_WORKBOOK_ID/edit#gid=0';
+		$this->seed( array( 'source_type' => 'gsheet', 'source_name' => 'Hoja viva', 'source_url' => $sheet ) );
+		$GLOBALS['vpress_test_caps'] = array( 'edit_posts' );
+
+		$this->assertStringContainsString( 'SECRET_WORKBOOK_ID', vpress_render_figure( 1 ) );
+	}
+
+	public function test_a_plain_url_source_keeps_its_link_for_visitors(): void {
+		$this->seed(
+			array(
+				'source_type' => 'url',
+				'source_name' => '',
+				'source_url'  => 'https://datos.gob.mx/presupuesto.csv',
+			)
+		);
+
+		// A CSV on an open endpoint is a citation, not a credential.
+		$this->assertStringContainsString( 'datos.gob.mx/presupuesto.csv', vpress_render_figure( 1 ) );
 	}
 
 	public function test_logged_in_viewers_get_an_authenticated_download_link(): void {

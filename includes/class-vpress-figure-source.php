@@ -76,12 +76,29 @@ function vpress_provenance_is_live( ?object $dataset ): bool {
 /**
  * The dataset's source URL when it is a usable http(s) link, else ''.
  *
+ * Withheld from visitors who cannot `edit_posts` when the source is a Google
+ * Sheet: a sheet shared as "anyone with the link" is protected by nothing but
+ * that link's secrecy, so the URL is the credential, not a citation. Every
+ * public reader of a source URL goes through here — the figure footer, the
+ * chart page's JSON-LD and export.json — so the rule lives at this one point
+ * rather than being repeated at each surface. `/dataset/get` and
+ * `/dataset/list` apply the same rule to their own rows in
+ * vpress_dataset_hide_private_fields().
+ *
+ * A plain `url` source keeps its link: a CSV on an open endpoint is a citation.
+ *
  * @param object|null $dataset Registry row.
  * @return string
  */
 function vpress_provenance_url( ?object $dataset ): string {
 	$url = vpress_provenance_field( $dataset, 'source_url' );
-	return preg_match( '#^https?://#i', $url ) ? $url : '';
+	if ( ! preg_match( '#^https?://#i', $url ) ) {
+		return '';
+	}
+	if ( 'gsheet' === vpress_provenance_field( $dataset, 'source_type' ) && ! current_user_can( 'edit_posts' ) ) {
+		return '';
+	}
+	return $url;
 }
 
 /**
