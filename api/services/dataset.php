@@ -217,6 +217,21 @@ function vpress_upload_dataset( $request ) {
 
 }
 
+/**
+ * Whether a caller without edit_posts may read dataset $id: it is public,
+ * or a public chart is built on it (its viewers need the dataset row).
+ */
+function vpress_anonymous_can_read_dataset( int $id, $permissions ): bool {
+  global $wpdb;
+  if ( 'public' === $permissions ) {
+    return true;
+  }
+  return '1' === (string) $wpdb->get_var( $wpdb->prepare(
+    "SELECT EXISTS (SELECT 1 FROM {$wpdb->prefix}vpresscore_charts WHERE dataset_id = %d AND permissions = 'public')",
+    $id
+  ) );
+}
+
 function vpress_get_dataset( $request ) {
   try {
     global $wpdb;
@@ -227,7 +242,7 @@ function vpress_get_dataset( $request ) {
     if ($wpdb->last_error) {
       throw new Exception($wpdb->last_error);
     }
-    if ( $data && 'public' !== $data->permissions && ! current_user_can( 'edit_posts' ) ) {
+    if ( $data && ! current_user_can( 'edit_posts' ) && ! vpress_anonymous_can_read_dataset( $id, $data->permissions ) ) {
       return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
     }
     $response = array(
@@ -467,7 +482,7 @@ function vpress_datasets_charts( $request ) {
     $visibility = '';
     if ( ! current_user_can( 'edit_posts' ) ) {
       $dataset = $wpdb->get_row( $wpdb->prepare( "SELECT permissions FROM {$wpdb->prefix}vpresscore_datasets WHERE id = %d", $id ) );
-      if ( $dataset && 'public' !== $dataset->permissions ) {
+      if ( $dataset && ! vpress_anonymous_can_read_dataset( $id, $dataset->permissions ) ) {
         return new WP_Error( 'vpress_forbidden', __( 'This dataset is private.', 'vpress' ), array( 'status' => 403 ) );
       }
       $visibility = " AND permissions = 'public'";

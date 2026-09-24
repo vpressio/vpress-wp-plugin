@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class VisibilityTest extends TestCase {
 
+	const CHART_LIST_SQL = '/^SELECT (COUNT\(\*\) AS total|\*) FROM wp_vpresscore_charts/';
+
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
@@ -17,6 +19,9 @@ final class VisibilityTest extends TestCase {
 		$this->wpdb->on( '/vpresscore_charts WHERE id = 7$/', (object) array( 'id' => '7', 'permissions' => 'private' ) );
 		$this->wpdb->on( '/vpresscore_datasets WHERE id = 2$/', (object) array( 'id' => '2', 'permissions' => 'public' ) );
 		$this->wpdb->on( '/vpresscore_datasets WHERE id = 9$/', (object) array( 'id' => '9', 'permissions' => 'private' ) );
+		$this->wpdb->on( '/vpresscore_datasets WHERE id = 10$/', (object) array( 'id' => '10', 'permissions' => 'private' ) );
+		$this->wpdb->on( "/^SELECT EXISTS \\(SELECT 1 FROM wp_vpresscore_charts WHERE dataset_id = 9 AND permissions = 'public'\\)$/", '0' );
+		$this->wpdb->on( "/^SELECT EXISTS \\(SELECT 1 FROM wp_vpresscore_charts WHERE dataset_id = 10 AND permissions = 'public'\\)$/", '1' );
 	}
 
 	protected function tearDown(): void {
@@ -111,7 +116,7 @@ final class VisibilityTest extends TestCase {
 
 	public function test_dataset_charts_forbids_a_private_dataset_and_hides_private_charts(): void {
 		$this->assertForbidden( vpress_datasets_charts( new FakeRestRequest( array( 'id' => '9' ) ) ) );
-		$this->assertSame( array(), $this->queries_matching( '/FROM wp_vpresscore_charts/' ) );
+		$this->assertSame( array(), $this->queries_matching( self::CHART_LIST_SQL ) );
 
 		vpress_datasets_charts( new FakeRestRequest( array( 'id' => '2' ) ) );
 		$this->assertSame(
@@ -119,7 +124,7 @@ final class VisibilityTest extends TestCase {
 				"SELECT COUNT(*) AS total FROM wp_vpresscore_charts WHERE dataset_id = 2 AND permissions = 'public'",
 				"SELECT * FROM wp_vpresscore_charts WHERE dataset_id = 2 AND permissions = 'public' ORDER BY updated DESC LIMIT 10",
 			),
-			$this->queries_matching( '/FROM wp_vpresscore_charts/' )
+			$this->queries_matching( self::CHART_LIST_SQL )
 		);
 	}
 
@@ -132,7 +137,30 @@ final class VisibilityTest extends TestCase {
 				'SELECT COUNT(*) AS total FROM wp_vpresscore_charts WHERE dataset_id = 9',
 				'SELECT * FROM wp_vpresscore_charts WHERE dataset_id = 9 ORDER BY updated DESC LIMIT 10',
 			),
-			$this->queries_matching( '/FROM wp_vpresscore_charts/' )
+			$this->queries_matching( self::CHART_LIST_SQL )
+		);
+	}
+
+	public function test_get_dataset_serves_a_private_dataset_behind_a_public_chart(): void {
+		$this->assertSame( '10', vpress_get_dataset( new FakeRestRequest( array( 'id' => '10' ) ) )['data']->id );
+		$this->assertContains( "SELECT EXISTS (SELECT 1 FROM wp_vpresscore_charts WHERE dataset_id = 10 AND permissions = 'public')", $this->wpdb->queries );
+	}
+
+	public function test_get_dataset_skips_the_chart_lookup_for_a_public_dataset(): void {
+		vpress_get_dataset( new FakeRestRequest( array( 'id' => '2' ) ) );
+
+		$this->assertSame( array(), $this->queries_matching( '/EXISTS/' ) );
+	}
+
+	public function test_dataset_charts_of_a_private_dataset_behind_a_public_chart_lists_public_charts(): void {
+		vpress_datasets_charts( new FakeRestRequest( array( 'id' => '10' ) ) );
+
+		$this->assertSame(
+			array(
+				"SELECT COUNT(*) AS total FROM wp_vpresscore_charts WHERE dataset_id = 10 AND permissions = 'public'",
+				"SELECT * FROM wp_vpresscore_charts WHERE dataset_id = 10 AND permissions = 'public' ORDER BY updated DESC LIMIT 10",
+			),
+			$this->queries_matching( self::CHART_LIST_SQL )
 		);
 	}
 }
