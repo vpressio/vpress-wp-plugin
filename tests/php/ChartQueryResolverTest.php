@@ -11,6 +11,7 @@ final class ChartQueryResolverTest extends TestCase {
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
+		vpress_guard_columns_reset();
 		$this->wpdb      = new FakeWpdb();
 		$GLOBALS['wpdb'] = $this->wpdb;
 		$this->wpdb->on( '/vpresscore_charts WHERE id = 1$/', (object) array( 'id' => '1', 'dataset_id' => '2', 'permissions' => 'public', 'value' => VpressFixtures::CHART_1_VALUE ) );

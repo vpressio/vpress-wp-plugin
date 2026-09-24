@@ -11,6 +11,10 @@ use PHPUnit\Framework\TestCase;
  */
 final class ChartSqlCharacterizationTest extends TestCase {
 
+	protected function setUp(): void {
+		vpress_guard_columns_reset();
+	}
+
 	protected function tearDown(): void {
 		$GLOBALS['vpress_test_caps'] = array();
 	}

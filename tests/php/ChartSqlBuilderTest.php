@@ -8,6 +8,7 @@ final class ChartSqlBuilderTest extends TestCase {
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
+		vpress_guard_columns_reset();
 		$this->wpdb = new FakeWpdb();
 	}
 

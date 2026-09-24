@@ -11,6 +11,7 @@ final class ChartColumnsTest extends TestCase {
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
+		vpress_guard_columns_reset();
 		$this->wpdb      = new FakeWpdb();
 		$GLOBALS['wpdb'] = $this->wpdb;
 		$this->wpdb->on( "/vpresscore_datasets WHERE slug = 'vpress_test_ventas' LIMIT 1/", array( array( '1' => '1' ) ) );

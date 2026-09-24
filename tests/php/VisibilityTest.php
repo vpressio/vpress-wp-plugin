@@ -13,6 +13,7 @@ final class VisibilityTest extends TestCase {
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
+		vpress_guard_columns_reset();
 		$this->wpdb      = new FakeWpdb();
 		$GLOBALS['wpdb'] = $this->wpdb;
 		$this->wpdb->on( '/vpresscore_charts WHERE id = 1$/', (object) array( 'id' => '1', 'permissions' => 'public' ) );

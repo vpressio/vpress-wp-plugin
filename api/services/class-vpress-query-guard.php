@@ -77,13 +77,29 @@ function vpress_guard_dataset_table( string $table ) {
 }
 
 /**
+ * The per-request SHOW COLUMNS cache, by reference.
+ */
+function &vpress_guard_columns_cache(): array {
+	static $cache = array();
+	return $cache;
+}
+
+/**
+ * Test-only: empties the SHOW COLUMNS cache so each test sees its own schema.
+ */
+function vpress_guard_columns_reset(): void {
+	$cache = &vpress_guard_columns_cache();
+	$cache = array();
+}
+
+/**
  * Real column names of a table (quoted or bare), cached for the request.
  *
  * @return string[]
  */
 function vpress_guard_columns( string $table ): array {
 	global $wpdb;
-	static $cache = array();
+	$cache = &vpress_guard_columns_cache();
 
 	$table = vpress_guard_unquote( $table );
 	if ( ! vpress_guard_identifier( $table ) ) {

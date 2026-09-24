@@ -7,6 +7,7 @@ final class QueryGuardTest extends TestCase {
 	private FakeWpdb $wpdb;
 
 	protected function setUp(): void {
+		vpress_guard_columns_reset();
 		$this->wpdb       = new FakeWpdb();
 		$GLOBALS['wpdb'] = $this->wpdb;
 		$this->wpdb->on( "/vpresscore_datasets WHERE slug = 'vpress_test_ventas' LIMIT 1/", array( array( '1' => '1' ) ) );
@@ -82,6 +83,19 @@ final class QueryGuardTest extends TestCase {
 		$this->assertSame( array( 'a', 'b' ), vpress_guard_columns( '`vpress_guard_cols_probe`' ) );
 		$this->assertSame( array( 'a', 'b' ), vpress_guard_columns( 'vpress_guard_cols_probe' ) );
 		$this->assertCount( 1, $this->wpdb->queries );
+	}
+
+	public function test_columns_cache_reset_forces_a_fresh_show_columns(): void {
+		$this->wpdb->on( '/^SHOW COLUMNS FROM `vpress_guard_cols_reset`$/', array( 'a' ) );
+		vpress_guard_columns( 'vpress_guard_cols_reset' );
+
+		vpress_guard_columns_reset();
+		$other           = new FakeWpdb();
+		$GLOBALS['wpdb'] = $other;
+		$other->on( '/^SHOW COLUMNS FROM `vpress_guard_cols_reset`$/', array( 'a', 'b' ) );
+
+		$this->assertSame( array( 'a', 'b' ), vpress_guard_columns( 'vpress_guard_cols_reset' ) );
+		$this->assertCount( 1, $other->queries );
 	}
 
 	public function test_columns_of_a_non_identifier_is_empty_without_querying(): void {
