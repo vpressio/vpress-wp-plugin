@@ -85,3 +85,13 @@ test('Tab from the figure focuses the first bar and shows its tooltip; Escape hi
   await expect(tip).toHaveCSS('opacity', '0');
   await expect(firstMark).toBeFocused();
 });
+
+test('a multi-series chart saved with labels off still shows direct value labels', async ({ page }) => {
+  // Chart #1 has three canal series and "labels": false.
+  const slot = await openChart(page);
+  const labels = slot.locator('svg .dbox-label');
+  await expect(labels.first()).toBeVisible();
+  // Each label carries its own value with a unit, e.g. "2,1 M" / "690 mil".
+  await expect(labels.first()).toHaveText(/\d.*\S/);
+  expect(await labels.evaluateAll((els) => els.filter((el) => window.getComputedStyle(el).display !== 'none').length)).toBe(24);
+});
