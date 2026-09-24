@@ -52,6 +52,7 @@ function activate_vpress() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-vpress-activator.php';
 	Vpress_Activator::create_tables();
 	Vpress_Activator::create_uploads_folder();
+	Vpress_Activator::flush_rewrite_rules();
 }
 
 /**

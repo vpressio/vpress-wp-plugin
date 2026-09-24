@@ -87,6 +87,17 @@ class Vpress_Activator {
 	}
 
 	/**
+	 * Register the plugin's rewrite rules and flush them once.
+	 *
+	 * @since    0.3.0
+	 */
+	public static function flush_rewrite_rules() {
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-vpress-public.php';
+		Vpress_Public::add_chart_rule();
+		flush_rewrite_rules();
+	}
+
+	/**
 	 * Short Description. (use period)
 	 *
 	 * Long Description.

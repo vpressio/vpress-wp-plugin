@@ -80,13 +80,21 @@ class Vpress_Public {
     return $vars;
 	}
 
-	public function add_chart_rule () {
+	/**
+	 * Register the /chart/{id} rewrite rule.
+	 *
+	 * Runs on every `init`. Static so the activator can register the rule
+	 * before flushing; the flush itself happens only on activation and
+	 * deactivation, never per request.
+	 *
+	 * @since    0.1.0
+	 */
+	public static function add_chart_rule() {
 		add_rewrite_rule(
 			'chart/(\d+)/?$',
 			'index.php?chart=$matches[1]',
 			'top'
 		);
-		flush_rewrite_rules();
 	}
 	
 	public function add_style_attributes($html, $handle) {

@@ -30,7 +30,13 @@ class Vpress_Deactivator {
 	 * @since    0.1.0
 	 */
 	public static function deactivate() {
-
+		global $wp_rewrite;
+		// The rule was already registered on this request's `init`; forget it
+		// first so the flush stores the rules without /chart/{id}.
+		if ( isset( $wp_rewrite->extra_rules_top['chart/(\d+)/?$'] ) ) {
+			unset( $wp_rewrite->extra_rules_top['chart/(\d+)/?$'] );
+		}
+		flush_rewrite_rules();
 	}
 
 }
