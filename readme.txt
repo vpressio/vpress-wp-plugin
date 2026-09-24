@@ -1,114 +1,107 @@
 === Vpress ===
-Contributors: @alecsgarza @jaimemalvaez @medinagarciajose @yaelibarra 
-Tags: data, chart, visualization, database, dataset, gráfica, datos
-Requires at least: 5.1
-Tested up to: 5.6
-Requires PHP: 7.2
-Stable tag: trunk
+Contributors: alecsgarza
+Tags: charts, data visualization, datasets, maps, storytelling
+Requires at least: 6.5
+Tested up to: 7.1
+Requires PHP: 8.1
+Stable tag: 0.3.0
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
- 
-Transforma tus datos en impacto ¡Publica y cuenta tu historia! Recolecta, analiza y visualiza tus datos
- 
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Turn data into stories: import datasets, build interactive charts and maps, and publish them anywhere on your WordPress site.
+
 == Description ==
- 
-Transforma tus datos en impacto ¡Publica y cuenta tu historia! Recolecta, analiza y visualiza tus datos
- 
-### ¿Cómo funciona?
 
+Vpress is a data-visualization studio that lives inside your WordPress admin. Upload a spreadsheet, drag the columns you care about into a chart, give it your own look, and publish it on any post or page. No coding, no external dashboard, no separate account.
 
-#### Selecciona o sube tus bases de datos
+**How it works — four steps**
 
-  Importa tus datos en diversos formatos (csv, google sheets, dropbox, etc) y combínalos con datos públicos ( Inegi, WorldBank, UN, etc).
+1. **Import** — upload a CSV file. Vpress stores it as a dataset in your own WordPress database.
+2. **Chart** — pick a chart type and drag and drop the columns you want to visualize.
+3. **Style** — adjust titles, axes, color palettes, fonts and proportions so the chart matches your brand.
+4. **Publish** — embed the chart with a shortcode, or share its public chart page.
 
-    * Datos públicos - Tienes cientos de datos públicos a elegir.
-    * Análisis exploratorio de datos ( E.D.A. ) - Explora, analiza y visualiza tus datos.
-    * Datos abiertos - Comparte tus datos mediante tu propia API.
- 
-#### Crea tu gráfica
+**Features**
 
-  Selecciona qué es lo que quieres mostrar ( comparaciones, proporciones, relaciones, distribuciones, etc)
+* Chunked CSV import of files up to 20 MB that works on any host, with zero server configuration: no php.ini changes, no `LOAD DATA LOCAL INFILE`, no WP-Cron. A progress dialog shows rows imported as it goes.
+* Automatic encoding detection, so spreadsheets exported from Excel on Windows keep their accents.
+* Chart types: bars, stacked bars, scatter, heatmap, timeline and maps.
+* Drag-and-drop chart editor with a live preview.
+* Styles panel for titles, axes, colors and proportions.
+* Shortcode embedding: `[vpress id="123"]` places chart 123 in any post, page or widget.
+* A public page for every chart at `/chart/{id}`, ready to share.
+* Your data stays in your own database. Vpress has no accounts, no telemetry and never sends your datasets to a third party.
 
-  * Datos - Arrastra y suelta los datos que quieres visualizar
-  * Gráfica - Visualiza tus datos en barras, mapas de calor, dispersión, líneas de tiempo, etc.\
-  * Estilos - Dale tu identidad ajustando la gama de colores, tipografías, tamaños, etc.
+**External services**
 
-#### Modifica el aspecto de la gráfica o mapa
+Vpress does not send your data anywhere. To draw some screens, the browser of the person viewing a chart loads these third-party resources:
 
-  Personaliza todos los estilos de tu gráfica, desde títulos, fuentes, colores y proporciones
+* Map charts load base-map tiles from the OpenStreetMap tile servers (openstreetmap.fr). Only tile coordinates are requested; your dataset is never sent. Terms: https://operations.osmfoundation.org/policies/tiles/ — Privacy: https://osmfoundation.org/wiki/Privacy_Policy
+* The Vpress admin screen and public chart pages load the Roboto font from Google Fonts. Terms: https://policies.google.com/terms — Privacy: https://policies.google.com/privacy
 
-  * Títulos y Ejes - Contextualiza los datos en tu gráfica
-  * Colores - Seleccionar los colores más adecuada de una gama de colores predefinidas
-  * Proporciones - Cambia la proporción de tu visualización
-
-#### Guárdala o publícala
-
-  Guarda tu gráfica y decide publicarla
-
-    * Comparte en tus redes sociales
-    * Publícala en tu blog de Wordpress
-    * Descargala como imagen en formato PNG
-
- 
 == Installation ==
 
-Antes de hacer la instalación es necesario configurar el servidor para que sea compatible con alguna de las funcionalidades de Vpress en php.ini.
+1. In your WordPress admin go to **Plugins → Add New**, search for "Vpress", then click **Install Now** and **Activate**.
+2. Or upload the `vpress` folder to `/wp-content/plugins/` and activate it from the **Plugins** screen.
+3. Make sure **Settings → Permalinks** is set to anything other than "Plain", so public chart pages at `/chart/{id}` resolve.
+4. Open the **Vpress** menu in your admin and import your first dataset.
 
-### PHP requirements
+No php.ini changes are required.
 
-Recommended options
-```
-max_execution_time = 600
-upload_max_filesize = 128M
-post_max_size = 128M
-```
-
-Required options
-```
-mysqli.allow_local_infile = On
-allow_url_fopen = 1
-allow_url_include = 1
-```
-
-El plugin puede ser instalado directamente en tu página de wordpress.
-
-  1. Inicia sesión, dirígete al menú de "Plugins" en tu administrador de wordpress para añadir uno nuevo
-  
-  1. Escribe "Vpress" en la barr de buscada.
-
-  1. Instala Vpress directamente del listado de resultados.
-
-  1. Procura mantener activada la opción de "Configuración" > "Enlaces permanentes" o "Permalinks" > "Post name"
-
-  1. Ingresa al menu de Vpress en el administrador de wordpress y estará todo listo para empezar a usar Vpress.
- 
-O bien, instalado manualmente
- 
-  1. Sube el plugin de Vpress hacia el directorio: `/wp-content/plugins/`
-
-  1. Activa el plugin a través del menú de 'Plugins' en WordPress
-
-  1. Ingresa al menu de Vpress en el administrador de wordpress y estará todo listo para empezar a usar Vpress.
- 
 == Frequently Asked Questions ==
- 
-= A question that someone might have =
- 
-An answer to that question.
- 
-= What about foo bar? =
- 
-Answer to foo bar dilemma.
- 
+
+= How large a CSV can I import, and do I still need LOAD DATA LOCAL INFILE? =
+
+Files up to 20 MB import on any host. Vpress uploads the file in small chunks and parses it on the server in short steps driven by your browser, so it never hits upload-size or execution-time limits. Earlier versions relied on MySQL's `LOAD DATA LOCAL INFILE`, which most shared hosts disable; that is no longer needed and no server configuration is required.
+
+= Where does my data live? =
+
+In your own WordPress database. Each dataset becomes its own table (prefixed `vpress_`), and Vpress keeps its registry of datasets, charts and imports in three tables prefixed `vpresscore_`. Nothing is copied to an external server.
+
+= Does Vpress call external services? =
+
+Not with your data. Vpress has no accounts, no telemetry and no remote API. The only third-party requests are display resources loaded by the viewer's browser: map tiles from OpenStreetMap for map charts, and the Roboto font from Google Fonts. See "External services" in the description.
+
+= How do I embed a chart? =
+
+Copy the chart's ID from the Vpress chart list and add the shortcode `[vpress id="123"]` (with your chart's ID) to any post, page or widget. Every chart also has a public page at `/chart/123`.
+
+= How do I erase all Vpress data when I uninstall? =
+
+By default, deleting the plugin keeps your datasets and charts so a reinstall picks up where you left off. To erase everything on uninstall, set the option `vpress_erase_data_on_uninstall` to true before deleting the plugin (for example with WP-CLI: `wp option update vpress_erase_data_on_uninstall 1`), or return true from the `vpress_erase_data_on_uninstall` filter. Vpress then drops every dataset table, its `vpresscore_` tables, and its options and transients.
+
+== Screenshots ==
+
+1. Dataset list — every dataset you have imported.
+2. Import progress dialog — a chunked CSV import reporting rows as it runs.
+3. Chart editor — drag and drop columns onto the chart.
+4. Styles panel — titles, axes, colors and proportions.
+5. Public chart page — a published chart at /chart/{id}.
+6. Shortcode in a post — a chart embedded with [vpress id="123"].
+
 == Changelog ==
- 
+
+= 0.3.0 =
+* Chunked CSV import (up to 20 MB, no server configuration), encoding detection, and WordPress.org readiness: English readme, opt-in data erasure on uninstall, rewrite rules flushed only on activation and deactivation, and Leaflet styles bundled locally. Full details in CHANGELOG.md.
+
+= 0.2.0 =
+* Admin app migrated to Vue 3, Vuetify 3 and Vite.
+
 = 0.1.0 =
-* Vpress beta release
-* Listado de gráficas guardadas.
-* Listado de datasets creados.
-* Módulo de carga de datos.
-* Editor de gráficas.
+* Beta release: dataset import, chart editor, saved charts and datasets lists.
 
+== Upgrade Notice ==
 
+= 0.3.0 =
+Large CSV files now import on any host without php.ini changes. Requires WordPress 6.5 and PHP 8.1.
 
- 
+== Descripción (Español) ==
+
+Transforma tus datos en impacto: ¡publica y cuenta tu historia! Vpress te permite recolectar, analizar y visualizar tus datos desde el administrador de WordPress.
+
+1. **Sube tus datos** — importa archivos CSV; se guardan como datasets en tu propia base de datos.
+2. **Crea tu gráfica** — elige qué mostrar (comparaciones, proporciones, relaciones, distribuciones) y arrastra y suelta las columnas: barras, dispersión, mapas de calor, líneas de tiempo y mapas.
+3. **Dale estilo** — ajusta títulos, ejes, colores, tipografías y proporciones para darle tu identidad.
+4. **Publícala** — insértala en tu blog con el shortcode `[vpress id="123"]` o comparte su página pública `/chart/{id}`.
+
+Tus datos nunca salen de tu base de datos.
