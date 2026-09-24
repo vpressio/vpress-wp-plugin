@@ -172,6 +172,11 @@ function vpress_render_figure( int $chart_id, array $args = array() ): string {
 	// when the block hides the caption. It precedes the <figcaption>, which
 	// stays the figure's last child when present.
 	$html .= $table;
+	// Provenance (includes/class-vpress-figure-source.php): only when the
+	// dataset names a source; like the table, it survives a hidden caption.
+	if ( function_exists( 'vpress_figure_source_footer' ) ) {
+		$html .= vpress_figure_source_footer( $chart, vpress_figure_dataset( $chart ) );
+	}
 	if ( $show_caption ) {
 		$html .= '<figcaption class="vpress-figure__caption">';
 		$html .= '<span class="vpress-figure__title">' . esc_html( $title ) . '</span>';
