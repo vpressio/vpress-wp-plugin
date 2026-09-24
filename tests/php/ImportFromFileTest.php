@@ -126,6 +126,57 @@ final class ImportFromFileTest extends TestCase {
 		$this->assertFileDoesNotExist( $path );
 	}
 
+	public function test_the_rest_tick_stops_at_the_slice_and_the_next_tick_resumes_from_its_offset(): void {
+		$csv     = "estado,ventas\nNL,10\nJal,20\nCDMX,30\n";
+		$path    = vpress_test_csv( $csv );
+		$size    = filesize( $path );
+		$after_1 = strlen( "estado,ventas\nNL,10\n" );
+		$session = (object) array(
+			'id'            => '4',
+			'status'        => 'importing',
+			'columns_json'  => '["estado","ventas"]',
+			'tmp_path'      => $path,
+			'byte_offset'   => (string) strlen( "estado,ventas\n" ),
+			'encoding'      => 'UTF-8',
+			'rows_inserted' => '0',
+			'total_bytes'   => (string) $size,
+			'table_name'    => 'vpress_ventas',
+		);
+		$this->wpdb->on( "/^SHOW TABLES LIKE 'wp_vpresscore_imports'$/", 'wp_vpresscore_imports' );
+		$this->wpdb->on( '/FROM wp_vpresscore_imports WHERE id = 4$/', $session );
+		$this->wpdb->on( '/^INSERT INTO `vpress_ventas`/', 1 );
+
+		// Tick 1: one row per tick.
+		$GLOBALS['vpress_test_filters']['vpress_import_rows_per_tick'] = function () {
+			return 1;
+		};
+		$first = vpress_import_tick( new FakeRestRequest( array( 'session_id' => 4 ) ) );
+
+		$this->assertSame( 'importing', $first['status'] );
+		$this->assertSame( $after_1, $first['bytes_done'] );
+		$this->assertSame( array( 'update', 'wp_vpresscore_imports', array( 'byte_offset' => $after_1, 'rows_inserted' => 1 ), array( 'id' => '4' ) ), end( $this->wpdb->writes ) );
+		$this->assertFileExists( $path );
+
+		// Persist what tick 1 wrote, as the sessions table would; tick 2 gets a slice big enough to finish.
+		$session->byte_offset   = (string) $first['bytes_done'];
+		$session->rows_inserted = (string) $first['rows_inserted'];
+		$GLOBALS['vpress_test_filters']['vpress_import_rows_per_tick'] = function () {
+			return 5000;
+		};
+		$second = vpress_import_tick( new FakeRestRequest( array( 'session_id' => 4 ) ) );
+
+		$this->assertSame( 'done', $second['status'] );
+		$this->assertSame( $size, $second['bytes_done'] );
+		$this->assertSame(
+			array(
+				"INSERT INTO `vpress_ventas` (`estado`, `ventas`) VALUES ('NL', '10')",
+				"INSERT INTO `vpress_ventas` (`estado`, `ventas`) VALUES ('Jal', '20'), ('CDMX', '30')",
+			),
+			$this->inserts()
+		);
+		$this->assertFileDoesNotExist( $path );
+	}
+
 	private function live_table_exists(): void {
 		$this->wpdb->on( "/^SHOW TABLES LIKE 'vpress_live'$/", 'vpress_live' );
 	}
