@@ -18,11 +18,9 @@
           v-show="iframe"
           class="progress--layer"
         >
-          <v-progress-circular
-            :size="70"
-            :width="7"
-            color="primary"
-            indeterminate
+          <div
+            class="vpress-spinner"
+            aria-hidden="true"
           />
         </div>
       </div>
@@ -32,6 +30,7 @@
 <script>
 import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
+import { isLeafletReady, loadLeaflet } from '../utils/lazyLeaflet.js';
 import {
   timeFormatLocale,
   select,
@@ -234,6 +233,13 @@ export default {
   },
   methods: {
     vizInitValidator() {
+      // Maps need leaflet, which is loaded on demand: draw once it arrives.
+      if (this.chartConfig && this.chartConfig.chart === 'map' && !isLeafletReady()) {
+        loadLeaflet()
+          .then(() => this.vizInitValidator())
+          .catch((error) => console.error('[vpress] leaflet failed to load', error));
+        return;
+      }
       if (
         this.data &&
         this.data.length > 0 &&
@@ -1230,6 +1236,23 @@ export default {
 }
 </style>
 <style>
+/* Loading spinner (plain CSS: shared by the admin editor and the public embed). */
+.vpress-spinner {
+  width: 56px;
+  height: 56px;
+  border: 6px solid rgba(127, 127, 127, 0.25);
+  /* Vuetify primary in the editor; its default blue in the public embed. */
+  border-top-color: rgb(var(--v-theme-primary, 25, 118, 210));
+  border-radius: 50%;
+  animation: vpress-spin 0.9s linear infinite;
+}
+@keyframes vpress-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vpress-spinner { animation-duration: 2.4s; }
+}
+
 .empty-chart {
   width: 100%;
   height: calc(100% - 54px );

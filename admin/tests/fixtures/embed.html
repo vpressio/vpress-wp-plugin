@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vpress embed fixture</title>
+<!--
+  Manual check for the public embed bundle, outside WordPress.
+  1. yarn build            (from admin/)
+  2. npx --yes http-server admin -p 5188 -c-1 --cors   (from the plugin root)
+  3. open http://localhost:5188/tests/fixtures/embed.html
+  Chart data comes from the local WordPress REST API on :8888.
+-->
+<link rel="stylesheet" href="/dist/css/embed.css">
+<style>
+  body { max-width: 860px; margin: 24px auto; padding: 0 16px; font: 16px/1.5 Georgia, serif; color: #222; }
+</style>
+</head>
+<body>
+<p>Texto de un artículo antes de la gráfica.</p>
+<figure class="vpress-figure vpress-figure--bars vpress-figure--light" id="vpress-figure-1" data-vpress-chart="1" data-vpress-rest="http://localhost:8888/wp-json/vpress/v1/"><div class="vpress-figure__chart" role="img" aria-label="Gráfica 1" aria-busy="true"></div><figcaption class="vpress-figure__caption"><span class="vpress-figure__title"></span></figcaption></figure>
+<p>Texto después de la gráfica.</p>
+<script type="module" src="/dist/js/embed.js"></script>
+</body>
+</html>
