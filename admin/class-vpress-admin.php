@@ -204,9 +204,9 @@ class Vpress_Admin {
 		}
 		wp_enqueue_style(
 			$this->plugin_name . '_leaflet',
-			"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+			plugins_url( 'assets/vendor/leaflet/leaflet.css', VPRESS_PLUGIN_FILE ),
 			array(),
-			null
+			'1.6.0'
 		);
 		wp_enqueue_style(
 			$this->plugin_name . '_roboto-font',

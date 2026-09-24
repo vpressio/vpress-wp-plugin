@@ -97,23 +97,6 @@ class Vpress_Public {
 		);
 	}
 	
-	public function add_style_attributes($html, $handle) {
-		$tag = $html;
-		switch ($handle) {
-			case 'vpress_leaflet':
-				$tag = str_replace(
-					'/>',
-					'integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>',
-					$tag
-				);
-				break;
-			default:
-				$tag = $html;
-				break;
-		}
-		return $tag;
-	}
-
 	/**
 	 * Load the Vite bundle (and dev-server client) as ES modules.
 	 *
@@ -212,9 +195,9 @@ class Vpress_Public {
 			);
 			wp_enqueue_style(
 				$this->plugin_name . '_leaflet',
-				"https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
+				plugins_url( 'assets/vendor/leaflet/leaflet.css', VPRESS_PLUGIN_FILE ),
 				array(),
-				null
+				'1.6.0'
 			);
 			wp_enqueue_style(
 				$this->plugin_name . '_roboto-font',
