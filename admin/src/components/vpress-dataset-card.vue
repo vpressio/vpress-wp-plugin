@@ -138,8 +138,13 @@
               </v-chip>
             </v-chip-group>
           </div>
-          <div v-if="!readonly">
-            <span class="link add-text-toggle" data-test="source-open" @click.stop="openSourceDialog">
+          <div v-if="!readonly || sourcePreview">
+            <span
+              v-if="!readonly"
+              class="link add-text-toggle"
+              data-test="source-open"
+              @click.stop="openSourceDialog"
+            >
               {{ sourcePreview ? 'Editar fuente...' : 'Agregar fuente...' }}
             </span>
             <div v-if="sourcePreview" class="dataset-label source-preview" data-test="source-preview">
@@ -300,7 +305,8 @@
                 />
               </v-col>
               <v-col cols="12">
-                <div class="dataset-label" data-test="source-dialog-preview">
+                <div class="dataset-label">Así aparecerá bajo la gráfica:</div>
+                <div class="source-rendered" data-test="source-dialog-preview">
                   {{ sourceDialogPreview || 'Agrega un nombre o una URL para mostrar la fuente bajo la gráfica.' }}
                 </div>
               </v-col>
@@ -519,17 +525,8 @@ export default {
           name: this.editedDataset.name,
           description: this.editedDataset.description,
           tag: this.editedDataset.tag.join(', '),
-          permissions: this.editedDataset.permissions,
-          source_name: this.provenance.source_name,
-          license: this.provenance.license,
-          retrieved_at: this.provenance.retrieved_at,
-          source_notes: this.provenance.source_notes
+          permissions: this.editedDataset.permissions
         };
-        // A live source's URL is the refresh URL, owned by "Desde URL"; the
-        // server ignores it here, and we do not even send it.
-        if (!this.isLiveSource) {
-          body.source_url = this.provenance.source_url;
-        }
         const response = await api.dataset.update(body);
         if (response.data.error) {
           throw new Error(response.data.error);
@@ -548,11 +545,45 @@ export default {
       this.editedSource = { ...this.provenance };
       this.dialogSource = true;
     },
+    /**
+     * Saves ONLY the provenance fields. /dataset/update writes just what it is
+     * sent, so the title, description and tags are left exactly as they are -
+     * including anything the editor is part-way through typing.
+     */
     async saveSource() {
       if (this.dateError) return;
-      this.provenance = { ...this.editedSource };
+      const source = { ...this.editedSource };
+      const body = {
+        id: parseInt(this.dataset.id),
+        source_name: source.source_name,
+        license: source.license,
+        retrieved_at: source.retrieved_at,
+        source_notes: source.source_notes
+      };
+      // A live source's URL is the refresh URL, owned by "Desde URL".
+      if (!this.isLiveSource) {
+        body.source_url = source.source_url;
+      }
       this.dialogSource = false;
-      await this.save();
+      this.loading = true;
+      try {
+        const response = await api.dataset.update(body);
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        this.provenance = source;
+        this.notificationsStore.open({
+          color: 'success',
+          text: 'Fuente actualizada con éxito'
+        });
+      } catch (error) {
+        this.notificationsStore.open({
+          color: 'error',
+          text: restErrorMessage(error, 'No se pudo guardar la fuente')
+        });
+      } finally {
+        this.loading = false;
+      }
     },
     async refreshNow() {
       if (this.refreshing) return;
@@ -649,6 +680,14 @@ export default {
 }
 .source-preview {
   margin-top: 2px;
+}
+/* The preview is the page's own (English) source line, so it is set apart
+   from the Spanish UI around it rather than blended into it. */
+.source-rendered {
+  margin-top: 2px;
+  padding: 6px 8px;
+  border-left: 2px solid rgba(127, 127, 127, 0.4);
+  font-size: 0.8rem;
 }
 .permissions-label {
   font-size: 0.8rem;

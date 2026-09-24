@@ -418,11 +418,12 @@ function vpress_provenance_date( $value ) {
 /**
  * The provenance columns /dataset/update may write, sanitised.
  *
- * Only fields the client sent are returned, so an older client (or the
- * card's inline name/description edits) never clears them; an empty string
- * clears a field (stored as NULL). `source_url` is accepted only for
- * uploaded datasets: for live sources it is the refresh URL, which only
- * /dataset/from-url sets (after normalising it).
+ * Only fields the client sent are returned, so a caller that knows nothing
+ * about provenance — the dataset card's inline title/description/tag edit
+ * sends only those — never clears it; an empty string clears a field (stored
+ * as NULL). `source_url` is accepted only for uploaded datasets: for live
+ * sources it is the refresh URL, which only /dataset/from-url sets (after
+ * normalising it).
  *
  * @param object $request REST request.
  * @param int    $id      Dataset id.
@@ -474,45 +475,41 @@ function vpress_update_dataset( $request ) {
     $table_name = $wpdb->prefix.'vpresscore_datasets';
 
     $id = (int)$request->get_param('id');
-    $permissions = $request->get_param('permissions');
-    $name = $request->get_param('name');
-    $description = $request->get_param('description');
-    $tag = $request->get_param('tag');
-    $source = $request->get_param('source');
-    $owner_id = (int)$request->get_param('owner_id');
+
+    // Only what the caller actually sent is written. A partial payload used to
+    // clear every column it omitted, so the Fuente dialog could not save the
+    // source without also re-writing (and so flushing, or reverting) the
+    // title, description and tags the editor might be part-way through.
+    $fields = array();
+    foreach ( array( 'permissions', 'name', 'description', 'tag', 'source' ) as $key ) {
+      $value = $request->get_param( $key );
+      if ( null !== $value ) {
+        $fields[ $key ] = (string) $value;
+      }
+    }
+    $owner_id = $request->get_param( 'owner_id' );
+    if ( null !== $owner_id ) {
+      $fields['owner_id'] = (int) $owner_id;
+    }
 
     $provenance = vpress_dataset_provenance_input( $request, $id );
     if ( is_wp_error( $provenance ) ) {
       return $provenance;
     }
+    $fields = array_merge( $fields, $provenance );
 
-    $data = $wpdb->update( 
-      $table_name, 
-      array_merge(
-        array( 
-          'permissions' => $permissions,
-          'name' => $name,
-          'description' => $description,
-          'tag' => $tag,
-          'source' => $source,
-          'owner_id' => $owner_id
-        ),
-        $provenance
-      ), 
-      array( 'id' => $id ),
-      array_merge(
-        array( 
-          '%s',
-          '%s',
-          '%s',
-          '%s',
-          '%s',
-          '%d',
-        ),
-        array_fill( 0, count( $provenance ), '%s' )
-      ), 
-      array( '%d' )
-    );
+    if ( ! $fields ) {
+      return array( 'data' => 0, 'query' => null );
+    }
+
+    // Formats are derived from the keys, so adding a column can never shift
+    // a positional list out of alignment with its values.
+    $formats = array();
+    foreach ( array_keys( $fields ) as $column ) {
+      $formats[] = 'owner_id' === $column ? '%d' : '%s';
+    }
+
+    $data = $wpdb->update( $table_name, $fields, array( 'id' => $id ), $formats, array( '%d' ) );
     if($wpdb->last_error){
       throw new Exception($wpdb->last_error);
     }

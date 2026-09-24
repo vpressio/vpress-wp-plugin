@@ -93,10 +93,16 @@ export function isProvenanceDate(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
 }
 
-/** "1 de septiembre de 2026" for a YYYY-MM-DD date, in UTC so the day never shifts. */
+/**
+ * "September 1, 2026" for a YYYY-MM-DD date, in UTC so the day never shifts.
+ *
+ * English, and WordPress's default `date_format` (F j, Y), because this feeds
+ * the preview of a line the PAGE renders from English msgids through
+ * wp_date( get_option( 'date_format' ) ) — see provenanceLine().
+ */
 export function provenanceDateLabel(value) {
   if (!isProvenanceDate(value) || !String(value || '').trim()) return '';
-  return new Intl.DateTimeFormat('es', {
+  return new Intl.DateTimeFormat('en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -104,11 +110,23 @@ export function provenanceDateLabel(value) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
+/** The YYYY-MM-DD day of a UTC MySQL datetime ('YYYY-MM-DD HH:MM:SS'). */
+function mysqlDay(mysqlUtc) {
+  return String(mysqlUtc || '').slice(0, 10);
+}
+
 /**
  * The source line as the figure will print it, for the editor's preview.
+ *
  * Mirrors vpress_figure_source_footer(): nothing without a name or URL, the
- * host standing in for a missing name, and the live-source refresh date
+ * host standing in for a missing name, and a live source's last refresh
  * winning over the editor's own date.
+ *
+ * DELIBERATELY ENGLISH, unlike the rest of this admin. The figure prints
+ * these words from English msgids, and the plugin ships no translation, so a
+ * Spanish preview would promise text the page does not print. The msgids stay
+ * English (correct for i18n); if a translation is ever shipped, this preview
+ * has to follow it rather than the other way round.
  */
 export function provenanceLine(fields = {}) {
   const url = String(fields.source_url || '').trim();
@@ -120,17 +138,20 @@ export function provenanceLine(fields = {}) {
   }
   if (!name) return '';
 
-  const parts = [`Fuente: ${name}`];
+  const parts = [`Source: ${name}`];
   const license = String(fields.license || '').trim();
   if (license) parts.push(license);
 
+  // The figure dates live sources by their last successful refresh, and
+  // formats both with the site's date_format - never as relative time.
   const live = fields.source_type && fields.source_type !== 'upload';
-  const date = live && fields.last_refreshed_at
-    ? relativeTime(fields.last_refreshed_at)
-    : provenanceDateLabel(fields.retrieved_at);
-  if (date) parts.push(live && fields.last_refreshed_at ? `Datos ${date}` : `Datos al ${date}`);
+  const date =
+    live && fields.last_refreshed_at
+      ? provenanceDateLabel(mysqlDay(fields.last_refreshed_at))
+      : provenanceDateLabel(fields.retrieved_at);
+  if (date) parts.push(`Data as of ${date}`);
 
-  parts.push('Descargar datos (JSON)');
+  parts.push('Download data (JSON)');
   return parts.join(' · ');
 }
 

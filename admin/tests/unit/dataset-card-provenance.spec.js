@@ -44,7 +44,7 @@ function dialogField(selector) {
 
 const mounted = [];
 
-function card(fields = {}) {
+function card(fields = {}, props = {}) {
   const pinia = createPinia();
   setActivePinia(pinia);
   const dataset = {
@@ -68,7 +68,7 @@ function card(fields = {}) {
     ...fields
   };
   const wrapper = mount(VpressDatasetCard, {
-    props: { dataset },
+    props: { dataset, ...props },
     global: { plugins: [pinia, createVuetify({ components, directives })] },
     attachTo: document.body
   });
@@ -102,12 +102,25 @@ describe('dataset card provenance', () => {
     expect(isProvenanceDate('01/09/2026')).toBe(false);
   });
 
+  // The page renders these msgids untranslated, so the preview must be
+  // English too: PHP's ProvenanceFigureTest asserts the very same line.
   it('builds the source line the figure will print, falling back to the host', () => {
     expect(provenanceLine({})).toBe('');
     expect(
       provenanceLine({ source_name: 'INEGI', license: 'CC-BY-4.0', retrieved_at: '2026-09-01' })
-    ).toBe('Fuente: INEGI · CC-BY-4.0 · Datos al 1 de septiembre de 2026 · Descargar datos (JSON)');
-    expect(provenanceLine({ source_url: 'https://datos.gob.mx/x.csv' })).toContain('Fuente: datos.gob.mx');
+    ).toBe('Source: INEGI · CC-BY-4.0 · Data as of September 1, 2026 · Download data (JSON)');
+    expect(provenanceLine({ source_url: 'https://datos.gob.mx/x.csv' })).toContain('Source: datos.gob.mx');
+  });
+
+  it('dates a live source by its last refresh, as the figure does', () => {
+    expect(
+      provenanceLine({
+        source_name: 'Hoja viva',
+        source_type: 'gsheet',
+        last_refreshed_at: '2026-09-23 23:30:00',
+        retrieved_at: '2026-01-01'
+      })
+    ).toBe('Source: Hoja viva · Data as of September 23, 2026 · Download data (JSON)');
   });
 
   it('offers the licence suggestions in the combobox', () => {
@@ -138,7 +151,7 @@ describe('dataset card provenance', () => {
       retrieved_at: '2026-09-01',
       source_notes: 'Cifras preliminares'
     });
-    expect(w.find('[data-test="source-preview"]').text()).toContain('Fuente: INEGI');
+    expect(w.find('[data-test="source-preview"]').text()).toContain('Source: INEGI');
   });
 
   it('carries what the editor typed into the dialog fields', async () => {
@@ -153,21 +166,44 @@ describe('dataset card provenance', () => {
     await flushPromises();
 
     expect(dialogField('[data-test="source-dialog-preview"]').text()).toBe(
-      'Fuente: Secretaría de Hacienda · ODbL-1.0 · Datos al 1 de septiembre de 2026 · Descargar datos (JSON)'
+      'Source: Secretaría de Hacienda · ODbL-1.0 · Data as of September 1, 2026 · Download data (JSON)'
     );
 
     await dialogField('[data-test="source-save"]').trigger('click');
     await flushPromises();
 
-    expect(api.dataset.update.mock.calls[0][0]).toMatchObject({
+    expect(api.dataset.update.mock.calls[0][0]).toEqual({
       id: 5,
-      name: 'Ventas',
       source_name: 'Secretaría de Hacienda',
       source_url: 'https://datos.gob.mx/p.csv',
       license: 'ODbL-1.0',
       retrieved_at: '2026-09-01',
       source_notes: 'Cifras preliminares'
     });
+  });
+
+  it('saves the source without flushing a half-typed title', async () => {
+    const w = card();
+    // The editor is part-way through renaming the dataset.
+    w.vm.editedDataset.name = 'Ventas (borrador a medio escribir)';
+
+    await openDialog(w);
+    await dialogField('[data-test="source-name"] input').setValue('INEGI');
+    await dialogField('[data-test="source-save"]').trigger('click');
+    await flushPromises();
+
+    const body = api.dataset.update.mock.calls[0][0];
+    expect(body).not.toHaveProperty('name');
+    expect(body).not.toHaveProperty('description');
+    expect(body).not.toHaveProperty('tag');
+    expect(body).not.toHaveProperty('permissions');
+    expect(body.source_name).toBe('INEGI');
+  });
+
+  it('shows the source line to a read-only viewer, without the edit toggle', () => {
+    const w = card({ source_name: 'INEGI', license: 'CC0-1.0' }, { readonly: true });
+    expect(w.find('[data-test="source-preview"]').text()).toContain('Source: INEGI');
+    expect(w.find('[data-test="source-open"]').exists()).toBe(false);
   });
 
   it('shows a live source URL but does not let it be edited here', async () => {

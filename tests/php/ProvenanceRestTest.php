@@ -98,6 +98,39 @@ final class ProvenanceRestTest extends TestCase {
 		$this->assertSame( 'INEGI', $data['source_name'] );
 	}
 
+	public function test_a_provenance_only_payload_leaves_the_other_columns_alone(): void {
+		$result = vpress_update_dataset( new FakeRestRequest( array( 'id' => '3', 'source_name' => 'INEGI' ) ) );
+
+		$this->assertNotInstanceOf( WP_Error::class, $result );
+		$data = $this->written();
+		$this->assertSame( array( 'source_name' ), array_keys( $data ), 'the title, description, tags and owner are untouched' );
+	}
+
+	public function test_a_title_only_payload_does_not_clear_the_provenance(): void {
+		vpress_update_dataset( new FakeRestRequest( array( 'id' => '3', 'name' => 'Presupuesto' ) ) );
+
+		$this->assertSame( array( 'name' ), array_keys( $this->written() ) );
+	}
+
+	public function test_a_payload_with_nothing_to_write_writes_nothing(): void {
+		$result = vpress_update_dataset( new FakeRestRequest( array( 'id' => '3' ) ) );
+
+		$this->assertSame( array(), $this->wpdb->writes );
+		$this->assertSame( 0, $result['data'] );
+	}
+
+	public function test_the_write_formats_line_up_with_their_columns(): void {
+		vpress_update_dataset(
+			new FakeRestRequest(
+				array( 'id' => '3', 'name' => 'P', 'owner_id' => '9', 'source_name' => 'INEGI', 'license' => 'CC0-1.0' )
+			)
+		);
+
+		$updates = array_values( array_filter( $this->wpdb->writes, static fn( $w ) => 'update' === $w[0] ) );
+		$this->assertSame( array( 'name', 'owner_id', 'source_name', 'license' ), array_keys( $updates[0][2] ) );
+		$this->assertSame( 9, $updates[0][2]['owner_id'], 'the owner is written as an int' );
+	}
+
 	public function test_get_and_list_return_the_provenance_fields_to_anonymous_callers(): void {
 		$GLOBALS['vpress_test_caps'] = array();
 		$row = static fn() => (object) array(
