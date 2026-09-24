@@ -34,10 +34,11 @@ Vpress is a data-visualization studio that lives inside your WordPress admin. Up
 
 **External services**
 
-Vpress does not send your data anywhere. To draw some screens, the browser of the person viewing a chart loads these third-party resources:
+Vpress never uploads your datasets. Third-party requests happen in two places: resources the viewer's browser loads, and — only if you create a dataset from a URL — a download your own server makes.
 
-* Map charts load base-map tiles from the OpenStreetMap tile servers (openstreetmap.fr). Only tile coordinates are requested; your dataset is never sent. Terms: https://operations.osmfoundation.org/policies/tiles/ — Privacy: https://osmfoundation.org/wiki/Privacy_Policy
-* The Vpress admin screen and public chart pages load the Roboto font from Google Fonts. Terms: https://policies.google.com/terms — Privacy: https://policies.google.com/privacy
+* Map charts load base-map tiles from the OpenStreetMap tile servers (openstreetmap.fr) in the viewer's browser. Only tile coordinates are requested; your dataset is never sent. Terms: https://operations.osmfoundation.org/policies/tiles/ — Privacy: https://osmfoundation.org/wiki/Privacy_Policy
+* The Vpress admin screen loads the Roboto font from Google Fonts. Public chart pages do not. Terms: https://policies.google.com/terms — Privacy: https://policies.google.com/privacy
+* Live data sources: if you create a dataset from a CSV URL or a Google Sheet, your server sends an HTTP GET to that URL to download the file. Nothing of yours travels with the request beyond the URL you entered. It runs when you create the dataset, when you press "Actualizar ahora", and on the refresh interval you chose (hourly, daily or weekly, driven by WP-Cron); "Manual" never refreshes on its own. For a Google Sheets link the request goes to docs.google.com (Terms: https://policies.google.com/terms — Privacy: https://policies.google.com/privacy); for any other link it goes to the host you entered, and to it only. Datasets imported from a file never make this request.
 
 == Installation ==
 
@@ -60,7 +61,7 @@ In your own WordPress database. Each dataset becomes its own table (prefixed `vp
 
 = Does Vpress call external services? =
 
-Not with your data. Vpress has no accounts, no telemetry and no remote API. The only third-party requests are display resources loaded by the viewer's browser: map tiles from OpenStreetMap for map charts, and the Roboto font from Google Fonts. See "External services" in the description.
+Not with your data. Vpress has no accounts and no telemetry, and it never uploads your datasets. Two kinds of request leave your site. The viewer's browser loads display resources: map tiles from OpenStreetMap on map charts, and the Roboto font from Google Fonts on the admin screen. And if you create a dataset from a CSV URL or a Google Sheet, your own server downloads that URL — when you create the dataset, when you press "Actualizar ahora", and on the refresh interval you chose (hourly, daily or weekly, driven by WP-Cron) — so the dataset stays up to date. Datasets imported from a file never make that request. See "External services" in the description.
 
 = How do I embed a chart? =
 
@@ -89,7 +90,15 @@ On multisite this runs for every site in the network.
 == Changelog ==
 
 = 0.3.0 =
-* Chunked CSV import (up to 20 MB, no server configuration), encoding detection, and WordPress.org readiness: English readme, opt-in data erasure on uninstall, rewrite rules flushed only on activation and deactivation, and Leaflet styles bundled locally. Full details: https://gitlab.com/vpress/vpress-wp-plugin/-/blob/master/CHANGELOG.md
+* New: a "Vpress chart" block for the block editor, next to the `[vpress id="123"]` shortcode, with a live preview while you edit.
+* New: live data sources — build a dataset from a CSV URL or a Google Sheet and let it refresh itself hourly, daily or weekly.
+* New: accessibility for every chart figure — a written description of the data, a "View data" table, keyboard-reachable bars, points and heat-map cells, and series colours lifted to a readable contrast.
+* New: a source line under every figure (source, licence, "data as of" date and a JSON download) plus schema.org Dataset metadata on chart pages.
+* Faster public charts: chart pages and embeds load a small dedicated bundle instead of the whole admin app.
+* Security: the chart and dataset endpoints no longer run caller-supplied SQL, private charts and datasets are hidden from anonymous visitors, and the public chart page no longer echoes the requested id into the page.
+* Chunked CSV import (up to 20 MB, no server configuration) with encoding detection for spreadsheets exported from Excel on Windows.
+* WordPress.org readiness: English readme, opt-in data erasure on uninstall, rewrite rules flushed only on activation and deactivation, and Leaflet styles bundled locally.
+* Full details: https://gitlab.com/vpress/vpress-wp-plugin/-/blob/master/CHANGELOG.md
 
 = 0.2.0 =
 * Admin app migrated to Vue 3, Vuetify 3 and Vite.
