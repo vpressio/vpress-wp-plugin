@@ -80,6 +80,9 @@ class Vpress_Activator {
 
 		add_option( 'vpress_db_version', '0.1.0' );
 
+		// Opt-in switch read by uninstall.php; data is kept unless this is true.
+		add_option( 'vpress_erase_data_on_uninstall', false );
+
 		
 	}
 
