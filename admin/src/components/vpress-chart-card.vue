@@ -160,6 +160,18 @@
               <v-icon>mdi-share-variant-outline</v-icon>
             </v-btn>
             <v-spacer/>
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar bloque"
+              aria-label="Copiar bloque"
+              @click="copyBlock"
+            >
+              <v-icon>mdi-code-braces</v-icon>
+            </v-btn>
+            <v-spacer/>
             <v-btn icon variant="text" size="x-small" color="primary" @click="dialogConfirmDeletion = true">
               <v-icon>mdi-trash-can-outline</v-icon>
             </v-btn>
@@ -213,6 +225,7 @@ import { mapStores } from 'pinia'
 import { loaderMixin, editorMixin } from '../mixins/index.js'
 import { useNotificationsStore } from '../store/index.js'
 import { imageUrl } from '../utils/assetUrl.js'
+import { chartBlockMarkup } from '../utils/blockMarkup.js'
 import api from '../utils/axios'
 
 export default {
@@ -364,27 +377,60 @@ export default {
       }
       this.loading = false
     },
+    // "Copy block": the serialized vpress/chart block, to paste into the block editor.
+    async copyBlock() {
+      const markup = chartBlockMarkup(this.id)
+      if (!markup) {
+        this.notificationsStore.open({
+          color: 'warning',
+          text: 'Primero debes de guardar la gráfica'
+        })
+        return
+      }
+      try {
+        const clipboard = window.navigator && window.navigator.clipboard
+        if (clipboard && window.isSecureContext) {
+          await clipboard.writeText(markup)
+        } else if (!this.copyWithTextarea(markup)) {
+          throw new Error('copy command failed')
+        }
+        this.notificationsStore.open({
+          color: 'success',
+          text: 'Bloque copiado al portapapeles'
+        })
+      } catch (error) {
+        this.notificationsStore.open({
+          color: 'error',
+          text: 'No se pudo copiar el bloque'
+        })
+      }
+    },
+    // Clipboard fallback for non-secure admin origins (plain http).
+    copyWithTextarea(text) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      const selected =
+        document.getSelection().rangeCount > 0
+          ? document.getSelection().getRangeAt(0)
+          : false;
+      el.select();
+      const copied = document.execCommand('copy');
+      document.body.removeChild(el);
+      if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+      }
+      return copied;
+    },
     shareChart() {
       try {
         const chartId = this.id
         if (chartId) {
-          const el = document.createElement('textarea');
-          el.value = `[vpress id=${chartId}]`;
-          el.setAttribute('readonly', '');
-          el.style.position = 'absolute';
-          el.style.left = '-9999px';
-          document.body.appendChild(el);
-          const selected =
-            document.getSelection().rangeCount > 0
-              ? document.getSelection().getRangeAt(0)
-              : false;
-          el.select();
-          document.execCommand('copy');
-          document.body.removeChild(el);
-          if (selected) {
-            document.getSelection().removeAllRanges();
-            document.getSelection().addRange(selected);
-          }
+          this.copyWithTextarea(`[vpress id=${chartId}]`);
           this.notificationsStore.open({
             color: 'success',
             text: 'Gráfica guardada al portapapeles'
