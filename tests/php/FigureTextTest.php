@@ -219,6 +219,67 @@ final class FigureTextTest extends TestCase {
 		$this->assertStringEndsWith( 'Ventas was flat from 4 to 4.', vpress_figure_alt_text( self::chart( self::timeline() ), $flat ) );
 	}
 
+	public function test_timeline_orders_day_first_dates_chronologically_not_lexically(): void {
+		// Dataset columns are TEXT: lexically '01/02/2026' sorts before
+		// '31/01/2026', which would report the trend backwards.
+		$rows = array(
+			array( 'fecha' => '01/02/2026', 'ventas' => '5' ),
+			array( 'fecha' => '31/01/2026', 'ventas' => '10' ),
+			array( 'fecha' => '15/03/2026', 'ventas' => '30' ),
+		);
+
+		$this->assertSame(
+			'Line chart of Ventas over Fecha from 31/01/2026 to 15/03/2026, 3 points; Ventas rose from 10 to 30.',
+			vpress_figure_alt_text( self::chart( self::timeline() ), $rows )
+		);
+	}
+
+	public function test_timeline_reads_ambiguous_dates_with_the_charts_own_format(): void {
+		$rows = array(
+			array( 'fecha' => '01/02/2026', 'ventas' => '10' ),
+			array( 'fecha' => '03/01/2026', 'ventas' => '30' ),
+		);
+
+		// Month first: 2 January, then 1 March.
+		$us = self::timeline();
+		$us['dateFormat'] = '%m/%d/%Y';
+		$this->assertSame(
+			'Line chart of Ventas over Fecha from 01/02/2026 to 03/01/2026, 2 points; Ventas rose from 10 to 30.',
+			vpress_figure_alt_text( self::chart( $us ), $rows )
+		);
+
+		// Day first (the default guess): 3 January, then 1 February.
+		$this->assertSame(
+			'Line chart of Ventas over Fecha from 03/01/2026 to 01/02/2026, 2 points; Ventas fell from 30 to 10.',
+			vpress_figure_alt_text( self::chart( self::timeline() ), $rows )
+		);
+	}
+
+	public function test_timeline_claims_no_trend_when_the_x_values_are_not_dates(): void {
+		$rows = array(
+			array( 'fecha' => 'Trimestre 2', 'ventas' => '5' ),
+			array( 'fecha' => 'Trimestre 1', 'ventas' => '30' ),
+			array( 'fecha' => 'Trimestre 10', 'ventas' => '50' ),
+		);
+
+		$this->assertSame(
+			'Line chart of Ventas over Fecha, 3 points.',
+			vpress_figure_alt_text( self::chart( self::timeline() ), $rows )
+		);
+	}
+
+	public function test_timeline_claims_no_trend_when_only_some_values_parse(): void {
+		$rows = array(
+			array( 'fecha' => '2026-01-01', 'ventas' => '5' ),
+			array( 'fecha' => 'sin fecha', 'ventas' => '30' ),
+		);
+
+		$this->assertSame(
+			'Line chart of Ventas over Fecha, 2 points.',
+			vpress_figure_alt_text( self::chart( self::timeline() ), $rows )
+		);
+	}
+
 	public function test_scatter_heatmap_map_and_fallback_templates(): void {
 		$scatter = array(
 			'chart' => 'scatter',

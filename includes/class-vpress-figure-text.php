@@ -439,7 +439,93 @@ function vpress_figure_alt_bars( array $values, array $rows, array $x, array $y,
 }
 
 /**
+ * A PHP date format for the d3-style one the editor stores ('%Y-%m-%d'),
+ * or '' when the string carries a token this does not know.
+ *
+ * @param string $format d3 format string.
+ * @return string
+ */
+function vpress_figure_php_date_format( string $format ): string {
+	$php = strtr(
+		trim( $format ),
+		array(
+			'%Y' => 'Y',
+			'%y' => 'y',
+			'%m' => 'm',
+			'%d' => 'd',
+			'%e' => 'j',
+			'%b' => 'M',
+			'%B' => 'F',
+			'%H' => 'H',
+			'%M' => 'i',
+			'%S' => 's',
+		)
+	);
+	return ( '' === $php || false !== strpos( $php, '%' ) ) ? '' : $php;
+}
+
+/**
+ * Date formats the timeline tries, in order: the chart's own first, then
+ * ISO, then the forms a CSV usually carries.
+ *
+ * Day-first before month-first, because the editor's own detector lists
+ * '%d/%m/%Y' and the admin is Spanish — so an ambiguous '01/02/2026' is read
+ * the way the chart itself drew it.
+ *
+ * @param array $values Chart config.
+ * @return string[]
+ */
+function vpress_figure_date_formats( array $values ): array {
+	$formats = array( 'Y-m-d', 'Y-m-d H:i:s', 'Y-m-d\TH:i:s', 'Y/m/d', 'd/m/Y', 'm/d/Y', 'd-m-Y', 'Y-n-j', 'j/n/Y', 'Y-m', 'Y' );
+	$chart   = isset( $values['dateFormat'] ) && is_string( $values['dateFormat'] )
+		? vpress_figure_php_date_format( $values['dateFormat'] )
+		: '';
+	if ( '' !== $chart ) {
+		array_unshift( $formats, $chart );
+	}
+	return $formats;
+}
+
+/**
+ * Timestamps for $keys under the first format that parses every one of them,
+ * or null when none does.
+ *
+ * Each value is round-tripped through its format, so a near miss PHP would
+ * otherwise coerce ('2026-13-40', or '5' read as the year 5) counts as a
+ * failure rather than as a wrong date.
+ *
+ * @param string[] $keys    x values.
+ * @param string[] $formats Candidate PHP date formats.
+ * @return array<string,int>|null Timestamp by value.
+ */
+function vpress_figure_parse_dates( array $keys, array $formats ): ?array {
+	$utc = new DateTimeZone( 'UTC' );
+	foreach ( $formats as $format ) {
+		$stamps = array();
+		foreach ( $keys as $key ) {
+			// '!' zeroes every field the format does not set, so a value
+			// carrying no time does not inherit the time of this request.
+			$date = DateTime::createFromFormat( '!' . $format, $key, $utc );
+			if ( false === $date || $date->format( $format ) !== $key ) {
+				continue 2;
+			}
+			$stamps[ $key ] = $date->getTimestamp();
+		}
+		return $stamps;
+	}
+	return null;
+}
+
+/**
  * Timeline: points ordered by x; several series per x are combined.
+ *
+ * The order IS the sentence: it decides which point is first and which is
+ * last, and so whether the measure is reported as having risen or fallen.
+ * Dataset columns are created TEXT, so ordering the raw values as strings
+ * puts '01/02/2026' before '31/01/2026' and can invert that claim. The values
+ * are parsed as dates instead, and when they do not all parse the trend
+ * clause is dropped rather than guessed — a screen-reader user is better
+ * served by "3 points" than by a confident wrong direction.
  *
  * @param array    $values Chart config.
  * @param array    $rows   Rows.
@@ -453,8 +539,30 @@ function vpress_figure_alt_timeline( array $values, array $rows, array $x, array
 	if ( empty( $totals ) ) {
 		return __( 'No data available for this chart.', 'vpress' );
 	}
-	ksort( $totals, SORT_STRING );
 	$keys   = array_map( 'strval', array_keys( $totals ) );
+	$stamps = vpress_figure_parse_dates( $keys, vpress_figure_date_formats( $values ) );
+
+	if ( null === $stamps ) {
+		return sprintf(
+			/* translators: 1: measure title, 2: time axis title, 3: number of points. */
+			_n(
+				'Line chart of %1$s over %2$s, %3$s point.',
+				'Line chart of %1$s over %2$s, %3$s points.',
+				count( $keys ),
+				'vpress'
+			),
+			$y['title'],
+			$x['title'],
+			number_format_i18n( count( $keys ) )
+		);
+	}
+
+	usort(
+		$keys,
+		static function ( $a, $b ) use ( $stamps ) {
+			return $stamps[ $a ] <=> $stamps[ $b ];
+		}
+	);
 	$first  = $keys[0];
 	$last   = $keys[ count( $keys ) - 1 ];
 	$y_from = $totals[ $first ];
