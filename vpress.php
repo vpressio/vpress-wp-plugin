@@ -40,6 +40,18 @@ if ( ! defined( 'WPINC' ) ) {
 define( 'VPRESS_VERSION', '0.3.0' );
 
 /**
+ * Registry schema version: a plain incrementing counter, deliberately
+ * independent of VPRESS_VERSION. Any future schema change bumps this number
+ * and nothing else — releases that do not touch the schema leave it alone,
+ * and a schema change never has to wait for (or drag along) a release
+ * version, the readme's Stable tag or the plugin headers.
+ *
+ * 1 was the implicit pre-0.3.0 schema (never stamped as a counter).
+ * 2 adds the live-source columns and the provenance columns.
+ */
+define( 'VPRESS_DB_VERSION', '2' );
+
+/**
  * Absolute path to the main plugin file (used for plugins_url()).
  */
 define( 'VPRESS_PLUGIN_FILE', __FILE__ );

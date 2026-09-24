@@ -29,7 +29,8 @@ class Vpress_Activator {
 	 */
 	public static function create_tables() {
 		self::install_schema();
-		update_option( 'vpress_db_version', defined( 'VPRESS_VERSION' ) ? VPRESS_VERSION : '0.1.0' );
+		// The schema counter, not the release version (see VPRESS_DB_VERSION).
+		update_option( 'vpress_db_version', defined( 'VPRESS_DB_VERSION' ) ? VPRESS_DB_VERSION : '1' );
 
 		// Opt-in switch read by uninstall.php; data is kept unless this is true.
 		add_option( 'vpress_erase_data_on_uninstall', false );
