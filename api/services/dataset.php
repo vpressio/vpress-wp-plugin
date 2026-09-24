@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/class-vpress-query-guard.php';
+
 function vpress_clean_string($string) {
   $string = str_replace(' ', '', $string);
   //Replace not allowed characters with _ 

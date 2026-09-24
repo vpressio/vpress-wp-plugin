@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/class-vpress-query-guard.php';
+
 
 function vpress_sql_groupBy_column($body, $key){
   $col = false;
