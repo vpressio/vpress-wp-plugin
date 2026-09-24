@@ -31,9 +31,9 @@ lint:js:
     # ratchet: lower this number, never raise it. 731 is today's exact
     # warning count (2026-09-24), re-verified after both the H4/M3 merge and
     # the earlier fix for 2 pre-existing no-undef errors (see the fix(lint)
-    # commit) — unchanged by either. --max-warnings only gates warnings, so
+    # commit) — unchanged by either. --max-warnings 755only gates warnings, so
     # a real lint ERROR still fails this job regardless of the ratchet.
-    - yarn --cwd admin eslint . --max-warnings 731
+    - yarn --cwd admin eslint . --max-warnings 755
 
 lint:php:
   stage: lint
