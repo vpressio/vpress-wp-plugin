@@ -289,6 +289,15 @@ test.describe('a published Vpress story', () => {
       await expect(reader.locator('[data-vpress-story]')).not.toHaveAttribute('data-vpress-story-ready');
       await expect(reader.locator('[data-vpress-step].is-active')).toHaveCount(0);
 
+      /*
+       * The live region is not empty either, and this is the ONLY place that
+       * proves it: vpress_story_first_heading() reads $block->parsed_block,
+       * which PHPUnit can only hand it a stand-in for. With the controller
+       * running, the region would say the same thing whether or not the
+       * server ever filled it.
+       */
+      await expect(reader.locator('[data-vpress-story-status]')).toHaveText(steps[0].heading);
+
       // The reading order is figure, then narrative — the story's own two
       // children, in the order blocks/story/render.php prints them.
       expect(

@@ -42,6 +42,7 @@ function embedVm(overrides = {}) {
     baseTitle: 'Quejas por mes',
     storyOverrides: null,
     loadedQueryKey: storyQueryKey(null),
+    queryToken: 0,
     $el: document.querySelector('.vpress-embed'),
     $refs: { container: null },
     ...overrides
@@ -165,6 +166,41 @@ describe('VpressEmbed.applyStoryState', () => {
     // Left true: onLoaded() clears it once the chart has actually redrawn.
     expect(slot.getAttribute('aria-busy')).toBe('true');
     expect(vm.chartConfig.filters).toEqual(BASE.filters);
+  });
+
+  it('ignores a query the reader has already scrolled past', async () => {
+    const vm = embedVm();
+    const rows = { first: [{ mes: 'Ene', total: 1 }], second: [{ mes: 'Oct', total: 2 }] };
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+
+    let call = 0;
+    vm.request = vi.fn(async () => {
+      call += 1;
+      if (call === 1) {
+        await held; // the slow one, for the step already left behind
+        return rows.first;
+      }
+      return rows.second;
+    });
+
+    vm.storyOverrides = { filters: [{ slug: 'mes', type: 'ordinal', value: ['Ene'] }] };
+    const slow = vm.runQuery();
+    vm.storyOverrides = { filters: [{ slug: 'mes', type: 'ordinal', value: ['Oct'] }] };
+    await vm.runQuery();
+    release();
+    await slow;
+
+    // The overtaken response must not land: it would draw the wrong step AND
+    // leave loadedQueryKey describing a state the chart is not in, so the
+    // next step could decide it needed no query at all.
+    expect(vm.chartData).toEqual(rows.second);
+    expect(vm.chartConfig.filters).toEqual([
+      { slug: 'estado', type: 'ordinal', value: ['Sonora'] },
+      { slug: 'mes', type: 'ordinal', value: ['Oct'] }
+    ]);
   });
 
   it('reads back what the chart is really showing, not what was asked for', () => {

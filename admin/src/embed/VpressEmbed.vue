@@ -83,6 +83,10 @@ export default {
     // path beside the container's chartConfig watcher.
     this.storyOverrides = null;
     this.loadedQueryKey = storyQueryKey(null);
+    // Which query is the current one. A reader scrolling fast through steps
+    // that each filter differently starts several, and they do not have to
+    // come back in the order they left.
+    this.queryToken = 0;
     this.load();
   },
   mounted() {
@@ -142,6 +146,10 @@ export default {
       if (!this.baseValues || !this.dataset) return;
       const values = this.effectiveValues();
       this.loadedQueryKey = storyQueryKey(this.storyOverrides);
+      // Defensive `|| 0`: a token that ever became NaN would compare unequal
+      // to itself and silently discard every response the chart ever got.
+      this.queryToken = (this.queryToken || 0) + 1;
+      const token = this.queryToken;
       // A re-query redraws: say so, so anything waiting on the figure being
       // idle waits for the new draw and not the old one.
       if (this.chartData.length) this.setBusy(true);
@@ -157,6 +165,11 @@ export default {
           body: JSON.stringify(query)
         });
 
+        // A step the reader has already scrolled past. Its rows would draw
+        // the wrong chart AND leave loadedQueryKey describing a state the
+        // chart is not in, so the next step could decide it needs no query.
+        if (token !== this.queryToken) return;
+
         if (!Array.isArray(rows) || rows.length === 0) {
           this.fail(EMPTY_ERROR, new Error(`chart ${this.chartId} query returned no rows`));
           return;
@@ -168,6 +181,7 @@ export default {
         // object every time: the container redraws on the config's identity.
         this.chartConfig = { ...values, title: '', subtitle: '' };
       } catch (error) {
+        if (token !== this.queryToken) return;
         this.fail(GENERIC_ERROR, error);
       }
     },
