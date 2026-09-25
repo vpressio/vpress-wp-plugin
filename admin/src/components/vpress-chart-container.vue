@@ -1156,12 +1156,31 @@ export default {
       if (typeof d !== 'object') return String(d);
       const ordinal = (this.ordinalAxis && this.ordinalAxis.slug) || '';
       const x = (this.chartConfig.xAxis && this.chartConfig.xAxis.slug) || '';
+
+      /*
+       * The datum shapes are markLabel()'s, and they have to be read the same
+       * way here: a grouped bar's datum is NOT a data row, so looking up the
+       * ordinal axis's slug on it finds nothing and every mark would come
+       * back keyless. The real one first.
+       */
+      // Grouped bars and spineplot segments: { key, value, axis } — `axis` is
+      // the category and `key` the series, except with a single series, where
+      // `key` is the category and there is no `axis` to tell it apart.
+      if ('key' in d && 'value' in d) {
+        return String(d.axis !== undefined && d.axis !== d.key ? d.axis : d.key);
+      }
+      // d3.stack() segments: [y0, y1] carrying the row as .data.
+      if (Array.isArray(d) && d.data) {
+        return ordinal && d.data[ordinal] !== undefined ? String(d.data[ordinal]) : '';
+      }
       if (ordinal && d[ordinal] !== undefined) return String(d[ordinal]);
       if (x && d[x] !== undefined) return String(d[x]);
+      // Scatter points wrap their row.
       if (d.datum && typeof d.datum === 'object') {
         if (ordinal && d.datum[ordinal] !== undefined) return String(d.datum[ordinal]);
         if (x && d.datum[x] !== undefined) return String(d.datum[x]);
       }
+      // Heat-map cells: { x, y, value }.
       if (d.x !== undefined) return String(d.x);
       return '';
     },

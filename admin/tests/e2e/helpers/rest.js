@@ -65,3 +65,25 @@ export async function createChart(request, { datasetId, value, permissions = 'pu
   expect(Number(body.data)).toBeGreaterThan(0);
   return Number(body.data);
 }
+
+/**
+ * PUT /chart/update {id, value, description, permissions, tags}.
+ *
+ * The route returns `null` on a successful write (a pre-existing bug: the
+ * success path has no return), so this asserts the HTTP status and does not
+ * read the body.
+ */
+export async function updateChart(request, { id, value, permissions = 'public' }) {
+  const nonce = await restNonce(request);
+  const res = await request.put(`${BASE}/chart/update`, {
+    headers: { 'X-WP-Nonce': nonce },
+    data: {
+      id: Number(id),
+      value: JSON.stringify(value),
+      description: '',
+      permissions,
+      tags: ''
+    }
+  });
+  expect(res.status()).toBe(200);
+}

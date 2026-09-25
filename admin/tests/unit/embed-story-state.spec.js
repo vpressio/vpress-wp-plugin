@@ -324,10 +324,27 @@ describe('VpressChartContainer.markStoryKey', () => {
 
   it('reads the category off the datum shapes the chart types produce', () => {
     const c = vm();
-    expect(c.markStoryKey({ mes: 'Oct', total: 688 })).toBe('Oct');
-    expect(c.markStoryKey({ datum: { mes: 'Nov' }, x: 1, y: 2 })).toBe('Nov');
-    expect(c.markStoryKey({ x: 'Dic', y: 'Norte', value: 4 })).toBe('Dic');
+    expect(c.markStoryKey({ mes: 'Oct', total: 688 }), 'a plain row').toBe('Oct');
+    expect(c.markStoryKey({ datum: { mes: 'Nov' }, x: 1, y: 2 }), 'a scatter point').toBe('Nov');
+    expect(c.markStoryKey({ x: 'Dic', y: 'Norte', value: 4 }), 'a heat-map cell').toBe('Dic');
     expect(c.markStoryKey('Ene')).toBe('Ene');
+  });
+
+  it('reads a GROUPED bar, whose datum is not a data row at all', () => {
+    // The shape that made the e2e fail: { key, value, axis }. Looking up the
+    // ordinal axis's slug on it finds nothing, so every mark came back
+    // keyless and no emphasis could ever match one.
+    const c = vm();
+    expect(c.markStoryKey({ axis: 'Oct', key: 'Norte', value: 688 }), 'grouped: axis is the category').toBe('Oct');
+    expect(c.markStoryKey({ key: 'Oct', value: 688 }), 'one series: key is the category').toBe('Oct');
+    expect(c.markStoryKey({ axis: 'Oct', key: 'Oct', value: 688 })).toBe('Oct');
+  });
+
+  it('reads a stacked segment through the row it carries', () => {
+    const c = vm();
+    const segment = [0, 688];
+    segment.data = { mes: 'Oct', Norte: 688 };
+    expect(c.markStoryKey(segment)).toBe('Oct');
   });
 
   it('is an empty key, not a throw, for a datum it cannot read', () => {
