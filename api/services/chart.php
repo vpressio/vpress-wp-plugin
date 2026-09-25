@@ -191,7 +191,11 @@ function vpress_sanitize_chart_value( $value ) {
 	}
 	$config['annotations'] = $annotations;
 
-	$encoded = wp_json_encode( $config );
+	// Match what the admin's JSON.stringify() produces, so re-encoding an
+	// annotated config does not silently rewrite the whole row: escaped
+	// unicode would still decode correctly, but `lower(value) LIKE` in
+	// /chart/list searches these bytes, so "México" would stop matching.
+	$encoded = wp_json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 	return false === $encoded ? $value : $encoded;
 }
 

@@ -112,7 +112,9 @@ export default {
       colors: Array,
       opacity: Number,
       theme: String,
-      labels: Boolean
+      labels: Boolean,
+      // Editorial annotations; see src/charts/annotations.js for the model.
+      annotations: Array
     },
     iframe: Boolean,
     // Text alternative for the <svg>'s <desc> (the public figure passes its

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { collectPageErrors } from './helpers/errors.js';
 import { createChart, deleteChart, getChart } from './helpers/rest.js';
 
@@ -79,6 +80,14 @@ test.describe('chart annotations on the public page', () => {
 
     // The server-rendered description names it too; that half is covered by
     // FigureTextTest, which does not need the served PHP to be this branch.
+
+    // d. New focusable SVG content on a public page: axe must still be clean.
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    const blocking = results.violations.filter((v) => ['critical', 'serious'].includes(v.impact));
+    expect(
+      blocking,
+      `critical/serious axe violations:\n${blocking.map((v) => `${v.id}: ${v.help}`).join('\n')}`
+    ).toEqual([]);
 
     await page.screenshot({ path: 'tests/e2e/screenshots/annotations.png', fullPage: true });
     expect(errors, `console/page errors on /chart/${chartId}:${report()}`).toEqual([]);

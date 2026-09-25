@@ -258,6 +258,24 @@ final class ChartAnnotationsTest extends TestCase {
 		$this->assertSame( $value, $write[2]['value'], 'this may never reformat a config it does not understand' );
 	}
 
+	public function test_saving_annotations_does_not_rewrite_the_rest_of_the_config(): void {
+		$config = array(
+			'chart'       => 'bars',
+			'title'       => 'Ciudad de México',
+			'xAxis'       => array( 'title' => 'estado', 'type' => 'ordinal', 'slug' => 'estado' ),
+			'source'      => 'https://datos.gob.mx/a.csv',
+			'annotations' => array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ) ),
+		);
+		// What the admin's JSON.stringify() sends.
+		$sent = json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+		$stored = vpress_sanitize_chart_value( $sent );
+
+		$this->assertSame( $sent, $stored, 'an annotated save must not re-escape the whole config' );
+		$this->assertStringContainsString( 'México', $stored, '/chart/list searches these bytes with lower(value) LIKE' );
+		$this->assertStringContainsString( 'https://datos.gob.mx', $stored );
+	}
+
 	public function test_a_value_that_is_not_json_is_passed_through(): void {
 		$this->assertSame( 'not json', vpress_sanitize_chart_value( 'not json' ) );
 		$this->assertSame( '', vpress_sanitize_chart_value( '' ) );
