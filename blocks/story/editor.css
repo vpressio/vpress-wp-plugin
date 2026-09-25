@@ -1,0 +1,45 @@
+/* Vpress story block — editor canvas only (block.json editorStyle).
+   The published layout lives in admin/src/embed/embed.css, which the canvas
+   also loads with the embed; this is only what the editor needs on top. */
+
+.wp-block-vpress-story .components-placeholder {
+	min-height: 240px;
+}
+
+.wp-block-vpress-story .vpress-block__combobox {
+	width: 100%;
+	max-width: 420px;
+}
+
+.wp-block-vpress-story .vpress-block__actions {
+	margin-top: 12px;
+}
+
+/* Clicks on the drawn chart select the block instead of hitting the SVG. */
+.wp-block-vpress-story .vpress-figure svg,
+.wp-block-vpress-story .vpress-figure canvas {
+	pointer-events: none;
+}
+
+.wp-block-vpress-story .vpress-figure {
+	margin: 0;
+	outline: 1px solid transparent;
+	outline-offset: 4px;
+	transition: outline-color 0.15s ease;
+}
+
+.wp-block-vpress-story.is-selected .vpress-figure {
+	outline-color: rgba(30, 30, 30, 0.2);
+}
+
+.wp-block-vpress-story .vpress-figure__chart {
+	min-height: 240px;
+}
+
+/* Editing is not reading: the steps are laid out to be written, not
+   scrolled, so the viewport-height gaps the front end uses would put each
+   step a screen apart in the canvas. */
+.wp-block-vpress-story .vpress-story__steps {
+	gap: 16px;
+	padding-block: 0;
+}

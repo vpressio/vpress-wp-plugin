@@ -1,0 +1,44 @@
+/* Vpress story step block — editor canvas only (block.json editorStyle). */
+
+/* A step is never dimmed in the editor: every one of them is being written,
+   and the front end's "only the active step is lit" would read as broken. */
+.wp-block-vpress-story-step {
+	opacity: 1;
+}
+
+.wp-block-vpress-story-step .vpress-story__heading {
+	width: 100%;
+	border: 0;
+	padding: 0;
+	background: transparent;
+	font: inherit;
+	font-size: 1.25em;
+	font-weight: 600;
+	line-height: 1.2;
+	resize: none;
+}
+
+.wp-block-vpress-story-step .vpress-story__heading:focus {
+	outline: none;
+}
+
+.vpress-story-step__annotation {
+	padding: 8px 0;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.vpress-story-step__annotation-label {
+	margin: 0 0 4px;
+	font-weight: 600;
+}
+
+.vpress-story-step__empty,
+.vpress-story-step__notice {
+	margin: 8px 0 0;
+	font-size: 12px;
+	font-style: italic;
+}
+
+.vpress-story-step__capture {
+	margin-top: 12px;
+}
