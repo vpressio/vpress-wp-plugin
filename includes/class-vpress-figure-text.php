@@ -338,7 +338,112 @@ function vpress_figure_alt_text( object $chart, array $rows ): string {
 	};
 
 	$text = vpress_figure_alt_for_type( $type, $values, $rows, $x, $y, $fmt );
-	return vpress_figure_rows_truncated( $rows ) ? $text . vpress_figure_partial_suffix() : $text;
+	if ( vpress_figure_rows_truncated( $rows ) ) {
+		$text .= vpress_figure_partial_suffix();
+	}
+
+	// The whole point of an annotation is the editorial emphasis it carries,
+	// so it has to reach a screen-reader user, who otherwise gets the numbers
+	// and nothing else.
+	$annotations = vpress_figure_alt_annotations( $values, $fmt );
+	return '' === $annotations ? $text : $text . ' ' . $annotations;
+}
+
+/**
+ * The chart's annotations as one sentence, or '' when it has none.
+ *
+ * Only labelled annotations are named: an unlabelled rule says nothing a
+ * reader could act on, and "(500)" on its own is noise, not emphasis.
+ *
+ * The position is the annotation's own data-space value — the `value` of a
+ * line, the `from`/`to` of a range, the `x` of a point or note — formatted
+ * with the chart's own number format when it is numeric.
+ *
+ * @param array    $values Chart config.
+ * @param callable $fmt    Number formatter.
+ * @return string Plain text; escaped on output like the rest of the alt text.
+ */
+function vpress_figure_alt_annotations( array $values, callable $fmt ): string {
+	$parts = array();
+	foreach ( vpress_figure_annotations( $values ) as $annotation ) {
+		$label = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) ( $annotation['label'] ?? '' ) ) ) );
+		if ( '' === $label ) {
+			continue;
+		}
+		$where = vpress_figure_annotation_position( $annotation, $fmt );
+		if ( '' === $where ) {
+			$parts[] = $label;
+			continue;
+		}
+		/* translators: 1: annotation label, 2: where on the chart it sits. */
+		$parts[] = sprintf( _x( '%1$s (%2$s)', 'annotation in a chart description', 'vpress' ), $label, $where );
+	}
+
+	if ( empty( $parts ) ) {
+		return '';
+	}
+
+	return sprintf(
+		/* translators: %s: the chart's annotations, separated by semicolons. */
+		_n( 'Annotated: %s.', 'Annotated: %s.', count( $parts ), 'vpress' ),
+		implode( '; ', $parts )
+	);
+}
+
+/**
+ * The chart's annotations, in config order, with unrenderable ones removed.
+ *
+ * Read-side only: the REST layer sanitises on write, so this exists for a
+ * config hand-edited in the database or saved before that guard shipped.
+ *
+ * @param array $values Chart config.
+ * @return array[]
+ */
+function vpress_figure_annotations( array $values ): array {
+	if ( empty( $values['annotations'] ) || ! is_array( $values['annotations'] ) ) {
+		return array();
+	}
+	$types = array( 'line', 'point', 'range', 'text' );
+	return array_values(
+		array_filter(
+			$values['annotations'],
+			static function ( $annotation ) use ( $types ) {
+				return is_array( $annotation )
+					&& isset( $annotation['type'] )
+					&& in_array( $annotation['type'], $types, true );
+			}
+		)
+	);
+}
+
+/**
+ * Where one annotation sits, as text ('' when it carries no usable position).
+ *
+ * @param array    $annotation One annotation.
+ * @param callable $fmt        Number formatter.
+ * @return string
+ */
+function vpress_figure_annotation_position( array $annotation, callable $fmt ): string {
+	$at = static function ( $value ) use ( $fmt ) {
+		if ( ! is_scalar( $value ) || is_bool( $value ) ) {
+			return '';
+		}
+		return is_numeric( $value ) ? $fmt( $value ) : sanitize_text_field( (string) $value );
+	};
+
+	if ( 'range' === $annotation['type'] ) {
+		$from = $at( $annotation['from'] ?? null );
+		$to   = $at( $annotation['to'] ?? null );
+		if ( '' === $from || '' === $to ) {
+			return '';
+		}
+		/* translators: 1: start of an annotated range, 2: its end. */
+		return sprintf( _x( '%1$s to %2$s', 'annotated range in a chart description', 'vpress' ), $from, $to );
+	}
+
+	// A line is pinned to one axis by its `value`; a point and a note are
+	// named by where along the chart they sit, which is their `x`.
+	return $at( 'line' === $annotation['type'] ? ( $annotation['value'] ?? null ) : ( $annotation['x'] ?? null ) );
 }
 
 /**

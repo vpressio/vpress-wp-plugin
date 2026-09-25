@@ -338,6 +338,137 @@ final class FigureTextTest extends TestCase {
 		$this->assertStringContainsString( 'Highest: <b>Jalisco</b> (5)', vpress_figure_alt_text( self::chart( self::bars() ), $rows ), 'raw here; escaped on output' );
 	}
 
+	// --- annotations in the alt text ---------------------------------------
+
+	/** Three rows of bars, whose sentence every annotation case appends to. */
+	private const BARS_SENTENCE = 'Bar chart of Ventas by Estado, 3 categories. Highest: Sonora (9,000); lowest: Puebla (250.50).';
+
+	private static function three_rows(): array {
+		return array(
+			array( 'estado' => 'Jalisco', 'ventas' => '1500' ),
+			array( 'estado' => 'Puebla', 'ventas' => '250.5' ),
+			array( 'estado' => 'Sonora', 'ventas' => '9000' ),
+		);
+	}
+
+	private function annotated( array $annotations ): string {
+		return vpress_figure_alt_text(
+			self::chart( self::bars( array( 'annotations' => $annotations ) ) ),
+			self::three_rows()
+		);
+	}
+
+	public function test_no_annotations_add_no_sentence(): void {
+		$this->assertSame( self::BARS_SENTENCE, vpress_figure_alt_text( self::chart( self::bars() ), self::three_rows() ) );
+		$this->assertSame( self::BARS_SENTENCE, $this->annotated( array() ) );
+	}
+
+	public function test_one_annotation_reads_singular(): void {
+		$this->assertSame(
+			self::BARS_SENTENCE . ' Annotated: Meta anual (500).',
+			$this->annotated( array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ) ) )
+		);
+	}
+
+	public function test_three_annotations_read_plural_in_config_order(): void {
+		$this->assertSame(
+			self::BARS_SENTENCE . ' Annotated: Tras el pico (Oct to Dic); +73% vs. septiembre (Oct); Meta anual (500).',
+			$this->annotated(
+				array(
+					array( 'id' => 'a3', 'type' => 'range', 'axis' => 'x', 'from' => 'Oct', 'to' => 'Dic', 'label' => 'Tras el pico' ),
+					array( 'id' => 'a2', 'type' => 'point', 'x' => 'Oct', 'y' => 688, 'label' => '+73% vs. septiembre' ),
+					array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ),
+				)
+			),
+			'config order, because that is the order the author wrote them in'
+		);
+	}
+
+	public function test_a_label_carrying_markup_is_stripped(): void {
+		$text = $this->annotated(
+			array( array( 'id' => 'a1', 'type' => 'text', 'x' => 'Jalisco', 'y' => 1, 'label' => "<b>Pico</b>\n  del año" ) )
+		);
+
+		$this->assertSame( self::BARS_SENTENCE . ' Annotated: Pico del año (Jalisco).', $text );
+		$this->assertStringNotContainsString( '<b>', $text );
+	}
+
+	public function test_a_number_uses_the_charts_own_format(): void {
+		$this->assertSame(
+			self::BARS_SENTENCE . ' Annotated: Meta anual (500).',
+			$this->annotated( array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ) ) )
+		);
+		$this->assertSame(
+			'Bar chart of Ventas by Estado, 3 categories. Highest: Sonora ($9,000 MXN); lowest: Puebla ($251 MXN). Annotated: Meta anual ($500 MXN).',
+			vpress_figure_alt_text(
+				self::chart(
+					self::bars(
+						array(
+							'decimals'    => 0,
+							'preffix'     => '$',
+							'suffix'      => ' MXN',
+							'annotations' => array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ) ),
+						)
+					)
+				),
+				self::three_rows()
+			)
+		);
+	}
+
+	public function test_an_unlabelled_annotation_says_nothing(): void {
+		$this->assertSame(
+			self::BARS_SENTENCE,
+			$this->annotated( array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500 ) ) ),
+			'"(500)" on its own is noise, not editorial emphasis'
+		);
+		$this->assertSame(
+			self::BARS_SENTENCE . ' Annotated: Meta (500).',
+			$this->annotated(
+				array(
+					array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 100 ),
+					array( 'id' => 'a2', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta' ),
+				)
+			)
+		);
+	}
+
+	public function test_an_unknown_type_or_a_broken_position_never_breaks_the_sentence(): void {
+		$this->assertSame(
+			self::BARS_SENTENCE . ' Annotated: Sin posición; Con posición (10).',
+			$this->annotated(
+				array(
+					array( 'id' => 'a1', 'type' => 'wormhole', 'x' => 'Oct', 'y' => 1, 'label' => 'fuera' ),
+					array( 'id' => 'a2', 'type' => 'range', 'axis' => 'x', 'from' => 'Oct', 'label' => 'Sin posición' ),
+					array( 'id' => 'a3', 'type' => 'line', 'axis' => 'y', 'value' => 10, 'label' => 'Con posición' ),
+				)
+			)
+		);
+		$this->assertSame(
+			self::BARS_SENTENCE,
+			vpress_figure_alt_text( self::chart( self::bars( array( 'annotations' => 'not an array' ) ) ), self::three_rows() ),
+			'a config whose annotations key is not a list reads as none'
+		);
+	}
+
+	public function test_the_annotation_sentence_follows_the_partial_row_notice(): void {
+		$rows = array_fill( 0, VPRESS_FIGURE_QUERY_MAX_ROWS, array( 'estado' => 'Jalisco', 'ventas' => '1' ) );
+
+		$text = vpress_figure_alt_text(
+			self::chart( self::bars( array( 'annotations' => array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 5, 'label' => 'Meta' ) ) ) ) ),
+			$rows
+		);
+
+		$this->assertStringContainsString( '(first 5,000 rows) Annotated: Meta (5).', $text, 'the row notice qualifies the data, not the annotations' );
+	}
+
+	public function test_an_annotated_chart_is_still_plain_text_the_figure_escapes(): void {
+		$this->assertSame(
+			vpress_figure_alt_text( self::chart( self::bars( array( 'annotations' => array() ) ) ), self::three_rows() ),
+			vpress_figure_alt_text( self::chart( self::bars() ), self::three_rows() )
+		);
+	}
+
 	// --- vpress_figure_data_table ------------------------------------------
 
 	public function test_data_table_markup_uses_axis_titles_and_right_aligns_numbers(): void {

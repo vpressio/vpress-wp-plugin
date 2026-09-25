@@ -69,6 +69,10 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
 	return 1 === (int) $number ? $single : $plural;
 }
 
+function _x( $text, $context, $domain = 'default' ) {
+	return $text;
+}
+
 /** English-locale number_format_i18n(). */
 function number_format_i18n( $number, $decimals = 0 ) {
 	return number_format( (float) $number, (int) $decimals );
