@@ -167,7 +167,9 @@ test.describe('a published Vpress story', () => {
 
     // The figure is sticky and nothing in the story traps focus in it.
     expect(
-      await page.locator('.vpress-story__figure').evaluate((el) => getComputedStyle(el).position)
+      await page
+        .locator('.vpress-story__figure')
+        .evaluate((el) => el.ownerDocument.defaultView.getComputedStyle(el).position)
     ).toBe('sticky');
 
     await page.screenshot({ path: 'tests/e2e/screenshots/story-step-1.png', fullPage: false });
@@ -210,13 +212,45 @@ test.describe('a published Vpress story', () => {
     expect(described[1]).toContain('Paso 3 de 3: El pico.');
     expect(described[1]).toContain(`El pico de ${category}`);
 
-    // h. A hidden annotation is not left focusable while it is invisible.
+    // h. A hidden annotation is not left focusable while it is invisible:
+    //    visibility, not opacity alone, or its label stays in the tab order
+    //    and stays read out while the chart claims to have hidden it.
+    await scrollToStep(page, 1); // a2 and a3 hidden here
     expect(
       await page.evaluate(() => {
-        const node = document.querySelector('[data-annotation-id="a1"]');
-        return node ? getComputedStyle(node).visibility : null;
+        const visibility = (id) => {
+          const node = document.querySelector(`[data-annotation-id="${id}"]`);
+          return node ? window.getComputedStyle(node).visibility : null;
+        };
+        return { shown: visibility('a1'), hiddenOne: visibility('a2') };
       })
-    ).toBe('visible');
+    ).toEqual({ shown: 'visible', hiddenOne: 'hidden' });
+    await scrollToStep(page, 2);
+
+    /*
+     * i. The rule that keeps the no-JavaScript path honest, tested where a
+     *    stylesheet is certainly loaded. Without it a step that is not the
+     *    active one sits at 45% opacity — which is what EVERY step would do
+     *    on a page where the controller never runs: present in the markup,
+     *    and barely readable.
+     *
+     *    Polled rather than read once: the steps fade over 300ms, so a
+     *    single read lands mid-transition and reports 0.63.
+     */
+    const stepOpacity = () =>
+      page
+        .locator('[data-vpress-step]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.ownerDocument.defaultView.getComputedStyle(node).opacity).join(',')
+        );
+    const story = page.locator('[data-vpress-story]');
+
+    await expect.poll(stepOpacity, { message: 'wired: only the step the reader is on is lit' }).toBe('0.45,0.45,1');
+    await story.evaluate((el) => el.removeAttribute('data-vpress-story-ready'));
+    await expect
+      .poll(stepOpacity, { message: 'unwired — with scripting off, the only state there is' })
+      .toBe('1,1,1');
+    await story.evaluate((el) => el.setAttribute('data-vpress-story-ready', 'true'));
 
     expect(errors, `console/page errors on ${permalink}:${report()}`).toEqual([]);
 
@@ -246,19 +280,22 @@ test.describe('a published Vpress story', () => {
         await expect(reader.locator('.vpress-story__steps')).toContainText(step.heading);
         await expect(reader.locator('.vpress-story__steps')).toContainText(step.text);
       }
-      const opacities = await reader.locator('[data-vpress-step]').evaluateAll((nodes) =>
-        nodes.map((node) => getComputedStyle(node).opacity)
-      );
-      expect(opacities, 'every step reads at full strength with no script').toEqual(['1', '1', '1']);
+      // No step is active, so the un-dimming rule applies — see (i), which
+      // asserts that rule where a stylesheet is certainly loaded. Here the
+      // honest check is that nothing marked the story as wired: with the
+      // dev server the embed stylesheet is injected BY the script, so a
+      // no-JS page gets no Vpress CSS at all and an opacity assertion would
+      // pass whatever the rule said.
+      await expect(reader.locator('[data-vpress-story]')).not.toHaveAttribute('data-vpress-story-ready');
+      await expect(reader.locator('[data-vpress-step].is-active')).toHaveCount(0);
 
-      // The reading order is figure, then narrative.
+      // The reading order is figure, then narrative — the story's own two
+      // children, in the order blocks/story/render.php prints them.
       expect(
-        await reader.evaluate(() => {
-          const figure = document.querySelector('figure.vpress-figure');
-          const steps = document.querySelector('.vpress-story__steps');
-          return figure.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING ? 'after' : 'before';
-        })
-      ).toBe('after');
+        await reader.evaluate(() =>
+          Array.from(document.querySelector('[data-vpress-story]').children).map((el) => el.className)
+        )
+      ).toEqual(['vpress-story__figure', 'vpress-story__steps']);
 
       await reader.screenshot({ path: 'tests/e2e/screenshots/story-no-js.png', fullPage: true });
       expect(readerErrors.errors, `errors with scripting off:${readerErrors.report()}`).toEqual([]);
