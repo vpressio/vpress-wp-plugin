@@ -194,23 +194,43 @@
    scripting off: the figure is simply in its place at the top of the section
    and every step's prose follows, in document order.
 
-   The figure is FIRST in the DOM and first in the grid, so reading order,
-   tab order and visual order are the same one. The approved prototype puts
-   the prose on the left; it also has no keyboard order to contradict.
+   The figure is FIRST in the DOM and first in the flow, so reading order, tab
+   order and visual order are the same one. The approved prototype puts the
+   prose on the left; it also has no keyboard order to contradict.
+
+   It lays itself out by the room it HAS, not by the size of the window, and
+   that distinction is the whole reason this is a container query. A Vpress
+   chart re-lays out at its MEASURED width rather than scaling a viewBox, and
+   its axis margins are a fraction of that width — so a column much under
+   28rem clips its own axis labels and legend. Measured in the default theme
+   (46rem of content) a viewport-driven split gave the chart 378px and cut
+   "2,200,000" down to "0,000", on a 1600px screen that every media query
+   would have called wide.
    --------------------------------------------------------------------------- */
 .vpress-story {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
   gap: 3.5rem;
-  /* The sticky column can only travel inside its grid area, and the area is
-     only taller than the figure when the row is not stretched to match. */
-  align-items: start;
+  /* Not stretch: the sticky column has to be shorter than the row it travels
+     in, and the row is as tall as the prose. */
+  align-items: flex-start;
   margin: 1.5em 0;
 }
 
+/* 28rem + 20rem + the 3.5rem gap = 51.5rem, so the two columns wrap at
+   exactly the width the container query below switches on. */
 .vpress-story__figure {
-  position: sticky;
-  top: 6rem;
+  flex: 1 1 28rem;
+  min-width: 0;
+}
+
+.vpress-story__steps {
+  flex: 1 1 20rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .vpress-story__figure .vpress-figure {
@@ -232,13 +252,20 @@
   margin-bottom: 0;
 }
 
-.vpress-story__steps {
-  display: flex;
-  flex-direction: column;
-  /* Tall gaps are what gives each step its turn in the middle of the
-     viewport; they collapse with the sticky figure on narrow screens. */
-  gap: 46vh;
-  padding-block: 10vh 24vh;
+/* Wide enough for a chart beside the prose: the figure stays put, and the
+   steps get the tall gaps that give each of them its turn in the middle of
+   the viewport. Narrower than this the story is one column — chart, then
+   narrative — which is the same thing the markup already says. */
+@container (min-width: 51.5rem) {
+  .vpress-story__figure {
+    position: sticky;
+    top: 6rem;
+  }
+
+  .vpress-story__steps {
+    gap: 46vh;
+    padding-block: 10vh 24vh;
+  }
 }
 
 .vpress-story__step {
@@ -269,24 +296,6 @@
 
 .vpress-story__text > :last-child {
   margin-bottom: 0;
-}
-
-/* One column: the figure stops being sticky and simply precedes the prose,
-   which is the same order the markup is already in. */
-@media (max-width: 880px) {
-  .vpress-story {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .vpress-story__figure {
-    position: static;
-  }
-
-  .vpress-story__steps {
-    gap: 1.5rem;
-    padding-block: 1.5rem 0;
-  }
 }
 
 /* Until the controller has wired this story — which with scripting off is

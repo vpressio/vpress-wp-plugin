@@ -25,12 +25,21 @@ const DRAW_TIMEOUT = 20_000;
 const META = { id: 'a1', type: 'line', axis: 'y', value: 1000000, label: 'Meta anual', color: 'signal' };
 const PISO = { id: 'a2', type: 'line', axis: 'y', value: 500000, label: 'Piso histórico', color: 'muted' };
 
+/*
+ * A stylesheet giving the story the room a two-column story needs, because
+ * the test theme's content column is 46rem and the layout is a CONTAINER
+ * query: at 46rem a story is correctly one column, and there is nothing to
+ * stick. Real CSS in the page rather than an injected script, so the
+ * no-JavaScript reader below gets the same page.
+ */
+const WIDE = '<!-- wp:html --><style>.vpress-story{width:1216px;max-width:none}</style><!-- /wp:html -->';
+
 /** The story, as an author's block markup. */
 function storyContent(chartId, steps) {
   const inner = steps
     .map((step) => `<!-- wp:vpress/story-step ${JSON.stringify(step)} /-->`)
     .join('\n');
-  return `<!-- wp:vpress/story ${JSON.stringify({ chartId })} -->\n${inner}\n<!-- /wp:vpress/story -->`;
+  return `${WIDE}\n<!-- wp:vpress/story ${JSON.stringify({ chartId })} -->\n${inner}\n<!-- /wp:vpress/story -->`;
 }
 
 /** Annotation ids the drawn chart currently shows, and which are emphasised. */
@@ -165,12 +174,25 @@ test.describe('a published Vpress story', () => {
     expect(atRest.hidden.sort()).toEqual(['a1', 'a2', 'a3']);
     expect(atRest.mutedMarks, 'nothing is dimmed before a step says to').toBe(0);
 
-    // The figure is sticky and nothing in the story traps focus in it.
-    expect(
-      await page
+    /*
+     * The figure stays put beside the prose — and stops trying to when there
+     * is no room for two columns. Both directions, because the layout is a
+     * container query and a viewport media query would have got the second
+     * one wrong on this very page: 1600px of window, 46rem of content.
+     */
+    const figurePosition = () =>
+      page
         .locator('.vpress-story__figure')
-        .evaluate((el) => el.ownerDocument.defaultView.getComputedStyle(el).position)
-    ).toBe('sticky');
+        .evaluate((el) => el.ownerDocument.defaultView.getComputedStyle(el).position);
+    expect(await figurePosition(), 'wide enough for two columns').toBe('sticky');
+    await page.locator('[data-vpress-story]').evaluate((el) => {
+      el.style.width = '30rem';
+    });
+    expect(await figurePosition(), 'too narrow for a chart beside the prose').toBe('static');
+    await page.locator('[data-vpress-story]').evaluate((el) => {
+      el.style.width = '';
+    });
+    expect(await figurePosition()).toBe('sticky');
 
     await page.screenshot({ path: 'tests/e2e/screenshots/story-step-1.png', fullPage: false });
 
@@ -196,6 +218,23 @@ test.describe('a published Vpress story', () => {
     expect(third.muted.sort(), 'the others fade while one is emphasised').toEqual(['a1', 'a2']);
     expect(third.emphasizedMarks).toBeGreaterThan(0);
     expect(third.mutedMarks).toBe(totalMarks - third.emphasizedMarks);
+
+    /*
+     * And the dimming reaches the PIXELS, which the classes alone do not say.
+     * Polled because it fades over 350ms — read in the same tick as the class
+     * lands it is still 1, which is also why the screenshot below waits: an
+     * artefact taken here would show a chart that has not changed yet.
+     */
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const muted = document.querySelector('.vpress-mark--muted');
+            return muted ? muted.ownerDocument.defaultView.getComputedStyle(muted).opacity : null;
+          }),
+        { message: 'a muted mark settles at the dimmed opacity' }
+      )
+      .toBe('0.24');
 
     await page.screenshot({ path: 'tests/e2e/screenshots/story-step-3.png', fullPage: false });
 
