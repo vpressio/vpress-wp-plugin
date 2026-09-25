@@ -236,9 +236,18 @@ function vpress_sanitize_chart_value( $value, int $seq_floor = 0 ) {
 		return $value;
 	}
 	$config = json_decode( $value, true );
-	$carries = is_array( $config )
-		&& ( array_key_exists( 'annotations', $config ) || array_key_exists( VPRESS_ANNOTATION_SEQ, $config ) );
-	if ( ! $carries ) {
+	if ( ! is_array( $config ) ) {
+		return $value;
+	}
+	$carries = array_key_exists( 'annotations', $config ) || array_key_exists( VPRESS_ANNOTATION_SEQ, $config );
+	// A config carrying neither key is stored exactly as sent — unless the row
+	// on disk already has a counter. Returning early THERE would erase it, and
+	// the next annotation added would restart at a1, rebinding any story step
+	// still holding that id. The editor cannot send such a config (the preset
+	// declares both keys), but the server floor exists for the clients that
+	// are not the editor: a stale cached bundle, or an integration that PUTs a
+	// config it does not fully model.
+	if ( ! $carries && $seq_floor < 1 ) {
 		return $value;
 	}
 
