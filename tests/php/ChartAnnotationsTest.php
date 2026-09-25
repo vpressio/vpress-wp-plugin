@@ -368,6 +368,40 @@ final class ChartAnnotationsTest extends TestCase {
 		$this->assertSame( 6, vpress_annotation_seq_from_value( '{"annotations":[{"id":"a6"}]}' ), 'derived from the ids when the row predates the counter' );
 	}
 
+	public function test_a_config_modelling_neither_key_cannot_erase_a_stored_counter(): void {
+		// On disk: a chart that has been annotated, counter at 5.
+		$stored                          = VpressFixtures::chart_1_context();
+		$stored['annotations']           = array( array( 'id' => 'a5', 'type' => 'line', 'axis' => 'y', 'value' => 1 ) );
+		$stored[ VPRESS_ANNOTATION_SEQ ] = 5;
+		$this->wpdb->on( '/^SELECT value FROM wp_vpresscore_charts WHERE id = 1$/', json_encode( $stored ) );
+
+		// A client that does not model annotations at all — a stale bundle, or
+		// an integration PUTting the config it understands.
+		$sent = VpressFixtures::CHART_1_VALUE;
+		$this->assertStringNotContainsString( 'annotation', $sent );
+
+		vpress_update_chart(
+			new FakeRestRequest( array( 'id' => '1', 'value' => $sent, 'tags' => '', 'description' => '', 'permissions' => 'public' ) )
+		);
+
+		$after = $this->stored_value();
+		$this->assertSame( 5, $after[ VPRESS_ANNOTATION_SEQ ], 'erasing it would restart the next add at a1 and rebind a story step' );
+		$this->assertSame( array(), $after['annotations'], 'the client did send an empty set; that part is honoured' );
+		$this->assertSame( 'bars', $after['chart'], 'the rest of the config is the client\'s' );
+	}
+
+	public function test_a_config_modelling_neither_key_is_untouched_when_the_row_has_no_counter(): void {
+		// No responder: get_var() returns null, so the floor is 0.
+		$value = VpressFixtures::CHART_1_VALUE;
+
+		vpress_update_chart(
+			new FakeRestRequest( array( 'id' => '1', 'value' => $value, 'tags' => '', 'description' => '', 'permissions' => 'public' ) )
+		);
+
+		$write = end( $this->wpdb->writes );
+		$this->assertSame( $value, $write[2]['value'], 'nothing to preserve, so nothing is rewritten' );
+	}
+
 	public function test_a_config_over_the_cap_is_rejected_and_nothing_is_written(): void {
 		$request = new FakeRestRequest(
 			array( 'id' => '1', 'value' => self::config_with( self::many( 21 ) ), 'tags' => '', 'description' => '', 'permissions' => 'public' )

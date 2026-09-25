@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { scaleBand, scaleLinear, scaleTime } from 'd3';
 import {
   ANNOTATIONS_CLASS,
+  LABEL_FONT_SIZE,
+  labelWidth,
   drawAnnotations,
   annotationColor,
   annotationSeq,
@@ -206,6 +208,102 @@ describe('drawAnnotations', () => {
 
     expect(one.querySelectorAll('line, circle, rect')).toHaveLength(0);
     expect(one.querySelector('.vpress-annotation__label').textContent).toBe('Nota libre');
+  });
+
+  // --- out-of-domain marks stay in the plot -------------------------------
+
+  it('a target line above every bar pins to the top edge, not over the margin', () => {
+    // The commonest editorial annotation there is. place() does not refuse it:
+    // a linear scale extrapolates past its domain quite happily.
+    const { group } = draw([{ id: 'a1', type: 'line', axis: 'y', value: 99999999, label: 'Meta' }]);
+    const rule = group.querySelector('.vpress-annotation__rule');
+    const text = group.querySelector('.vpress-annotation__label');
+
+    expect(Number(rule.getAttribute('y1'))).toBe(0);
+    expect(Number(rule.getAttribute('y2'))).toBe(0);
+    // The label must sit with its own rule, not somewhere the clamp put it.
+    expect(Number(text.getAttribute('y'))).toBeGreaterThanOrEqual(0);
+    expect(Number(text.getAttribute('y'))).toBeLessThanOrEqual(LABEL_FONT_SIZE + 1);
+  });
+
+  it('a line below the domain pins to the bottom edge', () => {
+    const { group } = draw([{ id: 'a1', type: 'line', axis: 'y', value: -5000 }]);
+    const rule = group.querySelector('.vpress-annotation__rule');
+
+    expect(Number(rule.getAttribute('y1'))).toBe(HEIGHT);
+    expect(Number(rule.getAttribute('y2'))).toBe(HEIGHT);
+  });
+
+  it('a point beyond the domain pins its dot inside the plot', () => {
+    const { group } = draw([{ id: 'a1', type: 'point', x: 'Oct', y: 99999999, label: 'Pico' }]);
+    const dot = group.querySelector('.vpress-annotation__dot');
+
+    expect(Number(dot.getAttribute('cy'))).toBe(0);
+    expect(Number(dot.getAttribute('cx'))).toBeGreaterThanOrEqual(0);
+    expect(Number(dot.getAttribute('cx'))).toBeLessThanOrEqual(WIDTH);
+    // The leader starts at the dot it belongs to, wherever that ended up.
+    expect(Number(group.querySelector('.vpress-annotation__leader').getAttribute('y1'))).toBe(0);
+  });
+
+  it('every mark of every type stays within the plot, whatever the value', () => {
+    const { group } = draw([
+      { id: 'a1', type: 'line', axis: 'y', value: 99999999, label: 'L' },
+      { id: 'a2', type: 'point', x: 'Ene', y: -99999, label: 'P' },
+      { id: 'a3', type: 'range', axis: 'y', from: -99999, to: 99999999, label: 'R' }
+    ]);
+
+    group.querySelectorAll('line').forEach((el) => {
+      ['x1', 'x2'].forEach((k) => {
+        expect(Number(el.getAttribute(k))).toBeGreaterThanOrEqual(0);
+        expect(Number(el.getAttribute(k))).toBeLessThanOrEqual(WIDTH);
+      });
+      ['y1', 'y2'].forEach((k) => {
+        expect(Number(el.getAttribute(k))).toBeGreaterThanOrEqual(0);
+        expect(Number(el.getAttribute(k))).toBeLessThanOrEqual(HEIGHT);
+      });
+    });
+    group.querySelectorAll('circle').forEach((el) => {
+      expect(Number(el.getAttribute('cx'))).toBeGreaterThanOrEqual(0);
+      expect(Number(el.getAttribute('cy'))).toBeGreaterThanOrEqual(0);
+      expect(Number(el.getAttribute('cy'))).toBeLessThanOrEqual(HEIGHT);
+    });
+    group.querySelectorAll('rect').forEach((el) => {
+      expect(Number(el.getAttribute('y'))).toBeGreaterThanOrEqual(0);
+      expect(Number(el.getAttribute('y')) + Number(el.getAttribute('height'))).toBeLessThanOrEqual(HEIGHT);
+    });
+  });
+
+  // A label wide enough to force the flip but narrow enough to fit once
+  // flipped: 19 characters against a 120px plot.
+  const LEFT_EDGE = { label: 'nota bien larga :-)', opts: { width: 120, height: HEIGHT } };
+
+  it('a long label flipped onto a left-side position stays fully visible', () => {
+    // An `end`-anchored label extends LEFTWARDS from its anchor, so clamping
+    // only the right edge leaves this one starting at x≈11 and running out to
+    // x≈-104 — off-screen, with nothing to see and no error.
+    const { group } = draw(
+      [{ id: 'a1', type: 'line', axis: 'x', value: 'Ene', label: LEFT_EDGE.label }],
+      { opts: LEFT_EDGE.opts }
+    );
+    const text = group.querySelector('.vpress-annotation__label');
+    const span = labelWidth(LEFT_EDGE.label);
+
+    expect(text.getAttribute('text-anchor')).toBe('end');
+    expect(span, 'the label fits once flipped, so full containment is achievable').toBeLessThan(120);
+    expect(Number(text.getAttribute('x')) - span, 'left edge of the label').toBeGreaterThanOrEqual(0);
+    expect(Number(text.getAttribute('x'))).toBeLessThanOrEqual(120);
+  });
+
+  it('a long label on a left-side point stays fully visible too', () => {
+    const { group } = draw(
+      [{ id: 'a1', type: 'point', x: 'Ene', y: 500, label: LEFT_EDGE.label }],
+      { opts: LEFT_EDGE.opts }
+    );
+    const text = group.querySelector('.vpress-annotation__label');
+    const span = labelWidth(LEFT_EDGE.label);
+
+    expect(Number(text.getAttribute('x')) - span, 'left edge of the label').toBeGreaterThanOrEqual(0);
+    expect(Number(text.getAttribute('x'))).toBeLessThanOrEqual(120);
   });
 
   // --- accessibility ------------------------------------------------------
