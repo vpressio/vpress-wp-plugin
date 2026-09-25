@@ -303,6 +303,26 @@ final class StoryBlockTest extends TestCase {
 		);
 	}
 
+	public function test_the_live_region_is_trimmed_so_the_controller_can_compare_it(): void {
+		// The editor stores the raw field value, so a heading can arrive padded.
+		// The controller trims its own heading before asking whether the region
+		// already shows it; an untrimmed value here makes them unequal and the
+		// region is rewritten at boot with text it already displayed — which is
+		// a live-region mutation, and some assistive tech reads it out.
+		$this->seed_public_chart();
+
+		$html = $this->render_story(
+			array( 'chartId' => 1 ),
+			array( array( 'heading' => '  Todo el año  ', 'overrides' => array() ) )
+		);
+
+		$this->assertStringContainsString(
+			'aria-live="polite">Todo el año</p>',
+			$html,
+			'the live region carries the trimmed heading'
+		);
+	}
+
 	public function test_overrides_are_escaped_into_the_step_attribute(): void {
 		$this->seed_public_chart();
 

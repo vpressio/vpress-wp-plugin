@@ -207,6 +207,25 @@ describe('the story controller', () => {
     expect(statusText()).toBe('El pico de octubre');
   });
 
+  it('blanks the kicker for a headingless step further into the story', () => {
+    // Only the OPENING step defers to what the server put there. Mid-story,
+    // leaving the previous step's heading standing would caption the wrong
+    // step — and the figure description below already drops its "Paso n de N"
+    // clause for this same step, so keeping the kicker would disagree with it.
+    story([
+      { heading: 'Todo el año', overrides: { show: [] } },
+      { heading: '', overrides: { show: ['a1'] } }
+    ]);
+    initStories(document, handleFor);
+    expect(statusText()).toBe('Todo el año');
+    const steps = stepNodes();
+
+    steps[1].getBoundingClientRect = () => ({ top: 450, bottom: 550 });
+    observers[0].fire([[steps[1], true]]);
+
+    expect(statusText()).toBe('');
+  });
+
   it('describes the active step to the figure, in words, beside its own description', () => {
     story();
     initStories(document, handleFor);

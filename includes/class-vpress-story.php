@@ -266,7 +266,14 @@ function vpress_story_first_heading( $block ): string {
 	foreach ( $inner as $child ) {
 		$heading = $child['attrs']['heading'] ?? '';
 		if ( is_string( $heading ) && '' !== trim( $heading ) ) {
-			return $heading;
+			// Trimmed, because the controller compares the text it reads out
+			// of this region against its own trimmed heading before deciding
+			// whether anything changed. Returning "  El pico  " here while the
+			// client holds "El pico" makes them unequal, so the live region is
+			// rewritten at boot with a string it already showed — the exact
+			// mutation that comparison exists to prevent. Reachable: the step
+			// editor stores the raw field value without trimming.
+			return trim( $heading );
 		}
 	}
 	return '';

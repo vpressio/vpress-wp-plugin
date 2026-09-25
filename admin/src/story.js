@@ -179,20 +179,25 @@ function initStory(story, lookup) {
     }
 
     /*
-     * The visible kicker and the polite announcement are the same node, and
+     * The visible kicker and the polite announcement are the same node, so
      * both guards here are about not announcing what has not changed:
      *
-     * - A step with no heading of its own LEAVES THE REGION ALONE rather
-     *   than blanking it. That is also what makes this agree with
-     *   vpress_story_first_heading(), which fills the region server-side
-     *   with the first NON-EMPTY heading — a story opening on a prose-only
-     *   step would otherwise go blank the moment this file ran.
-     * - An assignment that would not change the text is skipped. Writing
-     *   the same string into a live region is still a mutation and some
-     *   assistive tech reads it out, including at boot, over markup the
-     *   server had already filled in correctly.
+     * - The OPENING step, when it has no heading of its own, leaves the
+     *   region alone. vpress_story_first_heading() fills it server-side with
+     *   the first NON-EMPTY heading, so a story that opens on prose would
+     *   otherwise go blank the moment this file ran. Scoped to index 0 on
+     *   purpose: further in, a headingless step blanks the kicker as before,
+     *   because leaving the PREVIOUS step's heading standing over the current
+     *   one is a different and worse lie — and the figure description right
+     *   below already drops its "Paso n de N" clause for exactly this step.
+     * - An assignment that would not change the text is skipped. Writing the
+     *   same string into a live region is still a mutation and some assistive
+     *   tech reads it out, including at boot, over markup the server had
+     *   already filled in correctly. Both sides are trimmed for this
+     *   comparison — see vpress_story_first_heading().
      */
-    if (status && heading && status.textContent !== heading) {
+    const keepServerHeading = index === 0 && !heading;
+    if (status && !keepServerHeading && status.textContent !== heading) {
       status.textContent = heading;
     }
 

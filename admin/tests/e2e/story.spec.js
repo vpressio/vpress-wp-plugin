@@ -207,6 +207,26 @@ test.describe('a published Vpress story', () => {
     expect(second.emphasized).toEqual(['a1']);
     expect(second.mutedMarks, 'emphasising a target line must not grey out the chart').toBe(0);
 
+    /*
+     * And emphasis reaches the PIXELS here, where nothing else is dimmed.
+     * This is the case that made the styling necessary: with mutedMarks === 0
+     * the only thing saying "this one" is the annotation's own weight, so if
+     * the rule did not apply, "Emphasise" would be a control that changed
+     * nothing on screen while the class said it had.
+     */
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const rule = document.querySelector(
+              '.vpress-annotation--emphasis .vpress-annotation__rule'
+            );
+            return rule ? rule.ownerDocument.defaultView.getComputedStyle(rule).strokeWidth : null;
+          }),
+        { message: 'an emphasised reference line is drawn heavier than a plain one' }
+      )
+      .toBe('2.5px');
+
     // f. Step three: everything visible, the point emphasised — and NOW the
     //    marks it does not name are dimmed.
     await scrollToStep(page, 2);
