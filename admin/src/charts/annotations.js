@@ -43,7 +43,7 @@ const PAINT = {
   series: 'var(--vpress-annotation-series, currentColor)'
 };
 
-const LABEL_FONT_SIZE = 11;
+export const LABEL_FONT_SIZE = 11;
 const LABEL_PAD = 4;
 const POINT_RADIUS = 4;
 // Where a point's label sits relative to its mark before any flip.
@@ -173,13 +173,31 @@ function extent(scale, value) {
   return at === null ? null : [at, at];
 }
 
-/** A rough label width; SVG text metrics are not available before layout. */
-function labelWidth(text) {
+/**
+ * A rough label width; SVG text metrics are not available before layout.
+ * Exported so a containment test measures with the same rule the layout uses,
+ * rather than restating the constants and drifting from them.
+ */
+export function labelWidth(text) {
   return String(text || '').length * LABEL_FONT_SIZE * 0.55;
 }
 
 function clamp(value, low, high) {
   return Math.max(low, Math.min(high, value));
+}
+
+/**
+ * A label anchor kept inside the plot on BOTH edges.
+ *
+ * A clamp on the right alone is not enough: an `end`-anchored label extends
+ * LEFTWARDS from its anchor, so one flipped onto a left-side position runs off
+ * at x≈0 and is simply invisible — no overflow, no error, nothing to see.
+ */
+function anchorInside(x, anchor, text, width) {
+  const span = labelWidth(text);
+  return anchor === 'end'
+    ? clamp(x, Math.min(span, width), width)
+    : clamp(x, 0, Math.max(0, width - span));
 }
 
 function el(doc, name, attributes) {
@@ -232,12 +250,19 @@ function drawLine(doc, group, annotation, ctx) {
   if (at === null) return false;
 
   const vertical = annotation.axis === 'x';
+  // A value beyond the axis domain RESOLVES, by extrapolation — place() only
+  // refuses what the scale cannot map at all. Left alone, the commonest
+  // editorial annotation there is ("a target above every bar") would draw
+  // over the top margin while its label clamped inside the plot, visibly
+  // detached from its own rule. Pin the rule to the edge instead, as the
+  // range band already does.
+  const on = vertical ? clamp(at, 0, width) : clamp(at, 0, height);
   const rule = el(doc, 'line', {
     class: 'vpress-annotation__rule',
-    x1: vertical ? at : 0,
-    x2: vertical ? at : width,
-    y1: vertical ? 0 : at,
-    y2: vertical ? height : at,
+    x1: vertical ? on : 0,
+    x2: vertical ? on : width,
+    y1: vertical ? 0 : on,
+    y2: vertical ? height : on,
     'stroke-width': 1.5,
     'stroke-dasharray': '5 4',
     'pointer-events': 'none'
@@ -249,20 +274,21 @@ function drawLine(doc, group, annotation, ctx) {
   if (vertical) {
     // Keep the label inside the plot: flip to the left of the rule when it
     // would otherwise run off the right edge.
-    const flip = at + LABEL_PAD + labelWidth(annotation.label) > width;
+    const flip = on + LABEL_PAD + labelWidth(annotation.label) > width;
+    const anchor = flip ? 'end' : 'start';
     group.appendChild(
       label(doc, annotation.label, {
-        x: flip ? at - LABEL_PAD : at + LABEL_PAD,
+        x: anchorInside(flip ? on - LABEL_PAD : on + LABEL_PAD, anchor, annotation.label, width),
         y: clamp(LABEL_FONT_SIZE, LABEL_FONT_SIZE, height),
-        anchor: flip ? 'end' : 'start',
+        anchor,
         color
       })
     );
   } else {
     group.appendChild(
       label(doc, annotation.label, {
-        x: width - LABEL_PAD,
-        y: clamp(at - LABEL_PAD, LABEL_FONT_SIZE, height - LABEL_PAD),
+        x: anchorInside(width - LABEL_PAD, 'end', annotation.label, width),
+        y: clamp(on - LABEL_PAD, LABEL_FONT_SIZE, height - LABEL_PAD),
         anchor: 'end',
         color
       })
@@ -296,7 +322,7 @@ function drawRange(doc, group, annotation, ctx) {
   if (!annotation.label) return true;
   group.appendChild(
     label(doc, annotation.label, {
-      x: (horizontal ? clamp(low, 0, width) : 0) + LABEL_PAD,
+      x: anchorInside((horizontal ? clamp(low, 0, width) : 0) + LABEL_PAD, 'start', annotation.label, width),
       y: (horizontal ? 0 : clamp(low, 0, height)) + LABEL_FONT_SIZE + LABEL_PAD,
       anchor: 'start',
       color
@@ -307,9 +333,13 @@ function drawRange(doc, group, annotation, ctx) {
 
 function drawPoint(doc, group, annotation, ctx) {
   const { width, height, color } = ctx;
-  const px = place(ctx.scales.x, annotation.x);
-  const py = place(ctx.scales.y, annotation.y);
-  if (px === null || py === null) return false;
+  const at = { x: place(ctx.scales.x, annotation.x), y: place(ctx.scales.y, annotation.y) };
+  if (at.x === null || at.y === null) return false;
+  // As for a line: a value past the axis domain extrapolates rather than
+  // failing, so pin the dot to the plot edge instead of drawing it over the
+  // margin with its label clamped somewhere else.
+  const px = clamp(at.x, 0, width);
+  const py = clamp(at.y, 0, height);
 
   const dot = el(doc, 'circle', {
     class: 'vpress-annotation__dot',
@@ -345,11 +375,12 @@ function drawPoint(doc, group, annotation, ctx) {
   paint(leader, { stroke: PAINT[color] });
   group.appendChild(leader);
 
+  const anchor = flipX ? 'end' : 'start';
   group.appendChild(
     label(doc, annotation.label, {
-      x: tipX + (flipX ? -LABEL_PAD : LABEL_PAD),
+      x: anchorInside(tipX + (flipX ? -LABEL_PAD : LABEL_PAD), anchor, annotation.label, width),
       y: tipY - LABEL_PAD,
-      anchor: flipX ? 'end' : 'start',
+      anchor,
       color
     })
   );
@@ -364,11 +395,12 @@ function drawText(doc, group, annotation, ctx) {
   if (!annotation.label) return true;
 
   const flip = px + labelWidth(annotation.label) > width;
+  const anchor = flip ? 'end' : 'start';
   group.appendChild(
     label(doc, annotation.label, {
-      x: clamp(px, 0, width),
+      x: anchorInside(clamp(px, 0, width), anchor, annotation.label, width),
       y: clamp(py, LABEL_FONT_SIZE, height),
-      anchor: flip ? 'end' : 'start',
+      anchor,
       color
     })
   );
