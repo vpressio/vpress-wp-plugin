@@ -5,6 +5,9 @@ export default {
   groupBy: { title: '', type: '', slug: '' },
   collapseBy: { title: '', type: '', slug: '', func: '' },
   filters: [],
+  // Editorial annotations, each with a stable id a story step references.
+  // Absent or [] on every chart saved before they existed.
+  annotations: [],
   orderBy: { order: 'asc', slug: '' },
   unitsName: '',
   decimals: 1,
