@@ -1,0 +1,35 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "vpress/story-step",
+	"title": "Vpress story step",
+	"category": "embed",
+	"icon": "editor-ol",
+	"description": "One step of a Vpress story: prose, and what the chart emphasises while it is read.",
+	"keywords": [ "story", "paso", "step", "vpress" ],
+	"textdomain": "vpress",
+	"parent": [ "vpress/story" ],
+	"usesContext": [ "vpress/chartId" ],
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": ""
+		},
+		"text": {
+			"type": "string",
+			"default": ""
+		},
+		"overrides": {
+			"type": "object",
+			"default": {}
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"reusable": false
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"render": "file:./render.php"
+}

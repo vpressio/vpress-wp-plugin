@@ -144,8 +144,9 @@ class Vpress {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/vpress-shortcode.php';
 
 		/**
-		 * Vpress blocks (vpress/chart)
+		 * Vpress blocks (vpress/chart, vpress/story, vpress/story-step)
 		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-story.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-vpress-blocks.php';
 
 		/**
