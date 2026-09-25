@@ -32,6 +32,7 @@ import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
 import { isLeafletReady, loadLeaflet } from '../utils/lazyLeaflet.js';
 import { enhanceMarks } from '../a11y/marks.js';
+import { drawAnnotations } from '../charts/annotations.js';
 import { ensureGraphicContrast, textColorFor } from '../a11y/contrast.js';
 import {
   timeFormatLocale,
@@ -111,7 +112,9 @@ export default {
       colors: Array,
       opacity: Number,
       theme: String,
-      labels: Boolean
+      labels: Boolean,
+      // Editorial annotations; see src/charts/annotations.js for the model.
+      annotations: Array
     },
     iframe: Boolean,
     // Text alternative for the <svg>'s <desc> (the public figure passes its
@@ -612,6 +615,7 @@ export default {
               vm.labelBars(chart._svg && chart._svg.node ? chart._svg.node() : null);
             }
             vm.applyA11y(chart._svg && chart._svg.node ? chart._svg.node() : null);
+            vm.drawChartAnnotations(chart);
             vm.$emit('chart_loaded', vm.$el);
           }
         }
@@ -1055,6 +1059,30 @@ export default {
       enhanceMarks(svg, { getLabel: (datum, el) => this.markLabel(datum, el) });
     },
     /**
+     * Draw the chart's editorial annotations over the marks, using the scales
+     * dbox itself built.
+     *
+     * `chart._svg` is the <g> translated by the chart margins, so its local
+     * origin is the plot origin and `chart._scales` maps straight into it.
+     * `chart._scales` carries the LAYER's domains (Chart.initLayers assigns
+     * `vm._scales = ly._scales`), which is why this runs in `load` and not
+     * before: earlier the scales exist but their domains do not.
+     *
+     * A chart type that never builds usable x/y scales (map, treemap) simply
+     * places nothing — drawAnnotations skips what it cannot place rather than
+     * inventing a coordinate system.
+     */
+    drawChartAnnotations(chart) {
+      const node = chart && chart._svg && chart._svg.node ? chart._svg.node() : null;
+      if (!node) return;
+      drawAnnotations(
+        node,
+        (this.chartConfig && this.chartConfig.annotations) || [],
+        { x: chart._scales && chart._scales.x, y: chart._scales && chart._scales.y },
+        { width: chart._width, height: chart._height }
+      );
+    },
+    /**
      * Direct value labels: as configured, but always on when several series
      * share the plot, so colour is never the only way to tell them apart.
      * (A method: groupByOptions is set per draw, not reactive.)
@@ -1461,6 +1489,51 @@ export default {
   outline-offset: 2px;
 }
 .vpress-mark:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Editorial annotations (admin/src/charts/annotations.js). The named colour
+   tokens resolve here, per theme, so an annotation is legible on both
+   backgrounds — which is exactly why the config stores a token and not a hex.
+   Measured against #fff / #1e1e1e: 6.9, 7.6, 8.9 and 10.1 to 1. */
+.chart-container {
+  --vpress-annotation-signal: #b0173c;
+  --vpress-annotation-muted: #4a4a4a;
+  --vpress-annotation-series: currentColor;
+}
+.chart-container.dark-themed {
+  --vpress-annotation-signal: #ff8da1;
+  --vpress-annotation-muted: #c9c9c9;
+}
+
+/* Only the label is interactive; the marks below keep their own tooltips. */
+.vpress-annotations {
+  pointer-events: none;
+}
+
+/* The label's own colour is set as an INLINE style by drawAnnotations, which
+   is what makes it beat `.chart-container.dark-themed svg text { fill: #eee }`
+   — a presentation attribute would lose to that rule and every annotation
+   label would come out a uniform grey in the dark theme. */
+.vpress-annotation__label {
+  pointer-events: auto;
+  font-weight: 600;
+}
+
+/* Annotations are drawn with NO motion, which is why nothing here needs a
+   prefers-reduced-motion carve-out. A fade-in was tried and removed: the
+   figure flips aria-busy="false" in the same tick as the draw, so anything
+   that waits for that signal and then measures or screenshots — a visual
+   regression test, a PNG export — caught the annotations at whatever opacity
+   the animation had reached (measured: 0.14). A 200ms flourish is not worth
+   an artefact that only shows up in the artefact. */
+
+/* Keyboard focus on an annotation label, like a data mark. */
+.vpress-annotation__label:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.vpress-annotation__label:focus:not(:focus-visible) {
   outline: none;
 }
 

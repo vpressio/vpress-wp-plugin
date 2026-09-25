@@ -4,6 +4,274 @@ require_once __DIR__ . '/class-vpress-query-guard.php';
 require_once __DIR__ . '/class-vpress-debug-output.php';
 require_once __DIR__ . '/class-vpress-query-body.php';
 
+/** Most annotations one chart may carry; the next one is a 400. */
+const VPRESS_ANNOTATION_MAX = 20;
+
+/** The annotation shapes the renderer knows. */
+const VPRESS_ANNOTATION_TYPES = array( 'line', 'point', 'range', 'text' );
+
+/** Axes a `line` or a `range` may be pinned to. */
+const VPRESS_ANNOTATION_AXES = array( 'x', 'y' );
+
+/**
+ * Named colour tokens an annotation may ask for.
+ *
+ * Deliberately not a raw hex: the palette contrast work guarantees a legible
+ * annotation against both chart backgrounds, and a hex from a chart author
+ * would walk straight past it.
+ */
+const VPRESS_ANNOTATION_COLORS = array( 'signal', 'muted', 'series' );
+
+/**
+ * One data-space position: a number stays a number, a category string is
+ * sanitised, anything else is unplaceable.
+ *
+ * Numeric-looking strings are NOT cast, because the server cannot tell a
+ * linear value from an ordinal category whose label happens to be "2026";
+ * the renderer coerces on a linear or time scale.
+ *
+ * @param mixed $value Raw value from the client.
+ * @return int|float|string|null Null when the value cannot be placed.
+ */
+function vpress_sanitize_annotation_value( $value ) {
+	if ( is_int( $value ) ) {
+		return (int) $value;
+	}
+	if ( is_float( $value ) ) {
+		return (float) $value;
+	}
+	if ( is_string( $value ) ) {
+		$clean = sanitize_text_field( $value );
+		return '' === $clean ? null : $clean;
+	}
+	return null;
+}
+
+/**
+ * The position keys one annotation type needs, in the order they are stored.
+ *
+ * @param string $type Annotation type.
+ * @return string[]
+ */
+function vpress_annotation_position_keys( string $type ): array {
+	switch ( $type ) {
+		case 'line':
+			return array( 'value' );
+		case 'range':
+			return array( 'from', 'to' );
+		default:
+			return array( 'x', 'y' );
+	}
+}
+
+/**
+ * Sanitise one annotation, or null when it is malformed.
+ *
+ * Malformed means unplaceable or unidentifiable: no usable id, an unknown
+ * type, a missing axis on a `line`/`range`, or a missing position. Such an
+ * entry is dropped rather than failing the whole save, because an editor
+ * must never lose a chart to one bad annotation.
+ *
+ * @param mixed $raw One entry of the annotations array.
+ * @return array|null
+ */
+function vpress_sanitize_annotation( $raw ): ?array {
+	if ( ! is_array( $raw ) ) {
+		return null;
+	}
+
+	$id = isset( $raw['id'] ) && is_string( $raw['id'] ) ? strtolower( trim( $raw['id'] ) ) : '';
+	if ( ! preg_match( '/^[a-z0-9_-]{1,32}$/D', $id ) ) {
+		return null;
+	}
+
+	$type = isset( $raw['type'] ) && is_string( $raw['type'] ) ? strtolower( trim( $raw['type'] ) ) : '';
+	if ( ! in_array( $type, VPRESS_ANNOTATION_TYPES, true ) ) {
+		return null;
+	}
+
+	// Key order is part of the stored shape: id, type, axis, position, label, color.
+	$clean = array(
+		'id'   => $id,
+		'type' => $type,
+	);
+
+	if ( 'line' === $type || 'range' === $type ) {
+		$axis = isset( $raw['axis'] ) && is_string( $raw['axis'] ) ? strtolower( trim( $raw['axis'] ) ) : '';
+		if ( ! in_array( $axis, VPRESS_ANNOTATION_AXES, true ) ) {
+			return null;
+		}
+		$clean['axis'] = $axis;
+	}
+
+	foreach ( vpress_annotation_position_keys( $type ) as $key ) {
+		$value = vpress_sanitize_annotation_value( $raw[ $key ] ?? null );
+		if ( null === $value ) {
+			return null;
+		}
+		$clean[ $key ] = $value;
+	}
+
+	$label = isset( $raw['label'] ) ? sanitize_text_field( (string) $raw['label'] ) : '';
+	if ( '' !== $label ) {
+		$clean['label'] = $label;
+	}
+
+	$color = isset( $raw['color'] ) && is_string( $raw['color'] ) ? strtolower( trim( $raw['color'] ) ) : '';
+	if ( in_array( $color, VPRESS_ANNOTATION_COLORS, true ) ) {
+		$clean['color'] = $color;
+	}
+
+	return $clean;
+}
+
+/**
+ * Sanitise the `annotations` array of a chart config.
+ *
+ * Every annotation carries a stable `id` that a story step references, so a
+ * malformed entry is dropped (never renumbered, never silently re-keyed) and
+ * a duplicate id keeps the first occurrence. Going over the cap is the one
+ * hard failure: silently truncating would drop editorial content the author
+ * believes they saved.
+ *
+ * @param mixed $raw Raw `annotations` value from the client.
+ * @return array|WP_Error Sanitised list, or a 400 over the cap.
+ */
+function vpress_sanitize_annotations( $raw ) {
+	if ( ! is_array( $raw ) ) {
+		return array();
+	}
+	if ( count( $raw ) > VPRESS_ANNOTATION_MAX ) {
+		return new WP_Error(
+			'vpress_too_many_annotations',
+			sprintf(
+				/* translators: %s: maximum number of annotations per chart. */
+				__( 'A chart may carry at most %s annotations.', 'vpress' ),
+				number_format_i18n( VPRESS_ANNOTATION_MAX )
+			),
+			array( 'status' => 400 )
+		);
+	}
+
+	$clean = array();
+	$seen  = array();
+	foreach ( $raw as $entry ) {
+		$annotation = vpress_sanitize_annotation( $entry );
+		if ( null === $annotation || isset( $seen[ $annotation['id'] ] ) ) {
+			continue;
+		}
+		$seen[ $annotation['id'] ] = true;
+		$clean[]                   = $annotation;
+	}
+	return $clean;
+}
+
+/** Config key holding the highest annotation id number ever issued. */
+const VPRESS_ANNOTATION_SEQ = 'annotationSeq';
+
+/**
+ * The chart's annotation counter: the highest `a{n}` id ever issued.
+ *
+ * Two properties make it worth storing rather than deriving on the fly:
+ *
+ * - It is **never decremented.** Deleting an annotation leaves it alone, so
+ *   the next one added cannot take the deleted id. A story step still holding
+ *   that id would otherwise rebind to different content with no error
+ *   anywhere — the exact failure a stable id exists to prevent.
+ * - It is **never trusted below the truth.** A config hand-edited in the
+ *   database, tampered with over REST, or saved before this key existed is
+ *   floored up to the highest id actually present, so it heals upward instead
+ *   of handing out an id that is already in use.
+ *
+ * @param array $annotations Sanitised annotations.
+ * @param mixed $raw         The counter as the client sent it, if any.
+ * @return int
+ */
+function vpress_annotation_seq( array $annotations, $raw ): int {
+	$highest = 0;
+	foreach ( $annotations as $annotation ) {
+		if ( preg_match( '/^a(\d+)$/D', (string) ( $annotation['id'] ?? '' ), $matches ) ) {
+			$highest = max( $highest, (int) $matches[1] );
+		}
+	}
+	$declared = is_numeric( $raw ) ? (int) $raw : 0;
+	return max( $highest, $declared );
+}
+
+/**
+ * The annotation counter a stored chart `value` implies.
+ *
+ * The server cannot see what the client deleted, so on an update it floors the
+ * incoming counter against the row already on disk. Without this, a client
+ * that is not the editor — a direct REST call, or a chart saved before the
+ * counter existed — could delete the highest annotation and have the next add
+ * reissue its id.
+ *
+ * @param mixed $value A stored chart config as JSON, or anything else.
+ * @return int 0 when there is nothing to read.
+ */
+function vpress_annotation_seq_from_value( $value ): int {
+	$config = is_string( $value ) ? json_decode( $value, true ) : null;
+	if ( ! is_array( $config ) ) {
+		return 0;
+	}
+	$annotations = is_array( $config['annotations'] ?? null ) ? $config['annotations'] : array();
+	return vpress_annotation_seq( $annotations, $config[ VPRESS_ANNOTATION_SEQ ] ?? null );
+}
+
+/**
+ * The chart `value` a write route should store: unchanged unless it carries
+ * an `annotations` key, in which case that key is sanitised in place.
+ *
+ * A chart without annotations is stored byte-for-byte as the client sent it,
+ * so this can never reformat a config it does not understand.
+ *
+ * @param mixed $value Raw `value` param (the config as a JSON string).
+ * @param int   $seq_floor Lowest the annotation counter may be — on an update,
+ *                         what the row on disk already implies.
+ * @return mixed|WP_Error The value to store.
+ */
+function vpress_sanitize_chart_value( $value, int $seq_floor = 0 ) {
+	if ( ! is_string( $value ) ) {
+		return $value;
+	}
+	$config = json_decode( $value, true );
+	if ( ! is_array( $config ) ) {
+		return $value;
+	}
+	$carries = array_key_exists( 'annotations', $config ) || array_key_exists( VPRESS_ANNOTATION_SEQ, $config );
+	// A config carrying neither key is stored exactly as sent — unless the row
+	// on disk already has a counter. Returning early THERE would erase it, and
+	// the next annotation added would restart at a1, rebinding any story step
+	// still holding that id. The editor cannot send such a config (the preset
+	// declares both keys), but the server floor exists for the clients that
+	// are not the editor: a stale cached bundle, or an integration that PUTs a
+	// config it does not fully model.
+	if ( ! $carries && $seq_floor < 1 ) {
+		return $value;
+	}
+
+	$annotations = vpress_sanitize_annotations( $config['annotations'] ?? array() );
+	if ( is_wp_error( $annotations ) ) {
+		return $annotations;
+	}
+	$config['annotations'] = $annotations;
+	// The counter is part of the model, not a client hint: it is stored so that
+	// a later session issues ids above every one ever used, rather than above
+	// the ones that happen to have survived.
+	$config[ VPRESS_ANNOTATION_SEQ ] = max(
+		$seq_floor,
+		vpress_annotation_seq( $annotations, $config[ VPRESS_ANNOTATION_SEQ ] ?? null )
+	);
+
+	// Match what the admin's JSON.stringify() produces, so re-encoding an
+	// annotated config does not silently rewrite the whole row: escaped
+	// unicode would still decode correctly, but `lower(value) LIKE` in
+	// /chart/list searches these bytes, so "México" would stop matching.
+	$encoded = wp_json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	return false === $encoded ? $value : $encoded;
+}
+
 /**
  * Single error shape for rejected chart query input.
  */
@@ -508,6 +776,12 @@ function vpress_create_chart( $request ) {
     $table_name = $wpdb->prefix.'vpresscore_charts';
     $dataset_id = (int)$request->get_param('dataset_id');
     $value = $request->get_param('value');
+    // Editorial annotations ride inside the config JSON; sanitise them
+    // before the row is written, and refuse a config over the cap.
+    $value = vpress_sanitize_chart_value( $value );
+    if ( is_wp_error( $value ) ) {
+      return $value;
+    }
     $owner_id = (int)$request->get_param('owner_id');
     $description = $request->get_param('description');
     $permissions = $request->get_param('permissions');
@@ -554,6 +828,15 @@ function vpress_update_chart( $request ) {
     $table_name = $wpdb->prefix.'vpresscore_charts';
     $id = (int)$request->get_param('id');
     $value = $request->get_param('value');
+    // Editorial annotations ride inside the config JSON; sanitise them
+    // before the row is written, and refuse a config over the cap. The
+    // annotation counter is floored against the row already on disk, so no
+    // client can lower it by deleting the annotation that carried it.
+    $stored = $wpdb->get_var( $wpdb->prepare( "SELECT value FROM $table_name WHERE id = %d", $id ) );
+    $value = vpress_sanitize_chart_value( $value, vpress_annotation_seq_from_value( $stored ) );
+    if ( is_wp_error( $value ) ) {
+      return $value;
+    }
     $tags = $request->get_param('tags');
     $description = $request->get_param('description');
     $permissions = $request->get_param('permissions');

@@ -66,6 +66,9 @@
             <VpressExpansionPanel panelTitle="COLOR DE GRÁFICAS">
               <VpressColorSelection />
             </VpressExpansionPanel>
+            <VpressExpansionPanel panelTitle="ANOTACIONES">
+              <VpressConfigAnnotations />
+            </VpressExpansionPanel>
           </div>
         </div>
       </v-col>
@@ -132,6 +135,7 @@ import VpressChartGroup from '../components/vpress-chart-group.vue'
 import VpressExpansionPanel from '../components/vpress-expansion-panel.vue'
 import VpressInputControl from '../components/vpress-config-input.vue'
 import VpressColorSelection from '../components/vpress-config-color-selection.vue'
+import VpressConfigAnnotations from '../components/vpress-config-annotations.vue'
 import { loaderMixin } from '../mixins/index.js'
 import { useNotificationsStore } from '../store/index.js'
 import db1PurpleIcon from '../assets/images/db1-purple.svg'
@@ -149,7 +153,8 @@ export default {
     VpressChartGroup,
     VpressExpansionPanel,
     VpressInputControl,
-    VpressColorSelection
+    VpressColorSelection,
+    VpressConfigAnnotations
   },
   data() {
     return {

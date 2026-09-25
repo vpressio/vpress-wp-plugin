@@ -42,3 +42,26 @@ export async function deleteChart(request, id) {
   expect(body.data).toBe(1);
   return body;
 }
+
+/**
+ * POST /chart/create {dataset_id, value, owner_id, description, permissions}.
+ * Returns the new chart id. The caller is responsible for deleting it.
+ */
+export async function createChart(request, { datasetId, value, permissions = 'public' }) {
+  const nonce = await restNonce(request);
+  const res = await request.post(`${BASE}/chart/create`, {
+    headers: { 'X-WP-Nonce': nonce },
+    data: {
+      dataset_id: Number(datasetId),
+      value: JSON.stringify(value),
+      owner_id: 1,
+      description: '',
+      permissions,
+      img_url: ''
+    }
+  });
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(Number(body.data)).toBeGreaterThan(0);
+  return Number(body.data);
+}
