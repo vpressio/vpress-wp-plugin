@@ -31,8 +31,14 @@
 import { includes, cloneDeep, uniq } from 'lodash';
 import 'topojson';
 import { isLeafletReady, loadLeaflet } from '../utils/lazyLeaflet.js';
-import { enhanceMarks } from '../a11y/marks.js';
+import { enhanceMarks, MARK_CLASS } from '../a11y/marks.js';
 import { drawAnnotations } from '../charts/annotations.js';
+import {
+  applyAnnotationClasses,
+  applyMarkClasses,
+  markSelection,
+  ANIMATED_CLASS as STORY_ANIMATED_CLASS
+} from '../charts/story.js';
 import { ensureGraphicContrast, textColorFor } from '../a11y/contrast.js';
 import {
   timeFormatLocale,
@@ -1082,6 +1088,98 @@ export default {
         { width: chart._width, height: chart._height }
       );
     },
+
+    /* --------------------------------------------------------- stories */
+
+    /**
+     * Apply a story step's emphasis to what is already drawn.
+     *
+     * Classes only. `drawAnnotations()` removes and rebuilds the whole group
+     * on every call and needs scales only the draw hook holds, so a step that
+     * redrew would be redrawing the chart — the supported mechanism is to
+     * toggle attributes on the `[data-annotation-id]` nodes that are there.
+     *
+     * The marks are dimmed only when an emphasised annotation actually names
+     * a position on the CATEGORY axis. A target line on the value axis says
+     * something about every mark, so emphasising one must not grey out the
+     * whole chart; markSelection() returns null there and nothing is touched.
+     *
+     * @param {object} overrides Normalised step state.
+     * @param {{animate?: boolean}} [options] `animate: false` paints with
+     *   transitions off — see enableStoryTransitions().
+     * @returns {object|null} which annotation ids were found visible, hidden
+     *   and emphasised ON THIS CHART.
+     */
+    applyStoryEmphasis(overrides, options = {}) {
+      const root = this.$el;
+      if (!root || typeof root.querySelectorAll !== 'function') return null;
+      if (options.animate !== true) root.classList.remove(STORY_ANIMATED_CLASS);
+
+      const annotations = applyAnnotationClasses(root, overrides);
+
+      const marks = Array.from(root.querySelectorAll(`.${MARK_CLASS}`));
+      const selection = markSelection(
+        (this.chartConfig && this.chartConfig.annotations) || [],
+        (overrides && overrides.emphasize) || [],
+        marks.map((mark) => this.markStoryKey(mark.__data__))
+      );
+      applyMarkClasses(marks, selection);
+
+      return annotations;
+    },
+    /**
+     * Turn the between-step transitions on, one frame after a paint.
+     *
+     * A frame later, not in the same one, and that is the whole point: a
+     * transition only runs when the style BEFORE the change already allowed
+     * one, so adding the class together with the new classes would animate
+     * nothing — and adding it before the first paint would mean the figure
+     * announces `aria-busy="false"` while the first step is still fading in.
+     */
+    enableStoryTransitions() {
+      const raf =
+        typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+          ? window.requestAnimationFrame.bind(window)
+          : (fn) => setTimeout(fn, 0);
+      raf(() => {
+        if (this.$el && this.$el.classList) this.$el.classList.add(STORY_ANIMATED_CLASS);
+      });
+    },
+    /**
+     * The category a drawn mark belongs to, as a string, so an annotation's
+     * data-space position can be matched against it. Covers the datum shapes
+     * the chart types actually hand d3 (a row keyed by slug, a scatter point
+     * wrapping its row, a heat-map cell with x/y).
+     */
+    markStoryKey(d) {
+      if (d === null || d === undefined) return '';
+      if (typeof d !== 'object') return String(d);
+      const ordinal = (this.ordinalAxis && this.ordinalAxis.slug) || '';
+      const x = (this.chartConfig.xAxis && this.chartConfig.xAxis.slug) || '';
+      if (ordinal && d[ordinal] !== undefined) return String(d[ordinal]);
+      if (x && d[x] !== undefined) return String(d[x]);
+      if (d.datum && typeof d.datum === 'object') {
+        if (ordinal && d.datum[ordinal] !== undefined) return String(d.datum[ordinal]);
+        if (x && d.datum[x] !== undefined) return String(d.datum[x]);
+      }
+      if (d.x !== undefined) return String(d.x);
+      return '';
+    },
+    /**
+     * The legend's current narrowing as a filter clause, for the editor's
+     * "Capturar estado actual". Null when every series is on (nothing to
+     * capture) or when there is no real legend.
+     *
+     * @returns {{slug: string, type: string, value: string[]}|null}
+     */
+    storyLegendFilter() {
+      const slug = (this.legendDisplay && this.legendDisplay.slug) || '';
+      const options = (this.legendOptions || []).filter((o) => o && o.name && o.name !== 'Todos');
+      if (!slug || options.length < 2) return null;
+      const active = options.filter((o) => o.active).map((o) => String(o.name));
+      if (!active.length || active.length === options.length) return null;
+      return { slug, type: 'ordinal', value: active };
+    },
     /**
      * Direct value labels: as configured, but always on when several series
      * share the plot, so colour is never the only way to tell them apart.
@@ -1527,6 +1625,39 @@ export default {
    regression test, a PNG export — caught the annotations at whatever opacity
    the animation had reached (measured: 0.14). A 200ms flourish is not worth
    an artefact that only shows up in the artefact. */
+
+/* --- Story steps (admin/src/charts/story.js) -------------------------------
+   A step changes what the chart emphasises; these are the only classes it
+   sets. Hidden annotations use visibility, not opacity alone: a focusable
+   label at opacity 0 is still in the tab order and still read out, which is
+   the way "the chart hides it" becomes "the chart lies about it".           */
+.vpress-annotation--hidden {
+  visibility: hidden;
+  opacity: 0;
+}
+.vpress-annotation--muted {
+  opacity: 0.35;
+}
+.vpress-mark--muted {
+  opacity: 0.24;
+}
+
+/* Transitions are OFF until .vpress-story-animated arrives, one frame after
+   the first paint of a draw. That is not a nicety: the figure flips
+   aria-busy="false" in the same tick as the draw, and anything measuring on
+   that signal must find the first step settled — the same hazard that cost
+   the annotations their fade-in (measured at opacity 0.14). Nothing else in
+   this file animates, so there is exactly one carve-out to keep honest. */
+.vpress-story-animated .vpress-annotation,
+.vpress-story-animated .vpress-mark {
+  transition: opacity 0.35s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vpress-story-animated .vpress-annotation,
+  .vpress-story-animated .vpress-mark {
+    transition: none;
+  }
+}
 
 /* Keyboard focus on an annotation label, like a data mark. */
 .vpress-annotation__label:focus {
