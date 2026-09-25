@@ -335,6 +335,31 @@ final class ProvenanceFigureTest extends TestCase {
 		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $data['generated_at'] );
 	}
 
+	public function test_the_export_carries_the_charts_annotations(): void {
+		$config                = VpressFixtures::chart_1_context();
+		$config['annotations'] = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual', 'color' => 'signal' ),
+			array( 'id' => 'a2', 'type' => 'point', 'x' => 'Oct', 'y' => 688, 'label' => '+73% vs. septiembre' ),
+		);
+		$this->seed( $this->full(), array( 'value' => json_encode( $config ) ) );
+
+		$data = vpress_export_chart( new FakeRestRequest( array( 'id' => '1' ) ) )->get_data();
+
+		$this->assertSame(
+			$config['annotations'],
+			$data['chart']['value']['annotations'],
+			'a downloaded chart carries the editorial reading, not just the rows'
+		);
+	}
+
+	public function test_a_chart_without_annotations_exports_none(): void {
+		$this->seed( $this->full() );
+
+		$data = vpress_export_chart( new FakeRestRequest( array( 'id' => '1' ) ) )->get_data();
+
+		$this->assertArrayNotHasKey( 'annotations', $data['chart']['value'] );
+	}
+
 	public function test_export_fails_closed_when_the_query_fails(): void {
 		$this->wpdb->fail_on( '/^SELECT f1\./', 'Table is marked as crashed' );
 

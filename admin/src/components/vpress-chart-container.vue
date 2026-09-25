@@ -1516,30 +1516,15 @@ export default {
 .vpress-annotation__label {
   pointer-events: auto;
   font-weight: 600;
-  animation: vpress-annotation-in 200ms ease-out both;
 }
 
-.vpress-annotation__rule,
-.vpress-annotation__leader,
-.vpress-annotation__dot,
-.vpress-annotation__band {
-  animation: vpress-annotation-in 200ms ease-out both;
-}
-
-@keyframes vpress-annotation-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vpress-annotation__label,
-  .vpress-annotation__rule,
-  .vpress-annotation__leader,
-  .vpress-annotation__dot,
-  .vpress-annotation__band {
-    animation: none;
-  }
-}
+/* Annotations are drawn with NO motion, which is why nothing here needs a
+   prefers-reduced-motion carve-out. A fade-in was tried and removed: the
+   figure flips aria-busy="false" in the same tick as the draw, so anything
+   that waits for that signal and then measures or screenshots — a visual
+   regression test, a PNG export — caught the annotations at whatever opacity
+   the animation had reached (measured: 0.14). A 200ms flourish is not worth
+   an artefact that only shows up in the artefact. */
 
 /* Keyboard focus on an annotation label, like a data mark. */
 .vpress-annotation__label:focus {
