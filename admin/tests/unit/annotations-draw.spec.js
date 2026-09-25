@@ -4,6 +4,7 @@ import {
   ANNOTATIONS_CLASS,
   drawAnnotations,
   annotationColor,
+  annotationSeq,
   nextAnnotationId,
   createAnnotation,
   annotationPositionKeys
@@ -345,24 +346,46 @@ describe('the annotation model', () => {
     expect(annotationPositionKeys('text')).toEqual(['x', 'y']);
   });
 
-  it('issues an id above every one in use', () => {
-    expect(nextAnnotationId([])).toBe('a1');
-    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }])).toBe('a3');
-    expect(nextAnnotationId([{ id: 'a9' }, { id: 'a2' }])).toBe('a10');
-    // A hand-written id carries no number, so it cannot drive the counter.
-    expect(nextAnnotationId([{ id: 'meta-anual' }])).toBe('a1');
+  it('is the highest id ever issued, not the highest still present', () => {
+    expect(annotationSeq([], 0)).toBe(0);
+    expect(annotationSeq([{ id: 'a1' }, { id: 'a2' }], 2)).toBe(2);
+    // a3..a7 were issued and deleted; the counter remembers them.
+    expect(annotationSeq([{ id: 'a1' }, { id: 'a2' }], 7)).toBe(7);
   });
 
-  it('never hands back an id a deleted annotation used, given the floor', () => {
-    const after = nextAnnotationId([{ id: 'a1' }, { id: 'a2' }]); // a3
-    // a3 created, then deleted: max+1 alone would hand a3 straight back.
-    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }])).toBe(after);
-    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }], 4)).toBe('a4');
+  it('floors a counter up to the truth rather than trusting it down', () => {
+    const annotations = [{ id: 'a1' }, { id: 'a9' }];
+    // Trusting a low counter would reissue a9 and rebind a story step to it.
+    expect(annotationSeq(annotations, 2)).toBe(9);
+    expect(annotationSeq(annotations, 0)).toBe(9);
+    expect(annotationSeq(annotations, -40)).toBe(9);
+    expect(annotationSeq(annotations, 'nueve')).toBe(9);
+    expect(annotationSeq(annotations, undefined)).toBe(9);
+    expect(annotationSeq(annotations, null)).toBe(9);
+  });
+
+  it('derives a legacy config counter from the ids present', () => {
+    // Saved before the counter existed: ids, no annotationSeq.
+    expect(annotationSeq([{ id: 'a1' }, { id: 'a2' }, { id: 'a3' }], undefined)).toBe(3);
+    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }, { id: 'a3' }], undefined)).toBe('a4');
+  });
+
+  it('issues an id above the counter', () => {
+    expect(nextAnnotationId([], 0)).toBe('a1');
+    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }], 2)).toBe('a3');
+    // a3 was issued then deleted: the counter, not the survivors, decides.
+    expect(nextAnnotationId([{ id: 'a1' }, { id: 'a2' }], 3)).toBe('a4');
+  });
+
+  it('a hand-written id carries no number, so it cannot drive the counter', () => {
+    expect(annotationSeq([{ id: 'meta-anual' }], 0)).toBe(0);
+    expect(nextAnnotationId([{ id: 'meta-anual' }], 0)).toBe('a1');
+    expect(annotationSeq([{ id: 'meta-anual' }], 4)).toBe(4);
   });
 
   it('creates each type with a fresh id and placeable defaults', () => {
-    expect(createAnnotation('line', [])).toEqual({ id: 'a1', type: 'line', axis: 'y', value: 0, label: '' });
-    expect(createAnnotation('range', [{ id: 'a1' }])).toEqual({
+    expect(createAnnotation('line', [], 0)).toEqual({ id: 'a1', type: 'line', axis: 'y', value: 0, label: '' });
+    expect(createAnnotation('range', [{ id: 'a1' }], 1)).toEqual({
       id: 'a2',
       type: 'range',
       axis: 'x',
@@ -370,8 +393,8 @@ describe('the annotation model', () => {
       to: 0,
       label: ''
     });
-    expect(createAnnotation('point', [])).toEqual({ id: 'a1', type: 'point', x: 0, y: 0, label: '' });
-    expect(createAnnotation('text', [])).toEqual({ id: 'a1', type: 'text', x: 0, y: 0, label: '' });
-    expect(createAnnotation('wormhole', []).type).toBe('text');
+    expect(createAnnotation('point', [], 0)).toEqual({ id: 'a1', type: 'point', x: 0, y: 0, label: '' });
+    expect(createAnnotation('text', [], 0)).toEqual({ id: 'a1', type: 'text', x: 0, y: 0, label: '' });
+    expect(createAnnotation('wormhole', [], 0).type).toBe('text');
   });
 });

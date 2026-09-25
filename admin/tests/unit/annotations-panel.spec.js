@@ -18,7 +18,7 @@ import { useWorkspaceStore } from '../../src/store/workspace.js';
 import { ANNOTATION_MAX } from '../../src/charts/annotations.js';
 
 /** A live editor store with one chart on one dataset, as the editor has. */
-async function editorWith(annotations) {
+async function editorWith(annotations, seq) {
   const workspace = useWorkspaceStore();
   const dataset = await workspace.ADD_DATASET({
     id: 1, name: 'Ventas', slug: 'ventas', description: '', owner_id: 1,
@@ -28,15 +28,19 @@ async function editorWith(annotations) {
   const editor = useEditorStore();
   editor.LOAD_VIZZES({ vizValues: [] });
   if (annotations) {
-    editor.UPDATE_VIZ({ values: { ...editor.chart, annotations } });
+    const values = { ...editor.chart, annotations };
+    // undefined models a config saved before the counter existed.
+    if (seq === undefined) delete values.annotationSeq;
+    else values.annotationSeq = seq;
+    editor.UPDATE_VIZ({ values });
   }
   return editor;
 }
 
 let pinia;
 
-async function panel(annotations) {
-  const editor = await editorWith(annotations);
+async function panel(annotations, seq) {
+  const editor = await editorWith(annotations, seq);
   const wrapper = mount(VpressConfigAnnotations, {
     global: { plugins: [pinia, createVuetify({ components, directives })] }
   });
@@ -120,6 +124,69 @@ describe('the annotations editor panel', () => {
     await vm.addAnnotation('line');
 
     expect(editor.chart.annotations.map((a) => a.id)).toEqual(['a1', 'a3']);
+  });
+
+  it('still does not, across a reload — the counter is in the config', async () => {
+    const first = await panel([
+      { id: 'a1', type: 'line', axis: 'y', value: 1 },
+      { id: 'a2', type: 'line', axis: 'y', value: 2 }
+    ]);
+    await first.vm.removeAnnotation('a2');
+
+    // A reload: nothing survives but what was SAVED. Round-trip the config
+    // through the server's own sanitiser shape and start a fresh everything.
+    const saved = JSON.parse(JSON.stringify(first.editor.chart));
+    expect(saved.annotationSeq, 'the counter was persisted with the config').toBe(2);
+    first.wrapper.unmount();
+    pinia = createPinia();
+    setActivePinia(pinia);
+
+    const second = await panel(saved.annotations, saved.annotationSeq);
+    await second.vm.addAnnotation('line');
+
+    expect(second.editor.chart.annotations.map((a) => a.id)).toEqual(['a1', 'a3']);
+    expect(second.editor.chart.annotationSeq).toBe(3);
+  });
+
+  it('derives the counter for a chart saved before it existed', async () => {
+    // A legacy config: ids, no annotationSeq.
+    const { editor, vm } = await panel([
+      { id: 'a1', type: 'line', axis: 'y', value: 1 },
+      { id: 'a2', type: 'line', axis: 'y', value: 2 },
+      { id: 'a3', type: 'line', axis: 'y', value: 3 }
+    ]);
+    expect(vm.seq).toBe(0, 'nothing was stored');
+
+    await vm.addAnnotation('line');
+
+    expect(editor.chart.annotations.map((a) => a.id)).toEqual(['a1', 'a2', 'a3', 'a4']);
+    expect(editor.chart.annotationSeq).toBe(4);
+  });
+
+  it('floors a counter that is below the ids actually in use', async () => {
+    const { editor, vm } = await panel(
+      [{ id: 'a1', type: 'line', axis: 'y', value: 1 }, { id: 'a9', type: 'line', axis: 'y', value: 9 }],
+      2
+    );
+
+    await vm.addAnnotation('line');
+
+    expect(editor.chart.annotations.map((a) => a.id)).toEqual(['a1', 'a9', 'a10']);
+    expect(editor.chart.annotationSeq).toBe(10);
+  });
+
+  it('raises the counter on an add and leaves it alone on a delete', async () => {
+    const { editor, vm } = await panel([]);
+
+    await vm.addAnnotation('line');
+    expect(editor.chart.annotationSeq).toBe(1);
+    await vm.addAnnotation('line');
+    expect(editor.chart.annotationSeq).toBe(2);
+
+    await vm.removeAnnotation('a2');
+    expect(editor.chart.annotationSeq).toBe(2, 'a delete never lowers it');
+    await vm.removeAnnotation('a1');
+    expect(editor.chart.annotationSeq).toBe(2);
   });
 
   it('edits the label, the axis, the positions and the colour token', async () => {

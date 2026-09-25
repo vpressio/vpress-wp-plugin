@@ -177,6 +177,96 @@ final class ChartAnnotationsTest extends TestCase {
 
 	// --- the REST round-trip ------------------------------------------------
 
+	// --- the id counter (annotationSeq) -------------------------------------
+
+	public function test_the_counter_is_the_highest_id_ever_issued(): void {
+		$annotations = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ),
+			array( 'id' => 'a7', 'type' => 'line', 'axis' => 'y', 'value' => 2 ),
+			array( 'id' => 'a3', 'type' => 'line', 'axis' => 'y', 'value' => 3 ),
+		);
+
+		$this->assertSame( 7, vpress_annotation_seq( $annotations, 7 ) );
+		$this->assertSame( 12, vpress_annotation_seq( $annotations, 12 ), 'a counter above the survivors is the point: those ids were issued and deleted' );
+	}
+
+	public function test_a_legacy_config_derives_its_counter_from_the_ids_present(): void {
+		$config = VpressFixtures::chart_1_context();
+		// Saved before the counter existed: annotations, no annotationSeq.
+		$config['annotations'] = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ),
+			array( 'id' => 'a2', 'type' => 'line', 'axis' => 'y', 'value' => 2 ),
+			array( 'id' => 'a3', 'type' => 'line', 'axis' => 'y', 'value' => 3 ),
+		);
+		$this->assertArrayNotHasKey( VPRESS_ANNOTATION_SEQ, $config );
+
+		$stored = json_decode( vpress_sanitize_chart_value( json_encode( $config ) ), true );
+
+		$this->assertSame( 3, $stored[ VPRESS_ANNOTATION_SEQ ] );
+	}
+
+	public function test_a_tampered_counter_is_floored_up_never_trusted_down(): void {
+		$annotations = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ),
+			array( 'id' => 'a9', 'type' => 'line', 'axis' => 'y', 'value' => 2 ),
+		);
+
+		// Below the truth: trusting it would reissue a9 and rebind a story step.
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, 2 ) );
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, 0 ) );
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, -40 ) );
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, 'nueve' ) );
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, null ) );
+		$this->assertSame( 9, vpress_annotation_seq( $annotations, array( 99 ) ) );
+		$this->assertSame( 0, vpress_annotation_seq( array(), null ), 'a chart with no annotations starts at zero' );
+	}
+
+	public function test_a_hand_written_id_does_not_drive_the_counter(): void {
+		$annotations = array( array( 'id' => 'meta-anual', 'type' => 'line', 'axis' => 'y', 'value' => 1 ) );
+
+		$this->assertSame( 0, vpress_annotation_seq( $annotations, null ) );
+		$this->assertSame( 4, vpress_annotation_seq( $annotations, 4 ), 'but a real counter still wins' );
+	}
+
+	public function test_the_counter_survives_an_update_round_trip(): void {
+		$config = VpressFixtures::chart_1_context();
+		$config['annotations']            = array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ) );
+		$config[ VPRESS_ANNOTATION_SEQ ] = 8;
+
+		$request = new FakeRestRequest(
+			array( 'id' => '1', 'value' => json_encode( $config ), 'tags' => '', 'description' => '', 'permissions' => 'public' )
+		);
+		vpress_update_chart( $request );
+
+		$this->assertSame( 8, $this->stored_value()[ VPRESS_ANNOTATION_SEQ ], 'a1 is the only survivor, but a2..a8 were issued and must never come back' );
+	}
+
+	public function test_deleting_the_highest_annotation_does_not_lower_the_counter(): void {
+		// What the editor sends after deleting a3 from a1,a2,a3.
+		$config = VpressFixtures::chart_1_context();
+		$config['annotations']            = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ),
+			array( 'id' => 'a2', 'type' => 'line', 'axis' => 'y', 'value' => 2 ),
+		);
+		$config[ VPRESS_ANNOTATION_SEQ ] = 3;
+
+		$stored = json_decode( vpress_sanitize_chart_value( json_encode( $config ) ), true );
+
+		$this->assertSame( 3, $stored[ VPRESS_ANNOTATION_SEQ ] );
+		$this->assertSame( array( 'a1', 'a2' ), array_column( $stored['annotations'], 'id' ) );
+	}
+
+	public function test_a_counter_without_annotations_is_still_normalised(): void {
+		$config = VpressFixtures::chart_1_context();
+		$config[ VPRESS_ANNOTATION_SEQ ] = '5';
+
+		$stored = json_decode( vpress_sanitize_chart_value( json_encode( $config ) ), true );
+
+		$this->assertSame( 5, $stored[ VPRESS_ANNOTATION_SEQ ], 'a numeric string is cast, not stored as text' );
+		$this->assertSame( array(), $stored['annotations'] );
+	}
+
+
 	/** The config the admin saves: chart #1 plus the annotations given. */
 	private static function config_with( array $annotations ): string {
 		$config                = VpressFixtures::chart_1_context();
@@ -234,6 +324,50 @@ final class ChartAnnotationsTest extends TestCase {
 		$this->assertSame( self::valid_set(), $this->stored_value()['annotations'] );
 	}
 
+	public function test_a_client_cannot_lower_the_counter_by_deleting_the_annotation_that_carried_it(): void {
+		// On disk: a legacy config with a1..a3 and no counter at all.
+		$stored                = VpressFixtures::chart_1_context();
+		$stored['annotations'] = array(
+			array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 1 ),
+			array( 'id' => 'a2', 'type' => 'line', 'axis' => 'y', 'value' => 2 ),
+			array( 'id' => 'a3', 'type' => 'line', 'axis' => 'y', 'value' => 3 ),
+		);
+		$this->wpdb->on( '/^SELECT value FROM wp_vpresscore_charts WHERE id = 1$/', json_encode( $stored ) );
+
+		// A client that is not the editor deletes a3 and sends no counter.
+		$sent                = VpressFixtures::chart_1_context();
+		$sent['annotations'] = array_slice( $stored['annotations'], 0, 2 );
+		vpress_update_chart(
+			new FakeRestRequest( array( 'id' => '1', 'value' => json_encode( $sent ), 'tags' => '', 'description' => '', 'permissions' => 'public' ) )
+		);
+
+		$this->assertSame( 3, $this->stored_value()[ VPRESS_ANNOTATION_SEQ ], 'a3 was issued; the next add must not reuse it' );
+	}
+
+	public function test_the_stored_row_only_raises_the_counter_never_lowers_it(): void {
+		$stored = VpressFixtures::chart_1_context();
+		$stored['annotations']            = array();
+		$stored[ VPRESS_ANNOTATION_SEQ ] = 2;
+		$this->wpdb->on( '/^SELECT value FROM wp_vpresscore_charts WHERE id = 1$/', json_encode( $stored ) );
+
+		$sent                            = VpressFixtures::chart_1_context();
+		$sent['annotations']             = array( array( 'id' => 'a9', 'type' => 'line', 'axis' => 'y', 'value' => 9 ) );
+		$sent[ VPRESS_ANNOTATION_SEQ ]   = 9;
+		vpress_update_chart(
+			new FakeRestRequest( array( 'id' => '1', 'value' => json_encode( $sent ), 'tags' => '', 'description' => '', 'permissions' => 'public' ) )
+		);
+
+		$this->assertSame( 9, $this->stored_value()[ VPRESS_ANNOTATION_SEQ ] );
+	}
+
+	public function test_a_missing_or_unreadable_row_floors_at_nothing(): void {
+		$this->assertSame( 0, vpress_annotation_seq_from_value( null ) );
+		$this->assertSame( 0, vpress_annotation_seq_from_value( 'not json' ) );
+		$this->assertSame( 0, vpress_annotation_seq_from_value( '{"chart":"bars"}' ) );
+		$this->assertSame( 4, vpress_annotation_seq_from_value( '{"annotations":[],"annotationSeq":4}' ) );
+		$this->assertSame( 6, vpress_annotation_seq_from_value( '{"annotations":[{"id":"a6"}]}' ), 'derived from the ids when the row predates the counter' );
+	}
+
 	public function test_a_config_over_the_cap_is_rejected_and_nothing_is_written(): void {
 		$request = new FakeRestRequest(
 			array( 'id' => '1', 'value' => self::config_with( self::many( 21 ) ), 'tags' => '', 'description' => '', 'permissions' => 'public' )
@@ -265,8 +399,10 @@ final class ChartAnnotationsTest extends TestCase {
 			'xAxis'       => array( 'title' => 'estado', 'type' => 'ordinal', 'slug' => 'estado' ),
 			'source'      => 'https://datos.gob.mx/a.csv',
 			'annotations' => array( array( 'id' => 'a1', 'type' => 'line', 'axis' => 'y', 'value' => 500, 'label' => 'Meta anual' ) ),
+			VPRESS_ANNOTATION_SEQ => 1,
 		);
-		// What the admin's JSON.stringify() sends.
+		// What the admin's JSON.stringify() sends (ChartPreset declares both keys,
+		// in this order).
 		$sent = json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		$stored = vpress_sanitize_chart_value( $sent );
