@@ -1,15 +1,19 @@
 /**
  * blocks/chart/index.js under JSDOM with a stubbed `window.wp`.
  *
- * The script is plain (no build step), so it is evaluated as-is. A small
- * hooks renderer stands in for React: it expands function components, keeps
- * useState/useRef slots per component instance, runs effects when their deps
- * change, and materialises the tree into a real DOM container so refs point
- * at real elements (in the top document or in an iframe, like the editor canvas).
+ * The scripts are plain (no build step), so they are evaluated as-is — all
+ * three of them, in dependency order, because the chart block's list, picker
+ * and canvas-iframe embed loader live in blocks/shared/ and are declared in
+ * its index.asset.php. The hooks runtime that stands in for React is in
+ * blocks/shared/tests/editor-runtime.js.
  */
-// The script's source text (Vite ?raw), evaluated like WordPress prints it.
+// The scripts' source text (Vite ?raw), evaluated like WordPress prints them:
+// the shared helpers first, because each block declares them as dependencies.
+import EMBED_LOADER from '../../shared/embed-loader.js?raw';
+import CHART_PICKER from '../../shared/chart-picker.js?raw';
 import SOURCE from '../index.js?raw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createRuntime, find, stubComponent } from '../../shared/tests/editor-runtime.js';
 
 const CHARTS = [
   { id: '1', title: 'Ventas por estado', value: JSON.stringify({ chart: 'bars', subtitle: 'Suma 2026' }) },
@@ -17,139 +21,15 @@ const CHARTS = [
   { id: '3', title: '', value: '{}' }
 ];
 
-function stubComponent(name) {
-  const fn = () => null;
-  Object.defineProperty(fn, 'name', { value: name });
-  fn.isStub = true;
-  return fn;
-}
-
-/** Minimal React-ish runtime over plain element objects. */
-function createRuntime() {
-  const instances = new Map(); // path -> { hooks: [], effects: [] }
-  let current = null;
-  let dirty = false;
-  const seen = new Set();
-
-  const slot = (init) => {
-    const i = current.index++;
-    if (!(i in current.hooks)) current.hooks[i] = init();
-    return current.hooks[i];
-  };
-
-  const element = {
-    Fragment: 'fragment',
-    createElement(type, props, ...children) {
-      return { type, props: { ...(props || {}), children: children.flat() } };
-    },
-    useState(initial) {
-      const cell = slot(() => ({ value: typeof initial === 'function' ? initial() : initial }));
-      return [cell.value, (next) => {
-        cell.value = typeof next === 'function' ? next(cell.value) : next;
-        dirty = true;
-      }];
-    },
-    useRef(initial) {
-      return slot(() => ({ current: initial }));
-    },
-    useEffect(fn, deps) {
-      const cell = slot(() => ({ deps: undefined, cleanup: undefined, pending: null }));
-      const changed = !cell.deps || !deps || deps.length !== cell.deps.length || deps.some((d, i) => !Object.is(d, cell.deps[i]));
-      if (changed) {
-        cell.pending = fn;
-        cell.deps = deps;
-        current.effects.push(cell);
-      }
-    }
-  };
-
-  // Expand function components into host elements (strings / stubs).
-  function expand(node, path) {
-    if (node == null || node === false || typeof node === 'string' || typeof node === 'number') return node;
-    const key = node.props && node.props.key != null ? `k${node.props.key}` : '';
-    const here = `${path}/${key}`;
-    if (typeof node.type === 'function' && !node.type.isStub) {
-      const id = `${here}:${node.type.name}`;
-      seen.add(id);
-      if (!instances.has(id)) instances.set(id, { hooks: [], effects: [] });
-      const parent = current;
-      current = instances.get(id);
-      current.index = 0;
-      const out = node.type(node.props);
-      current = parent;
-      return expand(out, id);
-    }
-    return {
-      type: node.type,
-      props: { ...node.props, children: (node.props.children || []).map((c, i) => expand(c, `${here}.${i}`)) }
-    };
-  }
-
-  function materialize(node, doc) {
-    if (node == null || node === false) return null;
-    if (typeof node === 'string' || typeof node === 'number') return doc.createTextNode(String(node));
-    const tag = typeof node.type === 'string' && node.type !== 'fragment' ? node.type : 'div';
-    const dom = doc.createElement(tag);
-    if (typeof node.type === 'function') dom.setAttribute('data-stub', node.type.name);
-    if (node.type === 'fragment') dom.setAttribute('data-fragment', '');
-    for (const [name, value] of Object.entries(node.props)) {
-      if (name === 'children' || name === 'key' || value === undefined) continue;
-      if (name === 'ref') value.current = dom;
-      else if (name === 'className') dom.setAttribute('class', value);
-      else if (typeof value === 'string' || typeof value === 'number') dom.setAttribute(name, String(value));
-    }
-    for (const child of node.props.children || []) {
-      const c = materialize(child, doc);
-      if (c) dom.appendChild(c);
-    }
-    return dom;
-  }
-
-  async function render(root, container) {
-    let tree;
-    for (let pass = 0; pass < 20; pass++) {
-      dirty = false;
-      seen.clear();
-      current = null;
-      tree = expand(root, '');
-      // Unmount instances that left the tree.
-      for (const [id, inst] of instances) {
-        if (!seen.has(id)) {
-          inst.hooks.forEach((h) => h && typeof h.cleanup === 'function' && h.cleanup());
-          instances.delete(id);
-        }
-      }
-      container.replaceChildren(materialize(tree, container.ownerDocument));
-      for (const inst of instances.values()) {
-        const effects = inst.effects.splice(0);
-        for (const cell of effects) {
-          if (typeof cell.cleanup === 'function') cell.cleanup();
-          cell.cleanup = cell.pending();
-          cell.pending = null;
-        }
-      }
-      await new Promise((r) => setTimeout(r, 0));
-      if (!dirty) break;
-    }
-    return tree;
-  }
-
-  return { element, render };
-}
-
-function find(tree, predicate, out = []) {
-  if (!tree || typeof tree !== 'object') return out;
-  if (predicate(tree)) out.push(tree);
-  (tree.props.children || []).forEach((c) => find(c, predicate, out));
-  return out;
-}
-
 let wp;
 let runtime;
 let registered;
 let apiFetch;
 
+/** Evaluate the scripts WordPress prints for this block, in dependency order. */
 function loadScript() {
+  new Function(EMBED_LOADER)();
+  new Function(CHART_PICKER)();
   new Function(SOURCE)();
 }
 
@@ -197,6 +77,10 @@ afterEach(() => {
   delete window.wp;
   delete window.vpressBlock;
   delete window.vpress;
+  // The shared scripts guard against being printed twice, so each test has
+  // to start from nothing or it reuses the previous one's cached list request.
+  delete window.vpressBlockEmbed;
+  delete window.vpressBlockChart;
   document.head.innerHTML = '';
   document.body.innerHTML = '';
 });

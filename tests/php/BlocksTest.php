@@ -136,13 +136,57 @@ final class BlocksTest extends TestCase {
 		$this->assertSame( '', $this->render_block( array( 'chartId' => 1 ) ) );
 	}
 
-	public function test_register_registers_the_block_folder_and_localizes_the_editor_script(): void {
+	/** Calls to $fn, as recorded by the bootstrap's enqueue shims. */
+	private function calls_to( string $fn ): array {
+		return array_values(
+			array_map(
+				static fn( $call ) => $call[1],
+				array_filter( $GLOBALS['vpress_test_calls'], static fn( $call ) => $call[0] === $fn )
+			)
+		);
+	}
+
+	public function test_register_registers_every_block_folder_and_the_shared_scripts(): void {
 		Vpress_Blocks::register();
 
-		$calls = $GLOBALS['vpress_test_calls'];
-		$this->assertSame( array( 'register_block_type_from_metadata', array( VPRESS_PLUGIN_DIR . 'blocks/chart' ) ), $calls[0] );
-		$this->assertSame( 'wp_add_inline_script', $calls[1][0] );
-		list( $handle, $script, $position ) = $calls[1][1];
+		$registered = array_column( $this->calls_to( 'register_block_type_from_metadata' ), 0 );
+		$this->assertSame(
+			array(
+				VPRESS_PLUGIN_DIR . 'blocks/chart',
+				VPRESS_PLUGIN_DIR . 'blocks/story',
+				VPRESS_PLUGIN_DIR . 'blocks/story-step',
+			),
+			$registered,
+			'the parent story block registers before its child'
+		);
+
+		$scripts = $this->calls_to( 'wp_register_script' );
+		$this->assertSame(
+			array( 'vpress-block-embed-loader', 'vpress-block-chart-picker' ),
+			array_column( $scripts, 0 ),
+			'the shared editor scripts are registered before the blocks that depend on them'
+		);
+		$this->assertSame( 'http://example.test/wp-content/plugins/vpress/blocks/shared/embed-loader.js', $scripts[0][1] );
+		$this->assertSame( array(), $scripts[0][2] );
+		$this->assertSame( array( 'wp-api-fetch', 'wp-components', 'wp-element', 'wp-i18n' ), $scripts[1][2] );
+
+		// Every block declares the shared handles it uses, or its script runs
+		// before them and reads an undefined global.
+		foreach ( array( 'chart', 'story' ) as $folder ) {
+			$asset = require VPRESS_PLUGIN_DIR . 'blocks/' . $folder . '/index.asset.php';
+			$this->assertContains( 'vpress-block-embed-loader', $asset['dependencies'], $folder );
+			$this->assertContains( 'vpress-block-chart-picker', $asset['dependencies'], $folder );
+		}
+		$step = require VPRESS_PLUGIN_DIR . 'blocks/story-step/index.asset.php';
+		$this->assertContains( 'vpress-block-chart-picker', $step['dependencies'] );
+	}
+
+	public function test_register_localizes_the_editor_config_exactly_once(): void {
+		Vpress_Blocks::register();
+
+		$inline = $this->calls_to( 'wp_add_inline_script' );
+		$this->assertCount( 1, $inline, 'one assignment serves every block in the same editor' );
+		list( $handle, $script, $position ) = $inline[0];
 		$this->assertSame( 'vpress-chart-editor-script', $handle );
 		$this->assertSame( 'before', $position );
 		$this->assertStringStartsWith( 'window.vpressBlock = {', $script );
@@ -171,8 +215,28 @@ final class BlocksTest extends TestCase {
 		$this->assertSame( 'http://localhost:5180/src/embed/embed.css', $config['embedCss'] );
 	}
 
-	public function test_register_skips_the_inline_config_without_an_editor_script(): void {
-		$GLOBALS['vpress_test_editor_handles'] = array();
+	public function test_register_falls_through_to_the_next_block_without_an_editor_script(): void {
+		// The chart block registers with no editor handle; the config still has
+		// to reach the editor, on the next block that has one.
+		$GLOBALS['vpress_test_editor_handles'] = array(
+			'chart'      => array(),
+			'story'      => array( 'vpress-story-editor-script' ),
+			'story-step' => array( 'vpress-story-step-editor-script' ),
+		);
+
+		Vpress_Blocks::register();
+
+		$inline = $this->calls_to( 'wp_add_inline_script' );
+		$this->assertCount( 1, $inline );
+		$this->assertSame( 'vpress-story-editor-script', $inline[0][0] );
+	}
+
+	public function test_register_skips_the_inline_config_when_no_block_has_an_editor_script(): void {
+		$GLOBALS['vpress_test_editor_handles'] = array(
+			'chart'      => array(),
+			'story'      => array(),
+			'story-step' => array(),
+		);
 
 		Vpress_Blocks::register();
 

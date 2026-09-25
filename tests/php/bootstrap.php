@@ -387,8 +387,22 @@ define( 'VPRESS_PLUGIN_DIR', dirname( __DIR__, 2 ) . '/' );
 /** What get_block_wrapper_attributes() returns for the block being rendered. */
 $GLOBALS['vpress_test_wrapper'] = 'class="wp-block-vpress-chart"';
 
-/** Editor script handles register_block_type_from_metadata() reports. */
-$GLOBALS['vpress_test_editor_handles'] = array( 'vpress-chart-editor-script' );
+/**
+ * Editor script handles register_block_type_from_metadata() reports, keyed by
+ * block folder. Null means "WordPress's own naming"; an array lets a test say
+ * a block registered without one (`array( 'chart' => array() )`).
+ */
+$GLOBALS['vpress_test_editor_handles'] = null;
+
+/** Core's rule: vpress/story-step -> vpress-story-step-editor-script. */
+function vpress_test_editor_handle( $folder ) {
+	if ( is_array( $GLOBALS['vpress_test_editor_handles'] ) ) {
+		return array_key_exists( $folder, $GLOBALS['vpress_test_editor_handles'] )
+			? (array) $GLOBALS['vpress_test_editor_handles'][ $folder ]
+			: array();
+	}
+	return array( 'vpress-' . $folder . '-editor-script' );
+}
 
 function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	return $GLOBALS['vpress_test_wrapper'];
@@ -396,10 +410,16 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	vpress_test_record( __FUNCTION__, func_get_args() );
+	$folder                       = basename( (string) $file_or_folder );
 	$block                        = new stdClass();
-	$block->name                  = 'vpress/chart';
-	$block->editor_script_handles = $GLOBALS['vpress_test_editor_handles'];
+	$block->name                  = 'vpress/' . $folder;
+	$block->editor_script_handles = vpress_test_editor_handle( $folder );
 	return $block;
+}
+
+function wp_register_script( $handle, $src = '', $deps = array(), $ver = false, $args = false ) {
+	vpress_test_record( __FUNCTION__, func_get_args() );
+	return true;
 }
 
 function wp_add_inline_script( $handle, $data, $position = 'after' ) {
@@ -441,6 +461,7 @@ require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-text.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-figure-source.php';
 require_once dirname( __DIR__, 2 ) . '/includes/vpress-shortcode.php';
+require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-story.php';
 require_once dirname( __DIR__, 2 ) . '/includes/class-vpress-blocks.php';
 if ( ! defined( 'KB_IN_BYTES' ) ) {
 	define( 'KB_IN_BYTES', 1024 );
@@ -527,6 +548,39 @@ function wp_strip_all_tags( $text ) {
 
 function sanitize_text_field( $str ) {
 	return trim( preg_replace( '/[\r\n\t ]+/', ' ', wp_strip_all_tags( (string) $str ) ) );
+}
+
+/**
+ * wp_kses_post(): a stand-in narrow enough to be useful in a test — keeps the
+ * inline formatting a RichText field produces, drops everything else with its
+ * attributes, and never lets an event handler or a javascript: URL through.
+ * The real thing is far more thorough; assertions here are about what the
+ * renderer asks for, not about re-testing WordPress.
+ */
+function wp_kses_post( $text ) {
+	$allowed = array( 'strong', 'b', 'em', 'i', 'a', 'br', 'code', 'sub', 'sup', 's', 'mark', 'span' );
+	$text    = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', (string) $text );
+	return preg_replace_callback(
+		'#<\s*(/?)\s*([a-zA-Z0-9]+)([^>]*)>#',
+		static function ( $match ) use ( $allowed ) {
+			$tag = strtolower( $match[2] );
+			if ( ! in_array( $tag, $allowed, true ) ) {
+				return '';
+			}
+			if ( '/' === $match[1] ) {
+				return '</' . $tag . '>';
+			}
+			$attributes = '';
+			if ( 'a' === $tag && preg_match( '#href\s*=\s*"([^"]*)"#i', $match[3], $href ) ) {
+				$url = trim( html_entity_decode( $href[1], ENT_QUOTES, 'UTF-8' ) );
+				if ( preg_match( '#^(https?:|mailto:|/|\#)#i', $url ) ) {
+					$attributes = ' href="' . esc_attr( $href[1] ) . '"';
+				}
+			}
+			return '<' . $tag . $attributes . '>';
+		},
+		$text
+	);
 }
 
 /** sanitize_textarea_field(): like sanitize_text_field() but keeps line breaks. */
