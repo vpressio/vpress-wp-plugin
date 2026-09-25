@@ -226,6 +226,33 @@ describe('the story controller', () => {
     expect(statusText()).toBe('');
   });
 
+  it('blanks the kicker when the reader scrolls BACK to a headingless first step', () => {
+    // Deference to the server's text belongs to the first activation only.
+    // Keyed on the step's index instead, this fires again on every return to
+    // step 0 — and vpress_story_first_heading() may have put a LATER step's
+    // heading there, so the kicker would caption the wrong step precisely
+    // when the reader came back to look at it.
+    story([
+      { heading: '', overrides: { show: [] } },
+      { heading: 'El pico de octubre', overrides: { show: ['a1'] } }
+    ]);
+    document.querySelector('[data-vpress-story-status]').textContent = 'El pico de octubre';
+    initStories(document, handleFor);
+    const steps = stepNodes();
+    expect(statusText()).toBe('El pico de octubre');
+
+    steps[1].getBoundingClientRect = () => ({ top: 450, bottom: 550 });
+    observers[0].fire([[steps[1], true]]);
+    expect(statusText()).toBe('El pico de octubre');
+
+    // Back up to the prose opening: it is active now, and it has no heading.
+    steps[0].getBoundingClientRect = () => ({ top: 450, bottom: 550 });
+    steps[1].getBoundingClientRect = () => ({ top: 900, bottom: 1000 });
+    observers[0].fire([[steps[0], true], [steps[1], true]]);
+
+    expect(statusText()).toBe('');
+  });
+
   it('describes the active step to the figure, in words, beside its own description', () => {
     story();
     initStories(document, handleFor);

@@ -158,6 +158,12 @@ function initStory(story, lookup) {
 
   function activate(index) {
     if (index < 0 || index >= steps.length || index === active) return;
+    // Before `active` is overwritten: the server's markup is only untouched
+    // while nothing has been activated yet. Scoping the deference below to
+    // "index 0" instead would fire again every time the reader scrolls back
+    // up to a headingless first step, leaving a heading from further down the
+    // story standing over it — the staleness this is here to prevent.
+    const firstActivation = active === -1;
     active = index;
     const step = steps[index];
     const overrides = overridesOf(step);
@@ -182,21 +188,22 @@ function initStory(story, lookup) {
      * The visible kicker and the polite announcement are the same node, so
      * both guards here are about not announcing what has not changed:
      *
-     * - The OPENING step, when it has no heading of its own, leaves the
-     *   region alone. vpress_story_first_heading() fills it server-side with
-     *   the first NON-EMPTY heading, so a story that opens on prose would
-     *   otherwise go blank the moment this file ran. Scoped to index 0 on
-     *   purpose: further in, a headingless step blanks the kicker as before,
-     *   because leaving the PREVIOUS step's heading standing over the current
-     *   one is a different and worse lie — and the figure description right
-     *   below already drops its "Paso n de N" clause for exactly this step.
+     * - The FIRST activation, when that step has no heading of its own,
+     *   leaves the region alone. vpress_story_first_heading() fills it
+     *   server-side with the first NON-EMPTY heading, so a story that opens
+     *   on prose would otherwise go blank the moment this file ran. Scoped to
+     *   the first activation and not to `index === 0`, because that step can
+     *   be activated again — a reader scrolling back up to it would then keep
+     *   a heading from further down the story standing over it. Every later
+     *   headingless step blanks the kicker, which is also what the figure
+     *   description right below does for that same step.
      * - An assignment that would not change the text is skipped. Writing the
      *   same string into a live region is still a mutation and some assistive
      *   tech reads it out, including at boot, over markup the server had
      *   already filled in correctly. Both sides are trimmed for this
      *   comparison — see vpress_story_first_heading().
      */
-    const keepServerHeading = index === 0 && !heading;
+    const keepServerHeading = firstActivation && !heading;
     if (status && !keepServerHeading && status.textContent !== heading) {
       status.textContent = heading;
     }
