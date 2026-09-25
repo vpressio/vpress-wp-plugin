@@ -48,11 +48,12 @@
 
 	/*
 	 * Mirrors vpress_story_chart_types() in PHP and STORY_CHART_TYPES in
-	 * admin/src/charts/story.js. All three are the list the chart container's
-	 * own config watcher accepts — it throws on anything else, which is why
-	 * `treemap` is absent although the figure can render one.
+	 * admin/src/charts/story.js, which carry the reasoning: `treemap` makes
+	 * the chart container's config watcher throw, and `map` passes it and
+	 * then draws nothing. Neither is offered, because an option that cannot
+	 * work is worse than a missing one.
 	 */
-	var CHART_TYPES = [ 'bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map' ];
+	var CHART_TYPES = [ 'bars', 'heatmap', 'spineplot', 'scatter', 'timeline' ];
 
 	// The preview mounts asynchronously; a step selected while it is still
 	// loading polls for it rather than silently doing nothing.

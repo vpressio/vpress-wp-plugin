@@ -45,12 +45,12 @@ export const ANIMATED_CLASS = 'vpress-story-animated';
 /**
  * Chart types a step may switch to.
  *
- * Mirrors vpress_story_chart_types() in includes/class-vpress-story.php, and
- * both are sourced from the same place: the `chartConfig` watcher in
- * vpress-chart-container.vue, which THROWS on anything outside this list.
- * `treemap` draws but cannot be switched to.
+ * Mirrors vpress_story_chart_types() in includes/class-vpress-story.php, which
+ * carries the reasoning. Short version: `treemap` makes the chart container's
+ * config watcher throw, and `map` passes it and then draws nothing, so
+ * neither is an option a step can actually take.
  */
-export const STORY_CHART_TYPES = ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map'];
+export const STORY_CHART_TYPES = ['bars', 'heatmap', 'spineplot', 'scatter', 'timeline'];
 
 const ID_PATTERN = /^[a-z0-9_-]{1,32}$/;
 

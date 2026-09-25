@@ -178,10 +178,23 @@ function initStory(story, lookup) {
       }
     }
 
-    // The visible kicker and the polite announcement are the same node: a
-    // live region that already has content announces only later changes, so
-    // it is never read out on load and always read out on a step change.
-    if (status) status.textContent = heading;
+    /*
+     * The visible kicker and the polite announcement are the same node, and
+     * both guards here are about not announcing what has not changed:
+     *
+     * - A step with no heading of its own LEAVES THE REGION ALONE rather
+     *   than blanking it. That is also what makes this agree with
+     *   vpress_story_first_heading(), which fills the region server-side
+     *   with the first NON-EMPTY heading — a story opening on a prose-only
+     *   step would otherwise go blank the moment this file ran.
+     * - An assignment that would not change the text is skipped. Writing
+     *   the same string into a live region is still a mutation and some
+     *   assistive tech reads it out, including at boot, over markup the
+     *   server had already filled in correctly.
+     */
+    if (status && heading && status.textContent !== heading) {
+      status.textContent = heading;
+    }
 
     if (description) {
       const labels = emphasisLabels(figure, overrides);

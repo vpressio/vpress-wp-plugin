@@ -195,11 +195,20 @@ final class StoryBlockTest extends TestCase {
 		);
 	}
 
-	public function test_an_unknown_chart_type_is_dropped_not_passed_through(): void {
+	public function test_a_chart_type_a_step_cannot_draw_is_dropped_not_passed_through(): void {
 		// treemap draws, but the chart container's config watcher THROWS on
 		// it, so a step that switched to one would be an uncaught exception.
 		$this->assertSame( array(), vpress_story_overrides( array( 'chartType' => 'treemap' ) ) );
+		// map passes that watcher and then draws nothing: its topojson 404s
+		// and Leaflet builds no scales that mean anything in data space.
+		$this->assertSame( array(), vpress_story_overrides( array( 'chartType' => 'map' ) ) );
 		$this->assertSame( array(), vpress_story_overrides( array( 'chartType' => 'sunburst' ) ) );
+
+		$this->assertSame(
+			array( 'bars', 'heatmap', 'spineplot', 'scatter', 'timeline' ),
+			vpress_story_chart_types(),
+			'every offered type has to be one a step can actually draw'
+		);
 		$this->assertSame( array( 'chartType' => 'bars' ), vpress_story_overrides( array( 'chartType' => 'bars' ) ) );
 	}
 

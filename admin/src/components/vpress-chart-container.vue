@@ -1661,6 +1661,36 @@ export default {
   opacity: 0.24;
 }
 
+/* Emphasis has to be visible on its OWN, not merely as the absence of muting
+   elsewhere: a step emphasising the only visible annotation — or an
+   annotation on the value axis, which by design dims no marks at all —
+   would otherwise change nothing on screen while the control said it had.
+
+   Weight and the signal colour, never motion (see the note below), and never
+   a mark's FILL: fill is what says which series a bar belongs to, so
+   repainting it to mean "this one" would make the chart contradict its own
+   legend. An outline painted under the fill says the same thing and leaves
+   the encoding alone. */
+.vpress-annotation--emphasis .vpress-annotation__rule,
+.vpress-annotation--emphasis .vpress-annotation__leader {
+  stroke-width: 2.5;
+}
+.vpress-annotation--emphasis .vpress-annotation__dot {
+  stroke-width: 3;
+}
+.vpress-annotation--emphasis .vpress-annotation__band {
+  fill-opacity: 0.22;
+}
+.vpress-annotation--emphasis .vpress-annotation__label {
+  font-weight: 800;
+}
+.vpress-mark--emphasis {
+  stroke: var(--vpress-annotation-signal, #b0173c);
+  stroke-width: 2;
+  /* Under the fill, so the outline reads as a rim rather than eating the bar. */
+  paint-order: stroke fill;
+}
+
 /* Transitions are OFF until .vpress-story-animated arrives, one frame after
    the first paint of a draw. That is not a nicety: the figure flips
    aria-busy="false" in the same tick as the draw, and anything measuring on

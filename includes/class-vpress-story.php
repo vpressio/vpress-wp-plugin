@@ -30,16 +30,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Chart types a story step may switch to.
  *
- * Deliberately NOT the seven types vpress_render_figure() knows: this is the
- * list `vpress-chart-container.vue`'s own `chartConfig` watcher accepts, and
- * that watcher THROWS on anything else. `treemap` renders fine on first draw
- * but cannot be switched to, so allowing it here would turn a story step into
- * an uncaught exception. Sourced from the code that has to survive it.
+ * Deliberately NOT the seven types vpress_render_figure() knows. Two are
+ * missing, for two different reasons, and both are about a step that cannot
+ * draw rather than a step nobody wants:
+ *
+ * - `treemap` renders fine on a first draw, but `vpress-chart-container.vue`'s
+ *   own `chartConfig` watcher THROWS on it, so switching to one would turn a
+ *   story step into an uncaught exception.
+ * - `map` passes that watcher and still draws nothing: it fetches
+ *   `/topojsons/mx_edos.json`, which 404s on this install, and a Leaflet map
+ *   builds no x/y scales that mean anything in data space anyway.
+ *
+ * An option that cannot work is worse than a missing one: the author picks
+ * it, the step goes blank, and nothing says why.
  *
  * @return string[]
  */
 function vpress_story_chart_types(): array {
-	return array( 'bars', 'heatmap', 'spineplot', 'scatter', 'timeline', 'map' );
+	return array( 'bars', 'heatmap', 'spineplot', 'scatter', 'timeline' );
 }
 
 /**

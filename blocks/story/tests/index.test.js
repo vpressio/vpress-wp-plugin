@@ -374,11 +374,13 @@ describe('vpress/story-step editor script', () => {
       'heatmap',
       'spineplot',
       'scatter',
-      'timeline',
-      'map'
+      'timeline'
     ]);
-    // treemap renders, but the chart container's config watcher throws on it.
+    // treemap makes the chart container's config watcher throw; map passes it
+    // and then draws nothing. An option that cannot work is worse than an
+    // absent one: the author picks it, the step goes blank, nothing says why.
     expect(select.props.options.some((o) => o.value === 'treemap')).toBe(false);
+    expect(select.props.options.some((o) => o.value === 'map')).toBe(false);
   });
 
   it('drops an emptied title override instead of storing a blank one', async () => {

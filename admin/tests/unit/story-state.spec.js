@@ -69,10 +69,12 @@ describe('normalizeStoryOverrides', () => {
     expect(normalizeStoryOverrides({ show: [] })).toEqual({ show: [] });
   });
 
-  it('drops a chart type the container would throw on', () => {
-    // treemap draws on first paint but the chartConfig watcher rejects it.
-    expect(STORY_CHART_TYPES).not.toContain('treemap');
+  it('drops a chart type a step cannot actually draw', () => {
+    // treemap draws on a first paint but the chartConfig watcher rejects it;
+    // map passes the watcher and then draws nothing at all.
+    expect(STORY_CHART_TYPES).toEqual(['bars', 'heatmap', 'spineplot', 'scatter', 'timeline']);
     expect(normalizeStoryOverrides({ chartType: 'treemap' })).toEqual({});
+    expect(normalizeStoryOverrides({ chartType: 'map' })).toEqual({});
     expect(normalizeStoryOverrides({ chartType: 'bars' })).toEqual({ chartType: 'bars' });
   });
 

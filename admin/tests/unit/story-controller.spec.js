@@ -177,6 +177,36 @@ describe('the story controller', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it('does not rewrite the live region at boot with what the server already put there', () => {
+    // Writing the same string into a live region is still a mutation, and some
+    // assistive tech reads it out — so the first step must not re-announce the
+    // heading the server had already rendered into it.
+    story();
+    const status = document.querySelector('[data-vpress-story-status]');
+    const spy = vi.spyOn(status, 'textContent', 'set');
+
+    initStories(document, handleFor);
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(statusText()).toBe('Todo el año');
+  });
+
+  it('leaves the live region alone for a step with no heading of its own', () => {
+    // A story that opens on prose. vpress_story_first_heading() fills the
+    // region server-side with the first NON-EMPTY heading, so a step without
+    // one must leave it standing: blanking it would disagree with the server
+    // and would announce nothing at the moment the reader arrives.
+    story([
+      { heading: '', overrides: { show: [] } },
+      { heading: 'El pico de octubre', overrides: { show: ['a1'] } }
+    ]);
+    document.querySelector('[data-vpress-story-status]').textContent = 'El pico de octubre';
+
+    initStories(document, handleFor);
+
+    expect(statusText()).toBe('El pico de octubre');
+  });
+
   it('describes the active step to the figure, in words, beside its own description', () => {
     story();
     initStories(document, handleFor);
