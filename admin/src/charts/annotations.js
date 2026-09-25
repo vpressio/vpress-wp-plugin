@@ -62,22 +62,44 @@ export function annotationHasAxis(type) {
   return type === 'line' || type === 'range';
 }
 
+/** Config key holding the highest annotation id number ever issued. */
+export const ANNOTATION_SEQ_KEY = 'annotationSeq';
+
 /**
- * The next free annotation id: `a` followed by an integer above every one
- * already used. Ids are never reused, so the floor may be raised past the
- * highest surviving annotation — deleting the last one must not hand its id
- * to the next one added, or a story step would silently rebind.
+ * The chart's annotation counter: the highest `a{n}` id ever issued.
+ *
+ * It lives in the chart config beside `annotations` rather than in an editing
+ * session, because the guarantee it carries has to survive a reload: delete
+ * the highest annotation, reload, add one, and a session-local counter would
+ * hand the deleted id straight back. A story step still pointing at that id
+ * would then emphasise different content, silently, with no error anywhere.
+ *
+ * Never decremented by a delete, and never trusted below the highest id
+ * actually present — a config hand-edited, tampered with, or saved before
+ * this key existed heals upward instead of colliding.
  *
  * @param {Array} annotations Current annotations.
- * @param {number} [floor] Lowest number this may issue.
+ * @param {number} [declared] The counter as the config carries it.
+ * @returns {number}
+ */
+export function annotationSeq(annotations, declared) {
+  const highest = (Array.isArray(annotations) ? annotations : []).reduce((max, annotation) => {
+    const match = /^a(\d+)$/.exec(String((annotation && annotation.id) || ''));
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  const carried = Number(declared);
+  return Math.max(highest, Number.isFinite(carried) ? Math.floor(carried) : 0);
+}
+
+/**
+ * The next annotation id for a chart at this counter.
+ *
+ * @param {Array} annotations Current annotations.
+ * @param {number} [declared] The counter as the config carries it.
  * @returns {string}
  */
-export function nextAnnotationId(annotations, floor = 1) {
-  const used = (Array.isArray(annotations) ? annotations : []).reduce((highest, annotation) => {
-    const match = /^a(\d+)$/.exec(String((annotation && annotation.id) || ''));
-    return match ? Math.max(highest, Number(match[1])) : highest;
-  }, 0);
-  return `a${Math.max(used + 1, floor)}`;
+export function nextAnnotationId(annotations, declared) {
+  return `a${annotationSeq(annotations, declared) + 1}`;
 }
 
 /**
@@ -90,12 +112,12 @@ export function nextAnnotationId(annotations, floor = 1) {
  *
  * @param {string} type One of ANNOTATION_TYPES.
  * @param {Array} annotations Current annotations (for the id).
- * @param {number} [floor] Lowest id number to issue.
+ * @param {number} [declared] The chart's annotation counter.
  * @returns {object}
  */
-export function createAnnotation(type, annotations, floor = 1) {
+export function createAnnotation(type, annotations, declared) {
   const kind = ANNOTATION_TYPES.includes(type) ? type : 'text';
-  const annotation = { id: nextAnnotationId(annotations, floor), type: kind };
+  const annotation = { id: nextAnnotationId(annotations, declared), type: kind };
   if (annotationHasAxis(kind)) {
     annotation.axis = kind === 'range' ? 'x' : 'y';
   }

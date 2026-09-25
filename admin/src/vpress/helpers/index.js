@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { remove } from 'lodash'
 import VpressError from './vpressError';
+import { ANNOTATION_SEQ_KEY, annotationSeq } from '../../charts/annotations.js';
 
 export const queryByChart =  (chartValues, { newValue, mergeType } ) => {
   try {
@@ -162,6 +163,8 @@ export const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
         return labelAxis(payload)
       case 'showLabelAxis':
         return showLabelAxis(payload)
+      case 'annotations':
+        return setAnnotations(payload)
       default:
         return setValue(payload)
     }
@@ -183,6 +186,28 @@ export const mergeChartVal =  (chartValues, { newValue, mutationType }) => {
 const setValue =  ({ chartValues, newValue, mutationType }) => {
   try {
     chartValues[mutationType] = newValue
+    return chartValues
+  } catch (error) {
+    throw new VpressError( null , error.message);
+  }
+}
+
+/**
+ * Annotations and their id counter are one write, because they are one fact:
+ * the counter records the highest id ever issued, so it is raised by an add
+ * and left alone by a delete. Deriving it here rather than trusting the panel
+ * means max() is the only rule, and max() cannot decrement.
+ */
+const setAnnotations = ({ chartValues, newValue }) => {
+  try {
+    // Floor against the annotations as they are BEFORE the write, not only
+    // after it. On a config saved before the counter existed the stored value
+    // is 0, so deleting the highest annotation would otherwise lower the
+    // counter to the survivors and hand that id straight back on the next add
+    // — the one case this whole key exists to prevent.
+    const carried = annotationSeq(chartValues.annotations, chartValues[ANNOTATION_SEQ_KEY])
+    chartValues.annotations = newValue
+    chartValues[ANNOTATION_SEQ_KEY] = annotationSeq(newValue, carried)
     return chartValues
   } catch (error) {
     throw new VpressError( null , error.message);

@@ -117,6 +117,7 @@ import {
   annotationColor,
   annotationHasAxis,
   annotationPositionKeys,
+  ANNOTATION_SEQ_KEY,
   createAnnotation
 } from '../charts/annotations.js'
 
@@ -165,11 +166,6 @@ export default {
         { value: 'muted', title: 'Tenue' },
         { value: 'series', title: 'Serie' }
       ],
-      // Ids are never reused, so the next one issued is tracked here rather
-      // than derived from the surviving annotations: deleting the last one
-      // must not hand its id back to the next annotation added, or a story
-      // step pointing at it would silently rebind to different content.
-      idFloor: 1
     }
   },
   computed: {
@@ -179,6 +175,14 @@ export default {
     },
     atCap() {
       return this.annotations.length >= ANNOTATION_MAX
+    },
+    /**
+     * The chart's annotation counter. It lives in the CONFIG, not here: the
+     * guarantee that an id is never reused has to survive a reload, and a
+     * counter held in this component would not.
+     */
+    seq() {
+      return this.editorStore.chart[ANNOTATION_SEQ_KEY]
     }
   },
   methods: {
@@ -192,29 +196,22 @@ export default {
     hasAxis: annotationHasAxis,
     positionKeys: annotationPositionKeys,
     colorOf: annotationColor,
-    /** Raise the floor past `id`, so that number is never issued again. */
-    retire(id) {
-      const match = /^a(\d+)$/.exec(String(id || ''))
-      if (match) this.idFloor = Math.max(this.idFloor, Number(match[1]) + 1)
-    },
     /**
      * Hand the whole array to the editor store, the way every other panel
      * writes config — never a mutation of the array in place, which would
-     * also mutate the shared preset default.
+     * also mutate the shared preset default. The store's `annotations`
+     * mutation raises the id counter in the same write.
      */
     commit(next) {
       return this.merge_value({ mutationType: 'annotations', value: next })
     },
     addAnnotation(type) {
       if (this.atCap) return null
-      const created = createAnnotation(type, this.annotations, this.idFloor)
-      this.retire(created.id)
-      return this.commit([...this.annotations, created])
+      return this.commit([...this.annotations, createAnnotation(type, this.annotations, this.seq)])
     },
     removeAnnotation(id) {
-      // The surviving annotations keep their ids: they are identity, not
-      // position, and a story references them by id.
-      this.retire(id)
+      // The survivors keep their ids — identity, not position — and the
+      // counter is not lowered, so the deleted id is never issued again.
       return this.commit(this.annotations.filter((annotation) => annotation.id !== id))
     },
     updateField(id, key, value) {

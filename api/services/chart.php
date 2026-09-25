@@ -166,6 +166,59 @@ function vpress_sanitize_annotations( $raw ) {
 	return $clean;
 }
 
+/** Config key holding the highest annotation id number ever issued. */
+const VPRESS_ANNOTATION_SEQ = 'annotationSeq';
+
+/**
+ * The chart's annotation counter: the highest `a{n}` id ever issued.
+ *
+ * Two properties make it worth storing rather than deriving on the fly:
+ *
+ * - It is **never decremented.** Deleting an annotation leaves it alone, so
+ *   the next one added cannot take the deleted id. A story step still holding
+ *   that id would otherwise rebind to different content with no error
+ *   anywhere — the exact failure a stable id exists to prevent.
+ * - It is **never trusted below the truth.** A config hand-edited in the
+ *   database, tampered with over REST, or saved before this key existed is
+ *   floored up to the highest id actually present, so it heals upward instead
+ *   of handing out an id that is already in use.
+ *
+ * @param array $annotations Sanitised annotations.
+ * @param mixed $raw         The counter as the client sent it, if any.
+ * @return int
+ */
+function vpress_annotation_seq( array $annotations, $raw ): int {
+	$highest = 0;
+	foreach ( $annotations as $annotation ) {
+		if ( preg_match( '/^a(\d+)$/D', (string) ( $annotation['id'] ?? '' ), $matches ) ) {
+			$highest = max( $highest, (int) $matches[1] );
+		}
+	}
+	$declared = is_numeric( $raw ) ? (int) $raw : 0;
+	return max( $highest, $declared );
+}
+
+/**
+ * The annotation counter a stored chart `value` implies.
+ *
+ * The server cannot see what the client deleted, so on an update it floors the
+ * incoming counter against the row already on disk. Without this, a client
+ * that is not the editor — a direct REST call, or a chart saved before the
+ * counter existed — could delete the highest annotation and have the next add
+ * reissue its id.
+ *
+ * @param mixed $value A stored chart config as JSON, or anything else.
+ * @return int 0 when there is nothing to read.
+ */
+function vpress_annotation_seq_from_value( $value ): int {
+	$config = is_string( $value ) ? json_decode( $value, true ) : null;
+	if ( ! is_array( $config ) ) {
+		return 0;
+	}
+	$annotations = is_array( $config['annotations'] ?? null ) ? $config['annotations'] : array();
+	return vpress_annotation_seq( $annotations, $config[ VPRESS_ANNOTATION_SEQ ] ?? null );
+}
+
 /**
  * The chart `value` a write route should store: unchanged unless it carries
  * an `annotations` key, in which case that key is sanitised in place.
@@ -174,22 +227,33 @@ function vpress_sanitize_annotations( $raw ) {
  * so this can never reformat a config it does not understand.
  *
  * @param mixed $value Raw `value` param (the config as a JSON string).
+ * @param int   $seq_floor Lowest the annotation counter may be — on an update,
+ *                         what the row on disk already implies.
  * @return mixed|WP_Error The value to store.
  */
-function vpress_sanitize_chart_value( $value ) {
+function vpress_sanitize_chart_value( $value, int $seq_floor = 0 ) {
 	if ( ! is_string( $value ) ) {
 		return $value;
 	}
 	$config = json_decode( $value, true );
-	if ( ! is_array( $config ) || ! array_key_exists( 'annotations', $config ) ) {
+	$carries = is_array( $config )
+		&& ( array_key_exists( 'annotations', $config ) || array_key_exists( VPRESS_ANNOTATION_SEQ, $config ) );
+	if ( ! $carries ) {
 		return $value;
 	}
 
-	$annotations = vpress_sanitize_annotations( $config['annotations'] );
+	$annotations = vpress_sanitize_annotations( $config['annotations'] ?? array() );
 	if ( is_wp_error( $annotations ) ) {
 		return $annotations;
 	}
 	$config['annotations'] = $annotations;
+	// The counter is part of the model, not a client hint: it is stored so that
+	// a later session issues ids above every one ever used, rather than above
+	// the ones that happen to have survived.
+	$config[ VPRESS_ANNOTATION_SEQ ] = max(
+		$seq_floor,
+		vpress_annotation_seq( $annotations, $config[ VPRESS_ANNOTATION_SEQ ] ?? null )
+	);
 
 	// Match what the admin's JSON.stringify() produces, so re-encoding an
 	// annotated config does not silently rewrite the whole row: escaped
@@ -756,8 +820,11 @@ function vpress_update_chart( $request ) {
     $id = (int)$request->get_param('id');
     $value = $request->get_param('value');
     // Editorial annotations ride inside the config JSON; sanitise them
-    // before the row is written, and refuse a config over the cap.
-    $value = vpress_sanitize_chart_value( $value );
+    // before the row is written, and refuse a config over the cap. The
+    // annotation counter is floored against the row already on disk, so no
+    // client can lower it by deleting the annotation that carried it.
+    $stored = $wpdb->get_var( $wpdb->prepare( "SELECT value FROM $table_name WHERE id = %d", $id ) );
+    $value = vpress_sanitize_chart_value( $value, vpress_annotation_seq_from_value( $stored ) );
     if ( is_wp_error( $value ) ) {
       return $value;
     }
