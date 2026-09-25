@@ -82,7 +82,8 @@
 
 /* Text alternative: read by screen readers, not shown. Themes usually ship
    .screen-reader-text too; this keeps the figure right where they do not. */
-.vpress-figure__alt.screen-reader-text {
+.vpress-figure__alt.screen-reader-text,
+.vpress-story__figure-desc.screen-reader-text {
   position: absolute !important;
   width: 1px;
   height: 1px;
@@ -185,4 +186,121 @@
 .vpress-chart-page__footer a {
   color: inherit;
   text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Vpress story (blocks/story) — one chart that stays put while the reader
+   scrolls through steps. The layout is CSS only, so the page still reads with
+   scripting off: the figure is simply in its place at the top of the section
+   and every step's prose follows, in document order.
+
+   The figure is FIRST in the DOM and first in the grid, so reading order,
+   tab order and visual order are the same one. The approved prototype puts
+   the prose on the left; it also has no keyboard order to contradict.
+   --------------------------------------------------------------------------- */
+.vpress-story {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 3.5rem;
+  /* The sticky column can only travel inside its grid area, and the area is
+     only taller than the figure when the row is not stretched to match. */
+  align-items: start;
+  margin: 1.5em 0;
+}
+
+.vpress-story__figure {
+  position: sticky;
+  top: 6rem;
+}
+
+.vpress-story__figure .vpress-figure {
+  margin: 0;
+}
+
+/* The active step's heading, above the chart: the visible kicker and the
+   polite live region are the same element. */
+.vpress-story__now {
+  margin: 0 0 0.5em;
+  font-size: 0.8125em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 1.2em;
+}
+
+.vpress-story__now:empty {
+  margin-bottom: 0;
+}
+
+.vpress-story__steps {
+  display: flex;
+  flex-direction: column;
+  /* Tall gaps are what gives each step its turn in the middle of the
+     viewport; they collapse with the sticky figure on narrow screens. */
+  gap: 46vh;
+  padding-block: 10vh 24vh;
+}
+
+.vpress-story__step {
+  border-left: 2px solid rgba(127, 127, 127, 0.35);
+  padding-left: 1.25em;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.vpress-story__step.is-active {
+  opacity: 1;
+  border-left-color: currentColor;
+}
+
+.vpress-story__heading {
+  margin: 0 0 0.35em;
+  font-size: 1.25em;
+  line-height: 1.2;
+}
+
+.vpress-story__text {
+  margin: 0;
+}
+
+.vpress-story__text > :first-child {
+  margin-top: 0;
+}
+
+.vpress-story__text > :last-child {
+  margin-bottom: 0;
+}
+
+/* One column: the figure stops being sticky and simply precedes the prose,
+   which is the same order the markup is already in. */
+@media (max-width: 880px) {
+  .vpress-story {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .vpress-story__figure {
+    position: static;
+  }
+
+  .vpress-story__steps {
+    gap: 1.5rem;
+    padding-block: 1.5rem 0;
+  }
+}
+
+/* Until the controller has wired this story — which with scripting off is
+   forever — NO step is the active one, so none of them may be dimmed. The
+   attribute is set by admin/src/story.js in the same task as the first
+   activation, so there is no flash of half-lit prose either. This is the
+   rule that keeps "every step's prose is present" from quietly becoming
+   "present at 45% opacity". */
+.vpress-story:not([data-vpress-story-ready]) .vpress-story__step {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vpress-story__step {
+    transition: none;
+  }
 }
